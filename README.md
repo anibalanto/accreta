@@ -350,6 +350,7 @@ BMAD agents (PM, Architect, PO, SM, Dev) connect as Agent Actors via MCP. They p
 - Connects to workspace via iroh as CRDT peer
 - Proposes Iterations and emits Opinions with `agent_meta`
 - Human governance layer: votes, consensus resolution
+- `bilinker watch`: detects drift in linked files and emits events to trigger Iterations
 
 ### Phase 2 — Agent Network (6–8 weeks)
 - Full BMAD agent roster as unikernel actors
