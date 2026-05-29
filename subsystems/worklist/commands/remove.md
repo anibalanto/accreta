@@ -5,12 +5,12 @@ Elimina un item de worklist cuando ya no aplica.
 ## Uso
 
 ```
-worklist remove <prefix>
+worklist remove <id>
 ```
 
 ## Comportamiento
 
-1. Resuelve el item por prefijo.
+1. Resuelve el item por ID.
 2. Si el item tiene hijos, pide confirmación explícita (o requiere `--force`).
 3. Elimina el archivo y la carpeta homónima si existe.
 4. Si el item tiene un `source_bilink`, pregunta si también eliminar ese bilink
@@ -33,11 +33,11 @@ eliminado, o el item fue creado por error. No es un substituto de `worklist done
 ## Salida
 
 ```
-removed: 7f3d8e9a  Implementar método vote
+removed: 3  Implementar método vote
 bilink b2c3d4e5 kept (use --remove-bilink to delete it)
 ```
 
 ## Exit codes
 
 - `0`: item eliminado
-- `1`: prefijo no encontrado, ambiguo, o tiene hijos sin `--force`
+- `1`: ID no encontrado o tiene hijos sin `--force`
