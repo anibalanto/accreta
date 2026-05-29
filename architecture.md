@@ -2,24 +2,22 @@
 
 ## Nodo Accreta
 
-```
-                    Accreta Node
-    ┌───────────────────────────────────────┐
-    │  Agent Runtime      Human UI          │
-    │  hermit-rs unikernel  BlockNote+Tauri │
-    │         ↓                ↓            │
-    │       CRDT Layer — Loro               │
-    │         ↓                             │
-    │  Governance Engine                    │
-    │  consenso · votos · capas             │
-    │         ↓                             │
-    │  P2P Transport — iroh / QUIC          │
-    └───────────────┬───────────────────────┘
-                    │
-          ┌─────────┼─────────┐
-         Git      NEAR      Solana
-      contenido  identidad   PoH
-      Merkle DAG gobernanza  timestamps
+```mermaid
+graph TB
+    subgraph Node["Accreta Node"]
+        AR["Agent Runtime\nhermit-rs unikernel"]
+        HU["Human UI\nBlockNote + Tauri"]
+        CR["CRDT Layer — Loro"]
+        GE["Governance Engine\nconsenso · votos · capas"]
+        PT["P2P Transport — iroh / QUIC"]
+        AR --> CR
+        HU --> CR
+        CR --> GE
+        GE --> PT
+    end
+    PT --> Git["Git\ncontenido · Merkle DAG"]
+    PT --> NEAR["NEAR\nidentidad · gobernanza"]
+    PT --> Solana["Solana\nPoH · timestamps"]
 ```
 
 ## Stack tecnológico

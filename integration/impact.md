@@ -5,13 +5,13 @@ capas, genera los artefactos que disparan Iterations y discusiones.
 
 ## Flujo
 
-```
-bilinker check  →  ALTERED en fragmento linkedeado
-impact scan     →  Impact Report con commits intercedidos
-impact thread   →  hilo de discusión
-                →  agentes de Accreta analizan el impacto
-                →  Iteration propuesta sobre la spec afectada
-                →  consenso → Iteration aceptada
+```mermaid
+flowchart LR
+    A[bilinker check] -->|ALTERED| B[impact scan]
+    B -->|Impact Report| C[impact thread]
+    C --> D[agentes analizan]
+    D --> E[Iteration propuesta]
+    E -->|consenso| F([Iteration aceptada])
 ```
 
 ## Impact Reports como evidencia

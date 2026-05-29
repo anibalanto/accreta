@@ -50,19 +50,18 @@ Worklist vive en un repositorio git central. Crear un ítem requiere
 conectividad: el cliente empuja una solicitud al servidor y hace fetch para
 recibir el ítem con su ID asignado.
 
-```
-cliente                          servidor worklist (git)
-──────                           ───────────────────────
-worklist new task "título"
-  → push solicitud a .pending/
-                                 hook: asigna next ID base-36
-                                 crea  <id>.task
-                                 actualiza <bilink-uuid>.tasks  (si hay bilink)
-                                 elimina .pending/<tmp>
-                                 commit "task <id>: título"
-git fetch worklist
-  ← <id>.task
-  ← <bilink-uuid>.tasks
+```mermaid
+sequenceDiagram
+    participant C as cliente
+    participant S as servidor worklist (git)
+    C->>S: push solicitud a .pending/
+    S->>S: asigna next ID base-36
+    S->>S: crea &lt;id&gt;.task
+    S->>S: actualiza &lt;bilink-uuid&gt;.tasks
+    S->>S: commit "task &lt;id&gt;: título"
+    C->>S: git fetch worklist
+    S-->>C: &lt;id&gt;.task
+    S-->>C: &lt;bilink-uuid&gt;.tasks
 ```
 
 El historial de git del servidor es el log canónico de todos los ítems creados,
@@ -89,10 +88,9 @@ de archivo — O(1). Leer los IDs de las tasks es O(1).
 Cada ítem nace linkedeado al fragmento que lo origina, en cualquier capa o repo
 del ecosistema. `worklist new` crea el ítem y el bilink en un solo paso:
 
-```
-accreta/.stratum/worklist/<id>.task
-    ↕ bilink (creado por worklist new)
-bilinker/specific/bilink-format.md:fragmento   (puede estar en cualquier repo)
+```mermaid
+flowchart LR
+    T["worklist/&lt;id&gt;.task"] <-->|bilink| F["fragmento\ncualquier repo · capa"]
 ```
 
 El selector se resuelve desde el directorio actual en la terminal — no hace falta

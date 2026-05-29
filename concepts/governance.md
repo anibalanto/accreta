@@ -5,15 +5,15 @@ no hay objeción sustanciada sin resolver tras un período de discusión.
 
 ## Ciclo de vida de una Iteration
 
-```
-Propuesta
-  → análisis automático de agentes (impacto, inconsistencias, gaps)
-  → Discusión abierta (humanos + agentes)
-  → Consenso solicitado (por cualquier actor L1–L3)
-  → Período de objeción (24h / 48h / 72h, configurable)
-  → ¿Objeción sustanciada?
-      No  → Aceptada
-      Sí  → vuelve a Discusión
+```mermaid
+flowchart TD
+    A([Propuesta]) --> B[Análisis automático de agentes]
+    B --> C[Discusión abierta\nhumanos + agentes]
+    C --> D[Consenso solicitado\npor cualquier actor L1–L3]
+    D --> E[Período de objeción\n24h / 48h / 72h]
+    E --> F{¿Objeción sustanciada?}
+    F -->|No| G([Aceptada])
+    F -->|Sí| C
 ```
 
 ## Iteration aceptada → commit git

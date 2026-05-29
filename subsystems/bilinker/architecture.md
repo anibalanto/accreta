@@ -23,8 +23,12 @@ El mismo UUID aparece en todas las layers que participan de una cadena.
 
 ## Topología de cadena
 
-```
-[fragmento A] ←→ tip-A ←→ mid* ←→ tip-B ←→ [fragmento B]
+```mermaid
+flowchart LR
+    FA["fragmento A"] <--> TA["tip-A"]
+    TA <--> M["mid *"]
+    M <--> TB["tip-B"]
+    TB <--> FB["fragmento B"]
 ```
 
 | Tipo | Endpoint 0 | Endpoint 1 |
@@ -36,15 +40,11 @@ La cadena es estrictamente lineal — sin ciclos ni bifurcaciones.
 
 ## Ciclo check → accept → apply
 
-```
-bilinker check .    → compara hash actual contra hash.N / commit.N
-                    → actualiza state.N, range.N, resolved_at
-                    → genera .fix para estados auto-reparables
-
-bilinker accept     → agrega (hash, commit) a hash.N / commit.N
-                    → dispara CHAIN_DIRTY en nodos adyacentes
-
-bilinker apply      → aplica .fix pendientes como commit git
+```mermaid
+flowchart LR
+    A[bilinker check] -->|"state.N · range.N\n.fix staging"| B[bilinker accept]
+    B -->|"hash.N · commit.N\nCHAIN_DIRTY"| C[bilinker apply]
+    C -->|commit git| D([resuelto])
 ```
 
 `check` nunca modifica `hash.N` ni `commit.N`. Solo `bilinker accept` los establece.
@@ -55,11 +55,11 @@ Cada nodo ancla en `hash.N` el SHA-256 del `.bilink` adyacente. Cuando
 un nodo cambia de estado, su archivo `.bilink` cambia, su hash cambia, y el
 nodo vecino detecta CHAIN_DIRTY en el próximo `check`:
 
-```
-fragmento B cambia
-  → tip-B: hash ≠ hash.1 → ALTERED   → archivo tip-B cambia
-  → mid:   hash(tip-B) ≠ hash.1 → CHAIN_DIRTY → archivo mid cambia
-  → tip-A: hash(mid) ≠ hash.1 → CHAIN_DIRTY
+```mermaid
+flowchart TD
+    B(["fragmento B cambia"]) --> TB["tip-B\nhash ≠ hash.1 → ALTERED\narchivo tip-B cambia"]
+    TB --> M["mid\nhash&#40;tip-B&#41; ≠ hash.1 → CHAIN_DIRTY\narchivo mid cambia"]
+    M --> TA["tip-A\nhash&#40;mid&#41; ≠ hash.1 → CHAIN_DIRTY"]
 ```
 
 Ningún nodo puede cambiar su estado aceptado sin que los nodos adyacentes

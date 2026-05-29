@@ -16,8 +16,13 @@ su identificador de cadena y el nombre de su archivo `.bilink`.
 
 ## Topología
 
-```
-[fragmento A] ←→ tip-A ←→ mid₁ ←→ mid₂ ←→ ... ←→ tip-B ←→ [fragmento B]
+```mermaid
+flowchart LR
+    FA["fragmento A"] <--> TA["tip-A"]
+    TA <--> M1["mid₁"]
+    M1 <--> M2["mid₂"]
+    M2 <--> TB["tip-B"]
+    TB <--> FB["fragmento B"]
 ```
 
 | Tipo de nodo | Endpoint 0 | Endpoint 1 | Posición en cadena |
@@ -52,11 +57,11 @@ El mecanismo de propagación está integrado en el formato del archivo:
 
 **Flujo de propagación cuando un fragmento cambia:**
 
-```
-fragmento B cambia
-  → tip-B: hash ≠ hash.1 → state.1 = ALTERED  → archivo tip-B cambia
-  → mid: hash(tip-B) ≠ hash.1 → state.1 = CHAIN_DIRTY → archivo mid cambia
-  → tip-A: hash(mid) ≠ hash.1 → state.1 = CHAIN_DIRTY
+```mermaid
+flowchart TD
+    B(["fragmento B cambia"]) --> TB["tip-B\nstate.1 = ALTERED\narchivo tip-B cambia"]
+    TB --> M["mid\nstate.1 = CHAIN_DIRTY\narchivo mid cambia"]
+    M --> TA["tip-A\nstate.1 = CHAIN_DIRTY"]
 ```
 
 No se requiere índice externo para la propagación — la cadena es autosuficiente.
