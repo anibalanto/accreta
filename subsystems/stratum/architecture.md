@@ -9,15 +9,18 @@ accreta/                             (git — specs Accreta)
     overview.md
     concepts/
     .stratum/
+      .impl.toml                    ← config: cómo obtener impl
       impl/                         (git — implementación)
   bilinker/                         (git — specs Bilinker)
     overview.md
     concepts/
     commands/
     .stratum/
-      tech-decisions/               (git — ADRs)
+      .technical-decisions.toml     ← config: cómo obtener tech-decisions
+      technical-decisions/          (git — ADRs)
         adr/
         .stratum/
+          .impl.toml                ← config: cómo obtener impl
           impl/                     (git — código Rust)
             crates/
 ```
