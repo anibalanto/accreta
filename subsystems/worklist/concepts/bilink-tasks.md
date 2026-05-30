@@ -1,50 +1,57 @@
-# Archivo `.tasks` por bilink
+# Asociación tarea ↔ bilink
 
-Un bilink puede tener cero, una o múltiples tasks asociadas. La asociación se registra en un archivo `<bilink-uuid>.tasks` en la raíz del worklist.
-
-## Ubicación y nombre
-
-```
-accreta/.stratum/worklist/
-  7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.tasks   ← tasks del bilink con ese UUID
-  1.task
-  2.task
-  ...
-```
-
-El nombre del archivo es el UUID del bilink — el mismo UUID que identifica al bilink en el sistema bilinker. La extensión `.tasks` lo distingue de los ítems.
+La relación entre una tarea del worklist y un bilink estructural se declara mediante un **bilink de tarea** — un bilink separado que conecta ambos extremos.
 
 ## Formato
 
-Una línea por task ID (base-36):
-
 ```
-3
-1a
-2f
+# .bilink/<uuid>.bilink   (vive en la capa donde se ejecuta la tarea)
+link.0: .bilink/<uuid-estructural>.bilink   ← bilink estructural como archivo
+link.1: task 3a                             ← ítem del worklist
 ```
 
-## Creación y mantenimiento
+`link.0` apunta al archivo `.bilink` del bilink estructural (tratado como endpoint estructural — se hashea su contenido). `link.1` apunta al ítem `3a` en `<project-root>/.stratum/worklist/3a.task`.
 
-El servidor worklist crea o actualiza el archivo `.tasks` automáticamente cuando se crea una task con `worklist new capture <selector>`. El cliente nunca escribe este archivo directamente.
+`bilinker check` detecta cambios en ambos extremos:
+- Si el bilink estructural fue re-aceptado con nuevo hash → `state.0: ALTERED`
+- Si el contenido de la tarea cambió → `state.1: ALTERED`
 
-## Lookup O(1)
+## Ciclo de vida
 
-La relación bilink → tasks es una comprobación de existencia de archivo:
+### Creación
 
-- **¿Tiene este bilink tasks?** → comprobar si `<uuid>.tasks` existe
-- **¿Cuáles son?** → leer el archivo, una línea por ID
-- **¿Dónde vive la task `3`?** → `3.task` (o dentro de una carpeta padre)
+```bash
+worklist new task "implementar vote en Persona" capture specs/voting.yaml:104:1
+```
 
-No hay scan, no hay índice adicional.
+Crea:
+- `.bilink/<uuid-task-bilink>.bilink` con `link.0: .bilink/<uuid-struct>.bilink` y `link.1: task <id>`
+- `worklist/<id>.task`
 
-## Relación inversa
+### Completar
 
-Cada ítem `.task` tiene `source_bilink: <uuid>` en su frontmatter — la relación inversa (task → bilink) también es O(1).
+```bash
+worklist done 3a
+```
+
+Marca la tarea `done`. El bilink de tarea permanece como registro histórico de que la tarea 3a estaba asociada al bilink estructural.
+
+## Tareas con subtareas en subcapas
+
+Una tarea puede vivir en una capa y sus subtareas en subcapas. Cada nivel tiene su propio bilink de tarea apuntando al bilink estructural relevante en esa capa:
+
+```
+# spec layer — tarea padre
+link.0: .bilink/<uuid-spec>.bilink
+link.1: task 3a
+
+# impl layer — subtarea
+link.0: .bilink/<uuid-impl>.bilink
+link.1: task 3b    ← subtarea en worklist
+```
 
 ## Invariantes
 
-1. El nombre del archivo es un UUID v4 válido con extensión `.tasks`.
-2. Cada línea es un ID base-36 válido que corresponde a un ítem existente.
-3. El archivo solo existe si hay al menos una task asociada al bilink.
-4. Solo el servidor worklist crea y modifica este archivo.
+1. El ID en `task <id>` es un ID base-36 que corresponde a un ítem en `<project-root>/.stratum/worklist/<id>.task`.
+2. El bilink de tarea vive en la capa donde se debe ejecutar la tarea.
+3. No existe archivo `source_bilink` en el ítem ni archivo `<uuid>.tasks` separado — la asociación vive en el bilink de tarea.

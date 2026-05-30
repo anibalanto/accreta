@@ -44,13 +44,12 @@ title: <string>
 status: open | in-progress | done
 created_at: <iso8601-utc>
 updated_at: <iso8601-utc>
-source_bilink: <uuid>
 ---
 
 Descripción opcional en Markdown.
 ```
 
-`source_bilink` es el UUID del bilink creado por `worklist new`. Puede apuntar a un fragmento en cualquier capa o repo del ecosistema. Es opcional si el ítem fue creado sin selector.
+La asociación con bilinks se declara desde el bilink (endpoint `todo <id>`), no desde el ítem. Ver [asociación tarea ↔ bilink](bilink-tasks.md).
 
 ## Estados y transiciones
 
@@ -81,3 +80,4 @@ La relación padre-hijo se expresa con carpetas:
 3. Un `task` no tiene carpeta homónima.
 4. Si existe una carpeta homónima, el archivo padre debe existir.
 5. El frontmatter siempre contiene `title`, `status`, y `created_at`.
+6. El frontmatter no contiene `source_bilink`. La asociación con bilinks se declara desde el bilink.

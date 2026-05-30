@@ -1,10 +1,10 @@
 # Integración con bilinker
 
-bilinker es la infraestructura de linking de worklist. Cada ítem nace con un bilink al fragmento que lo origina — puede estar en cualquier capa o repo.
+bilinker es la infraestructura de linking de worklist. La relación entre tareas y fragmentos de código/spec se declara mediante **bilinks de tarea** — bilinks que conectan un bilink estructural con un ítem del worklist.
 
-## Creación del bilink en `worklist new`
+## Creación del bilink de tarea en `worklist new`
 
-Cuando `worklist new` recibe un selector, ejecuta `bilinker capture` sobre el fragmento referenciado (resuelto desde cwd) y crea un bilink:
+Cuando `worklist new` recibe un selector, `bilinker capture` ubica el fragmento referenciado, crea un bilink estructural si no existe, y luego crea el bilink de tarea:
 
 ```bash
 # Desde spec hacia impl
@@ -19,46 +19,21 @@ worklist new task "actualizar spec en base a cambio en accept()" lib.rs:88:1
 En ambos casos produce:
 
 ```
-accreta/.stratum/worklist/<id>.task          ← source_bilink: <uuid-bilink>
-accreta/.bilink/<uuid-bilink>.bilink         ← bilink: ítem ↔ fragmento
-accreta/.stratum/worklist/<uuid-bilink>.tasks ← "<id>\n" (creado o actualizado)
+accreta/.bilink/<uuid-struct>.bilink      ← bilink estructural: fragmento ↔ layer
+accreta/.bilink/<uuid-task>.bilink        ← bilink de tarea: .bilink/<uuid-struct>.bilink ↔ task <id>
+accreta/.stratum/worklist/<id>.task       ← ítem del worklist
 ```
 
-## Archivo `.tasks` por bilink
+La asociación vive en el bilink de tarea. El ítem no tiene `source_bilink` en su frontmatter.
 
-Un bilink puede estar referenciado por múltiples ítems. El servidor worklist mantiene `<bilink-uuid>.tasks` en la raíz del worklist — un ID por línea:
+## Trazabilidad
 
-```
-# 7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.tasks
-3
-1a
-2f
-```
+El bilink de tarea conecta el trabajo pendiente con su origen exacto. Cuando el fragmento cambia:
 
-Verificar si un bilink tiene trabajo pendiente = comprobar existencia del archivo (O(1)). Obtener las tasks = leer el archivo (O(1)).
-
-La dirección inversa también es O(1): cada `.task` tiene `source_bilink` en su frontmatter.
-
-## El bilink como ancla de trazabilidad
-
-El `source_bilink` conecta el trabajo pendiente con su origen exacto. Cuando el fragmento cambia:
-
-1. `bilinker check` detecta `ALTERED` o `CHAIN_DIRTY` en el bilink
-2. El ítem en worklist sigue apuntando al fragmento, pero el fragmento cambió
-3. El desarrollador evalúa si el ítem sigue siendo válido o debe actualizarse
-
-## Drift en ítems de worklist
-
-El drift no modifica el ítem automáticamente — es una señal. El desarrollador decide si actualizar el ítem, completarlo, o eliminarlo.
+1. `bilinker check` detecta `ALTERED` o `CHAIN_DIRTY` en el bilink estructural
+2. El bilink de tarea detecta `ALTERED` en `state.0` (hash del bilink estructural cambió)
+3. El desarrollador evalúa si la tarea sigue siendo válida
 
 ## Al completar el trabajo
 
-Cuando el trabajo está listo, el ítem se marca `done`. Si el trabajo consistió en crear una conexión entre dos fragmentos, se establece el bilink real con `bilinker chain new`:
-
-```
-fragmento origen (cualquier capa)
-    ↕ bilink (source_bilink, creado por worklist new)
-accreta/.stratum/worklist/<id>.task  →  done
-    ↕ bilink (creado por bilinker chain new al terminar)
-fragmento destino (cualquier capa)
-```
+Cuando el trabajo está listo, la tarea se marca `done`. El bilink estructural queda como registro del vínculo establecido entre fragmentos. El bilink de tarea queda como registro histórico de la asociación.

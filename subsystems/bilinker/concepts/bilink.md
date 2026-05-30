@@ -24,8 +24,8 @@ El tipo de un endpoint se infiere del valor de `link.N` — no hay prefijo de ti
 |---|---|---|
 | **Estructural** | `file [:: query [:: start~end]]` | Apunta a un archivo o fragmento concreto. |
 | **Layer** | path Stratum | Apunta a un nodo adyacente en otra capa. |
-| **Todo** | `todo` | Placeholder — el extremo aún no existe. |
-| **Bilink** | `.bilink/<uuid>.bilink` | Apunta a otro bilink por UUID. |
+| **Task** | `task <id>` | Apunta a un ítem del worklist en `<project-root>/.stratum/worklist/<id>.task`. Se hashea y verifica como un endpoint estructural. |
+| **Bilink** | `.bilink/<uuid>.bilink` | Apunta a otro bilink por UUID. Se trata como un archivo estructural. |
 
 Un endpoint estructural puede apuntar a un nodo AST específico (`:: query`) o al archivo completo (sin query).
 
@@ -70,15 +70,28 @@ Una **cadena** es una secuencia lineal de bilinks con el mismo UUID que conecta 
 
 La topología es estrictamente lineal — sin ciclos ni bifurcaciones.
 
-### Bilink abierto (intención pendiente)
+### Bilink con layer no creada todavía
 
-Un bilink con un endpoint `todo` declara que un fragmento *debería* estar conectado a algo que aún no existe. Es una intención pendiente, no un error.
+Un bilink puede declarar un endpoint layer apuntando a una capa que aún no existe. El estado `TODO` indica que la conexión está planeada pero la capa destino no fue creada — no es un error.
 
 ```
-[fragmento spec] ←→ todo
+link.0: spec/voting.yaml
+link.1: .stratum/impl        ← layer que aún no existe
+state.1: TODO                ← calculado por bilinker check
 ```
 
-Creado por `worklist new ... capture`. Completado por `worklist done ... capture`, que reemplaza `todo` con el endpoint real.
+Una vez creada la capa y aceptado el endpoint, el estado pasa a `OK`.
+
+### Bilink de tarea
+
+Un bilink puede conectar un bilink estructural con un ítem del worklist. Vive en la capa donde se debe ejecutar la tarea.
+
+```
+link.0: .bilink/<uuid-estructural>.bilink   ← bilink estructural como archivo
+link.1: task 3a                             ← ítem en worklist
+```
+
+`bilinker check` hashea el archivo de tarea (`<project-root>/.stratum/worklist/3a.task`) como cualquier endpoint estructural — detecta si el contenido de la tarea cambia.
 
 ## Estructura del archivo
 
@@ -185,10 +198,11 @@ Timestamp ISO 8601 UTC del último `check`.
 
 | Estado | Significado | Cómo se llega | Cómo se sale |
 |--------|-------------|---------------|--------------|
-| `PENDING` | `hash.N` ausente | `chain new` | `bilinker accept` |
+| `TODO` | `hash.N` ausente **y** la layer apuntada no existe todavía | `chain new` / `bilinker check` | Crear la layer + `bilinker accept` |
+| `PENDING` | `hash.N` ausente y la layer existe pero no fue aceptada | `bilinker check` | `bilinker accept` |
 | `OK` | `hash.N` del endpoint estructural adyacente == `hash.N` almacenado | `bilinker accept` | El contenido del extremo estructural adyacente cambia y es re-aceptado |
 | `CHAIN_DIRTY` | El endpoint estructural adyacente fue re-aceptado con contenido diferente | `bilinker check` | `bilinker accept` |
-| `BROKEN` | El `.bilink` adyacente no existe o no tiene endpoint estructural aceptado | `bilinker check` | Crear nodo adyacente + `accept` · o · `bilinker remove` |
+| `BROKEN` | `hash.N` presente pero la layer ya no existe, o el `.bilink` adyacente no tiene endpoint estructural aceptado | `bilinker check` | Restaurar layer + `accept` · o · `bilinker remove` |
 
 ### Endpoint bilink
 
@@ -198,14 +212,6 @@ Timestamp ISO 8601 UTC del último `check`.
 | `OK` | Hash actual del `.bilink` referenciado == `hash.N` | `bilinker accept` | Cambio en el bilink referenciado |
 | `CHAIN_DIRTY` | `.bilink` referenciado existe pero su hash ≠ `hash.N` | `bilinker check` | `bilinker accept` |
 | `UNREACHABLE` | `.bilink` referenciado no existe localmente | `bilinker check` | Obtener la layer + `accept` |
-
-### Endpoint todo
-
-| Estado | Significado | Cómo se llega | Cómo se sale |
-|--------|-------------|---------------|--------------|
-| `TODO` | Placeholder — el extremo aún no existe | `worklist new ... capture` | `worklist done ... capture` |
-
-Un endpoint `todo` nunca tiene `hash.N`, `commit.N` ni `range.N`. `bilinker check` reporta `TODO` sin considerarlo un error. `bilinker accept` no aplica sobre `todo`.
 
 `bilinker remove` elimina el archivo `.bilink` del nodo actual. Los nodos adyacentes detectarán `BROKEN` en el próximo `check` y deberán también decidir: reparar o remover. La remoción se propaga hop a hop por la cadena.
 
@@ -232,6 +238,7 @@ Esta propagación garantiza que **ningún cambio de contenido puede ser aprobado
   al valor anterior con un espacio. Solo aplica a `link.N`.
 - Claves reconocidas: `link.0:`, `link.1:`, `kind:`, `name.0:`, `name.1:`,
   `hash.0:`, `commit.0:`, `hash.1:`, `commit.1:`, `range.0:`, `range.1:`, `state.0:`, `state.1:`, `resolved_at:`.
+- El prefijo `task ` en el valor de `link.N` indica un endpoint task. El prefijo `task` sin espacio seguido es inválido.
 - Líneas que comienzan con `#` son comentarios y se ignoran.
 - El archivo usa codificación UTF-8 sin BOM.
 
@@ -266,25 +273,26 @@ specs/voting.yaml ↔ impl/Voting.java
         (7f3d8e9a)
 ```
 
-## Ejemplo: bilink abierto (intención pendiente)
+## Ejemplo: bilink de tarea
+
+Bilink que conecta un bilink estructural con un ítem del worklist:
 
 ```
 # .bilink/a3f9c821-4e5b-4c3d-9f2a-1b2c3d4e5f6a.bilink
-link.0: specs/voting.yaml :: (block_mapping_pair
-  key: (flow_node) @n0 (#eq? @n0 "impl")
-  value: (_) @target)
-link.1: todo
+link.0: .bilink/7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.bilink
+link.1: task 3a
 
 # Cache
-hash.0: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2
+hash.0: e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6
 commit.0: d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3
-range.0: 312~358
+hash.1: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2
+commit.1: c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2
 state.0: OK
-state.1: TODO
+state.1: OK
 resolved_at: 2026-05-29T09:00:00Z
 ```
 
-Creado por `worklist new task "implementar vote" capture specs/voting.yaml:104:1`. Cuando el trabajo termina, `worklist done 3 capture src/Persona.java:45:1` reemplaza `link.1: todo` con el endpoint real y el bilink queda completo.
+`link.0` apunta al archivo del bilink estructural (tratado como structural). `link.1` apunta al ítem `3a` en `<project-root>/.stratum/worklist/3a.task`. Si el contenido de la tarea cambia, `bilinker check` reporta `ALTERED` en `state.1`.
 
 ## Ejemplo completo: cadena de 2 nodos spec → impl
 
@@ -332,12 +340,12 @@ Notar que `spec.hash.1 == impl.hash.1` y `impl.hash.0 == spec.hash.0`: los layer
 
 1. El nombre del archivo es un UUID v4 válido con extensión `.bilink`.
 2. Siempre existen `link.0` y `link.1`.
-3. Un bilink de misma capa tiene dos endpoints estructurales. Una cadena entre capas tiene exactamente dos tips. Un bilink abierto tiene un endpoint estructural y uno `todo`.
+3. Un bilink de misma capa tiene dos endpoints estructurales. Una cadena entre capas tiene exactamente dos tips. Un bilink de tarea conecta un endpoint bilink con un endpoint `task <id>`.
 4. `hash.N` y `commit.N` están siempre presentes juntos o ausentes juntos.
 5. `hash.N` de un endpoint estructural: SHA-256 del fragmento referenciado.
 6. `hash.N` de un endpoint layer: idéntico al `hash.N` del endpoint estructural del bilink adyacente. Nunca es el hash del archivo `.bilink` adyacente.
 7. `hash.N` de un endpoint bilink: SHA-256 del archivo `.bilink` referenciado completo.
-8. Un endpoint `todo` nunca tiene `hash.N`, `commit.N` ni `range.N`.
+8. Un endpoint `task <id>` se hashea como el contenido del archivo de tarea. `range.N` no aplica (no hay query tree-sitter sobre tareas).
 9. `state.N = OK` si y solo si el hash actual de lo apuntado == `hash.N`.
 10. `state.N` siempre está presente en la cache una vez que el bilink fue verificado.
 11. Si existe cualquier campo de cache, debe existir `resolved_at`.

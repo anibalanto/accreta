@@ -7,15 +7,24 @@ La consistencia de un bilink se evalúa por extremo. `check` retorna una tupla `
 Los estados disponibles dependen del tipo de endpoint:
 - **Endpoint estructural**: 10 estados (PENDING, OK, MOVED, DISPLACED, REANCHORED,
   EXPANDED, UNANCHORED, ALTERED, DELETED, BROKEN).
-- **Endpoint layer**: 3 estados (PENDING, OK, CHAIN_DIRTY).
+- **Endpoint layer**: 5 estados (TODO, PENDING, OK, CHAIN_DIRTY, BROKEN).
+- **Endpoint task**: mismos estados que estructural (es un archivo en worklist).
 
-Un bilink es "saludable" si ambos extremos están en {OK, MOVED, DISPLACED, REANCHORED, EXPANDED}. Requiere acción si alguno está en {PENDING, UNANCHORED, ALTERED, DELETED, BROKEN, CHAIN_DIRTY}.
+Un bilink es "saludable" si ambos extremos están en {OK, MOVED, DISPLACED, REANCHORED, EXPANDED, TODO}. Requiere acción si alguno está en {PENDING, UNANCHORED, ALTERED, DELETED, BROKEN, CHAIN_DIRTY}.
+
+## Estado TODO (endpoint layer)
+
+Cuando `link.N` apunta a una layer que todavía no existe y `hash.N` está ausente, el estado es `TODO`. Indica una intención declarada — no es un error. Se resuelve creando la layer destino y ejecutando `bilinker accept`.
+
+Si la layer existía (tiene `hash.N`) pero desapareció, el estado es `BROKEN` (regresión).
 
 ## Estado CHAIN_DIRTY (endpoint layer)
 
-Cuando `link.N` apunta a una layer, `hash.N` contiene el SHA-256 del archivo `.bilink` completo de esa layer en el momento de la última aceptación. Si el hash actual de ese archivo ≠ `hash.N`, el estado es CHAIN_DIRTY.
+Cuando `link.N` apunta a una layer, `hash.N` contiene una **copia del `hash.N` del endpoint estructural del bilink adyacente** en el momento de la última aceptación. Si ese valor difiere del actual, el estado es CHAIN_DIRTY.
 
-CHAIN_DIRTY no tiene auto-fix directo: indica que el nodo adyacente en la cadena cambió y requiere revisión. El estado se resuelve ejecutando `check` en el nodo que lo originó y propagando hacia arriba.
+Esto evita dependencia circular: aceptar un endpoint layer nunca modifica el archivo adyacente, por lo que no hay cascadas. La propagación es unidireccional desde el endpoint estructural que cambió.
+
+CHAIN_DIRTY no tiene auto-fix directo: se resuelve ejecutando `bilinker accept` en el endpoint layer.
 
 ## Persistencia de `state.N`
 
@@ -53,7 +62,7 @@ El hash SHA-256 del texto actual del fragmento (en el offset guardado, o en el n
 
 ### CHAIN_DIRTY *(solo endpoint layer)*
 
-El hash SHA-256 del archivo `.bilink` referenciado ≠ `hash.N`. El nodo adyacente en la cadena cambió. No hay auto-fix — requiere inspeccionar el nodo origen con `bilinker chain status <uuid>` y ejecutar `bilinker accept`.
+El `hash.N` del endpoint estructural del bilink adyacente ≠ `hash.N` almacenado. El contenido estructural en el otro extremo de la cadena cambió y fue re-aceptado. No hay auto-fix — requiere ejecutar `bilinker accept` en el endpoint layer.
 
 ### MOVED
 
@@ -165,4 +174,4 @@ se superpone con [F_start, F_end]  → WITHIN  (causa de EXPANDED, ALTERED, etc.
 | ALTERED | `git log -S "<hash>" -- <file>` |
 | DELETED | `git log -S "<hash_o_texto>" -- <file>` |
 | BROKEN | `git log --since=<resolved_at> -- <file>` (sin resultado útil) |
-| CHAIN_DIRTY | comparación de hash del archivo `.bilink` referenciado |
+| CHAIN_DIRTY | comparación del `hash.N` estructural del bilink adyacente |
