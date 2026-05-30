@@ -2,7 +2,11 @@ link.0: concepts/index.md
 link.1: .stratum/impl
 
 # Cache
+hash.0: 3991d40d0b6f1387c63262776843ce3302c25fb393cfcf337c4188921917dca8
+commit.0: 79f1589d4992ff686ab2d7187b9b3831a189f346
 range.0: 0~3229
-state.0: PENDING
-state.1: PENDING
-resolved_at: 2026-05-30T02:39:44Z
+hash.1: f41ce074840f8e71dbd4d855ad5a02d766ab05887c2a31c683ecb0c5bffa828e
+commit.1: 7e13a065f8717289d36f263da7641aa7d18893d9
+state.0: OK
+state.1: OK
+resolved_at: 2026-05-30T03:12:49Z

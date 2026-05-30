@@ -2,7 +2,11 @@ link.0: commands/get.md
 link.1: .stratum/impl
 
 # Cache
+hash.0: 2a292fb23feed4d36c5fc67b9f41d9352bddad166fce246298d4efb24725f474
+commit.0: 79f1589d4992ff686ab2d7187b9b3831a189f346
 range.0: 0~3989
-state.0: PENDING
-state.1: PENDING
-resolved_at: 2026-05-30T02:39:44Z
+hash.1: 35be4691d9b102b9e55383c329bf3c04c3aa15416295020940556a890171a34f
+commit.1: 7e13a065f8717289d36f263da7641aa7d18893d9
+state.0: OK
+state.1: OK
+resolved_at: 2026-05-30T03:12:49Z
