@@ -136,18 +136,20 @@ SHA-256 del contenido del endpoint N en el momento en que fue aceptado.
 | Tipo de endpoint | `hash.N` |
 |---|---|
 | **Estructural** | SHA-256 del fragmento o archivo referenciado |
-| **Layer** | SHA-256 del archivo `.bilink` adyacente completo |
+| **Layer** | Copia del `hash.N` del endpoint estructural del bilink adyacente |
+
+Para un endpoint layer, `hash.N` es idéntico al `hash.N` del endpoint estructural en el nodo adyacente — no es el hash del archivo `.bilink` adyacente. Esto evita dependencia circular: aceptar un endpoint layer nunca modifica el archivo adyacente, por lo que no desencadena cascadas.
 
 Ausente cuando el endpoint nunca fue aceptado (estado `PENDING`). Establecido por `bilinker accept`, sobrescrito en cada nueva aceptación.
 
 ### `commit.N`
 
-SHA-1 del commit HEAD en el repo correspondiente al momento de la aceptación.
+SHA-1 del commit HEAD en el repo del contenido referenciado al momento de la aceptación.
 
-| Tipo de endpoint | repo |
+| Tipo de endpoint | `commit.N` |
 |---|---|
-| **Estructural** | repo donde vive el archivo referenciado |
-| **Layer** | repo donde vive el `.bilink` adyacente |
+| **Estructural** | Commit HEAD del repo donde vive el archivo referenciado |
+| **Layer** | Copia del `commit.N` del endpoint estructural del bilink adyacente |
 
 Ausente cuando `hash.N` está ausente. Siempre presente junto a `hash.N`.
 
@@ -184,9 +186,9 @@ Timestamp ISO 8601 UTC del último `check`.
 | Estado | Significado | Cómo se llega | Cómo se sale |
 |--------|-------------|---------------|--------------|
 | `PENDING` | `hash.N` ausente | `chain new` | `bilinker accept` |
-| `OK` | Hash actual del `.bilink` adyacente == `hash.N` | `bilinker accept` | Cambio en el nodo adyacente |
-| `CHAIN_DIRTY` | `.bilink` adyacente existe pero su hash ≠ `hash.N` | `bilinker check` | `bilinker accept` |
-| `BROKEN` | `.bilink` adyacente no existe | `bilinker check` | Crear nodo adyacente + `accept` · o · `bilinker remove` |
+| `OK` | `hash.N` del endpoint estructural adyacente == `hash.N` almacenado | `bilinker accept` | El contenido del extremo estructural adyacente cambia y es re-aceptado |
+| `CHAIN_DIRTY` | El endpoint estructural adyacente fue re-aceptado con contenido diferente | `bilinker check` | `bilinker accept` |
+| `BROKEN` | El `.bilink` adyacente no existe o no tiene endpoint estructural aceptado | `bilinker check` | Crear nodo adyacente + `accept` · o · `bilinker remove` |
 
 ### Endpoint bilink
 
@@ -209,16 +211,19 @@ Un endpoint `todo` nunca tiene `hash.N`, `commit.N` ni `range.N`. `bilinker chec
 
 ## Propagación reactiva y hash chain
 
-Toda la cadena forma un **hash chain distribuido**: cada nodo ancla criptográficamente al estado aprobado de sus vecinos inmediatos.
+Toda la cadena forma un **hash chain distribuido**: cada nodo ancla criptográficamente al contenido aprobado del extremo estructural de su vecino.
 
-Cuando se ejecuta `bilinker accept` en un endpoint:
-1. `hash.N` y `commit.N` del archivo `.bilink` se actualizan.
-2. El contenido del archivo cambia → su SHA-256 cambia.
-3. El nodo adyacente, en el próximo `check`, detecta que el hash actual del
-   `.bilink` vecino ≠ `hash.N` → `CHAIN_DIRTY`.
-4. Para restaurar `OK`, el nodo adyacente debe ejecutar `bilinker accept`.
+El mecanismo de propagación es:
 
-Esta propagación garantiza que **ningún nodo puede cambiar su estado aceptado sin que todos los nodos adyacentes lo detecten**.
+1. El contenido del archivo referenciado por un endpoint estructural cambia.
+2. `bilinker check` detecta el mismatch → `ALTERED`.
+3. El usuario revisa y ejecuta `bilinker accept <uuid>.<N>` → el `hash.N` del endpoint estructural se actualiza al nuevo SHA-256 del contenido.
+4. El nodo adyacente, en el próximo `check`, compara su `hash.N` almacenado con el `hash.N` actual del endpoint estructural adyacente → difieren → `CHAIN_DIRTY`.
+5. El usuario acepta el endpoint layer adyacente → su `hash.N` se sincroniza con el nuevo `hash.N` del extremo estructural.
+
+**Propiedad clave**: aceptar un endpoint layer solo actualiza el propio archivo `.bilink`; nunca modifica el archivo adyacente. Por lo tanto no existe cascada circular: la propagación es unidireccional desde el endpoint estructural que cambió hacia los nodos layer que lo referencian.
+
+Esta propagación garantiza que **ningún cambio de contenido puede ser aprobado en un extremo sin que todos los nodos layer adyacentes lo detecten en el próximo `check`**.
 
 ## Semántica de parseo
 
@@ -291,11 +296,11 @@ link.0: specs/voting.yaml :: (block_mapping_pair
 link.1: .stratum/impl
 
 # Cache
-hash.0: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2
+hash.0: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2   ← SHA-256 del fragmento spec
 commit.0: d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3
 range.0: 312~358
-hash.1: e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6
-commit.1: f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6
+hash.1: 479922a1ee55cc7f9f4f323bb002018e1b4e1cda65e069e0f6f4645926ce25ee   ← copia de impl.hash.1
+commit.1: c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2                          ← copia de impl.commit.1
 state.0: OK
 state.1: OK
 resolved_at: 2026-05-27T10:00:00Z
@@ -311,15 +316,17 @@ link.1: src/main/java/ar/example/demo/persona/Persona.java :: (class_declaration
       name: (identifier) @n1 (#eq? @n1 "vote")) @target))
 
 # Cache
-hash.0: e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8
-commit.0: b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1
-hash.1: 479922a1ee55cc7f9f4f323bb002018e1b4e1cda65e069e0f6f4645926ce25ee
+hash.0: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2   ← copia de spec.hash.0
+commit.0: d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3                          ← copia de spec.commit.0
+hash.1: 479922a1ee55cc7f9f4f323bb002018e1b4e1cda65e069e0f6f4645926ce25ee   ← SHA-256 del método en Persona.java
 commit.1: c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2
 range.1: 245~389
 state.0: OK
 state.1: OK
 resolved_at: 2026-05-27T10:00:00Z
 ```
+
+Notar que `spec.hash.1 == impl.hash.1` y `impl.hash.0 == spec.hash.0`: los layer endpoints almacenan exactamente el hash del contenido estructural del nodo adyacente.
 
 ## Invariantes
 
@@ -328,7 +335,7 @@ resolved_at: 2026-05-27T10:00:00Z
 3. Un bilink de misma capa tiene dos endpoints estructurales. Una cadena entre capas tiene exactamente dos tips. Un bilink abierto tiene un endpoint estructural y uno `todo`.
 4. `hash.N` y `commit.N` están siempre presentes juntos o ausentes juntos.
 5. `hash.N` de un endpoint estructural: SHA-256 del fragmento referenciado.
-6. `hash.N` de un endpoint layer: SHA-256 del archivo `.bilink` adyacente completo.
+6. `hash.N` de un endpoint layer: idéntico al `hash.N` del endpoint estructural del bilink adyacente. Nunca es el hash del archivo `.bilink` adyacente.
 7. `hash.N` de un endpoint bilink: SHA-256 del archivo `.bilink` referenciado completo.
 8. Un endpoint `todo` nunca tiene `hash.N`, `commit.N` ni `range.N`.
 9. `state.N = OK` si y solo si el hash actual de lo apuntado == `hash.N`.
