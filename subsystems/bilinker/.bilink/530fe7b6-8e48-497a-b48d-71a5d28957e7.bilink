@@ -1,7 +1,0 @@
-link.0: specific/bilink-format.md
-link.1: .estrato/tech-decisions/.estrato/impl/crates/bilinker/src/bilink.rs
-
-# Cache
-state.0: BROKEN
-state.1: BROKEN
-resolved_at: 2026-05-27T10:45:54Z
