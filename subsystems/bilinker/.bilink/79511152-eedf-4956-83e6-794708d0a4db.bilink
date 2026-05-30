@@ -1,5 +1,5 @@
 link.0: commands/capture.md
-link.1: .stratum/impl
+link.1: >impl
 
 # Cache
 hash.0: 48b7a7dbbcef8a0e3dd9ccfc82fdf7fe6a7a14153c742773682a6f5fb0cb3aac
@@ -9,4 +9,4 @@ hash.1: 1f1075d13cd8b6dce31b8eec56559df274b9f5f2a6230c6493f298397b8de2f2
 commit.1: b66af5b792af137cb1290fb4983c26f6a03066db
 state.0: OK
 state.1: OK
-resolved_at: 2026-05-30T13:28:42Z
+resolved_at: 2026-05-30T14:52:58Z

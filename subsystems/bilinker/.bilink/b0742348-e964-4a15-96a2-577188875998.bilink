@@ -1,5 +1,5 @@
 link.0: commands/index.md
-link.1: .stratum/impl
+link.1: >impl
 
 # Cache
 hash.0: 80706c6427b5773477d5fadc67a380268cf8fa7162a5872ba131742f5c0c9068
@@ -9,4 +9,4 @@ hash.1: 1082134b0ab5bbb7894077e8783fe9952617b27047d2002cbff13e4c04b6d693
 commit.1: 2bdcb45bf508828c999eb255b8aa1e33a7625c03
 state.0: OK
 state.1: OK
-resolved_at: 2026-05-30T13:28:42Z
+resolved_at: 2026-05-30T14:52:58Z

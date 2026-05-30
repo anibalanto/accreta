@@ -1,5 +1,5 @@
 link.0: concepts/consistency.md
-link.1: .stratum/impl
+link.1: >impl
 
 # Cache
 hash.0: d47934f5b20f507dff95ae6854f02ede0b097e45653b3a2c798a92f754705746
@@ -9,4 +9,4 @@ hash.1: 7bf2906909d19cca507c76b01c66ebb5c296a4b8cf1de5250bb36cc93fa41aeb
 commit.1: 836270df7b28d0b53476ae1cc45ca08d639f28bf
 state.0: OK
 state.1: OK
-resolved_at: 2026-05-30T13:28:42Z
+resolved_at: 2026-05-30T14:52:58Z

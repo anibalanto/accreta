@@ -1,5 +1,5 @@
 link.0: concepts/bilink.md
-link.1: .stratum/impl
+link.1: >impl
 
 # Cache
 hash.0: 4b4c7fd9dd3d986afbbdac143a794d5fea70882e9e9d70bb5491cd0dd7dec2b8
@@ -9,4 +9,4 @@ hash.1: 462359878c164585aaabf3a33f4b7539937ec26e9b00d6548765819be3d52dc3
 commit.1: 2bdcb45bf508828c999eb255b8aa1e33a7625c03
 state.0: OK
 state.1: OK
-resolved_at: 2026-05-30T13:31:20Z
+resolved_at: 2026-05-30T14:52:58Z
