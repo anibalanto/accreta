@@ -2,10 +2,7 @@
 
 ## Concepto
 
-Un path Stratum es una expresión que describe un path en el filesystem,
-opcionalmente usando navegación por layers. Es un superconjunto de los paths
-relativos tradicionales: cualquier path relativo es un path Stratum válido —
-la biblioteca lo retorna sin modificación.
+Un path Stratum es una expresión que describe un path en el filesystem, opcionalmente usando navegación por layers. Es un superconjunto de los paths relativos tradicionales: cualquier path relativo es un path Stratum válido — la biblioteca lo retorna sin modificación.
 
 ## Gramática
 
@@ -36,8 +33,7 @@ src/main.rs                  →  src/main.rs
 
 ### Down: `>name1>name2/.../fs-path`
 
-Cada segmento `>name` se expande a `.stratum/<name>`. Los segmentos se encadenan.
-El `fs-path` opcional se concatena al final.
+Cada segmento `>name` se expande a `.stratum/<name>`. Los segmentos se encadenan. El `fs-path` opcional se concatena al final.
 
 ```
 >tech-decisions                    →  .stratum/tech-decisions
@@ -48,8 +44,7 @@ El `fs-path` opcional se concatena al final.
 
 ### Up: `<</fs-path`
 
-Cada `<` equivale a `../..` (un nivel Stratum = dos directorios). El `fs-path`
-opcional se concatena al final.
+Cada `<` equivale a `../..` (un nivel Stratum = dos directorios). El `fs-path` opcional se concatena al final.
 
 ```
 <                      →  ../..

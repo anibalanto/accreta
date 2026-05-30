@@ -51,9 +51,7 @@ reporte guardado: .impact/reports/f3a19c2b-...
 
 ## Relación con `impact scan`
 
-`impact report` es la versión puntual y manual de `impact scan`. Scan barre
-todo el proyecto; report se enfoca en un target específico. Ambos generan el
-mismo formato de artefacto `.impact`.
+`impact report` es la versión puntual y manual de `impact scan`. Scan barre todo el proyecto; report se enfoca en un target específico. Ambos generan el mismo formato de artefacto `.impact`.
 
 ## Exit codes
 

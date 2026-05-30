@@ -1,7 +1,6 @@
 # Integración con worklist
 
-Worklist vive como capa interna dentro del proyecto principal Accreta, siguiendo
-la convención `.stratum/` de Stratum:
+Worklist vive como capa interna dentro del proyecto principal Accreta, siguiendo la convención `.stratum/` de Stratum:
 
 ```
 accreta/
@@ -11,6 +10,4 @@ accreta/
       <uuid>.task
 ```
 
-La estructura jerárquica de worklist (epic → user-story → task) usa carpetas
-planas dentro de `worklist/`, no sub-capas `.stratum/` — es jerarquía de trabajo,
-no de abstracción.
+La estructura jerárquica de worklist (epic → user-story → task) usa carpetas planas dentro de `worklist/`, no sub-capas `.stratum/` — es jerarquía de trabajo, no de abstracción.

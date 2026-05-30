@@ -2,9 +2,7 @@
 
 ## Propósito
 
-Recorre el grafo de bilinks a partir de un archivo o fragmento y muestra todos
-los nodos conectados, cruzando capas. Responde a la pregunta: *¿con qué está
-linkedeado esto, y a través de qué caminos?*
+Recorre el grafo de bilinks a partir de un archivo o fragmento y muestra todos los nodos conectados, cruzando capas. Responde a la pregunta: *¿con qué está linkedeado esto, y a través de qué caminos?*
 
 Es una herramienta de navegación y exploración — no modifica nada.
 
@@ -23,9 +21,7 @@ bilinker graph <selector> [--depth <n>] [--state <estado>] [--format <tree|flat|
 
 ## Algoritmo de traversal
 
-El recorrido es un BFS sobre el grafo de bilinks. Cada bilink es un nodo del
-grafo; sus endpoints son las aristas hacia los artefactos o hacia los nodos
-adyacentes en otras capas.
+El recorrido es un BFS sobre el grafo de bilinks. Cada bilink es un nodo del grafo; sus endpoints son las aristas hacia los artefactos o hacia los nodos adyacentes en otras capas.
 
 ```
 graph(selector):
@@ -41,8 +37,7 @@ graph(selector):
   4. Deduplicar por UUID — si el mismo UUID ya fue visitado, no se vuelve a recorrer.
 ```
 
-Los endpoints estructurales son hojas: se muestran pero no se atraviesan.
-Los endpoints layer son aristas hacia otras capas: se atraviesan recursivamente.
+Los endpoints estructurales son hojas: se muestran pero no se atraviesan. Los endpoints layer son aristas hacia otras capas: se atraviesan recursivamente.
 
 El selector `<uuid>` entra directamente como nodo de partida sin lookup por archivo.
 
@@ -94,15 +89,11 @@ Emite un grafo Graphviz que puede renderizarse con `dot -Tsvg`:
 $ bilinker graph src/Persona.java:45:1 --format dot | dot -Tsvg > graph.svg
 ```
 
-Cada nodo es un artefacto (archivo o fragmento); cada arista es un bilink con
-su estado como label.
+Cada nodo es un artefacto (archivo o fragmento); cada arista es un bilink con su estado como label.
 
 ## Traversal entre repos
 
-Si un endpoint layer apunta a un repo distinto del actual, `graph` intenta
-resolver el path relativo desde el directorio de trabajo. Si el repo adyacente
-no está presente localmente, emite el nodo con estado `UNREACHABLE` y detiene
-el traversal en esa rama:
+Si un endpoint layer apunta a un repo distinto del actual, `graph` intenta resolver el path relativo desde el directorio de trabajo. Si el repo adyacente no está presente localmente, emite el nodo con estado `UNREACHABLE` y detiene el traversal en esa rama:
 
 ```
 └── 7f3d8e9a  [OK ↔ UNREACHABLE]
@@ -111,8 +102,7 @@ el traversal en esa rama:
 
 ## Ciclos
 
-Si el traversal encuentra un UUID ya visitado, lo muestra con `[ya visitado]`
-y no continúa:
+Si el traversal encuentra un UUID ya visitado, lo muestra con `[ya visitado]` y no continúa:
 
 ```
 └── 7f3d8e9a  [ya visitado]

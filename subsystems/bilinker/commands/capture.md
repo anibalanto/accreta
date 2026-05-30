@@ -2,9 +2,7 @@
 
 ## Propósito
 
-Genera una referencia bilinker a partir de una selección de texto en un archivo,
-identificada por coordenadas de línea y columna. La salida está lista para pegar
-en un archivo `.bilink`.
+Genera una referencia bilinker a partir de una selección de texto en un archivo, identificada por coordenadas de línea y columna. La salida está lista para pegar en un archivo `.bilink`.
 
 ## Firma
 
@@ -27,12 +25,9 @@ bilinker capture <workspace> <file> <start_line>:<start_col> <end_line>:<end_col
 4. Encontrar el nodo AST más pequeño que contiene la selección completa
    (`named_descendant_for_point_range`).
 5. Subir en el árbol AST desde ese nodo hasta el primer ancestro que sea un
-   âncora estable para el lenguaje (función, método, clase, heading, campo de
-   mapping, etc.).
+   âncora estable para el lenguaje (función, método, clase, heading, campo de mapping, etc.).
 6. Construir la query como el camino del AST desde ese ancestro hasta el nodo
-   target, usando los nombres de campo reales y los tipos de nodo reales del
-   árbol. Cada predicado usa un nombre de captura único (`@n0`, `@n1`, …).
-   El `@target` se coloca después del paréntesis de cierre del nodo.
+   target, usando los nombres de campo reales y los tipos de nodo reales del árbol. Cada predicado usa un nombre de captura único (`@n0`, `@n1`, …). El `@target` se coloca después del paréntesis de cierre del nodo.
 7. Determinar si la selección coincide exactamente con los límites del nodo target:
    - **Exacta**: no incluir `start~end`.
    - **Parcial**: calcular offsets en bytes relativos al inicio del nodo target
@@ -57,8 +52,7 @@ link.N: java-demo :: src/main/java/ar/example/demo/persona/Persona.java :: (clas
 hash: 479922a1ee55cc7f9f4f323bb002018e1b4e1cda65e069e0f6f4645926ce25ee
 ```
 
-El hash va a stderr para que pueda usarse `capture` en pipes sin contaminar la
-referencia en stdout.
+El hash va a stderr para que pueda usarse `capture` en pipes sin contaminar la referencia en stdout.
 
 ## Código de salida
 

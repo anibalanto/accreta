@@ -2,9 +2,7 @@
 
 ## Propósito
 
-Aplica los auto-fixes generados por `bilinker check` que están acumulados en
-`.bilink/.pending/`. Cada aplicación se registra como un commit git con un
-mensaje descriptivo. El humano siempre confirma antes de que los cambios se escriban.
+Aplica los auto-fixes generados por `bilinker check` que están acumulados en `.bilink/.pending/`. Cada aplicación se registra como un commit git con un mensaje descriptivo. El humano siempre confirma antes de que los cambios se escriban.
 
 Requiere git como dependencia dura.
 
@@ -30,9 +28,7 @@ bilinker apply [--dry-run] [--filter <estado>] [-y]
   3a4b5c6d-2e3f-4a5b-9c6d-7e8f9a0b1c2d-0.fix
 ```
 
-El nombre del archivo es `<uuid>-<endpoint>.fix`. Cada `.fix` describe en texto
-legible el cambio propuesto. El usuario puede leer, editar o eliminar archivos
-`.fix` antes de correr `apply`.
+El nombre del archivo es `<uuid>-<endpoint>.fix`. Cada `.fix` describe en texto legible el cambio propuesto. El usuario puede leer, editar o eliminar archivos `.fix` antes de correr `apply`.
 
 ### Formato de un `.fix`
 
@@ -62,8 +58,7 @@ change:
    - **REANCHORED**: actualizar los predicados de la query en `link.N`.
    - **EXPANDED**: actualizar `start~end` en `link.N` con el nuevo rango.
 5. Actualizar la cache (`range.N`, `state.N`, `resolved_at`). Para EXPANDED y
-   REANCHORED, donde el contenido del fragmento cambió, agrega una nueva entrada
-   estableciendo `hash.N` y `commit.N` con el hash actual y el commit actual.
+   REANCHORED, donde el contenido del fragmento cambió, agrega una nueva entrada estableciendo `hash.N` y `commit.N` con el hash actual y el commit actual.
 6. Eliminar los `.fix` aplicados de `.bilink/.pending/`.
 7. Crear un commit git con todos los `.bilink` modificados.
 

@@ -2,9 +2,7 @@
 
 ## Propósito
 
-Verifica la consistencia de uno o más bilinks comparando el estado actual de los
-archivos referenciados contra la cache del `.bilink`. Por cada bilink devuelve una
-tupla de estados `(state_link0, state_link1)` y actualiza `state.N` en el archivo.
+Verifica la consistencia de uno o más bilinks comparando el estado actual de los archivos referenciados contra la cache del `.bilink`. Por cada bilink devuelve una tupla de estados `(state_link0, state_link1)` y actualiza `state.N` en el archivo.
 
 Requiere git como dependencia dura.
 
@@ -92,8 +90,7 @@ Después de evaluar cada endpoint, `check` actualiza el archivo `.bilink`:
 - **`range.N`** — byte range absoluto del fragmento en su archivo (`start~end`). Solo para endpoints estructurales; se actualiza siempre que la resolución encuentra el fragmento (OK, DISPLACED, REANCHORED, EXPANDED, ALTERED).
 - **`resolved_at`** — timestamp UTC de esta verificación.
 
-Si `state.N` cambió respecto al valor anterior, el archivo cambia y su hash cambia,
-disparando CHAIN_DIRTY en el nodo adyacente de la cadena en el próximo `check`.
+Si `state.N` cambió respecto al valor anterior, el archivo cambia y su hash cambia, disparando CHAIN_DIRTY en el nodo adyacente de la cadena en el próximo `check`.
 
 ## Fuente del cambio
 
@@ -118,13 +115,11 @@ se superpone                  → WITHIN  (causa de EXPANDED, ALTERED, REANCHORE
 
 ## Auto-fix staging
 
-Los estados con auto-fix (MOVED, DISPLACED, REANCHORED, EXPANDED) generan un archivo
-en `.bilink/.pending/<uuid>-<N>.fix`. Nunca se aplican automáticamente.
+Los estados con auto-fix (MOVED, DISPLACED, REANCHORED, EXPANDED) generan un archivo en `.bilink/.pending/<uuid>-<N>.fix`. Nunca se aplican automáticamente.
 
 ## Salida
 
-Bilinks OK se omiten por defecto. Con `--verbose` se muestran todos.
-Para cadenas, se recomienda usar `bilinker chain status <uuid>`.
+Bilinks OK se omiten por defecto. Con `--verbose` se muestran todos. Para cadenas, se recomienda usar `bilinker chain status <uuid>`.
 
 ```
 $ bilinker check .bilink/

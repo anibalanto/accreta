@@ -10,8 +10,7 @@ worklist list [--status <estado>] [--under <id>] [--flat]
 
 ## Comportamiento
 
-Sin flags, muestra el árbol completo de items indentado por jerarquía,
-ordenado por ID (orden de creación) dentro de cada nivel.
+Sin flags, muestra el árbol completo de items indentado por jerarquía, ordenado por ID (orden de creación) dentro de cada nivel.
 
 ## Flags
 

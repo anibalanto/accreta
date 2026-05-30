@@ -13,17 +13,13 @@ bilinker remove <uuid>
 1. Resuelve `.bilink/<uuid>.bilink` en la layer actual.
 2. Elimina el archivo.
 3. Los nodos adyacentes de la cadena detectarán `BROKEN` en el próximo `check`
-   y deberán decidir: reparar o también remover. La remoción se propaga
-   hop a hop — no es automática.
+   y deberán decidir: reparar o también remover. La remoción se propaga hop a hop — no es automática.
 
 ## Cuándo usarlo
 
-Para los estados `DELETED` y `BROKEN` donde el bilink ya no tiene sentido:
-el fragmento fue eliminado definitivamente, el repo fue removido, o el bilink
-fue creado por error.
+Para los estados `DELETED` y `BROKEN` donde el bilink ya no tiene sentido: el fragmento fue eliminado definitivamente, el repo fue removido, o el bilink fue creado por error.
 
-No es un sustituto de `bilinker accept` — si el fragmento cambió pero sigue
-siendo válido, usar `accept`.
+No es un sustituto de `bilinker accept` — si el fragmento cambió pero sigue siendo válido, usar `accept`.
 
 ## Salida
 

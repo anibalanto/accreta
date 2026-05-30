@@ -1,8 +1,6 @@
 # Impact Report
 
-Un Impact Report es el artefacto central que produce impact. Describe de forma
-estructurada qué cambió, en qué archivos, qué cadenas de bilinks se vieron
-afectadas, y qué commits intercedieron desde el último estado conocido.
+Un Impact Report es el artefacto central que produce impact. Describe de forma estructurada qué cambió, en qué archivos, qué cadenas de bilinks se vieron afectadas, y qué commits intercedieron desde el último estado conocido.
 
 ## Estructura
 
@@ -59,9 +57,7 @@ La generación no modifica ningún archivo fuera de `.impact/reports/`.
 generado → abierto en thread → resuelto | descartado
 ```
 
-Un reporte sin thread asociado es información pasiva. Al abrirse un thread,
-el reporte se convierte en el mensaje inicial de ese thread y queda disponible
-para discusión en Accreta.
+Un reporte sin thread asociado es información pasiva. Al abrirse un thread, el reporte se convierte en el mensaje inicial de ese thread y queda disponible para discusión en Accreta.
 
 ## Invariantes
 

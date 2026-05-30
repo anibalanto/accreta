@@ -1,13 +1,10 @@
 # Configuración de subcapas
 
-Cada subcapa de `.stratum/` puede tener un archivo de configuración `.<nombre>.toml`
-en el directorio `.stratum/` que la contiene. El archivo declara cómo obtener ese
-repositorio git y cualquier configuración específica de la subcapa.
+Cada subcapa de `.stratum/` puede tener un archivo de configuración `.<nombre>.toml` en el directorio `.stratum/` que la contiene. El archivo declara cómo obtener ese repositorio git y cualquier configuración específica de la subcapa.
 
 ## Ubicación y nombre
 
-El archivo se llama `.<nombre>.toml` donde `<nombre>` es exactamente el nombre
-del directorio de la subcapa. Vive junto a la subcapa en el mismo `.stratum/`:
+El archivo se llama `.<nombre>.toml` donde `<nombre>` es exactamente el nombre del directorio de la subcapa. Vive junto a la subcapa en el mismo `.stratum/`:
 
 ```
 bilinker/
@@ -19,8 +16,7 @@ bilinker/
         impl/
 ```
 
-Si la subcapa no está clonada localmente, el archivo de config sigue presente —
-es el mapa que permite obtenerla con `stratum pull`.
+Si la subcapa no está clonada localmente, el archivo de config sigue presente — es el mapa que permite obtenerla con `stratum pull`.
 
 ## Formato
 
@@ -48,8 +44,7 @@ depth = 1
 
 ## Relación con `stratum pull`
 
-`stratum pull` lee los archivos `.toml` del directorio `.stratum/` actual y
-clona o actualiza cada subcapa declarada:
+`stratum pull` lee los archivos `.toml` del directorio `.stratum/` actual y clona o actualiza cada subcapa declarada:
 
 ```bash
 stratum pull                         # todas las subcapas del .stratum/ actual
@@ -57,13 +52,11 @@ stratum pull technical-decisions     # solo esa subcapa
 stratum pull --recursive             # todas las subcapas en todo el árbol
 ```
 
-Si la subcapa ya existe localmente, `pull` ejecuta `git fetch` + `git checkout`
-a la rama declarada. Si no existe, la clona.
+Si la subcapa ya existe localmente, `pull` ejecuta `git fetch` + `git checkout` a la rama declarada. Si no existe, la clona.
 
 ## Subcapas opcionales y presencia parcial
 
-Un proyecto puede tener configuradas subcapas que no están clonadas localmente.
-Esto es normal — se trabaja solo con las capas necesarias:
+Un proyecto puede tener configuradas subcapas que no están clonadas localmente. Esto es normal — se trabaja solo con las capas necesarias:
 
 ```bash
 # Trabajando solo en spec, sin clonar impl
@@ -74,8 +67,7 @@ bilinker/
     # technical-decisions/ y impl/ ausentes — no clonadas
 ```
 
-`bilinker check` y `bilinker graph` reportan `UNREACHABLE` para los endpoints
-que apuntan a subcapas no presentes, sin fallar.
+`bilinker check` y `bilinker graph` reportan `UNREACHABLE` para los endpoints que apuntan a subcapas no presentes, sin fallar.
 
 ## Invariantes
 

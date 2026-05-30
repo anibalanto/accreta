@@ -51,9 +51,7 @@ flowchart LR
 
 ## Propagación reactiva
 
-Cada nodo ancla en `hash.N` el SHA-256 del `.bilink` adyacente. Cuando
-un nodo cambia de estado, su archivo `.bilink` cambia, su hash cambia, y el
-nodo vecino detecta CHAIN_DIRTY en el próximo `check`:
+Cada nodo ancla en `hash.N` el SHA-256 del `.bilink` adyacente. Cuando un nodo cambia de estado, su archivo `.bilink` cambia, su hash cambia, y el nodo vecino detecta CHAIN_DIRTY en el próximo `check`:
 
 ```mermaid
 flowchart TD
@@ -62,8 +60,7 @@ flowchart TD
     M --> TA["tip-A\nhash&#40;mid&#41; ≠ hash.1 → CHAIN_DIRTY"]
 ```
 
-Ningún nodo puede cambiar su estado aceptado sin que los nodos adyacentes
-lo detecten.
+Ningún nodo puede cambiar su estado aceptado sin que los nodos adyacentes lo detecten.
 
 ## Componentes internos
 
@@ -78,10 +75,7 @@ bilinker chain     → crea / inspecciona / lista cadenas
 
 ## Índice opcional
 
-Cada layer puede tener un `.bilink/.index` que mapea archivos fuente a los
-endpoints que los referencian. Es un derivado regenerable — nunca fuente de
-verdad. `bilinker get` lo usa si está actualizado; si no, cae a scan O(N).
-`bilinker index` lo construye o reconstruye explícitamente.
+Cada layer puede tener un `.bilink/.index` que mapea archivos fuente a los endpoints que los referencian. Es un derivado regenerable — nunca fuente de verdad. `bilinker get` lo usa si está actualizado; si no, cae a scan O(N). `bilinker index` lo construye o reconstruye explícitamente.
 
 ```
 bilinker index --recursive   → construye .index en todas las layers
@@ -92,8 +86,7 @@ Ver especificación completa en [concepts/index.md](concepts/index.md).
 
 ## Implementaciones alternativas por branch
 
-Cuando una implementación alternativa vive en una branch de otro repo, la spec
-tiene su propia branch correspondiente con solo los bilinks alterados:
+Cuando una implementación alternativa vive en una branch de otro repo, la spec tiene su propia branch correspondiente con solo los bilinks alterados:
 
 ```
 specs/main          impl/main
@@ -105,14 +98,10 @@ specs/feature/X     impl/feature/X
   spec-A → Optimized  (implementación alternativa)
 ```
 
-Solo `A1.bilink` cambia en la branch de specs — el resto del repo de specs es
-idéntico a `main`. Mergear `feature/X` en `main` en impl implica mergear la
-branch correspondiente en specs.
+Solo `A1.bilink` cambia en la branch de specs — el resto del repo de specs es idéntico a `main`. Mergear `feature/X` en `main` en impl implica mergear la branch correspondiente en specs.
 
 El formato de bilink no cambia — git maneja la variación entre branches.
 
 ## Detección de raíz
 
-Bilinker detecta la raíz del proyecto caminando hacia arriba desde cwd,
-buscando `.bilink/` o `.git/`. Si no encuentra ninguno, usa cwd.
-No requiere archivo de configuración explícito.
+Bilinker detecta la raíz del proyecto caminando hacia arriba desde cwd, buscando `.bilink/` o `.git/`. Si no encuentra ninguno, usa cwd. No requiere archivo de configuración explícito.

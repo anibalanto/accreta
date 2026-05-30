@@ -1,7 +1,6 @@
 # Skills
 
-Una skill es una rutina de evaluación semántica que impact ejecuta cuando detecta
-drift en un vínculo gobernado por un elemento de impacto.
+Una skill es una rutina de evaluación semántica que impact ejecuta cuando detecta drift en un vínculo gobernado por un elemento de impacto.
 
 ## Qué hace una skill
 
@@ -58,8 +57,7 @@ Cada skill recibe en contexto:
 
 ## Prompt templates
 
-Los prompts son archivos Markdown que definen el contexto y las instrucciones
-para el modelo. Reciben los inputs como variables interpoladas:
+Los prompts son archivos Markdown que definen el contexto y las instrucciones para el modelo. Reciben los inputs como variables interpoladas:
 
 ```markdown
 # ADR Review
@@ -77,10 +75,6 @@ invariante podría estar violándose y qué acción recomendás.
 
 ## Autonomía por layer
 
-Cada layer puede tener su propio `.impact.toml` con skills adaptadas a su
-naturaleza. Una layer de ADRs puede tener skills enfocadas en consistencia
-arquitectural; una layer de impl puede tener skills enfocadas en correctitud
-de tests.
+Cada layer puede tener su propio `.impact.toml` con skills adaptadas a su naturaleza. Una layer de ADRs puede tener skills enfocadas en consistencia arquitectural; una layer de impl puede tener skills enfocadas en correctitud de tests.
 
-Las skills de una layer corren con solo esa layer clonada localmente — no
-requieren el árbol completo de capas.
+Las skills de una layer corren con solo esa layer clonada localmente — no requieren el árbol completo de capas.

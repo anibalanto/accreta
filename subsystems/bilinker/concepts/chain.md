@@ -9,10 +9,7 @@ Un bilink conecta exactamente dos fragmentos estructurales. Hay dos formas:
 - **Cadena** — los fragmentos están en layers distintas. El mismo UUID aparece en
   un archivo `.bilink` en cada layer involucrada, con endpoints relativos a su posición.
 
-Una **cadena** es una secuencia lineal de bilinks que conecta dos fragmentos
-estructurales a través de las layers de un proyecto.
-Todos los bilinks de una cadena comparten el mismo UUID, que es simultáneamente
-su identificador de cadena y el nombre de su archivo `.bilink`.
+Una **cadena** es una secuencia lineal de bilinks que conecta dos fragmentos estructurales a través de las layers de un proyecto. Todos los bilinks de una cadena comparten el mismo UUID, que es simultáneamente su identificador de cadena y el nombre de su archivo `.bilink`.
 
 ## Topología
 
@@ -39,12 +36,9 @@ flowchart LR
 
 ## UUID como identificador
 
-El UUID v4 es generado una sola vez al crear la cadena (`bilinker chain new`).
-Identifica la cadena y localiza sus nodos: en cualquier layer, el nodo de la cadena
-es `.bilink/<uuid>.bilink`.
+El UUID v4 es generado una sola vez al crear la cadena (`bilinker chain new`). Identifica la cadena y localiza sus nodos: en cualquier layer, el nodo de la cadena es `.bilink/<uuid>.bilink`.
 
-No existe un archivo de registro central de cadenas — la cadena se descubre
-recorriendo los endpoints layer desde cualquier nodo.
+No existe un archivo de registro central de cadenas — la cadena se descubre recorriendo los endpoints layer desde cualquier nodo.
 
 ## Propagación reactiva
 
@@ -82,8 +76,7 @@ Ver especificación completa en [commands/chain.md](commands/chain.md).
 
 ### `bilinker chain new`
 
-Crea una nueva cadena generando un UUID y los archivos `.bilink` en las layers
-especificadas:
+Crea una nueva cadena generando un UUID y los archivos `.bilink` en las layers especificadas:
 
 ```bash
 bilinker chain new \

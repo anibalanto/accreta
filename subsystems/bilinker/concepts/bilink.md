@@ -2,9 +2,7 @@
 
 ## Ubicación y nomenclatura
 
-Los archivos `.bilink` viven en carpetas `.bilink/` dentro de cada layer del proyecto.
-El nombre del archivo es un **UUID v4** — es simultáneamente el identificador de la
-cadena a la que pertenece el bilink y el mecanismo de localización entre layers.
+Los archivos `.bilink` viven en carpetas `.bilink/` dentro de cada layer del proyecto. El nombre del archivo es un **UUID v4** — es simultáneamente el identificador de la cadena a la que pertenece el bilink y el mecanismo de localización entre layers.
 
 ```
 bilinker/
@@ -32,14 +30,11 @@ El tipo de un endpoint se infiere del valor de `link.N` — no hay prefijo de ti
 | **Todo** | `todo` | Placeholder — el extremo aún no existe. |
 | **Bilink** | `.bilink/<uuid>.bilink` | Apunta a otro bilink por UUID. |
 
-Un endpoint estructural puede apuntar a un nodo AST específico (`:: query`) o al
-archivo completo (sin query).
+Un endpoint estructural puede apuntar a un nodo AST específico (`:: query`) o al archivo completo (sin query).
 
-Los endpoints layer usan el lenguaje de paths Stratum (ver especificación en
-[Stratum — lenguaje de paths](../../stratum/specific/paths.md)).
+Los endpoints layer usan el lenguaje de paths Stratum (ver especificación en [Stratum — lenguaje de paths](../../stratum/specific/paths.md)).
 
-Un endpoint bilink referencia un archivo `.bilink` por su path relativo a la raíz
-de la layer actual. El tipo se reconoce por el prefijo `.bilink/` en el valor.
+Un endpoint bilink referencia un archivo `.bilink` por su path relativo a la raíz de la layer actual. El tipo se reconoce por el prefijo `.bilink/` en el valor.
 
 ### Resolución de un endpoint layer
 
@@ -52,15 +47,13 @@ Dado `link.N: <stratum-path>` en el archivo `<current-layer>/.bilink/<uuid>.bili
 resolved = ../<layer-path>/.bilink/<uuid>.bilink
 ```
 
-El `../` sube del directorio `.bilink/` a la raíz de la layer actual. La carpeta
-`.bilink/` nunca aparece en el valor de `link.N` — siempre es implícita.
+El `../` sube del directorio `.bilink/` a la raíz de la layer actual. La carpeta `.bilink/` nunca aparece en el valor de `link.N` — siempre es implícita.
 
 ## Topología
 
 ### Link directo (misma capa)
 
-Un bilink puede conectar dos fragmentos dentro de la misma capa: ambos `link.N`
-son endpoints estructurales. Hay un único archivo `.bilink` — no hay chain traversal.
+Un bilink puede conectar dos fragmentos dentro de la misma capa: ambos `link.N` son endpoints estructurales. Hay un único archivo `.bilink` — no hay chain traversal.
 
 ```
 [fragmento A] ←→ [fragmento B]
@@ -68,8 +61,7 @@ son endpoints estructurales. Hay un único archivo `.bilink` — no hay chain tr
 
 ### Cadena entre capas
 
-Una **cadena** es una secuencia lineal de bilinks con el mismo UUID que conecta
-dos fragmentos a través de una o más capas. Los tipos de nodo en la cadena son:
+Una **cadena** es una secuencia lineal de bilinks con el mismo UUID que conecta dos fragmentos a través de una o más capas. Los tipos de nodo en la cadena son:
 
 - **tip**: un endpoint estructural + un endpoint layer. Son los extremos de la cadena.
   Siempre hay exactamente dos tips por cadena.
@@ -83,15 +75,13 @@ La topología es estrictamente lineal — sin ciclos ni bifurcaciones.
 
 ### Bilink abierto (intención pendiente)
 
-Un bilink con un endpoint `todo` declara que un fragmento *debería* estar
-conectado a algo que aún no existe. Es una intención pendiente, no un error.
+Un bilink con un endpoint `todo` declara que un fragmento *debería* estar conectado a algo que aún no existe. Es una intención pendiente, no un error.
 
 ```
 [fragmento spec] ←→ todo
 ```
 
-Creado por `worklist new ... capture`. Completado por `worklist done ... capture`,
-que reemplaza `todo` con el endpoint real.
+Creado por `worklist new ... capture`. Completado por `worklist done ... capture`, que reemplaza `todo` con el endpoint real.
 
 ## Estructura del archivo
 
@@ -116,11 +106,7 @@ state.1: <estado>
 resolved_at: <iso8601-timestamp>
 ```
 
-No existe campo `id`: el UUID del nombre de archivo es el identificador.
-`range.N` es opcional.
-`hash.N` y `commit.N` están ausentes hasta que el endpoint es aceptado por primera vez.
-`kind`, `name.0` y `name.1` son opcionales. Presentes cuando el bilink tiene semántica
-declarada más allá del vínculo estructural.
+No existe campo `id`: el UUID del nombre de archivo es el identificador. `range.N` es opcional. `hash.N` y `commit.N` están ausentes hasta que el endpoint es aceptado por primera vez. `kind`, `name.0` y `name.1` son opcionales. Presentes cuando el bilink tiene semántica declarada más allá del vínculo estructural.
 
 ## Campos semánticos
 
@@ -137,8 +123,7 @@ Otros valores posibles en el futuro: `validates`, `documents`, `depends-on`, etc
 
 ### `name.N`
 
-Etiqueta opcional para el rol semántico del endpoint N en la relación declarada por
-`kind`. Texto libre. Útil para herramientas de traversal y agentes de IA.
+Etiqueta opcional para el rol semántico del endpoint N en la relación declarada por `kind`. Texto libre. Útil para herramientas de traversal y agentes de IA.
 
 ```
 name.0: architecture-decision
@@ -156,8 +141,7 @@ SHA-256 del contenido del endpoint N en el momento en que fue aceptado.
 | **Estructural** | SHA-256 del fragmento o archivo referenciado |
 | **Layer** | SHA-256 del archivo `.bilink` adyacente completo |
 
-Ausente cuando el endpoint nunca fue aceptado (estado `PENDING`).
-Establecido por `bilinker accept`, sobrescrito en cada nueva aceptación.
+Ausente cuando el endpoint nunca fue aceptado (estado `PENDING`). Establecido por `bilinker accept`, sobrescrito en cada nueva aceptación.
 
 ### `commit.N`
 
@@ -172,16 +156,13 @@ Ausente cuando `hash.N` está ausente. Siempre presente junto a `hash.N`.
 
 ### `range.N`
 
-Solo para endpoints estructurales. Byte range absoluto (`start~end`) del fragmento
-en el archivo referenciado, correspondiente al último estado aceptado.
+Solo para endpoints estructurales. Byte range absoluto (`start~end`) del fragmento en el archivo referenciado, correspondiente al último estado aceptado.
 
-Permite que `bilinker get <file>:<line>:<col>` localice endpoints sin re-ejecutar
-queries tree-sitter.
+Permite que `bilinker get <file>:<line>:<col>` localice endpoints sin re-ejecutar queries tree-sitter.
 
 ### `state.N`
 
-Estado de consistencia del endpoint N. Calculado por `bilinker check`, persistido
-en el archivo. Ver tablas completas de estados en la sección siguiente.
+Estado de consistencia del endpoint N. Calculado por `bilinker check`, persistido en el archivo. Ver tablas completas de estados en la sección siguiente.
 
 ### `resolved_at`
 
@@ -225,17 +206,13 @@ Timestamp ISO 8601 UTC del último `check`.
 |--------|-------------|---------------|--------------|
 | `TODO` | Placeholder — el extremo aún no existe | `worklist new ... capture` | `worklist done ... capture` |
 
-Un endpoint `todo` nunca tiene `hash.N`, `commit.N` ni `range.N`. `bilinker check`
-reporta `TODO` sin considerarlo un error. `bilinker accept` no aplica sobre `todo`.
+Un endpoint `todo` nunca tiene `hash.N`, `commit.N` ni `range.N`. `bilinker check` reporta `TODO` sin considerarlo un error. `bilinker accept` no aplica sobre `todo`.
 
-`bilinker remove` elimina el archivo `.bilink` del nodo actual. Los nodos
-adyacentes detectarán `BROKEN` en el próximo `check` y deberán también decidir:
-reparar o remover. La remoción se propaga hop a hop por la cadena.
+`bilinker remove` elimina el archivo `.bilink` del nodo actual. Los nodos adyacentes detectarán `BROKEN` en el próximo `check` y deberán también decidir: reparar o remover. La remoción se propaga hop a hop por la cadena.
 
 ## Propagación reactiva y hash chain
 
-Toda la cadena forma un **hash chain distribuido**: cada nodo ancla
-criptográficamente al estado aprobado de sus vecinos inmediatos.
+Toda la cadena forma un **hash chain distribuido**: cada nodo ancla criptográficamente al estado aprobado de sus vecinos inmediatos.
 
 Cuando se ejecuta `bilinker accept` en un endpoint:
 1. `hash.N` y `commit.N` del archivo `.bilink` se actualizan.
@@ -244,8 +221,7 @@ Cuando se ejecuta `bilinker accept` en un endpoint:
    `.bilink` vecino ≠ `hash.N` → `CHAIN_DIRTY`.
 4. Para restaurar `OK`, el nodo adyacente debe ejecutar `bilinker accept`.
 
-Esta propagación garantiza que **ningún nodo puede cambiar su estado aceptado sin
-que todos los nodos adyacentes lo detecten**.
+Esta propagación garantiza que **ningún nodo puede cambiar su estado aceptado sin que todos los nodos adyacentes lo detecten**.
 
 ## Semántica de parseo
 
@@ -253,8 +229,7 @@ que todos los nodos adyacentes lo detecten**.
 - Las líneas de continuación (que no comienzan con clave reconocida) se concatenan
   al valor anterior con un espacio. Solo aplica a `link.N`.
 - Claves reconocidas: `link.0:`, `link.1:`, `kind:`, `name.0:`, `name.1:`,
-  `hash.0:`, `commit.0:`, `hash.1:`, `commit.1:`, `range.0:`, `range.1:`,
-  `state.0:`, `state.1:`, `resolved_at:`.
+  `hash.0:`, `commit.0:`, `hash.1:`, `commit.1:`, `range.0:`, `range.1:`, `state.0:`, `state.1:`, `resolved_at:`.
 - Líneas que comienzan con `#` son comentarios y se ignoran.
 - El archivo usa codificación UTF-8 sin BOM.
 
@@ -307,9 +282,7 @@ state.1: TODO
 resolved_at: 2026-05-29T09:00:00Z
 ```
 
-Creado por `worklist new task "implementar vote" capture specs/voting.yaml:104:1`.
-Cuando el trabajo termina, `worklist done 3 capture src/Persona.java:45:1` reemplaza
-`link.1: todo` con el endpoint real y el bilink queda completo.
+Creado por `worklist new task "implementar vote" capture specs/voting.yaml:104:1`. Cuando el trabajo termina, `worklist done 3 capture src/Persona.java:45:1` reemplaza `link.1: todo` con el endpoint real y el bilink queda completo.
 
 ## Ejemplo completo: cadena de 3 nodos spec → tech-decisions → impl
 

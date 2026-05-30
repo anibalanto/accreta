@@ -1,7 +1,6 @@
 # Comando: `bilinker accept`
 
-Registra el estado actual de un endpoint como aceptado, estableciendo `hash.N`
-y `commit.N` en el archivo `.bilink`.
+Registra el estado actual de un endpoint como aceptado, estableciendo `hash.N` y `commit.N` en el archivo `.bilink`.
 
 ## Uso
 
@@ -24,8 +23,7 @@ bilinker accept <uuid>.<N> <hash> <commit>
 4. Establece `hash.N` y `commit.N` en el archivo (sobrescribe valores anteriores).
 5. Actualiza `state.N` a `OK` y `resolved_at`.
 
-El archivo `.bilink` cambia — esto dispara `CHAIN_DIRTY` en el nodo adyacente
-de la cadena en el próximo `check`.
+El archivo `.bilink` cambia — esto dispara `CHAIN_DIRTY` en el nodo adyacente de la cadena en el próximo `check`.
 
 ## Ejemplos
 

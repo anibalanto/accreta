@@ -1,7 +1,6 @@
 # Jerarquía
 
-La jerarquía de worklist es flexible. Cualquier tipo puede existir en el nivel
-raíz y los niveles intermedios son opcionales.
+La jerarquía de worklist es flexible. Cualquier tipo puede existir en el nivel raíz y los niveles intermedios son opcionales.
 
 ## Niveles permitidos
 
@@ -40,8 +39,7 @@ $ worklist show 3
 3  [open]  Actualizar struct BiLinkFile  .task
 ```
 
-Si por alguna razón el ID es ambiguo (no debería ocurrir, pero si el worklist
-es compartido entre proyectos), el CLI reporta los candidatos:
+Si por alguna razón el ID es ambiguo (no debería ocurrir, pero si el worklist es compartido entre proyectos), el CLI reporta los candidatos:
 
 ```bash
 $ worklist show 1
@@ -53,5 +51,4 @@ Use the full ID.
 
 ## IDs secuenciales y jerarquía
 
-Los IDs no codifican la jerarquía — un ítem hijo puede tener un ID posterior o
-anterior al de su padre. La estructura es la carpeta, no el número.
+Los IDs no codifican la jerarquía — un ítem hijo puede tener un ID posterior o anterior al de su padre. La estructura es la carpeta, no el número.

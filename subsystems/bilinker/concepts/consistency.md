@@ -2,33 +2,24 @@
 
 ## Principio fundamental
 
-La consistencia de un bilink se evalúa por extremo. `check` retorna una tupla
-`(state_link0, state_link1)` — cada extremo puede estar en un estado diferente.
-Ejemplos: `(OK, MOVED)`, `(DISPLACED, ALTERED)`, `(OK, OK)`.
+La consistencia de un bilink se evalúa por extremo. `check` retorna una tupla `(state_link0, state_link1)` — cada extremo puede estar en un estado diferente. Ejemplos: `(OK, MOVED)`, `(DISPLACED, ALTERED)`, `(OK, OK)`.
 
 Los estados disponibles dependen del tipo de endpoint:
 - **Endpoint estructural**: 10 estados (PENDING, OK, MOVED, DISPLACED, REANCHORED,
   EXPANDED, UNANCHORED, ALTERED, DELETED, BROKEN).
 - **Endpoint layer**: 3 estados (PENDING, OK, CHAIN_DIRTY).
 
-Un bilink es "saludable" si ambos extremos están en {OK, MOVED, DISPLACED,
-REANCHORED, EXPANDED}. Requiere acción si alguno está en {PENDING, UNANCHORED,
-ALTERED, DELETED, BROKEN, CHAIN_DIRTY}.
+Un bilink es "saludable" si ambos extremos están en {OK, MOVED, DISPLACED, REANCHORED, EXPANDED}. Requiere acción si alguno está en {PENDING, UNANCHORED, ALTERED, DELETED, BROKEN, CHAIN_DIRTY}.
 
 ## Estado CHAIN_DIRTY (endpoint layer)
 
-Cuando `link.N` apunta a una layer, `hash.N` contiene el SHA-256 del archivo
-`.bilink` completo de esa layer en el momento de la última aceptación. Si el
-hash actual de ese archivo ≠ `hash.N`, el estado es CHAIN_DIRTY.
+Cuando `link.N` apunta a una layer, `hash.N` contiene el SHA-256 del archivo `.bilink` completo de esa layer en el momento de la última aceptación. Si el hash actual de ese archivo ≠ `hash.N`, el estado es CHAIN_DIRTY.
 
-CHAIN_DIRTY no tiene auto-fix directo: indica que el nodo adyacente en la cadena
-cambió y requiere revisión. El estado se resuelve ejecutando `check` en el nodo
-que lo originó y propagando hacia arriba.
+CHAIN_DIRTY no tiene auto-fix directo: indica que el nodo adyacente en la cadena cambió y requiere revisión. El estado se resuelve ejecutando `check` en el nodo que lo originó y propagando hacia arriba.
 
 ## Persistencia de `state.N`
 
-El estado de cada endpoint se guarda en el archivo `.bilink` como `state.N`.
-Esto tiene dos consecuencias:
+El estado de cada endpoint se guarda en el archivo `.bilink` como `state.N`. Esto tiene dos consecuencias:
 
 1. **Propagación reactiva**: si `state.N` cambia, el archivo cambia, su hash cambia,
    y el nodo adyacente en la cadena detecta CHAIN_DIRTY en el próximo `check`.
@@ -54,20 +45,15 @@ Para determinar el estado, bilinker aplica hipótesis en orden de especificidad:
 
 ### PENDING
 
-`hash.N` está ausente — el bilink fue creado pero aún no tiene ningún estado
-aceptado. Se sale con `bilinker accept`.
+`hash.N` está ausente — el bilink fue creado pero aún no tiene ningún estado aceptado. Se sale con `bilinker accept`.
 
 ### OK
 
-El hash SHA-256 del texto actual del fragmento (en el offset guardado, o en el
-nodo completo si no hay `start~end`) == `hash.N`.
-No se requiere acción.
+El hash SHA-256 del texto actual del fragmento (en el offset guardado, o en el nodo completo si no hay `start~end`) == `hash.N`. No se requiere acción.
 
 ### CHAIN_DIRTY *(solo endpoint layer)*
 
-El hash SHA-256 del archivo `.bilink` referenciado ≠ `hash.N`.
-El nodo adyacente en la cadena cambió. No hay auto-fix — requiere inspeccionar
-el nodo origen con `bilinker chain status <uuid>` y ejecutar `bilinker accept`.
+El hash SHA-256 del archivo `.bilink` referenciado ≠ `hash.N`. El nodo adyacente en la cadena cambió. No hay auto-fix — requiere inspeccionar el nodo origen con `bilinker chain status <uuid>` y ejecutar `bilinker accept`.
 
 ### MOVED
 

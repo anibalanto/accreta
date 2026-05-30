@@ -2,8 +2,7 @@
 
 ## Propósito
 
-Permite navegar desde una posición en un archivo hacia los fragmentos relacionados
-a través de bilinks, y recuperar su contenido. Opera en dos formas.
+Permite navegar desde una posición en un archivo hacia los fragmentos relacionados a través de bilinks, y recuperar su contenido. Opera en dos formas.
 
 ## Forma 1: posición → endpoints que la cubren
 
@@ -17,12 +16,9 @@ bilinker get <file>:<line>:<col>
 | `line` | int | Línea (1-based). |
 | `col` | int | Columna (1-based). |
 
-Retorna la lista de endpoints de bilinks cuyo `range.N` cubre la posición dada.
-Cada resultado se identifica como `<UUID>.<N>` y muestra una descripción del
-fragmento referenciado en el extremo opuesto.
+Retorna la lista de endpoints de bilinks cuyo `range.N` cubre la posición dada. Cada resultado se identifica como `<UUID>.<N>` y muestra una descripción del fragmento referenciado en el extremo opuesto.
 
-Usa `.bilink/.index` si está disponible y actualizado (O(1)); si no, escanea
-los `.bilink` de la layer actual (O(N)).
+Usa `.bilink/.index` si está disponible y actualizado (O(1)); si no, escanea los `.bilink` de la layer actual (O(N)).
 
 **Salida:**
 
@@ -47,11 +43,9 @@ bilinker get <UUID>.<N> [-B <rows>] [-A <rows>]
 | `-B rows` | int | Líneas de contexto antes del fragmento. |
 | `-A rows` | int | Líneas de contexto después del fragmento. |
 
-Resuelve el endpoint `link.N` del bilink `<uuid>.bilink` de la layer actual y
-retorna el texto del fragmento que referencia.
+Resuelve el endpoint `link.N` del bilink `<uuid>.bilink` de la layer actual y retorna el texto del fragmento que referencia.
 
-Si `link.N` es un endpoint layer, resuelve la cadena hasta encontrar el fragmento
-estructural en ese extremo.
+Si `link.N` es un endpoint layer, resuelve la cadena hasta encontrar el fragmento estructural en ese extremo.
 
 **stdout** — El texto del fragmento.
 
@@ -92,13 +86,9 @@ bilinker get <file>
 |---|---|---|
 | `file` | path | Path al archivo (absoluto o relativo al directorio de trabajo). |
 
-Retorna todos los endpoints de bilinks que referencian ese archivo, ya sea mediante
-un endpoint estructural con query AST, un endpoint de archivo completo
-(`workspace :: file`), o cualquier posición dentro del archivo.
+Retorna todos los endpoints de bilinks que referencian ese archivo, ya sea mediante un endpoint estructural con query AST, un endpoint de archivo completo (`workspace :: file`), o cualquier posición dentro del archivo.
 
-Usa `.bilink/.index` si está disponible y actualizado (O(1)); si no, escanea
-los `.bilink` de la layer actual (O(N)). En ambos casos, no re-ejecuta queries
-tree-sitter — el `range.N` de cada bilink encontrado es suficiente.
+Usa `.bilink/.index` si está disponible y actualizado (O(1)); si no, escanea los `.bilink` de la layer actual (O(N)). En ambos casos, no re-ejecuta queries tree-sitter — el `range.N` de cada bilink encontrado es suficiente.
 
 **Salida:**
 

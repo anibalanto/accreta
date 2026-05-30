@@ -1,8 +1,6 @@
 # Thread
 
-Un thread es un hilo de discusión estructurado asociado a uno o más Impact Reports.
-Es el espacio donde humanos y agentes evalúan si un cambio es coherente con las
-capas linkedeadas y deciden cómo resolverlo.
+Un thread es un hilo de discusión estructurado asociado a uno o más Impact Reports. Es el espacio donde humanos y agentes evalúan si un cambio es coherente con las capas linkedeadas y deciden cómo resolverlo.
 
 ## Estructura en el filesystem
 
@@ -64,15 +62,11 @@ Un thread `resolved` tiene siempre un mensaje de `kind: resolution` como último
 
 ## Relación con Impact Reports
 
-Un thread puede agrupar múltiples Impact Reports si describen el mismo evento
-o cambios relacionados en la misma cadena. El primer mensaje del thread es
-siempre el reporte que lo abrió.
+Un thread puede agrupar múltiples Impact Reports si describen el mismo evento o cambios relacionados en la misma cadena. El primer mensaje del thread es siempre el reporte que lo abrió.
 
 ## Relación con Accreta
 
-Un thread de impact puede convertirse en una `Discussion` de Accreta, arrastrando
-su historial de mensajes. La resolución del thread puede generar una `Iteration`
-propuesta sobre la spec o el ADR afectado.
+Un thread de impact puede convertirse en una `Discussion` de Accreta, arrastrando su historial de mensajes. La resolución del thread puede generar una `Iteration` propuesta sobre la spec o el ADR afectado.
 
 ## Invariantes
 

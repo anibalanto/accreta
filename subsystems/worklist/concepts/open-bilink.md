@@ -1,8 +1,6 @@
 # Bilink abierto
 
-Un **bilink abierto** es un bilink con un endpoint `todo` — declara que un
-fragmento debería estar conectado a algo que aún no existe. Es la representación
-de una intención pendiente dentro del sistema de linking.
+Un **bilink abierto** es un bilink con un endpoint `todo` — declara que un fragmento debería estar conectado a algo que aún no existe. Es la representación de una intención pendiente dentro del sistema de linking.
 
 ## Formato
 
@@ -17,8 +15,7 @@ state.1: TODO
 resolved_at: 2026-05-29T09:00:00Z
 ```
 
-`link.1: todo` es un endpoint placeholder. No tiene `hash.N`, `commit.N` ni
-`range.N`. `bilinker check` reporta su estado como `TODO` — no es un error.
+`link.1: todo` es un endpoint placeholder. No tiene `hash.N`, `commit.N` ni `range.N`. `bilinker check` reporta su estado como `TODO` — no es un error.
 
 ## Ciclo de vida
 
@@ -46,8 +43,7 @@ Crea:
 worklist done 3 capture src/Persona.java:45:1
 ```
 
-Reemplaza `link.1: todo` con el endpoint capturado. El bilink queda completo y
-la task se marca `done`.
+Reemplaza `link.1: todo` con el endpoint capturado. El bilink queda completo y la task se marca `done`.
 
 ### Cerrar sin completar
 
@@ -55,8 +51,7 @@ la task se marca `done`.
 worklist done 3
 ```
 
-Marca la task `done` sin modificar el bilink. El bilink abierto permanece — puede
-completarse o eliminarse por separado con `bilinker remove`.
+Marca la task `done` sin modificar el bilink. El bilink abierto permanece — puede completarse o eliminarse por separado con `bilinker remove`.
 
 ## Visibilidad en el grafo
 
@@ -69,13 +64,10 @@ specs/voting.yaml :: impl
        link.1  todo
 ```
 
-`bilinker graph --state todo` lista todos los bilinks abiertos del proyecto —
-el inventario completo de intenciones pendientes.
+`bilinker graph --state todo` lista todos los bilinks abiertos del proyecto — el inventario completo de intenciones pendientes.
 
 ## Relación con worklist
 
-Un bilink abierto siempre tiene una task asociada en worklist. La task es el
-trabajo que justifica la existencia del bilink abierto. Cuando la task se
-completa con `capture`, el bilink se cierra y la conexión queda establecida.
+Un bilink abierto siempre tiene una task asociada en worklist. La task es el trabajo que justifica la existencia del bilink abierto. Cuando la task se completa con `capture`, el bilink se cierra y la conexión queda establecida.
 
 Ver [archivo `.tasks` por bilink](bilink-tasks.md).

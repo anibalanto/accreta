@@ -1,7 +1,6 @@
 # Comando: `worklist done`
 
-Marca un ítem como completado. Opcionalmente completa el bilink abierto asociado
-capturando el fragmento que resuelve el trabajo.
+Marca un ítem como completado. Opcionalmente completa el bilink abierto asociado capturando el fragmento que resuelve el trabajo.
 
 ## Uso
 
@@ -26,8 +25,7 @@ worklist done <id> [capture <selector>]
 5. Actualiza `status: done` y `updated_at` en el frontmatter.
 6. Si todos los hijos del padre están `done`, sugiere marcar el padre también.
 
-Si el ítem no tiene `source_bilink`, o el bilink no tiene ningún endpoint `todo`,
-`capture` falla con código de salida `1`.
+Si el ítem no tiene `source_bilink`, o el bilink no tiene ningún endpoint `todo`, `capture` falla con código de salida `1`.
 
 ## Ejemplos
 

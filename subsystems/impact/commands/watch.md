@@ -30,19 +30,13 @@ watching /home/anibal/proyecto  (Ctrl-C to stop)
 
 ## Relación con `bilinker watch`
 
-`bilinker watch` detecta drift estructural en los `.bilink` files.
-`impact watch` reacciona a esos mismos cambios pero con un análisis más
-profundo: calcula el blast radius, obtiene el historial de git y genera
-Impact Reports.
+`bilinker watch` detecta drift estructural en los `.bilink` files. `impact watch` reacciona a esos mismos cambios pero con un análisis más profundo: calcula el blast radius, obtiene el historial de git y genera Impact Reports.
 
-Pueden correr en paralelo o de forma independiente. `impact watch` no
-depende de que `bilinker watch` esté activo — observa el filesystem directamente.
+Pueden correr en paralelo o de forma independiente. `impact watch` no depende de que `bilinker watch` esté activo — observa el filesystem directamente.
 
 ## Cuándo usar
 
-En un servidor de integración continua o en un entorno de desarrollo donde
-se quiere análisis de impacto en tiempo real. Para análisis puntuales o en CI,
-`impact scan` es suficiente.
+En un servidor de integración continua o en un entorno de desarrollo donde se quiere análisis de impacto en tiempo real. Para análisis puntuales o en CI, `impact scan` es suficiente.
 
 ## Exit codes
 

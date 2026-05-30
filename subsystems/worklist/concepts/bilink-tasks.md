@@ -1,7 +1,6 @@
 # Archivo `.tasks` por bilink
 
-Un bilink puede tener cero, una o múltiples tasks asociadas. La asociación se
-registra en un archivo `<bilink-uuid>.tasks` en la raíz del worklist.
+Un bilink puede tener cero, una o múltiples tasks asociadas. La asociación se registra en un archivo `<bilink-uuid>.tasks` en la raíz del worklist.
 
 ## Ubicación y nombre
 
@@ -13,8 +12,7 @@ accreta/.stratum/worklist/
   ...
 ```
 
-El nombre del archivo es el UUID del bilink — el mismo UUID que identifica al
-bilink en el sistema bilinker. La extensión `.tasks` lo distingue de los ítems.
+El nombre del archivo es el UUID del bilink — el mismo UUID que identifica al bilink en el sistema bilinker. La extensión `.tasks` lo distingue de los ítems.
 
 ## Formato
 
@@ -28,9 +26,7 @@ Una línea por task ID (base-36):
 
 ## Creación y mantenimiento
 
-El servidor worklist crea o actualiza el archivo `.tasks` automáticamente cuando
-se crea una task con `worklist new capture <selector>`. El cliente nunca escribe
-este archivo directamente.
+El servidor worklist crea o actualiza el archivo `.tasks` automáticamente cuando se crea una task con `worklist new capture <selector>`. El cliente nunca escribe este archivo directamente.
 
 ## Lookup O(1)
 
@@ -44,8 +40,7 @@ No hay scan, no hay índice adicional.
 
 ## Relación inversa
 
-Cada ítem `.task` tiene `source_bilink: <uuid>` en su frontmatter — la relación
-inversa (task → bilink) también es O(1).
+Cada ítem `.task` tiene `source_bilink: <uuid>` en su frontmatter — la relación inversa (task → bilink) también es O(1).
 
 ## Invariantes
 

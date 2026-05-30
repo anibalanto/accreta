@@ -1,19 +1,12 @@
 # Stratum
 
-Stratum es un modelo de organización de conocimiento en capas para proyectos de
-software. Define cómo estructurar especificaciones, decisiones técnicas e
-implementación de forma que cada nivel de abstracción tenga su lugar y las
-referencias entre capas sean verificables.
+Stratum es un modelo de organización de conocimiento en capas para proyectos de software. Define cómo estructurar especificaciones, decisiones técnicas e implementación de forma que cada nivel de abstracción tenga su lugar y las referencias entre capas sean verificables.
 
 ## Problema que resuelve
 
-El conocimiento de un proyecto existe en múltiples niveles — specs funcionales,
-ADRs, implementación, tests — que típicamente viven en herramientas inconexas.
-Cuando la implementación diverge de la especificación, nadie lo sabe hasta que
-el daño ya está hecho.
+El conocimiento de un proyecto existe en múltiples niveles — specs funcionales, ADRs, implementación, tests — que típicamente viven en herramientas inconexas. Cuando la implementación diverge de la especificación, nadie lo sabe hasta que el daño ya está hecho.
 
-Stratum define una convención de estructura que hace ese conocimiento navegable
-y composable, sin imponer herramientas ni formatos.
+Stratum define una convención de estructura que hace ese conocimiento navegable y composable, sin imponer herramientas ni formatos.
 
 ## Posición en el ecosistema
 

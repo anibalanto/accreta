@@ -16,9 +16,7 @@ HumanActor {
 
 ### Actor agente
 
-Un agente es un proceso autónomo (unikernel hermit-rs) operado por un humano.
-Hereda el nivel de confianza de su operador y sus acciones contribuyen al historial
-trazable del operador.
+Un agente es un proceso autónomo (unikernel hermit-rs) operado por un humano. Hereda el nivel de confianza de su operador y sus acciones contribuyen al historial trazable del operador.
 
 ```
 AgentActor {
@@ -32,8 +30,7 @@ AgentActor {
 }
 ```
 
-Los DIDs de agentes son sub-cuentas de su operador en NEAR — la cadena de
-responsabilidad es visible en la identidad misma.
+Los DIDs de agentes son sub-cuentas de su operador en NEAR — la cadena de responsabilidad es visible en la identidad misma.
 
 ## Niveles de colaboración
 
@@ -55,13 +52,11 @@ responsabilidad es visible en la identidad misma.
 | Analizar impacto | ✓ | ✓ | ✓ | ✓ | humano + agente |
 | Opinar en Discussion | ✓ | ✓ | ✓ | ✓ | humano + agente |
 
-Los agentes heredan el nivel de su operador. Las acciones de gobernanza son
-exclusivamente humanas.
+Los agentes heredan el nivel de su operador. Las acciones de gobernanza son exclusivamente humanas.
 
 ## Historial trazable
 
-No existe un número de reputación. Cada actor acumula un historial público,
-firmado y auditable:
+No existe un número de reputación. Cada actor acumula un historial público, firmado y auditable:
 
 ```
 iterations_proposed: 23  (18 aceptadas, 3 rechazadas, 2 retiradas)
@@ -70,5 +65,4 @@ opinions_given:      89
 agents_operated:      2
 ```
 
-Los observadores forman su propio juicio. El historial no se puede resumir
-— es la reputación.
+Los observadores forman su propio juicio. El historial no se puede resumir — es la reputación.

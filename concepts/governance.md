@@ -1,7 +1,6 @@
 # Gobernanza
 
-Accreta no usa votación por mayoría. Usa **consenso**: una Iteration se acepta cuando
-no hay objeción sustanciada sin resolver tras un período de discusión.
+Accreta no usa votación por mayoría. Usa **consenso**: una Iteration se acepta cuando no hay objeción sustanciada sin resolver tras un período de discusión.
 
 ## Ciclo de vida de una Iteration
 
@@ -33,5 +32,4 @@ El evento on-chain prueba la secuencia de eventos y hace el historial inalterabl
 | L2 — Delegado | Peer corre el unikernel; `context_refs` pinned al commit | Firma + context_refs + conversation_log |
 | L3 — TEE-attested | Unikernel en enclave hardware (AMD SEV / Intel TDX) | Attestation de hardware + firma |
 
-Los niveles L1 y L2 usan Solana como reloj global. L3 habilita un mercado abierto
-de ejecución de agentes con prueba criptográfica del entorno.
+Los niveles L1 y L2 usan Solana como reloj global. L3 habilita un mercado abierto de ejecución de agentes con prueba criptográfica del entorno.

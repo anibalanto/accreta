@@ -1,8 +1,6 @@
 # Integración con impact
 
-impact y worklist se complementan: impact detecta que algo cambió y abre
-un hilo de discusión; worklist registra el trabajo concreto que hay que hacer
-como consecuencia de ese cambio.
+impact y worklist se complementan: impact detecta que algo cambió y abre un hilo de discusión; worklist registra el trabajo concreto que hay que hacer como consecuencia de ese cambio.
 
 ## Flujo
 
@@ -19,8 +17,7 @@ worklist new task "implementar accepted.N en BiLinkFile" bilink-format.md:104:1
 worklist new task "actualizar spec en base a cambio en accept()" lib.rs:88:1
 ```
 
-El ítem creado queda linkedeado exactamente al fragmento que cambió — el
-mismo que impact analizó.
+El ítem creado queda linkedeado exactamente al fragmento que cambió — el mismo que impact analizó.
 
 ## Trazabilidad completa
 
@@ -36,5 +33,4 @@ bilinker chain new (si corresponde crear un bilink entre capas)
 worklist done <task>
 ```
 
-Cada paso es trazable: desde el commit que introdujo el cambio hasta el
-ítem de worklist que registra el trabajo y el bilink que certifica la alineación.
+Cada paso es trazable: desde el commit que introdujo el cambio hasta el ítem de worklist que registra el trabajo y el bilink que certifica la alineación.

@@ -1,15 +1,10 @@
 # Bilinker
 
-Bilinker es la herramienta de referencias estructurales persistentes y bidireccionales
-del ecosistema Accreta. Conecta fragmentos de texto entre capas del sistema — spec,
-decisiones técnicas, código — de forma que los links sobreviven reformateos,
-renombres y movimientos, y se detecta automáticamente cuando el contenido cambia.
+Bilinker es la herramienta de referencias estructurales persistentes y bidireccionales del ecosistema Accreta. Conecta fragmentos de texto entre capas del sistema — spec, decisiones técnicas, código — de forma que los links sobreviven reformateos, renombres y movimientos, y se detecta automáticamente cuando el contenido cambia.
 
 ## Problema que resuelve
 
-Las referencias por número de línea son frágiles: cualquier inserción o reformateo
-las invalida sin aviso. En proyectos con múltiples capas (spec → ADR → implementación),
-el drift entre lo que dice la spec y lo que hace el código se acumula silenciosamente.
+Las referencias por número de línea son frágiles: cualquier inserción o reformateo las invalida sin aviso. En proyectos con múltiples capas (spec → ADR → implementación), el drift entre lo que dice la spec y lo que hace el código se acumula silenciosamente.
 
 Bilinker resuelve esto con dos mecanismos:
 - **Query AST via tree-sitter**: la referencia identifica el fragmento por estructura

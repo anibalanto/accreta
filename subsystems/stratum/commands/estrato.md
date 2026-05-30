@@ -2,14 +2,11 @@
 
 ## Propósito
 
-CLI de navegación por el árbol de capas de un proyecto Stratum. Permite obtener
-paths hacia capas superiores e inferiores desde la posición actual, y visualizar
-el contexto de profundidad en el árbol.
+CLI de navegación por el árbol de capas de un proyecto Stratum. Permite obtener paths hacia capas superiores e inferiores desde la posición actual, y visualizar el contexto de profundidad en el árbol.
 
 El argumento es un path Stratum — ver [paths.md](paths.md) para la gramática completa.
 
-El argumento de navegación se pasa siempre entre comillas simples porque contiene
-caracteres especiales del shell (`>`, `<`):
+El argumento de navegación se pasa siempre entre comillas simples porque contiene caracteres especiales del shell (`>`, `<`):
 
 ```bash
 cd $(stratum '>tech-decisions>impl')
@@ -22,15 +19,13 @@ cd $(stratum '<<')
 stratum '<query>'
 ```
 
-Una query es una secuencia de operadores `>` y `<` que describe una navegación
-relativa en el árbol de capas.
+Una query es una secuencia de operadores `>` y `<` que describe una navegación relativa en el árbol de capas.
 
 ## Operadores
 
 ### `>` — bajar una capa
 
-`>name` desciende a la sub-capa `name` dentro del directorio `.stratum/` actual.
-Varios `>` encadenados descienden múltiples niveles:
+`>name` desciende a la sub-capa `name` dentro del directorio `.stratum/` actual. Varios `>` encadenados descienden múltiples niveles:
 
 ```
 '>tech-decisions'              →  .stratum/tech-decisions
@@ -38,14 +33,11 @@ Varios `>` encadenados descienden múltiples niveles:
 '>a>b>c'                       →  .stratum/a/.stratum/b/.stratum/c
 ```
 
-**Validación:** cada segmento del path resultante debe existir en el filesystem.
-Si algún segmento no existe, imprime error a stderr y sale con código 1.
+**Validación:** cada segmento del path resultante debe existir en el filesystem. Si algún segmento no existe, imprime error a stderr y sale con código 1.
 
 ### `<` — subir una capa
 
-Cada `<` sube un nivel Stratum (equivale a `../..` en el filesystem, ya que
-cada capa ocupa dos directorios: `.stratum/<nombre>/`). Varios `<` encadenados
-suben múltiples niveles:
+Cada `<` sube un nivel Stratum (equivale a `../..` en el filesystem, ya que cada capa ocupa dos directorios: `.stratum/<nombre>/`). Varios `<` encadenados suben múltiples niveles:
 
 ```
 '<'    →  ../..
@@ -53,9 +45,7 @@ suben múltiples niveles:
 '<<<'  →  ../../../../../../
 ```
 
-**Validación:** la cantidad de `<` no puede superar la profundidad actual en el
-árbol. Si se intenta subir más niveles de los disponibles, imprime error a stderr
-y sale con código 1.
+**Validación:** la cantidad de `<` no puede superar la profundidad actual en el árbol. Si se intenta subir más niveles de los disponibles, imprime error a stderr y sale con código 1.
 
 ### `>?` — consultar capas disponibles hacia abajo
 

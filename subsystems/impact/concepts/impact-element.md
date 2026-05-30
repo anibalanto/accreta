@@ -1,7 +1,6 @@
 # Elemento de impacto
 
-Un elemento de impacto es un bilink con `kind: impact` que declara que un
-documento de decisión gobierna o afecta a un vínculo estructural entre capas.
+Un elemento de impacto es un bilink con `kind: impact` que declara que un documento de decisión gobierna o afecta a un vínculo estructural entre capas.
 
 ## Estructura
 
@@ -23,12 +22,9 @@ state.1: OK
 resolved_at: 2026-05-29T09:00:00Z
 ```
 
-`link.0` apunta al documento de decisión: ADR, test spec, documento de arquitectura,
-descripción de tecnología concreta, o cualquier documento que exprese una decisión
-con impacto sobre la relación entre capas.
+`link.0` apunta al documento de decisión: ADR, test spec, documento de arquitectura, descripción de tecnología concreta, o cualquier documento que exprese una decisión con impacto sobre la relación entre capas.
 
-`link.1` apunta a un bilink estructural existente — el vínculo entre capas que
-este documento gobierna.
+`link.1` apunta a un bilink estructural existente — el vínculo entre capas que este documento gobierna.
 
 ## Relación ternaria
 
@@ -41,20 +37,15 @@ specs/voting.yaml ↔ impl/Voting.java
         (bilink estructural)
 ```
 
-Esto enriquece el grafo que traversan las herramientas: no solo "A está vinculado
-a B", sino "A está vinculado a B y este documento de decisión lo gobierna".
+Esto enriquece el grafo que traversan las herramientas: no solo "A está vinculado a B", sino "A está vinculado a B y este documento de decisión lo gobierna".
 
 ## Dónde vive
 
-El elemento de impacto vive en `.bilink/` de la layer donde reside el documento
-de decisión. El bilink gobernado (`link.1`) puede estar en cualquier layer.
+El elemento de impacto vive en `.bilink/` de la layer donde reside el documento de decisión. El bilink gobernado (`link.1`) puede estar en cualquier layer.
 
 ## Descubrimiento
 
-El `.bilink/.index` registra backlinks: para cada bilink, qué otros bilinks lo
-referencian. Cuando bilinker detecta `ALTERED` o `CHAIN_DIRTY` en un bilink
-estructural, impact consulta el índice para encontrar todos los elementos de
-impacto que lo gobiernan. La búsqueda es O(1).
+El `.bilink/.index` registra backlinks: para cada bilink, qué otros bilinks lo referencian. Cuando bilinker detecta `ALTERED` o `CHAIN_DIRTY` en un bilink estructural, impact consulta el índice para encontrar todos los elementos de impacto que lo gobiernan. La búsqueda es O(1).
 
 ## Ciclo de vida
 
@@ -72,9 +63,7 @@ flowchart LR
 
 ## `name.N` como contexto semántico
 
-Los campos `name.0` y `name.1` etiquetan el rol de cada extremo en la relación.
-Son opcionales pero recomendados: permiten que las skills interpreten la relación
-sin leer el documento completo.
+Los campos `name.0` y `name.1` etiquetan el rol de cada extremo en la relación. Son opcionales pero recomendados: permiten que las skills interpreten la relación sin leer el documento completo.
 
 Ejemplos habituales:
 

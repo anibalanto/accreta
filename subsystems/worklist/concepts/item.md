@@ -1,8 +1,6 @@
 # Ítem
 
-Un ítem es la unidad de trabajo en worklist. Representa algo que hay que hacer
-como consecuencia de un cambio en alguna capa del sistema. El fragmento que lo
-origina puede estar en cualquier capa o repo — arriba, abajo, o en la misma.
+Un ítem es la unidad de trabajo en worklist. Representa algo que hay que hacer como consecuencia de un cambio en alguna capa del sistema. El fragmento que lo origina puede estar en cualquier capa o repo — arriba, abajo, o en la misma.
 
 ## Tipos
 
@@ -14,8 +12,7 @@ origina puede estar en cualquier capa o repo — arriba, abajo, o en la misma.
 
 ## Identificación
 
-El nombre del archivo es un **ID base-36 corto**, asignado por el servidor al
-crear el ítem. La extensión define el tipo:
+El nombre del archivo es un **ID base-36 corto**, asignado por el servidor al crear el ítem. La extensión define el tipo:
 
 ```
 1.epic
@@ -26,8 +23,7 @@ a.task
 2z.epic
 ```
 
-El ID es base-36 con el alfabeto `[0-9a-z]`, empezando en `1`. El servidor
-mantiene el contador e incrementa al procesar cada creación:
+El ID es base-36 con el alfabeto `[0-9a-z]`, empezando en `1`. El servidor mantiene el contador e incrementa al procesar cada creación:
 
 ```
 1, 2, 3, …, 9, a, b, …, z, 10, 11, …, 1a, 1b, …, 1z, 20, …
@@ -54,9 +50,7 @@ source_bilink: <uuid>
 Descripción opcional en Markdown.
 ```
 
-`source_bilink` es el UUID del bilink creado por `worklist new`. Puede apuntar
-a un fragmento en cualquier capa o repo del ecosistema. Es opcional si el ítem
-fue creado sin selector.
+`source_bilink` es el UUID del bilink creado por `worklist new`. Puede apuntar a un fragmento en cualquier capa o repo del ecosistema. Es opcional si el ítem fue creado sin selector.
 
 ## Estados y transiciones
 

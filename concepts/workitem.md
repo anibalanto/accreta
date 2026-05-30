@@ -1,7 +1,6 @@
 # WorkItem
 
-Todo en Accreta es un WorkItem — un objeto firmado, content-addressed y respaldado
-por CRDT. El feed de un proyecto es el grafo causal ordenado de todos sus WorkItems.
+Todo en Accreta es un WorkItem — un objeto firmado, content-addressed y respaldado por CRDT. El feed de un proyecto es el grafo causal ordenado de todos sus WorkItems.
 
 ```
 WorkItem (base)
@@ -15,13 +14,11 @@ WorkItem (base)
 
 ## Spec
 
-Documento Markdown vivo. Las specs nunca se reemplazan — solo se extienden por
-Iterations aceptadas.
+Documento Markdown vivo. Las specs nunca se reemplazan — solo se extienden por Iterations aceptadas.
 
 ## Iteration
 
-Cambio propuesto sobre una Spec. Incluye análisis automático de agentes al crearse,
-discusión, y votos humanos.
+Cambio propuesto sobre una Spec. Incluye análisis automático de agentes al crearse, discusión, y votos humanos.
 
 ```
 status: Proposed | InDiscussion | ConsensusRequested | Accepted | Rejected | Withdrawn
@@ -46,5 +43,4 @@ verdict: Approve | Reject | Abstain
 
 ## Task
 
-Unidad de trabajo generada a partir de una Iteration aceptada. Corresponde a un
-ítem de worklist linkedeado a la spec que lo originó.
+Unidad de trabajo generada a partir de una Iteration aceptada. Corresponde a un ítem de worklist linkedeado a la spec que lo originó.

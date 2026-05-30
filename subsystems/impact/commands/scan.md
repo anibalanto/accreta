@@ -1,7 +1,6 @@
 # Comando: `impact scan`
 
-Lee los `accepted.N` almacenados en los `.bilink` del proyecto y calcula qué
-archivos tienen commits no analizados desde el último anchor aceptado.
+Lee los `accepted.N` almacenados en los `.bilink` del proyecto y calcula qué archivos tienen commits no analizados desde el último anchor aceptado.
 
 ## Uso
 
@@ -60,5 +59,4 @@ scan: todos los bilinks están en su anchor  (12 revisados)
 - como parte de un git hook post-merge o post-fetch
 - en un CI pipeline para detectar drift entre ramas
 
-No requiere `bilinker watch` en ejecución — la fuente de verdad es el
-historial de git accesible localmente.
+No requiere `bilinker watch` en ejecución — la fuente de verdad es el historial de git accesible localmente.

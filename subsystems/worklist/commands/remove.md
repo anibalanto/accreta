@@ -14,8 +14,7 @@ worklist remove <id>
 2. Si el item tiene hijos, pide confirmación explícita (o requiere `--force`).
 3. Elimina el archivo y la carpeta homónima si existe.
 4. Si el item tiene un `source_bilink`, pregunta si también eliminar ese bilink
-   de `.bilink/`. No lo elimina automáticamente — el bilink puede ser útil
-   aunque el item de worklist ya no aplique.
+   de `.bilink/`. No lo elimina automáticamente — el bilink puede ser útil aunque el item de worklist ya no aplique.
 
 ## Flags
 
@@ -26,9 +25,7 @@ worklist remove <id>
 
 ## Cuándo usar
 
-Un item se elimina cuando el requerimiento de la capa superior cambió, fue
-eliminado, o el item fue creado por error. No es un substituto de `worklist done` —
-`remove` es para items que no deberían haberse creado o que ya no tienen sentido.
+Un item se elimina cuando el requerimiento de la capa superior cambió, fue eliminado, o el item fue creado por error. No es un substituto de `worklist done` — `remove` es para items que no deberían haberse creado o que ya no tienen sentido.
 
 ## Salida
 

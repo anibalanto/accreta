@@ -2,8 +2,7 @@
 
 ## Propósito
 
-Construye o reconstruye el índice `.bilink/.index` de una o más layers, permitiendo
-que `bilinker get` opere en O(1) en lugar de O(N).
+Construye o reconstruye el índice `.bilink/.index` de una o más layers, permitiendo que `bilinker get` opere en O(1) en lugar de O(N).
 
 ## Firma
 
@@ -44,8 +43,7 @@ Con `--quiet`, solo imprime errores.
 bilinker index status [<path>] [--recursive]
 ```
 
-Reporta si el índice de cada layer está actualizado, desactualizado o ausente,
-sin modificar ningún archivo.
+Reporta si el índice de cada layer está actualizado, desactualizado o ausente, sin modificar ningún archivo.
 
 ```
 $ bilinker index status --recursive
@@ -64,9 +62,7 @@ $ bilinker index status --recursive
 
 ## Relación con otros comandos
 
-`bilinker get` usa el índice si está disponible y actualizado; si no, hace
-scan O(N) sin error. `bilinker index` es la única forma de construir o
-actualizar el índice — ningún otro comando lo escribe.
+`bilinker get` usa el índice si está disponible y actualizado; si no, hace scan O(N) sin error. `bilinker index` es la única forma de construir o actualizar el índice — ningún otro comando lo escribe.
 
 ## Exit codes
 

@@ -2,15 +2,13 @@
 
 ## Propósito
 
-Gestiona las cadenas de bilinks: crear nuevas cadenas, consultar su estado completo
-y listar todas las cadenas del proyecto.
+Gestiona las cadenas de bilinks: crear nuevas cadenas, consultar su estado completo y listar todas las cadenas del proyecto.
 
 ## Subcomandos
 
 ### `bilinker chain new`
 
-Crea una nueva cadena generando un UUID y los archivos `.bilink` en las layers
-especificadas.
+Crea una nueva cadena generando un UUID y los archivos `.bilink` en las layers especificadas.
 
 ```
 bilinker chain new --tip <layer> "<referencia-estructural>" \
@@ -23,9 +21,7 @@ bilinker chain new --tip <layer> "<referencia-estructural>" \
 | `--tip <layer> "<ref>"` | Extremo de la cadena: layer donde vive el nodo + referencia estructural. Se especifica exactamente dos veces. |
 | `--mid <layer>` | Layer intermedia. Se puede especificar cero o más veces. |
 
-Genera el UUID, crea el archivo `.bilink/<uuid>.bilink` en cada layer especificada
-con los endpoints correctos (estructurales en los tips, layer en los mids) y la
-sección de cache vacía (se completa en el primer `check`).
+Genera el UUID, crea el archivo `.bilink/<uuid>.bilink` en cada layer especificada con los endpoints correctos (estructurales en los tips, layer en los mids) y la sección de cache vacía (se completa en el primer `check`).
 
 **Ejemplo:**
 

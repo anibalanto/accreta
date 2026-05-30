@@ -41,13 +41,11 @@ a1b2c3d4  resolved  actualizar spec voting.yaml tras refactor
 
 ### `impact thread show`
 
-Muestra el contenido completo de un thread: metadata y todos los mensajes
-en orden de secuencia.
+Muestra el contenido completo de un thread: metadata y todos los mensajes en orden de secuencia.
 
 ### `impact thread reply`
 
-Agrega un mensaje al thread. El texto puede venir de `--message` o de
-stdin si se omite.
+Agrega un mensaje al thread. El texto puede venir de `--message` o de stdin si se omite.
 
 ```
 impact thread reply 7f3d8e --kind analysis --message "El cambio es compatible, el invariante sigue válido"
@@ -57,8 +55,7 @@ Crea el siguiente archivo en secuencia (`0002.md`, `0003.md`, etc.).
 
 ### `impact thread resolve`
 
-Agrega un mensaje `kind: resolution` y cambia el estado a `resolved`.
-Requiere que el thread esté `open`.
+Agrega un mensaje `kind: resolution` y cambia el estado a `resolved`. Requiere que el thread esté `open`.
 
 ### `impact thread discard`
 

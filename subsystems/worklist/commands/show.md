@@ -1,7 +1,6 @@
 # Comando: `worklist show`
 
-Muestra el detalle completo de un item: frontmatter, cuerpo, bilink origen,
-y lista de hijos.
+Muestra el detalle completo de un item: frontmatter, cuerpo, bilink origen, y lista de hijos.
 
 ## Uso
 

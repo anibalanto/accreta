@@ -1,8 +1,6 @@
 # Comando: `worklist new`
 
-Crea un nuevo ítem en `accreta/.stratum/worklist/` y opcionalmente establece un
-bilink abierto al fragmento que lo origina. Requiere conectividad con el servidor
-worklist.
+Crea un nuevo ítem en `accreta/.stratum/worklist/` y opcionalmente establece un bilink abierto al fragmento que lo origina. Requiere conectividad con el servidor worklist.
 
 ## Uso
 
@@ -12,9 +10,7 @@ worklist new <tipo> "<título>" [capture <selector>] [--under <id>]
 
 Donde `<tipo>` es `epic`, `user-story` o `task`.
 
-`capture <selector>` captura un fragmento como origen del trabajo y crea un bilink
-abierto (`link.0: fragmento`, `link.1: todo`). El selector se resuelve desde el
-directorio actual en la terminal:
+`capture <selector>` captura un fragmento como origen del trabajo y crea un bilink abierto (`link.0: fragmento`, `link.1: todo`). El selector se resuelve desde el directorio actual en la terminal:
 
 | Forma del selector | Descripción |
 |--------------------|-------------|

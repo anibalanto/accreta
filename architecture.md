@@ -63,13 +63,10 @@ accreta/
 UI colaborativa local, CRDT por archivo spec, hilos de discusión, sin agentes.
 
 ### Fase 1 — Primer agente distribuido
-Un agente BMAD (PM) como unikernel, conectado vía iroh. Gobernanza humana: votos,
-resolución de consenso. Integración con bilinker para detección de drift.
+Un agente BMAD (PM) como unikernel, conectado vía iroh. Gobernanza humana: votos, resolución de consenso. Integración con bilinker para detección de drift.
 
 ### Fase 2 — Red de agentes
-Roster completo de agentes BMAD. Identidad NEAR: DID para todos los actores.
-Historial público trazable por actor.
+Roster completo de agentes BMAD. Identidad NEAR: DID para todos los actores. Historial público trazable por actor.
 
 ### Fase 3 — Plataforma open source pública
-NEAR smart contracts para gobernanza. Solana PoH. Workspaces federados vía iroh P2P.
-Despliegue self-hosted de agentes.
+NEAR smart contracts para gobernanza. Solana PoH. Workspaces federados vía iroh P2P. Despliegue self-hosted de agentes.

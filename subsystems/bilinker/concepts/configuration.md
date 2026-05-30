@@ -2,26 +2,20 @@
 
 ## Resolución de la raíz
 
-bilinker determina la raíz del proyecto buscando desde el directorio de trabajo
-hacia arriba (directory walk). Se detiene en el primer directorio que contenga
-alguno de los siguientes marcadores:
+bilinker determina la raíz del proyecto buscando desde el directorio de trabajo hacia arriba (directory walk). Se detiene en el primer directorio que contenga alguno de los siguientes marcadores:
 
 1. `.bilink/` — directorio de bilinks del proyecto (marcador primario)
 2. `.git/` — raíz de repositorio git (marcador secundario)
 
-Si ninguno se encuentra, se usa el directorio de trabajo actual como raíz.
-Esto permite usar bilinker en proyectos nuevos sin ningún paso de inicialización.
+Si ninguno se encuentra, se usa el directorio de trabajo actual como raíz. Esto permite usar bilinker en proyectos nuevos sin ningún paso de inicialización.
 
 No existe ningún archivo de configuración.
 
 ## Uso con múltiples capas y repositorios
 
-Cada capa puede ser un repositorio git independiente. bilinker siempre opera en
-el contexto de **una sola capa**: la raíz encontrada es la raíz de la capa actual.
+Cada capa puede ser un repositorio git independiente. bilinker siempre opera en el contexto de **una sola capa**: la raíz encontrada es la raíz de la capa actual.
 
-Esto funciona sin configuración adicional porque **solo se puede crear un bilink
-sobre un archivo que esté presente en el filesystem local**, lo que implica que
-el repositorio de esa capa ya está clonado. Por lo tanto:
+Esto funciona sin configuración adicional porque **solo se puede crear un bilink sobre un archivo que esté presente en el filesystem local**, lo que implica que el repositorio de esa capa ya está clonado. Por lo tanto:
 
 - Los endpoints estructurales de una capa siempre referencian archivos del repo
   de esa capa.
@@ -31,8 +25,7 @@ el repositorio de esa capa ya está clonado. Por lo tanto:
 
 ## Lenguaje de los archivos
 
-El lenguaje (gramática tree-sitter) se determina automáticamente por la extensión
-del archivo referenciado:
+El lenguaje (gramática tree-sitter) se determina automáticamente por la extensión del archivo referenciado:
 
 | Extensión | Lenguaje |
 |-----------|----------|

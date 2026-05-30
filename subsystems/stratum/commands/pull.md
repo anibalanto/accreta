@@ -1,7 +1,6 @@
 # Comando: `stratum pull`
 
-Clona o actualiza las subcapas declaradas en los archivos `.<nombre>.toml` del
-directorio `.stratum/` actual.
+Clona o actualiza las subcapas declaradas en los archivos `.<nombre>.toml` del directorio `.stratum/` actual.
 
 ## Uso
 

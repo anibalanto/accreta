@@ -32,13 +32,11 @@ accreta/                             (git — specs Accreta)
 | **Sub-proyecto** | carpeta plana | proyecto hermano con sus propias specs |
 | **Capa interna** | `.stratum/<nombre>/` | nivel inferior del mismo proyecto |
 
-Los sub-proyectos son entidades independientes. Las capas internas son el mismo
-proyecto en distintos niveles de abstracción.
+Los sub-proyectos son entidades independientes. Las capas internas son el mismo proyecto en distintos niveles de abstracción.
 
 ## La regla de `.stratum/`
 
-`.stratum/` aparece en una carpeta **si y solo si** esa carpeta tiene sus propias
-capas inferiores:
+`.stratum/` aparece en una carpeta **si y solo si** esa carpeta tiene sus propias capas inferiores:
 
 ```
 bilinker/
@@ -66,6 +64,4 @@ stratum '>?'                           # listar capas disponibles
 
 ## Vínculos entre capas
 
-Los vínculos verificables entre fragmentos de distintas capas se gestionan con
-bilinker: archivos `.bilink/<uuid>.bilink` que mantienen referencias estructurales
-y detectan drift cuando el contenido cambia.
+Los vínculos verificables entre fragmentos de distintas capas se gestionan con bilinker: archivos `.bilink/<uuid>.bilink` que mantienen referencias estructurales y detectan drift cuando el contenido cambia.
