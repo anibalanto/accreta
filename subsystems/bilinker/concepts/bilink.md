@@ -23,19 +23,23 @@ El mismo UUID aparece en todas las layers que participan de una cadena.
 
 ## Tipos de endpoint
 
-Cada `link.N` es de uno de tres tipos:
+El tipo de un endpoint se infiere del valor de `link.N` — no hay prefijo de tipo:
 
 | Tipo | Forma | Descripción |
 |---|---|---|
 | **Estructural** | `file [:: query [:: start~end]]` | Apunta a un archivo o fragmento concreto. |
 | **Layer** | path Stratum | Apunta a un nodo adyacente en otra capa. |
 | **Todo** | `todo` | Placeholder — el extremo aún no existe. |
+| **Bilink** | `.bilink/<uuid>.bilink` | Apunta a otro bilink por UUID. |
 
 Un endpoint estructural puede apuntar a un nodo AST específico (`:: query`) o al
 archivo completo (sin query).
 
 Los endpoints layer usan el lenguaje de paths Stratum (ver especificación en
 [Stratum — lenguaje de paths](../../stratum/specific/paths.md)).
+
+Un endpoint bilink referencia un archivo `.bilink` por su path relativo a la raíz
+de la layer actual. El tipo se reconoce por el prefijo `.bilink/` en el valor.
 
 ### Resolución de un endpoint layer
 
@@ -92,8 +96,13 @@ que reemplaza `todo` con el endpoint real.
 ## Estructura del archivo
 
 ```
-link.0: <referencia-estructural-o-layer>
-link.1: <referencia-estructural-o-layer>
+link.0: <endpoint>
+link.1: <endpoint>
+
+# Semántica (opcionales)
+kind:   <tipo-de-relación>
+name.0: <etiqueta-del-extremo-0>
+name.1: <etiqueta-del-extremo-1>
 
 # Cache
 hash.0: <sha256>
@@ -110,6 +119,31 @@ resolved_at: <iso8601-timestamp>
 No existe campo `id`: el UUID del nombre de archivo es el identificador.
 `range.N` es opcional.
 `hash.N` y `commit.N` están ausentes hasta que el endpoint es aceptado por primera vez.
+`kind`, `name.0` y `name.1` son opcionales. Presentes cuando el bilink tiene semántica
+declarada más allá del vínculo estructural.
+
+## Campos semánticos
+
+### `kind`
+
+Clasifica la relación que el bilink representa. Valor libre; valores definidos:
+
+| Valor | Significado |
+|-------|-------------|
+| *(ausente)* | Vínculo estructural — relación de implementación entre fragmentos |
+| `impact` | Decisión o documento que gobierna/afecta un vínculo entre capas |
+
+Otros valores posibles en el futuro: `validates`, `documents`, `depends-on`, etc.
+
+### `name.N`
+
+Etiqueta opcional para el rol semántico del endpoint N en la relación declarada por
+`kind`. Texto libre. Útil para herramientas de traversal y agentes de IA.
+
+```
+name.0: architecture-decision
+name.1: spec-impl-bridge
+```
 
 ## Campos de la cache
 
@@ -176,6 +210,15 @@ Timestamp ISO 8601 UTC del último `check`.
 | `CHAIN_DIRTY` | `.bilink` adyacente existe pero su hash ≠ `hash.N` | `bilinker check` | `bilinker accept` |
 | `BROKEN` | `.bilink` adyacente no existe | `bilinker check` | Crear nodo adyacente + `accept` · o · `bilinker remove` |
 
+### Endpoint bilink
+
+| Estado | Significado | Cómo se llega | Cómo se sale |
+|--------|-------------|---------------|--------------|
+| `PENDING` | `hash.N` ausente | creación | `bilinker accept` |
+| `OK` | Hash actual del `.bilink` referenciado == `hash.N` | `bilinker accept` | Cambio en el bilink referenciado |
+| `CHAIN_DIRTY` | `.bilink` referenciado existe pero su hash ≠ `hash.N` | `bilinker check` | `bilinker accept` |
+| `UNREACHABLE` | `.bilink` referenciado no existe localmente | `bilinker check` | Obtener la layer + `accept` |
+
 ### Endpoint todo
 
 | Estado | Significado | Cómo se llega | Cómo se sale |
@@ -209,10 +252,42 @@ que todos los nodos adyacentes lo detecten**.
 - Cada clave aparece como máximo una vez en el archivo.
 - Las líneas de continuación (que no comienzan con clave reconocida) se concatenan
   al valor anterior con un espacio. Solo aplica a `link.N`.
-- Claves reconocidas: `link.0:`, `link.1:`, `hash.0:`, `commit.0:`, `hash.1:`,
-  `commit.1:`, `range.0:`, `range.1:`, `state.0:`, `state.1:`, `resolved_at:`.
+- Claves reconocidas: `link.0:`, `link.1:`, `kind:`, `name.0:`, `name.1:`,
+  `hash.0:`, `commit.0:`, `hash.1:`, `commit.1:`, `range.0:`, `range.1:`,
+  `state.0:`, `state.1:`, `resolved_at:`.
 - Líneas que comienzan con `#` son comentarios y se ignoran.
 - El archivo usa codificación UTF-8 sin BOM.
+
+## Ejemplo: bilink de impacto
+
+Un documento de decisión que gobierna un vínculo entre capas:
+
+```
+# .bilink/f9a1b2c3-0000-0000-0000-000000000000.bilink
+link.0: docs/adr/design-voting-machine.md
+link.1: .bilink/7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.bilink
+
+kind:   impact
+name.0: architecture-decision
+name.1: spec-impl-bridge
+
+hash.0: b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2
+commit.0: d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3
+hash.1: e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6
+commit.1: f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6
+state.0: OK
+state.1: OK
+resolved_at: 2026-05-29T09:00:00Z
+```
+
+Esto crea una relación ternaria implícita:
+
+```
+docs/adr/design-voting-machine.md
+        ↕ (f9a1b2c3 — impact)
+specs/voting.yaml ↔ impl/Voting.java
+        (7f3d8e9a)
+```
 
 ## Ejemplo: bilink abierto (intención pendiente)
 
@@ -299,10 +374,12 @@ resolved_at: 2026-05-27T10:00:00Z
 4. `hash.N` y `commit.N` están siempre presentes juntos o ausentes juntos.
 5. `hash.N` de un endpoint estructural: SHA-256 del fragmento referenciado.
 6. `hash.N` de un endpoint layer: SHA-256 del archivo `.bilink` adyacente completo.
-7. Un endpoint `todo` nunca tiene `hash.N`, `commit.N` ni `range.N`.
-8. `state.N = OK` si y solo si el hash actual de lo apuntado == `hash.N`.
-9. `state.N` siempre está presente en la cache una vez que el bilink fue verificado.
-10. Si existe cualquier campo de cache, debe existir `resolved_at`.
-11. `resolved_at` es siempre UTC (`YYYY-MM-DDTHH:MM:SSZ`).
-12. La topología de la cadena es lineal — sin ciclos ni bifurcaciones.
-13. Solo se puede crear un bilink sobre archivos con historial git.
+7. `hash.N` de un endpoint bilink: SHA-256 del archivo `.bilink` referenciado completo.
+8. Un endpoint `todo` nunca tiene `hash.N`, `commit.N` ni `range.N`.
+9. `state.N = OK` si y solo si el hash actual de lo apuntado == `hash.N`.
+10. `state.N` siempre está presente en la cache una vez que el bilink fue verificado.
+11. Si existe cualquier campo de cache, debe existir `resolved_at`.
+12. `resolved_at` es siempre UTC (`YYYY-MM-DDTHH:MM:SSZ`).
+13. La topología de la cadena es lineal — sin ciclos ni bifurcaciones.
+14. Solo se puede crear un bilink sobre archivos con historial git.
+15. `kind` y `name.N` son independientes de la cache — no afectan `hash.N` ni `state.N`.
