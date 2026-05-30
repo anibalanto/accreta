@@ -125,7 +125,7 @@ Bilinks OK se omiten por defecto. Con `--verbose` se muestran todos. Para cadena
 $ bilinker check .bilink/
 
 7f3d8e9a  (OK, CHAIN_DIRTY)
-  link.1  → .stratum/tech-decisions  archivo cambió
+  link.1  → .stratum/impl  archivo cambió
   → inspeccionar: bilinker chain status 7f3d8e9a-...
 
 3a4b5c6d  (DISPLACED, ALTERED)

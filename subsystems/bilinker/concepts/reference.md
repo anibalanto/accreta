@@ -130,21 +130,13 @@ El `../` sube del directorio `.bilink/` a la raíz de la layer actual, navega `<
 ```
 # tip en spec layer root
 # archivo: .bilink/7f3d8e9a.bilink
-link.1: .stratum/tech-decisions
-→ ../.stratum/tech-decisions/.bilink/7f3d8e9a.bilink
-
-# mid en tech-decisions
-# archivo: .stratum/tech-decisions/.bilink/7f3d8e9a.bilink
-link.0: ../..
-→ ../../../.bilink/7f3d8e9a.bilink
-
-link.1: ../impl
-→ ../../impl/.bilink/7f3d8e9a.bilink
+link.1: .stratum/impl
+→ ../.stratum/impl/.bilink/7f3d8e9a.bilink
 
 # tip en impl layer
 # archivo: .stratum/impl/.bilink/7f3d8e9a.bilink
-link.0: ../tech-decisions
-→ ../../tech-decisions/.bilink/7f3d8e9a.bilink
+link.0: ../..
+→ ../../../.bilink/7f3d8e9a.bilink
 ```
 
 ### `hash.N` y `commit.N` para endpoints layer

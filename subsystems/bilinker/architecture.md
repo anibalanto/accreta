@@ -9,9 +9,6 @@ proyecto/
   .bilink/
     <uuid>.bilink     ← tip (fragmento en esta layer)
   .stratum/
-    tech-decisions/
-      .bilink/
-        <uuid>.bilink ← mid (conecta capas)
     impl/
       .bilink/
         <uuid>.bilink ← tip (fragmento en impl)

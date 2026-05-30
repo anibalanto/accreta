@@ -50,15 +50,11 @@ src/Persona.java :: (class_declaration name: Persona)
 │
 ├── 7f3d8e9a  [OK ↔ CHAIN_DIRTY]
 │   │  link.0  src/Persona.java :: vote   (este nodo)
-│   │  link.1  → .stratum/tech-decisions
+│   │  link.1  → .stratum/impl
 │   │
-│   └── 7f3d8e9a  [CHAIN_DIRTY ↔ OK]      (.stratum/tech-decisions)
-│       │  link.0  → ../..
-│       │  link.1  → .stratum/impl
-│       │
-│       └── 7f3d8e9a  [OK ↔ OK]            (.stratum/tech-decisions/.stratum/impl)
-│              link.0  → ../tech-decisions
-│              link.1  specs/voting.yaml :: impl
+│   └── 7f3d8e9a  [CHAIN_DIRTY ↔ OK]      (.stratum/impl)
+│          link.0  → ../..
+│          link.1  specs/voting.yaml :: impl
 │
 └── a3f9c821  [OK ↔ OK]
        link.0  src/Persona.java :: invariant-check
@@ -75,9 +71,8 @@ Cada línea de bilink muestra:
 ```
 $ bilinker graph src/Persona.java:45:1 --format flat
 
-7f3d8e9a  OK ↔ CHAIN_DIRTY  src/Persona.java::vote  →  .stratum/tech-decisions
-7f3d8e9a  CHAIN_DIRTY ↔ OK  ../..  →  .stratum/impl            [tech-decisions]
-7f3d8e9a  OK ↔ OK           ../tech-decisions  →  specs/voting.yaml::impl  [impl]
+7f3d8e9a  OK ↔ CHAIN_DIRTY  src/Persona.java::vote  →  .stratum/impl
+7f3d8e9a  CHAIN_DIRTY ↔ OK  ../..  →  specs/voting.yaml::impl  [impl]
 a3f9c821  OK ↔ OK           src/Persona.java::invariant-check  →  specs/persona.md::vote-invariants
 ```
 

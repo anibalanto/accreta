@@ -16,12 +16,8 @@ accreta/                             (git — specs Accreta)
     concepts/
     commands/
     .stratum/
-      .technical-decisions.toml     ← config: cómo obtener tech-decisions
-      technical-decisions/          (git — ADRs)
-        adr/
-        .stratum/
-          .impl.toml                ← config: cómo obtener impl
-          impl/                     (git — código Rust)
+      .impl.toml                    ← config: cómo obtener impl
+      impl/                         (git — código Rust)
             crates/
 ```
 
@@ -57,8 +53,8 @@ No hay límite de profundidad. La regla es la misma en cada nivel.
 El CLI `stratum` resuelve paths relativos entre capas:
 
 ```bash
-cd $(stratum '>tech-decisions>impl')   # bajar dos capas
-cd $(stratum '<<')                     # subir dos capas
+cd $(stratum '>impl')   # bajar a impl
+cd $(stratum '<')      # subir a specs
 stratum '>?'                           # listar capas disponibles
 ```
 

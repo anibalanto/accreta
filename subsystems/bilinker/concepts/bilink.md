@@ -9,9 +9,6 @@ bilinker/
   .bilink/
     7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.bilink   ← tip (spec layer)
   .stratum/
-    tech-decisions/
-      .bilink/
-        7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.bilink   ← mid
     impl/
       .bilink/
         7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.bilink   ← tip (impl layer)
@@ -284,14 +281,14 @@ resolved_at: 2026-05-29T09:00:00Z
 
 Creado por `worklist new task "implementar vote" capture specs/voting.yaml:104:1`. Cuando el trabajo termina, `worklist done 3 capture src/Persona.java:45:1` reemplaza `link.1: todo` con el endpoint real y el bilink queda completo.
 
-## Ejemplo completo: cadena de 3 nodos spec → tech-decisions → impl
+## Ejemplo completo: cadena de 2 nodos spec → impl
 
 ```
 # .bilink/7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.bilink   (tip — spec layer)
 link.0: specs/voting.yaml :: (block_mapping_pair
   key: (flow_node) @n0 (#eq? @n0 "impl")
   value: (_) @target)
-link.1: .stratum/tech-decisions
+link.1: .stratum/impl
 
 # Cache
 hash.0: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2
@@ -305,23 +302,8 @@ resolved_at: 2026-05-27T10:00:00Z
 ```
 
 ```
-# .stratum/tech-decisions/.bilink/7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.bilink   (mid)
+# .stratum/impl/.bilink/7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.bilink   (tip — impl layer)
 link.0: ../..
-link.1: ../impl
-
-# Cache
-hash.0: c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0
-commit.0: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0
-hash.1: a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4
-commit.1: b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1
-state.0: OK
-state.1: OK
-resolved_at: 2026-05-27T10:00:00Z
-```
-
-```
-# .stratum/tech-decisions/.stratum/impl/.bilink/7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.bilink   (tip — impl layer)
-link.0: ../tech-decisions
 link.1: src/main/java/ar/example/demo/persona/Persona.java :: (class_declaration
   name: (identifier) @n0 (#eq? @n0 "Persona")
   body: (class_body

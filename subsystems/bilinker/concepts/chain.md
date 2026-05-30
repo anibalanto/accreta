@@ -81,13 +81,11 @@ Crea una nueva cadena generando un UUID y los archivos `.bilink` en las layers e
 ```bash
 bilinker chain new \
   --tip specs "specs :: voting.yaml :: (...) @target" \
-  --mid .stratum/tech-decisions \
   --tip .stratum/impl "java-demo :: src/.../Persona.java :: (...) @target"
 ```
 
 Genera:
 - `.bilink/<uuid>.bilink` (tip en spec layer)
-- `.stratum/tech-decisions/.bilink/<uuid>.bilink` (mid)
 - `.stratum/impl/.bilink/<uuid>.bilink` (tip en impl layer)
 
 ### `bilinker chain status <uuid>`
@@ -101,14 +99,10 @@ Chain: 7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a  [DIRTY]
 
   .bilink/                    (tip)  (OK, CHAIN_DIRTY)
     link.0  specs :: voting.yaml#impl          OK
-    link.1  → .stratum/tech-decisions          CHAIN_DIRTY
-
-  .stratum/tech-decisions/    (mid)  (OK, CHAIN_DIRTY)
-    link.0  → spec layer                       OK
-    link.1  → .stratum/impl                   CHAIN_DIRTY
+    link.1  → .stratum/impl                    CHAIN_DIRTY
 
   .stratum/impl/              (tip)  (CHAIN_DIRTY, ALTERED)
-    link.0  → tech-decisions layer             OK  ← se actualizará cuando se resuelva link.1
+    link.0  → spec layer                       CHAIN_DIRTY
     link.1  java-demo :: Persona#vote          ALTERED
               AST interno cambió
               source: commit c7d3e9f "Inline comparator"
@@ -121,7 +115,7 @@ Lista todas las cadenas en el proyecto (recursivo desde `.bilink/`):
 ```bash
 $ bilinker chain list
 
-7f3d8e9a  [DIRTY]   spec → tech-decisions → impl  (voting)
+7f3d8e9a  [DIRTY]   spec → impl  (voting)
 3a4b5c6d  [OK]      spec → impl  (reporter)
 ```
 

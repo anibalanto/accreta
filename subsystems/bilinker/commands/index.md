@@ -32,7 +32,7 @@ $ bilinker index --recursive
 
 index: .bilink/.index              (3 entradas)
 index: .stratum/impl/.bilink/.index   (7 entradas)
-index: .stratum/tech-decisions/.bilink/.index   (2 entradas)
+index: .stratum/impl/.bilink/.index   (2 entradas)
 ```
 
 Con `--quiet`, solo imprime errores.
@@ -50,7 +50,7 @@ $ bilinker index status --recursive
 
 .bilink/.index              OK        (actualizado)
 .stratum/impl/.bilink/.index          STALE     (2 bilinks más nuevos)
-.stratum/tech-decisions/.bilink/.index  MISSING
+.stratum/impl/.bilink/.index  MISSING
 ```
 
 ## Cuándo usarlo

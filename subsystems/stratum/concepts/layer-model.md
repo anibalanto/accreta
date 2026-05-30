@@ -37,12 +37,10 @@ bilinker/                           ← specs funcionales (capa más alta)
   general/
   specific/
   .stratum/
-    tech-decisions/                 ← ADRs y decisiones técnicas
-      adr/
-      .stratum/
-        impl/                       ← implementación Rust
-          crates/
-          tests/
+    impl/                           ← implementación Rust
+      crates/
+      docs/adr/
+      tests/
 ```
 
 La carpeta `.stratum/` en `bilinker/` no tiene nada que ver con los sub-proyectos de `accreta/`. Es exclusiva del proyecto `bilinker/` y contiene sus capas de implementación.
@@ -54,8 +52,7 @@ La carpeta `.stratum/` en `bilinker/` no tiene nada que ver con los sub-proyecto
 **Correcto:**
 ```
 bilinker/
-  .stratum/           ← bilinker tiene capas propias (tech-decisions, impl)
-    tech-decisions/
+  .stratum/           ← bilinker tiene capas propias
     impl/
 ```
 
