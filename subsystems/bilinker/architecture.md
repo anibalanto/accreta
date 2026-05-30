@@ -90,6 +90,27 @@ bilinker index status        → reporta si el índice está actualizado
 
 Ver especificación completa en [concepts/index.md](concepts/index.md).
 
+## Implementaciones alternativas por branch
+
+Cuando una implementación alternativa vive en una branch de otro repo, la spec
+tiene su propia branch correspondiente con solo los bilinks alterados:
+
+```
+specs/main          impl/main
+  A1.bilink           Voting.java
+  spec-A → Voting     (implementación canónica)
+
+specs/feature/X     impl/feature/X
+  A1.bilink           OptimizedVoting.java
+  spec-A → Optimized  (implementación alternativa)
+```
+
+Solo `A1.bilink` cambia en la branch de specs — el resto del repo de specs es
+idéntico a `main`. Mergear `feature/X` en `main` en impl implica mergear la
+branch correspondiente en specs.
+
+El formato de bilink no cambia — git maneja la variación entre branches.
+
 ## Detección de raíz
 
 Bilinker detecta la raíz del proyecto caminando hacia arriba desde cwd,
