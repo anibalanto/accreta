@@ -45,7 +45,7 @@ bilinker get <UUID>.<N> [-B <rows>] [-A <rows>]
 
 Resuelve el endpoint `link.N` del bilink `<uuid>.bilink` de la layer actual y retorna el texto del fragmento que referencia.
 
-Si `link.N` es un endpoint layer, resuelve la cadena hasta encontrar el fragmento estructural en ese extremo.
+Si `link.N` es un endpoint layer, resuelve el path Stratum hacia la capa adyacente, localiza el mismo UUID en su `.bilink/`, y retorna el fragmento del endpoint estructural que contiene. Requiere que los archivos de la capa adyacente estén accesibles localmente.
 
 **stdout** — El texto del fragmento.
 
@@ -118,7 +118,7 @@ bilinker get 7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.1
 | Código | Condición |
 |---|---|
 | 0 | Operación exitosa (puede haber 0 resultados en forma 1). |
-| 1 | Error: archivo no encontrado, UUID inválido, endpoint sin fragmento estructural, query sin match. |
+| 1 | Error: archivo no encontrado, UUID inválido, endpoint sin fragmento estructural, query sin match, capa adyacente no accesible. |
 
 ## Propiedades garantizadas
 
