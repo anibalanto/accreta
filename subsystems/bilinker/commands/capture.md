@@ -17,22 +17,31 @@ bilinker capture <workspace> <file> <start_line>:<start_col> <end_line>:<end_col
 | `start_line:start_col` | int:int | Línea y columna de inicio de la selección (1-based). |
 | `end_line:end_col` | int:int | Línea y columna de fin de la selección (1-based). |
 
+## Lenguajes soportados
+
+| Extensión | Lenguaje | Âncoras estables |
+|-----------|----------|-----------------|
+| `.java` | Java | `class_declaration`, `method_declaration`, `interface_declaration`, `enum_declaration` |
+| `.rs` | Rust | `function_item`, `struct_item`, `enum_item`, `trait_item`, `impl_item` |
+| `.yaml`, `.yml` | YAML | `block_sequence_item` (usa `id:` como predicado), `block_mapping_pair` (usa clave) |
+| `.md` | Markdown | `section` (usa texto del heading como predicado, captura el contenido completo) |
+
 ## Flujo interno
 
-1. Localizar `.bilinker.toml` desde el directorio de trabajo hacia arriba.
-2. Resolver el workspace por nombre y obtener `path` y `language`.
-3. Leer el archivo y parsearlo con la gramática tree-sitter del lenguaje.
-4. Encontrar el nodo AST más pequeño que contiene la selección completa
+1. Leer el archivo y parsearlo con la gramática tree-sitter del lenguaje detectado por extensión.
+2. Encontrar el nodo AST más pequeño que contiene la selección completa
    (`named_descendant_for_point_range`).
-5. Subir en el árbol AST desde ese nodo hasta el primer ancestro que sea un
-   âncora estable para el lenguaje (función, método, clase, heading, campo de mapping, etc.).
-6. Construir la query como el camino del AST desde ese ancestro hasta el nodo
-   target, usando los nombres de campo reales y los tipos de nodo reales del árbol. Cada predicado usa un nombre de captura único (`@n0`, `@n1`, …). El `@target` se coloca después del paréntesis de cierre del nodo.
-7. Determinar si la selección coincide exactamente con los límites del nodo target:
+3. Subir en el árbol AST hasta el primer ancestro que sea un âncora estable para el lenguaje.
+4. Casos especiales por lenguaje:
+   - **YAML `block_sequence_item`**: busca el par `id:` dentro del item y usa su valor como predicado, capturando el item completo.
+   - **YAML `block_mapping_pair`**: usa el texto de la clave como predicado.
+   - **Markdown `section`**: busca el heading dentro del section y usa su texto inline como predicado, capturando toda la sección (heading + contenido).
+5. Construir la query como el camino del AST desde ese ancestro hasta el nodo
+   target. Cada predicado usa un nombre de captura único (`@n0`, `@n1`, …). El `@target` se coloca en el nodo que representa el fragmento completo.
+6. Determinar si la selección coincide exactamente con los límites del nodo target:
    - **Exacta**: no incluir `start~end`.
-   - **Parcial**: calcular offsets en bytes relativos al inicio del nodo target
-     e incluir `start~end`.
-8. Calcular el hash SHA-256 del texto exacto del fragmento seleccionado.
+   - **Parcial**: calcular offsets en bytes relativos al inicio del nodo target e incluir `start~end`.
+7. Calcular el hash SHA-256 del texto exacto del fragmento seleccionado.
 
 ## Salida
 

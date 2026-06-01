@@ -24,11 +24,11 @@ bilinker graph <selector>
 | `--depth <n>` | Profundidad máxima de traversal. Por defecto: sin límite. |
 | `--format` | Formato de salida: `tree` (por defecto), `flat`, `dot` (Graphviz), `html` (visor interactivo). |
 | `--recursive` | Con selector `.`/`*`: recolectar bilinks de **todas las capas** bajo la raíz del proyecto. |
-| `--bilink-detail` | En formato `dot`: mostrar nodos intermedios de bilink (diamantes). Por defecto solo se muestran aristas directas entre archivos. |
-| `--url-scheme` | URLs en nodos: `line` (default, `file://path#Lnúmero`), `file` (`file://path`), `none`. |
-| `--show-query` | Incluir query AST en labels de nodos (formatos `dot`). |
-| `--show-range` | Incluir rango de bytes en labels de nodos (formatos `dot`). |
-| `--show-data` | Incluir primera y última línea del fragmento en labels (formatos `dot`). |
+| `--bilink-detail` | En formato `dot`: mostrar nodos intermedios de bilink (diamantes). Por defecto solo aristas directas archivo↔archivo. |
+| `--url-scheme` | URLs en nodos `dot`/`html`: `line` (default, `file://path#Lnúmero`), `file` (`file://path`), `none`. Las URLs son relativas al archivo HTML al abrirlo en el browser. |
+| `--show-query` | Incluir query AST en labels de nodos (formato `dot`). |
+| `--show-range` | Incluir rango de bytes en labels de nodos (formato `dot`). |
+| `--show-data` | Incluir primera y última línea del fragmento en labels (formato `dot`). |
 
 ## Selectores
 
@@ -115,12 +115,15 @@ xdg-open graph.html
 ```
 
 Genera un archivo HTML autocontenido (sin servidor) con:
-- **Grafo interactivo** con Cytoscape.js: zoom, pan, clusters por capa, columnas por profundidad
-- **Panel de detalle** al hacer click en un nodo:
-  - Archivos `.md`: renderizado Markdown (títulos, tablas, código)
-  - Código fuente: syntax highlighting con highlight.js, números de línea, scroll horizontal
-  - Link `file://` para abrir el archivo en el programa por defecto del sistema
+- **Grafo interactivo** con Cytoscape.js: zoom, pan, clusters por capa en columnas por profundidad stratum (spec izquierda → impl derecha), file-groups agrupan fragmentos del mismo archivo
+- **Panel de detalle** al hacer click en un **nodo**: contenido del fragmento vinculado
+  - `.md`: Markdown renderizado (títulos, tablas, diagramas Mermaid, código)
+  - Código: syntax highlighting (Java, Rust, YAML, Markdown) con números de línea alineados y scroll horizontal
+  - Link `file://` relativo al HTML para abrir el archivo en el programa por defecto del sistema
+- **Panel de detalle** al hacer click en una **arista**: muestra los dos fragmentos vinculados (link.0 arriba, link.1 abajo) con el UUID y estado en el separador central
 - Fragmentos distintos del mismo archivo como nodos separados (`file.rs#L42`)
+- Nodos agrupados por archivo (file-group) dentro de cada cluster de capa
+- Columnas ordenadas por: directorio → nombre de archivo → línea de inicio
 
 ## Traversal entre repos
 
