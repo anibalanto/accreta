@@ -1,0 +1,52 @@
+spec: commands/get.md
+
+scenarios:
+
+  - id: get-by-uuid-structural
+    description: get <uuid>.N muestra el contenido del fragmento estructural
+    given:
+      - bilink aceptado con endpoint estructural
+    when:
+      - bilinker get <uuid>.0
+    expect:
+      - stdout contiene el texto del fragmento
+      - stderr contiene "# <file>  lines <start>–<end>"
+    impl: get_content_matches_sed_selection
+
+  - id: get-by-uuid-layer-traverses
+    description: get <uuid>.N con endpoint layer atraviesa al fragmento adyacente
+    given:
+      - bilink con endpoint layer apuntando a capa disponible localmente
+    when:
+      - bilinker get <uuid>.1 (layer endpoint)
+    expect:
+      - stdout contiene el fragmento estructural del bilink adyacente
+      - no error
+
+  - id: get-by-file-returns-bilinks
+    description: get <file> lista todos los bilinks que referencian ese archivo
+    given:
+      - bilink chequeado con endpoint en archivo conocido
+    when:
+      - bilinker get <file>
+    expect:
+      - línea por endpoint: "<uuid>.<N>  <otro-endpoint>  bytes <start>–<end>"
+    impl: get_by_file_returns_bilink_after_check
+
+  - id: get-by-position-filters-by-range
+    description: get <file>:<line>:<col> lista bilinks cuyo range.N cubre esa posición
+    given:
+      - bilink con range.N conocido
+    when:
+      - bilinker get <file>:<line>:<col> dentro del range
+    expect:
+      - UUID listado
+
+  - id: get-by-position-outside-range
+    description: get <file>:<line>:<col> fuera del range no retorna ese bilink
+    given:
+      - bilink con range.N conocido
+    when:
+      - bilinker get <file>:<line>:<col> fuera del range
+    expect:
+      - UUID no listado

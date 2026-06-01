@@ -1,0 +1,68 @@
+spec: commands/estrato.md
+
+scenarios:
+
+  - id: estrato-no-args-shows-context
+    description: Sin argumentos muestra profundidad y sub-capas disponibles
+    given:
+      - directorio con .stratum/impl/ y .stratum/tech-decisions/
+    when:
+      - stratum (sin argumentos)
+    expect:
+      - línea "up:   0" si depth = 0
+      - línea "down: impl  tech-decisions"
+
+  - id: estrato-no-args-no-sublayers
+    description: Sin sub-capas muestra "(ninguna)"
+    given:
+      - directorio sin .stratum/
+    when:
+      - stratum
+    expect:
+      - línea "down: (ninguna)"
+
+  - id: estrato-navigate-down
+    description: ">name resuelve y puede usarse en cd"
+    given:
+      - .stratum/impl/ existente
+    when:
+      - cd $(stratum '>impl')
+    expect:
+      - directorio actual = .stratum/impl/
+
+  - id: estrato-navigate-up
+    description: "< desde depth=1 resuelve a ../.."
+    given:
+      - directorio actual = .stratum/impl/ (depth=1)
+    when:
+      - cd $(stratum '<')
+    expect:
+      - directorio actual = directorio padre
+
+  - id: estrato-list-down-query
+    description: ">? lista las sub-capas disponibles"
+    given:
+      - .stratum/impl/ y .stratum/tech-decisions/ existentes
+    when:
+      - stratum '>?'
+    expect:
+      - salida: "impl  tech-decisions"
+
+  - id: estrato-depth-query
+    description: "<? retorna la profundidad actual como número"
+    given:
+      - directorio actual en depth = 2
+    when:
+      - stratum '<?'
+    expect:
+      - salida: "2"
+
+  - id: estrato-not-found-exit-one
+    description: Path no encontrado sale con código 1
+    given:
+      - .stratum/inexistente/ no existe
+    when:
+      - stratum '>inexistente'
+    expect:
+      - error a stderr
+      - exit code: 1

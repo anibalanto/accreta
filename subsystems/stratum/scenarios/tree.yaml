@@ -1,0 +1,43 @@
+spec: commands/tree.md
+
+scenarios:
+
+  - id: tree-default-from-toproot
+    description: Sin argumento muestra el árbol desde * (raíz externa)
+    given:
+      - proyecto con subsystems/stratum/.stratum/impl y subsystems/bilinker/.stratum/impl
+    when:
+      - stratum tree
+    expect:
+      - nodo raíz "*"
+      - nodos "subsystems/stratum" y "subsystems/bilinker" como hijos
+      - nodos ">impl" como hijos de cada subsistema
+
+  - id: tree-from-specific-path
+    description: Con path específico muestra árbol desde ese punto
+    given:
+      - .stratum/impl/ existente
+    when:
+      - stratum tree '*/subsystems/stratum'
+    expect:
+      - primera línea: "*/subsystems/stratum"
+      - hijo: "└── >impl"
+
+  - id: tree-omits-dirs-without-layers
+    description: Directorios sin contenido stratum no aparecen en el árbol
+    given:
+      - directorio src/ sin .stratum/
+    when:
+      - stratum tree
+    expect:
+      - src/ no aparece en la salida
+
+  - id: tree-nested-layers
+    description: Capas anidadas se muestran con indentación correcta
+    given:
+      - .stratum/tech-decisions/.stratum/impl/ existente
+    when:
+      - stratum tree
+    expect:
+      - ">tech-decisions" como hijo del nodo padre
+      - ">impl" como hijo de ">tech-decisions" con indentación mayor

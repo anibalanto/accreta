@@ -1,0 +1,57 @@
+spec: commands/pull.md
+
+scenarios:
+
+  - id: pull-clones-missing-layer
+    description: Si la sub-capa no existe la clona desde el remote declarado en .toml
+    given:
+      - .stratum/.impl.toml con remote y branch
+      - .stratum/impl/ no existe
+    when:
+      - stratum pull
+    expect:
+      - .stratum/impl/ clonado desde el remote
+      - mensaje: "cloned .stratum/impl/"
+
+  - id: pull-updates-existing-layer
+    description: Si la sub-capa ya existe ejecuta git pull
+    given:
+      - .stratum/.impl.toml con remote y branch
+      - .stratum/impl/ ya clonado y actualizado
+    when:
+      - stratum pull
+    expect:
+      - mensaje: "already up to date"
+      - sin cambios en .stratum/impl/
+
+  - id: pull-specific-layer
+    description: Con nombre específico solo clona/actualiza esa sub-capa
+    given:
+      - .stratum/.impl.toml y .stratum/.tech-decisions.toml existentes
+      - ambas capas faltantes
+    when:
+      - stratum pull impl
+    expect:
+      - .stratum/impl/ clonado
+      - .stratum/tech-decisions/ NO clonado
+
+  - id: pull-recursive
+    description: --recursive procesa sub-capas de sub-capas en profundidad
+    given:
+      - .stratum/.impl.toml con remote
+      - impl a su vez tiene .stratum/.tests.toml
+    when:
+      - stratum pull --recursive
+    expect:
+      - .stratum/impl/ clonado
+      - .stratum/impl/.stratum/tests/ clonado
+
+  - id: pull-unknown-layer-error
+    description: Nombre de sub-capa sin .toml retorna error
+    given:
+      - .stratum/ sin .inexistente.toml
+    when:
+      - stratum pull inexistente
+    expect:
+      - error: "sub-capa 'inexistente' no encontrada"
+      - exit code: 1

@@ -1,0 +1,57 @@
+spec: commands/index.md
+
+scenarios:
+
+  - id: index-build-creates-file
+    description: index build genera .bilink/.index con entradas tab-separadas
+    given:
+      - directorio .bilink/ con bilinks existentes
+    when:
+      - bilinker index build
+    expect:
+      - .bilink/.index creado
+      - cada línea: "<file>\t<uuid>.<N>"
+    impl: index_build_creates_index_file
+
+  - id: index-gitignore-updated
+    description: index build agrega .index a .bilink/.gitignore
+    given:
+      - directorio .bilink/ sin .gitignore
+    when:
+      - bilinker index build
+    expect:
+      - .bilink/.gitignore contiene ".index"
+      - .bilink/.gitignore contiene ".pending/"
+    impl: index_gitignore_contains_index_entry
+
+  - id: index-status-ok-after-build
+    description: index status reporta OK cuando el índice está actualizado
+    given:
+      - .bilink/.index construido y sin cambios en .bilink/ desde entonces
+    when:
+      - bilinker index status
+    expect:
+      - salida: "OK"
+      - exit code: 0
+    impl: index_status_ok_after_build
+
+  - id: index-status-stale
+    description: index status reporta STALE cuando hay bilinks más nuevos que el índice
+    given:
+      - .bilink/.index construido
+      - nuevo bilink creado después del build
+    when:
+      - bilinker index status
+    expect:
+      - salida contiene "STALE"
+      - exit code: 1
+
+  - id: index-status-missing
+    description: index status reporta MISSING cuando no existe .bilink/.index
+    given:
+      - directorio .bilink/ sin archivo .index
+    when:
+      - bilinker index status
+    expect:
+      - salida contiene "MISSING"
+      - exit code: 1

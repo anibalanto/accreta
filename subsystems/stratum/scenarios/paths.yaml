@@ -1,0 +1,126 @@
+spec: concepts/paths.md
+
+scenarios:
+
+  - id: path-traditional-passthrough
+    description: Un path tradicional (sin > ni <) se retorna sin modificación
+    given:
+      - path "src/main.rs"
+    when:
+      - stratum 'src/main.rs'
+    expect:
+      - resuelve a "src/main.rs" sin cambios
+    impl: simple_traditional
+
+  - id: path-down-one
+    description: ">name resuelve a .stratum/name"
+    given:
+      - directorio .stratum/impl/ existente
+    when:
+      - stratum '>impl'
+    expect:
+      - resuelve a ".stratum/impl"
+    impl: down_one
+
+  - id: path-down-two
+    description: ">a>b resuelve a .stratum/a/.stratum/b"
+    given:
+      - directorio .stratum/a/.stratum/b/ existente
+    when:
+      - stratum '>a>b'
+    expect:
+      - resuelve a ".stratum/a/.stratum/b"
+    impl: down_two
+
+  - id: path-down-with-fs-path
+    description: ">name/file resuelve a .stratum/name/file"
+    given:
+      - archivo .stratum/impl/src/main.rs existente
+    when:
+      - stratum '>impl/src/main.rs'
+    expect:
+      - resuelve a ".stratum/impl/src/main.rs"
+    impl: down_one_with_simple
+
+  - id: path-up-one
+    description: "< resuelve a ../.."
+    given:
+      - directorio actual con depth >= 1
+    when:
+      - stratum '<'
+    expect:
+      - resuelve a "../.."
+    impl: up_one
+
+  - id: path-up-two
+    description: "<< resuelve a ../../../.."
+    given:
+      - directorio actual con depth >= 2
+    when:
+      - stratum '<<'
+    expect:
+      - resuelve a "../../../.."
+
+  - id: path-up-insufficient-depth
+    description: Subir más niveles de los disponibles es un error
+    given:
+      - directorio actual con depth = 1
+    when:
+      - stratum '<<<'
+    expect:
+      - error: "profundidad insuficiente"
+      - exit code: 1
+    impl: resolve_up_insufficient_depth
+
+  - id: path-root-nearest-git
+    description: "<@ resuelve al ancestro .git más cercano"
+    given:
+      - proyecto con .git en la raíz
+      - directorio actual en subcapa
+    when:
+      - stratum '<@'
+    expect:
+      - resuelve a la raíz del proyecto (directorio con .git)
+    impl: resolve_root_finds_git
+
+  - id: path-root-with-path
+    description: "<@/docs resuelve a <raíz>/docs"
+    given:
+      - directorio docs/ en la raíz del proyecto
+    when:
+      - stratum '<@/docs'
+    expect:
+      - resuelve a "<raíz>/docs"
+    impl: resolve_root_with_simple_path
+
+  - id: path-root-no-git-error
+    description: "<@ falla si no hay .git en ningún ancestro"
+    given:
+      - directorio sin .git en ningún ancestro
+    when:
+      - stratum '<@'
+    expect:
+      - error: "raíz de proyecto no encontrada"
+      - exit code: 1
+    impl: resolve_root_no_git_is_error
+
+  - id: path-toproot-outermost-git
+    description: "* resuelve al ancestro .git más lejano"
+    given:
+      - proyecto anidado con .git externo e interno
+    when:
+      - stratum '*'
+    expect:
+      - resuelve al .git más externo, no al interno
+    impl: resolve_top_root_finds_outermost_git
+
+  - id: path-toproot-invalid-suffix
+    description: "* seguido de texto que no es / ni > es un error de sintaxis"
+    given:
+      - expresión "*.png"
+    when:
+      - stratum '*.png'
+    expect:
+      - error: "sintaxis inválida"
+      - exit code: 2
+    impl: top_root_invalid_suffix

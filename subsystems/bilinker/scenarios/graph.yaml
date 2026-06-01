@@ -1,0 +1,77 @@
+spec: commands/graph.md
+
+scenarios:
+
+  - id: graph-file-selector-finds-bilinks
+    description: selector de archivo retorna todos los bilinks que lo referencian
+    given:
+      - bilink con endpoint estructural en "commands/check.md"
+    when:
+      - bilinker graph "commands/check.md"
+    expect:
+      - nodos del grafo incluyen "commands/check.md"
+
+  - id: graph-dot-selector-all-current-layer
+    description: selector "." retorna todos los bilinks de la capa actual
+    given:
+      - N bilinks en la capa actual
+    when:
+      - bilinker graph "." --format flat
+    expect:
+      - N líneas de salida (una por bilink)
+
+  - id: graph-recursive-includes-all-layers
+    description: --recursive incluye bilinks de todas las capas bajo la raíz
+    given:
+      - bilinks en spec layer y en impl layer
+    when:
+      - bilinker graph "." --recursive --format flat
+    expect:
+      - salida incluye nodos de ambas layers
+
+  - id: graph-traverses-layer-endpoint
+    description: traversal cruza endpoint layer hacia capa adyacente
+    given:
+      - cadena spec ↔ impl con ambos lados disponibles localmente
+    when:
+      - bilinker graph "spec-file.md" (desde spec layer)
+    expect:
+      - nodos incluyen fragmento del impl
+
+  - id: graph-stops-on-missing-layer
+    description: traversal se detiene si el .bilink adyacente no existe localmente
+    given:
+      - cadena spec ↔ impl
+      - impl layer no clonada localmente
+    when:
+      - bilinker graph "spec-file.md"
+    expect:
+      - nodo spec visible
+      - no error — traversal se detiene silenciosamente
+
+  - id: graph-cycle-detection
+    description: traversal no entra en ciclos infinitos
+    given:
+      - grafo con UUID ya visitado en otra rama
+    when:
+      - bilinker graph "."
+    expect:
+      - cada (UUID, layer) aparece una sola vez
+
+  - id: graph-html-shows-states
+    description: formato HTML refleja el estado real de los bilinks
+    given:
+      - bilinks con estados OK, ALTERED y PENDING
+    when:
+      - bilinker graph "." --format html
+    expect:
+      - aristas muestran "OK↔OK", "OK↔ALTERED", "PENDING↔PENDING"
+
+  - id: graph-depth-limit
+    description: --depth 1 muestra solo bilinks directamente conectados al selector
+    given:
+      - cadena de 3 nodos: spec → tech-decisions → impl
+    when:
+      - bilinker graph "spec.md" --depth 1
+    expect:
+      - solo el nodo spec y el primer salto visibles

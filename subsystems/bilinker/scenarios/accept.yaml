@@ -1,0 +1,64 @@
+spec: commands/accept.md
+
+scenarios:
+
+  - id: accept-single-endpoint
+    description: Aceptar un endpoint individual establece hash y commit
+    given:
+      - bilink con endpoint en PENDING
+    when:
+      - bilinker accept <uuid>.0
+    expect:
+      - hash.0 establecido con SHA-256 del contenido actual
+      - commit.0 establecido con HEAD del repo
+      - state.0 = OK
+
+  - id: accept-bulk-pending
+    description: Accept bulk procesa todos los endpoints PENDING
+    given:
+      - varios bilinks con endpoints en PENDING
+    when:
+      - bilinker accept .
+    expect:
+      - todos los PENDING pasan a OK
+      - endpoints ya aceptados no son modificados
+
+  - id: accept-bulk-altered
+    description: Accept bulk procesa endpoints ALTERED
+    given:
+      - bilink con state.0 = ALTERED
+    when:
+      - bilinker accept .
+    expect:
+      - hash.0 actualizado al nuevo SHA-256
+      - state.0 = OK
+
+  - id: accept-bulk-chain-dirty
+    description: Accept bulk procesa endpoints CHAIN_DIRTY
+    given:
+      - bilink con state.1 = CHAIN_DIRTY
+    when:
+      - bilinker accept .
+    expect:
+      - hash.1 sincronizado con hash del endpoint estructural adyacente
+      - state.1 = OK
+
+  - id: accept-layer-requires-structural-first
+    description: Aceptar endpoint layer falla si el endpoint estructural adyacente no fue aceptado
+    given:
+      - bilink con layer endpoint y structural adyacente en PENDING
+    when:
+      - bilinker accept <uuid>.1 (layer endpoint)
+    expect:
+      - error: "accept it first"
+      - ningún cambio en el archivo .bilink
+
+  - id: accept-triggers-chain-dirty
+    description: Aceptar un endpoint estructural hace que el nodo adyacente detecte CHAIN_DIRTY
+    given:
+      - cadena spec ↔ impl con state = [OK, OK]
+      - contenido del fragmento impl modificado y re-aceptado
+    when:
+      - bilinker check . (desde spec layer)
+    expect:
+      - state = [OK, CHAIN_DIRTY]

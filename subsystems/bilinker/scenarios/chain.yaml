@@ -1,0 +1,57 @@
+spec: commands/chain.md
+
+scenarios:
+
+  - id: chain-new-direct-creates-one-file
+    description: chain new con dos tips crea un único archivo .bilink por layer
+    given:
+      - dos archivos con historial git
+    when:
+      - bilinker chain new --tip "spec.md" --tip ">impl/src/main.rs:10:1"
+    expect:
+      - .bilink/<uuid>.bilink creado en spec layer
+      - .stratum/impl/.bilink/<uuid>.bilink creado en impl layer
+      - mismo UUID en ambos archivos
+    impl: chain_new_two_layers_creates_two_files
+
+  - id: chain-new-file-endpoint-no-pos
+    description: tip sin posición captura el archivo completo
+    given:
+      - archivo existente con historial git
+    when:
+      - bilinker chain new --tip "commands/check.md" --tip ">impl/src/check.rs"
+    expect:
+      - link.0 = "commands/check.md" (sin query)
+      - link.1 = "crates/.../check.rs" (sin query)
+    impl: chain_new_direct_link_creates_single_file
+
+  - id: chain-new-with-mid
+    description: chain new con --mid crea nodo intermedio con dos layer endpoints
+    given:
+      - tres layers existentes: spec, tech-decisions, impl
+    when:
+      - bilinker chain new --tip "spec.md" --mid ">tech-decisions" --tip ">impl/src.rs:1:1"
+    expect:
+      - .bilink/<uuid>.bilink en spec (tip: structural + layer)
+      - .bilink/<uuid>.bilink en tech-decisions (mid: layer + layer)
+      - .bilink/<uuid>.bilink en impl (tip: layer + structural)
+
+  - id: chain-list-shows-all
+    description: chain list enumera todos los UUIDs del proyecto
+    given:
+      - varios bilinks creados
+    when:
+      - bilinker chain list
+    expect:
+      - una línea por UUID con count de nodos y estado
+    impl: chain_list_shows_created_chain
+
+  - id: chain-status-shows-nodes
+    description: chain status muestra todos los nodos de una cadena
+    given:
+      - cadena con 2 nodos creada y chequeada
+    when:
+      - bilinker chain status <uuid>
+    expect:
+      - una sección por nodo con link.0, link.1 y estados
+    impl: chain_status_shows_nodes

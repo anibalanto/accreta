@@ -1,0 +1,96 @@
+spec: commands/check.md
+
+scenarios:
+
+  - id: check-pending-new-bilink
+    description: Un bilink recién creado sin accept reporta PENDING en ambos endpoints
+    given:
+      - bilink creado con `bilinker chain new`
+      - ningún endpoint fue aceptado
+    when:
+      - bilinker check .
+    expect:
+      state: [PENDING, PENDING]
+
+  - id: check-ok-after-accept
+    description: Un bilink aceptado reporta OK cuando el contenido no cambió
+    given:
+      - bilink creado y ambos endpoints aceptados
+      - archivo no modificado desde el accept
+    when:
+      - bilinker check .
+    expect:
+      state: [OK, OK]
+    impl: check_whole_file_ok_when_hash_matches
+
+  - id: check-altered-structural
+    description: Endpoint estructural reporta ALTERED cuando el contenido del fragmento cambia
+    given:
+      - bilink aceptado con hash registrado
+      - contenido del archivo modificado dentro del fragmento vinculado
+    when:
+      - bilinker check .
+    expect:
+      state: [ALTERED, OK]
+    impl: check_whole_file_altered_when_hash_differs
+
+  - id: check-chain-dirty-propagation
+    description: Nodo layer detecta CHAIN_DIRTY cuando el bilink adyacente fue re-aceptado
+    given:
+      - cadena spec ↔ impl con ambos lados OK
+      - impl endpoint re-aceptado con nuevo hash
+    when:
+      - bilinker check . (desde spec layer)
+    expect:
+      state: [OK, CHAIN_DIRTY]
+    impl: check_layer_chain_dirty_when_hash_differs
+
+  - id: check-pending-layer-exists
+    description: Endpoint layer reporta PENDING cuando la capa existe pero no fue aceptada
+    given:
+      - bilink con endpoint layer apuntando a capa existente
+      - hash.N ausente
+    when:
+      - bilinker check .
+    expect:
+      state: [PENDING, PENDING]
+    impl: check_layer_first_time_is_pending
+
+  - id: check-todo-layer-missing
+    description: Endpoint layer reporta TODO cuando la capa apuntada no existe
+    given:
+      - bilink con endpoint layer apuntando a capa no creada
+    when:
+      - bilinker check .
+    expect:
+      state: [PENDING, TODO]
+    impl: check_layer_todo_when_adjacent_missing_and_no_hash
+
+  - id: check-broken-file-missing
+    description: Endpoint estructural reporta BROKEN cuando el archivo referenciado no existe
+    given:
+      - bilink aceptado con archivo existente
+      - archivo eliminado del filesystem
+    when:
+      - bilinker check .
+    expect:
+      state: [BROKEN, OK]
+    impl: check_structural_broken_when_file_missing
+
+  - id: check-exit-zero-all-ok
+    description: Exit code 0 cuando todos los endpoints están en OK
+    given:
+      - todos los bilinks aceptados y sin cambios
+    when:
+      - bilinker check .
+    expect:
+      exit_code: 0
+
+  - id: check-exit-one-any-altered
+    description: Exit code 1 cuando al menos un endpoint está en ALTERED
+    given:
+      - al menos un bilink con estado ALTERED
+    when:
+      - bilinker check .
+    expect:
+      exit_code: 1

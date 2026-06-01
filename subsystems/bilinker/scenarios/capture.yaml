@@ -1,0 +1,45 @@
+spec: commands/capture.md
+
+scenarios:
+
+  - id: capture-identifies-stable-anchor
+    description: capture sube en el AST hasta el primer ancestro estable
+    given:
+      - archivo Rust con función `fn cmd_pull`
+      - selección dentro del cuerpo de la función
+    when:
+      - bilinker capture src/main.rs 37:5 40:10
+    expect:
+      - output contiene query con `(function_item name: ... @n0 (#eq? @n0 "cmd_pull"))`
+    impl: capture_identifies_workspace_file_and_method
+
+  - id: capture-hash-is-stable
+    description: capturar el mismo fragmento dos veces produce el mismo hash
+    given:
+      - archivo sin modificaciones
+    when:
+      - bilinker capture <file> <start> <end>  (dos veces)
+    expect:
+      - mismo hash en stderr ambas veces
+    impl: capture_hash_is_valid_sha256_and_stable
+
+  - id: capture-hash-changes-on-modification
+    description: modificar el fragmento cambia el hash
+    given:
+      - archivo capturado con hash H1
+      - contenido del fragmento modificado
+    when:
+      - bilinker capture <file> <start> <end>
+    expect:
+      - hash ≠ H1
+    impl: drift_changes_hash
+
+  - id: capture-whole-file-no-position
+    description: sin posición captura el archivo completo sin query
+    given:
+      - archivo existente
+    when:
+      - bilinker chain new --tip "<file>"
+    expect:
+      - link.N = "<file>" (sin "::")
+      - hash.N = SHA-256 del archivo completo
