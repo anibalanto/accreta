@@ -1,0 +1,12 @@
+link.0: commands/graph.md :: (atx_heading) @target
+link.1: >impl
+
+# Cache
+hash.0: 8112a0d049febe184eb7a6dadaef411611848ad18ecdabdc254ce795e1578090
+commit.0: f1fec6efb67cb58a4e9df419927bbce13ff81b52
+range.0: 0~44
+hash.1: ebc492d87ef4740583dba0fd2499c96e25b221e335a86039596a2ae39e5da015
+commit.1: 135cfb58ea23b936f4108bb4bcf9d0e14fac16fc
+state.0: OK
+state.1: OK
+resolved_at: 2026-06-01T21:14:03Z

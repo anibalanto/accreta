@@ -1,10 +1,10 @@
-link.0: commands/check.md
+link.0: commands/check.md :: (atx_heading) @target
 link.1: >impl
 
 # Cache
-hash.0: 38ed166e60d0eeb4585148b66cd8cfb748d54bd2dd67e31b82b4f70b151e9895
+hash.0: 55bd455c2560f05eb0fb074920908dcecc63b6701cda4215a5e473ed58205aac
 commit.0: 4b620df6546bce1f93b4aefe847b6d1c3fc18bc2
-range.0: 0~5790
+range.0: 0~44
 hash.1: 662386b393160003e7d8d55747cb5b3593baee8fd397b11349071a97de7fc73c
 commit.1: bd3856134d9d838fc1f477063d3d5f9b76339564
 state.0: OK
