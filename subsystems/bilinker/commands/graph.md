@@ -9,14 +9,13 @@ Es una herramienta de navegación y exploración — no modifica nada.
 ## Firma
 
 ```
-bilinker graph <selector> [--depth <n>] [--state <estado>] [--format <tree|flat|dot>]
+bilinker graph <selector> [--depth <n>] [--format <tree|flat|dot>]
 ```
 
 | Argumento / Flag | Descripción |
 |---|---|
 | `selector` | Archivo, posición `archivo:línea:col`, o UUID de bilink. |
 | `--depth <n>` | Profundidad máxima de traversal. Por defecto: sin límite. |
-| `--state <estado>` | Muestra solo bilinks que tengan al menos un endpoint en ese estado. |
 | `--format` | Formato de salida: `tree` (por defecto), `flat`, `dot` (Graphviz). |
 
 ## Algoritmo de traversal
@@ -25,55 +24,67 @@ El recorrido es un BFS sobre el grafo de bilinks. Cada bilink es un nodo del gra
 
 ```
 graph(selector):
-  1. Resolver selector → (archivo, query?)
-  2. bilinks = index.lookup(archivo)   // todos los bilinks que referencian ese archivo
-  3. Para cada (uuid, n) en bilinks:
+  1. Resolver selector → archivo (o UUID directo)
+  2. bilinks = index.lookup(archivo)   // O(1) con .index, O(N) sin él
+  3. Para cada bilink encontrado:
        bl = cargar uuid.bilink
-       other = endpoint opuesto a n
-       emitir: uuid, state.n ↔ state.other, descripción de other
-       si other es Layer y depth no alcanzado y uuid no visitado:
-         adjacent = resolver_layer_link(other, uuid)
-         encolar adjacent para traversal
-  4. Deduplicar por UUID — si el mismo UUID ya fue visitado, no se vuelve a recorrer.
+       emitir: uuid, state.0 ↔ state.1, link.0, link.1
+       para cada endpoint Layer no visitado y dentro del límite de profundidad:
+         adjacent_path = stratum::resolve(layer_endpoint)
+         si adjacent_path/.bilink/uuid.bilink existe: encolar
+  4. Deduplicar por (UUID, layer_root) — si el mismo UUID en la misma capa
+     ya fue visitado, no se vuelve a recorrer.
 ```
 
 Los endpoints estructurales son hojas: se muestran pero no se atraviesan. Los endpoints layer son aristas hacia otras capas: se atraviesan recursivamente.
 
 El selector `<uuid>` entra directamente como nodo de partida sin lookup por archivo.
 
+Usa `.bilink/.index` si está disponible y actualizado (O(1)); si no, escanea los `.bilink` de la layer actual (O(N)).
+
 ## Salida — formato `tree`
 
 ```
-$ bilinker graph src/Persona.java:45:1
+$ bilinker graph commands/pull.md
 
-src/Persona.java :: (class_declaration name: Persona)
+commands/pull.md
 │
-├── 7f3d8e9a  [OK ↔ CHAIN_DIRTY]
-│   │  link.0  src/Persona.java :: vote   (este nodo)
-│   │  link.1  → .stratum/impl
+├── c0feab23  [OK ↔ OK]
+│   │  link.0  commands/pull.md
+│   │  link.1  >impl
 │   │
-│   └── 7f3d8e9a  [CHAIN_DIRTY ↔ OK]      (.stratum/impl)
-│          link.0  → ../..
-│          link.1  specs/voting.yaml :: impl
+│   └── c0feab23  [OK ↔ OK]  (.stratum/impl)
+│       │  link.0  <
+│       │  link.1  crates/estrato-cli/src/main.rs :: (enum_item name: (type_identifier) @n0 (#eq? @n0 "Commands")) @target
+│       │
 │
-└── a3f9c821  [OK ↔ OK]
-       link.0  src/Persona.java :: invariant-check
-       link.1  specs/persona.md :: vote-invariants
+└── b95021d2  [OK ↔ OK]
+    │  link.0  commands/pull.md
+    │  link.1  >impl
+    │
+    └── b95021d2  [OK ↔ OK]  (.stratum/impl)
+        │  link.0  <
+        │  link.1  crates/estrato-cli/src/main.rs :: (function_item name: (identifier) @n0 (#eq? @n0 "cmd_pull")) @target
+        │
 ```
 
-Cada línea de bilink muestra:
+Cada nodo muestra:
 - UUID corto (8 chars)
-- Estado del endpoint de entrada ↔ estado del endpoint de salida
-- La layer donde vive este nodo (entre paréntesis si no es la raíz)
+- Estado de ambos endpoints: `[state.0 ↔ state.1]`
+- La layer donde vive el nodo (entre paréntesis si no es la raíz)
+- `link.0` y `link.1` completos
 
 ## Salida — formato `flat`
 
-```
-$ bilinker graph src/Persona.java:45:1 --format flat
+Una línea por nodo — útil para scripting:
 
-7f3d8e9a  OK ↔ CHAIN_DIRTY  src/Persona.java::vote  →  .stratum/impl
-7f3d8e9a  CHAIN_DIRTY ↔ OK  ../..  →  specs/voting.yaml::impl  [impl]
-a3f9c821  OK ↔ OK           src/Persona.java::invariant-check  →  specs/persona.md::vote-invariants
+```
+$ bilinker graph commands/pull.md --format flat
+
+c0feab23  OK ↔ OK  commands/pull.md  →  >impl  [.]
+c0feab23  OK ↔ OK  <  →  crates/estrato-cli/src/main.rs :: (enum_item ...)  [.stratum/impl]
+b95021d2  OK ↔ OK  commands/pull.md  →  >impl  [.]
+b95021d2  OK ↔ OK  <  →  crates/estrato-cli/src/main.rs :: (function_item ...)  [.stratum/impl]
 ```
 
 ## Salida — formato `dot`
@@ -81,23 +92,18 @@ a3f9c821  OK ↔ OK           src/Persona.java::invariant-check  →  specs/pers
 Emite un grafo Graphviz que puede renderizarse con `dot -Tsvg`:
 
 ```
-$ bilinker graph src/Persona.java:45:1 --format dot | dot -Tsvg > graph.svg
+$ bilinker graph commands/pull.md --format dot | dot -Tsvg > graph.svg
 ```
 
-Cada nodo es un artefacto (archivo o fragmento); cada arista es un bilink con su estado como label.
+Cada nodo archivo es un rectángulo; cada nodo bilink es un diamante con UUID y estados; las aristas indican el endpoint (`.0` o `.1`).
 
 ## Traversal entre repos
 
-Si un endpoint layer apunta a un repo distinto del actual, `graph` intenta resolver el path relativo desde el directorio de trabajo. Si el repo adyacente no está presente localmente, emite el nodo con estado `UNREACHABLE` y detiene el traversal en esa rama:
-
-```
-└── 7f3d8e9a  [OK ↔ UNREACHABLE]
-       link.1  → ../other-repo  (repo no disponible localmente)
-```
+Si el `.bilink/<uuid>.bilink` en la capa adyacente no existe localmente (repo no clonado), el traversal se detiene silenciosamente en esa rama. El nodo actual se muestra igualmente con su endpoint layer visible.
 
 ## Ciclos
 
-Si el traversal encuentra un UUID ya visitado, lo muestra con `[ya visitado]` y no continúa:
+Si el traversal encuentra un (UUID, layer) ya visitado, lo muestra con `[ya visitado]` y no continúa:
 
 ```
 └── 7f3d8e9a  [ya visitado]
@@ -106,16 +112,13 @@ Si el traversal encuentra un UUID ya visitado, lo muestra con `[ya visitado]` y 
 ## Invariantes
 
 1. `graph` nunca modifica ningún archivo.
-2. Usa el índice (`.bilink/.index`) si está disponible; cae a scan O(N) si no.
-3. Un bilink con dos endpoints estructurales (link directo) aparece como hoja en
-   ambos extremos — no genera traversal adicional.
-4. `--depth 1` muestra solo los bilinks directamente conectados al selector,
-   sin cruzar capas.
+2. Un bilink con dos endpoints estructurales (link directo) aparece como hoja — no genera traversal adicional.
+3. `--depth 1` muestra solo los bilinks directamente conectados al selector, sin cruzar capas.
 
 ## Código de salida
 
 | Código | Condición |
 |---|---|
-| 0 | Traversal completado (incluso si hay nodos UNREACHABLE). |
+| 0 | Traversal completado. |
 | 1 | Selector no resuelve a ningún archivo o bilink conocido. |
 | 2 | Error de lectura. |
