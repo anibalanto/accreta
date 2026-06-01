@@ -1,0 +1,12 @@
+link.0: scenarios/chain.yaml :: (block_sequence_item (block_node (block_mapping (block_mapping_pair key: (flow_node) @_ (#eq? @_ "id") value: (flow_node) @n0 (#eq? @n0 "chain-status-shows-nodes"))))) @target
+link.1: >impl
+
+# Cache
+hash.0: 235486f4075a5d26bb3fa84ff71b08e4d4718ddba61228dd0de67ba0b067164d
+commit.0: 7433e75dd92cab6af0eaa9bba74cbb1775c378d4
+range.0: 1698~2007
+hash.1: c73ebb4445ee3954c17b3178feab0849a436032068c41fcfb197699b6982f21b
+commit.1: 408de1de6cedc250d7dc509f27a68311768fb73d
+state.0: OK
+state.1: OK
+resolved_at: 2026-06-01T23:19:00Z
