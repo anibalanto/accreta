@@ -1,0 +1,12 @@
+link.0: subsystems/bilinker/editors/vscode.md :: (section (atx_heading (inline) @n0 (#eq? @n0 "Comandos de grafo")) (section (atx_heading (inline) @n1 (#eq? @n1 "`bilinker.openGraph` — Grafo del archivo actual"))) @target)
+link.1: subsystems/bilinker>impl
+
+# Cache
+hash.0: 91f5f0cbd51df107435c3a2be01ccda247b9217d85b8f6ca1155f6969bb86563
+commit.0: 723c25b05fa52f7848f5d0dfd86dfd1ea1c8066a
+range.0: 863~1139
+hash.1: ffa67885fd12e4db0db6291e5fe88b910286b374a968e72cdc2feb44f9b51ba1
+commit.1: 3fe902cc5150922e72d1898389fb912b14b4abb8
+state.0: OK
+state.1: OK
+resolved_at: 2026-06-02T01:57:00Z

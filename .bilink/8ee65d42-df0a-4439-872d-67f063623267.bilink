@@ -1,0 +1,12 @@
+link.0: subsystems/bilinker/commands/watch.md
+link.1: subsystems/bilinker>impl
+
+# Cache
+hash.0: c18e3d99151f5b43da0b8e28e5b78fee4f4409203a50fd2e3bd4363bb864790f
+commit.0: 
+range.0: 0~1496
+hash.1: 2af0b955c2c610ed9ba7bc439ec6c27577174b961e0931828946490f2b6a1cd1
+commit.1: 4c68eeaeb24b107febbb80bcbe17c96483d75213
+state.0: OK
+state.1: OK
+resolved_at: 2026-06-02T01:57:00Z

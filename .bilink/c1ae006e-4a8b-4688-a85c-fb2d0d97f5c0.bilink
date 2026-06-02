@@ -1,0 +1,12 @@
+link.0: subsystems/bilinker/commands/capture.md :: (section (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker capture`")) (section (atx_heading (inline) @n1 (#eq? @n1 "Lenguajes soportados"))) @target)
+link.1: subsystems/bilinker>impl
+
+# Cache
+hash.0: 205fd0b84e962c978fc9e968c50554d78e40a920cc1dcfdacafe2a5b732325e4
+commit.0: a65c294ac641aadf2dfc65a929fb11e1db3d68a0
+range.0: 751~1583
+hash.1: f4b22273cd450544fcdb5d26b9466d65448b90adf3c8994ad4e6c1f8f8993c90
+commit.1: db22d717dad771c137cdb0e805bbebfdb8b3e0e9
+state.0: OK
+state.1: OK
+resolved_at: 2026-06-02T01:57:00Z

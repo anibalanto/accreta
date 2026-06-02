@@ -1,0 +1,12 @@
+link.0: subsystems/bilinker/scenarios/check.yaml :: (block_sequence_item (block_node (block_mapping (block_mapping_pair key: (flow_node) @_ (#eq? @_ "id") value: (flow_node) @n0 (#eq? @n0 "check-altered-structural"))))) @target
+link.1: subsystems/bilinker>impl
+
+# Cache
+hash.0: 4459f45f2b45398dd4b7dfc4959bc82862bde8446ab90e30c825b6407e4b3a68
+commit.0: 7433e75dd92cab6af0eaa9bba74cbb1775c378d4
+range.0: 669~1048
+hash.1: b2707414a6019e8bf7e4ea1c21913f43e7e23b764c45b4a70b9d24ff7a972a87
+commit.1: bd3856134d9d838fc1f477063d3d5f9b76339564
+state.0: OK
+state.1: OK
+resolved_at: 2026-06-02T01:57:00Z

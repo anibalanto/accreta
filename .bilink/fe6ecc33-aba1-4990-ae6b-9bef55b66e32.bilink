@@ -1,0 +1,12 @@
+link.0: subsystems/bilinker/scenarios/check.yaml :: (block_sequence_item (block_node (block_mapping (block_mapping_pair key: (flow_node) @_ (#eq? @_ "id") value: (flow_node) @n0 (#eq? @n0 "check-todo-layer-missing"))))) @target
+link.1: subsystems/bilinker>impl
+
+# Cache
+hash.0: 10d1c0f6e79d3f7fa5fed1f33bf19b747d356cbd0fed28eba5aaf18387c4ee4f
+commit.0: 7433e75dd92cab6af0eaa9bba74cbb1775c378d4
+range.0: 1784~2102
+hash.1: 70ce565a93c99753b3e4ac170e2a867ca446462fa812be9ec1b79c49b3defc34
+commit.1: bd3856134d9d838fc1f477063d3d5f9b76339564
+state.0: OK
+state.1: OK
+resolved_at: 2026-06-02T01:57:00Z

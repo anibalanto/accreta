@@ -1,0 +1,12 @@
+link.0: subsystems/bilinker/scenarios/index.yaml :: (block_sequence_item (block_node (block_mapping (block_mapping_pair key: (flow_node) @_ (#eq? @_ "id") value: (flow_node) @n0 (#eq? @n0 "index-status-ok-after-build"))))) @target
+link.1: subsystems/bilinker>impl
+
+# Cache
+hash.0: 579c1901dbde58b8b6c51d784851b675096261d8bba0d1473baecf9d6df8db84
+commit.0: 7433e75dd92cab6af0eaa9bba74cbb1775c378d4
+range.0: 719~1047
+hash.1: 9f4a61bcd0ad18f817ae486e73a5f302099d9798baefe5221a675bbe545b318b
+commit.1: 408de1de6cedc250d7dc509f27a68311768fb73d
+state.0: OK
+state.1: OK
+resolved_at: 2026-06-02T01:57:00Z
