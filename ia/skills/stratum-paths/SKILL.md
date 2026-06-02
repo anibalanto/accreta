@@ -9,9 +9,8 @@ Whenever you need to reference a filesystem path in a shell command, resolve it 
 
 | Token | Resolves to |
 |-------|-------------|
-| `*` | Outermost `.git` ancestor (project root) |
-| `<*` | Nearest `.git` ancestor |
-| `<` | Up one stratum layer (`../..`) |
+| `*` | Outermost `.git` ancestor — solo para la capa de nivel más alto |
+| `<` | Up one stratum layer, finds the true root of that layer (`.git` or `.bilink`) |
 | `<<` | Up two stratum layers, etc. |
 | `>name` | Down into `.stratum/name` |
 | `/segment` | Regular path component (joined after preceding token) |

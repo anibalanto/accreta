@@ -15,7 +15,7 @@ stratum-path := traditional-path
 traditional-path := path relativo del filesystem (no comienza con '>' ni '<')
 down-path        := ('>' layer-name)+ ('/' fs-path)?
 up-path          := '<'+ ('/' fs-path)?
-root-path        := '<*' root-tail?
+root-path        := '*' root-tail?
 root-tail        := ('/' fs-segment) (('>' layer-name)+ ('/' fs-path)?)?
                   | ('>' layer-name)+ ('/' fs-path)?
 
@@ -58,26 +58,30 @@ Cada `<` equivale a `../..` (un nivel Stratum = dos directorios). El `fs-path` o
 <</docs/api.md         →  ../../../../docs/api.md
 ```
 
-### Root: `<*`
+### Root: `*`
 
-`<*` resuelve al directorio raíz del proyecto, definido como el ancestro más cercano que contiene `.git`. La resolución camina hacia arriba desde la layer actual hasta encontrarlo; si no existe, es un error.
+`*` resuelve al directorio raíz del proyecto, definido como el ancestro más lejano que contiene `.git` (outermost). Solo se usa para referenciar la capa de nivel más alto del proyecto. La resolución camina hacia arriba desde la layer actual hasta encontrarlo; si no existe, es un error.
 
-Después de `<*` pueden seguir un fs-path y/o tokens `>` de navegación hacia abajo. Es el único caso donde tokens `<*` y `>` coexisten en la misma expresión.
+Después de `*` pueden seguir un fs-path y/o tokens `>` de navegación hacia abajo.
 
 ```
-<*                                          →  <raíz del proyecto>
-<*/subsystems/stratum                       →  <raíz>/subsystems/stratum
-<*>impl                                     →  <raíz>/.stratum/impl
-<*/subsystems/stratum>impl/crates/cli/src   →  <raíz>/subsystems/stratum/.stratum/impl/crates/cli/src
+*                                          →  <raíz del proyecto>
+*/subsystems/stratum                       →  <raíz>/subsystems/stratum
+*>impl                                     →  <raíz>/.stratum/impl
+*/subsystems/stratum>impl/crates/cli/src   →  <raíz>/subsystems/stratum/.stratum/impl/crates/cli/src
 ```
+
+### Up: semántica de root
+
+Cada `<` sube una capa stratum (`../../`) y luego encuentra el root verdadero de esa capa buscando el ancestro más cercano con `.git` o `.bilink`. Esto garantiza que la navegación hacia arriba siempre aterriza en la raíz de la capa, no en un subdirectorio intermedio.
 
 ## Invariantes
 
-1. Un path que no comienza con `>` ni `<` es válido y se retorna tal cual.
-2. `<` (Up) y `>` (Down) no se mezclan. `<*` (Root) puede ir seguido de tokens `>`.
+1. Un path que no comienza con `>` ni `<` ni `*` es válido y se retorna tal cual.
+2. `<` (Up) y `>` (Down) no se mezclan. `*` (Root) puede ir seguido de tokens `>`.
 3. El `fs-path` no contiene `>` ni `<`.
 4. Cada `layer-name` es no vacío.
-5. `<*` solo puede aparecer al inicio de la expresión.
+5. `*` solo puede aparecer al inicio de la expresión.
 
 ## Uso en herramientas
 
