@@ -25,6 +25,8 @@ bilinker capture <workspace> <file> <start_line>:<start_col> <end_line>:<end_col
 | `.rs` | Rust | `function_item`, `struct_item`, `enum_item`, `trait_item`, `impl_item` |
 | `.yaml`, `.yml` | YAML | `block_sequence_item` (usa `id:` como predicado), `block_mapping_pair` (usa clave) |
 | `.md` | Markdown | `section` (usa texto del heading como predicado, captura el contenido completo) |
+| `.ts`, `.js` | TypeScript | `function_declaration`, `class_declaration`, `abstract_class_declaration`, `enum_declaration`, `interface_declaration`, `type_alias_declaration`, `method_definition`, `method_signature` |
+| `.tsx`, `.jsx` | TSX | igual que TypeScript, con parser TSX para archivos con JSX |
 
 ## Flujo interno
 
