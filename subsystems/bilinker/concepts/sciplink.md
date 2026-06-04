@@ -31,8 +31,8 @@ Ejemplos:
 
 | Symbol ID | Nombre de archivo |
 |-----------|------------------|
-| `scip://rust . voting/Repo#save().` | `rust.voting..Repo.save.sciplink` |
-| `scip://rust . voting/Audit#log().` | `rust.voting..Audit.log.sciplink` |
+| `scip://rust . voting/Repo#save().` | `rust.voting.Repo..save.sciplink` |
+| `scip://rust . voting/Audit#log().` | `rust.voting.Audit..log.sciplink` |
 | `scip://typescript npm voting 1.0.0 src/repo.ts/Repo#save().` | `typescript.npm.voting.1.0.0.src.repo.ts.Repo..save.sciplink` |
 
 ## Formato
