@@ -4,9 +4,9 @@
 
 Encontrar todos los bilinks que referencian un archivo dado requiere escanear todos los `.bilink` del proyecto — O(N) donde N es el número de bilinks totales. Para proyectos grandes esto puede ser lento.
 
-## Solución: `.bilink/.index`
+## Solución: `.bilink/index/index`
 
-Cada layer puede tener un archivo `.bilink/.index` que mapea archivos fuente a los endpoints de bilinks que los referencian. La búsqueda pasa de O(N) a O(1).
+Cada layer puede tener un archivo `.bilink/index/index` que mapea archivos fuente a los endpoints de bilinks que los referencian. La búsqueda pasa de O(N) a O(1).
 
 El índice es **opcional y regenerable**. Si no existe o está desactualizado, los comandos que lo usan caen al scan O(N). Nunca es fuente de verdad — siempre puede reconstruirse a partir de los `.bilink`.
 
@@ -30,9 +30,13 @@ La ruta del archivo es relativa a la raíz de la layer que contiene el `.bilink/
 ```
 <layer-root>/
   .bilink/
-    .index              ← índice de esta layer
+    index/
+      index             ← índice bilinker de esta layer
+      index.scip        ← caché SCIP (gitignored)
     7f3d8e9a-….bilink
     a3f9c821-….bilink
+    sciplink/
+      …
 ```
 
 Cada layer tiene su propio índice. El índice solo cubre los endpoints estructurales de los bilinks que viven en esa layer — no endpoints layer ni bilinks de otras layers.

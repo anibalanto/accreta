@@ -13,15 +13,19 @@ Crea una nueva cadena generando un UUID y los archivos `.bilink` en las layers e
 ```
 bilinker chain new --tip <layer> "<referencia-estructural>" \
                    [--mid <layer>]... \
-                   --tip <layer> "<referencia-estructural>"
+                   --tip <layer> "<referencia-estructural>" \
+                   [--no-subgraph]
 ```
 
 | Argumento | Descripción |
 |---|---|
 | `--tip <layer> "<ref>"` | Extremo de la cadena: layer donde vive el nodo + referencia estructural. Se especifica exactamente dos veces. |
 | `--mid <layer>` | Layer intermedia. Se puede especificar cero o más veces. |
+| `--no-subgraph` | Desactiva el seguimiento del subgrafo de llamadas vía SCIP para los endpoints de esta cadena. Por defecto el subgrafo se activa automáticamente si el endpoint es una función/método y SCIP está disponible. |
 
 Genera el UUID, crea el archivo `.bilink/<uuid>.bilink` en cada layer especificada con los endpoints correctos (estructurales en los tips, layer en los mids) y la sección de cache vacía (se completa en el primer `check`).
+
+Si algún tip referencia una función o método y el indexer SCIP del lenguaje está disponible, `chain new` añade automáticamente el campo `subgraph:` al `.bilink` con el símbolo SCIP correspondiente. Usar `--no-subgraph` para omitirlo.
 
 **Ejemplo:**
 

@@ -72,7 +72,7 @@ bilinker chain     → crea / inspecciona / lista cadenas
 
 ## Índice opcional
 
-Cada layer puede tener un `.bilink/.index` que mapea archivos fuente a los endpoints que los referencian. Es un derivado regenerable — nunca fuente de verdad. `bilinker get` lo usa si está actualizado; si no, cae a scan O(N). `bilinker index` lo construye o reconstruye explícitamente.
+Cada layer puede tener un `.bilink/index/index` que mapea archivos fuente a los endpoints que los referencian. Es un derivado regenerable — nunca fuente de verdad. `bilinker get` lo usa si está actualizado; si no, cae a scan O(N). `bilinker index` lo construye o reconstruye explícitamente.
 
 ```
 bilinker index --recursive   → construye .index en todas las layers

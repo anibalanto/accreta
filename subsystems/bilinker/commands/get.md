@@ -18,7 +18,7 @@ bilinker get <file>:<line>:<col>
 
 Retorna la lista de endpoints de bilinks cuyo `range.N` cubre la posición dada. Cada resultado se identifica como `<UUID>.<N>` y muestra una descripción del fragmento referenciado en el extremo opuesto.
 
-Usa `.bilink/.index` si está disponible y actualizado (O(1)); si no, escanea los `.bilink` de la layer actual (O(N)).
+Usa `.bilink/index/index` si está disponible y actualizado (O(1)); si no, escanea los `.bilink` de la layer actual (O(N)).
 
 **Salida:**
 
@@ -88,7 +88,7 @@ bilinker get <file>
 
 Retorna todos los endpoints de bilinks que referencian ese archivo, ya sea mediante un endpoint estructural con query AST, un endpoint de archivo completo (`workspace :: file`), o cualquier posición dentro del archivo.
 
-Usa `.bilink/.index` si está disponible y actualizado (O(1)); si no, escanea los `.bilink` de la layer actual (O(N)). En ambos casos, no re-ejecuta queries tree-sitter — el `range.N` de cada bilink encontrado es suficiente.
+Usa `.bilink/index/index` si está disponible y actualizado (O(1)); si no, escanea los `.bilink` de la layer actual (O(N)). En ambos casos, no re-ejecuta queries tree-sitter — el `range.N` de cada bilink encontrado es suficiente.
 
 **Salida:**
 

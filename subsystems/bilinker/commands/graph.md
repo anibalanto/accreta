@@ -55,7 +55,7 @@ graph(selector):
      del mismo archivo son nodos separados.
 ```
 
-Usa `.bilink/.index` si está disponible (O(1)); si no, scan O(N).
+Usa `.bilink/index/index` si está disponible (O(1)); si no, scan O(N).
 
 ## Formato `tree` (default)
 

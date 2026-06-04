@@ -128,6 +128,7 @@ Clasifica la relación que el bilink representa. Valor libre; valores definidos:
 |-------|-------------|
 | *(ausente)* | Vínculo estructural — relación de implementación entre fragmentos |
 | `impact` | Decisión o documento que gobierna/afecta un vínculo entre capas |
+| `calls` | Relación de llamada: `link.0` llama a `link.1`. Ambos endpoints son estructurales. Convención fija: link.0 = caller, link.1 = callee. |
 
 Otros valores posibles en el futuro: `validates`, `documents`, `depends-on`, etc.
 
@@ -139,6 +140,18 @@ Etiqueta opcional para el rol semántico del endpoint N en la relación declarad
 name.0: architecture-decision
 name.1: spec-impl-bridge
 ```
+
+## Campo `subgraph`
+
+Declara el símbolo SCIP raíz desde el que `bilinker check` recorre el subgrafo de llamadas para verificar los `.sciplink` asociados.
+
+```
+subgraph: scip://rust . voting/Voting#vote().
+```
+
+Solo aplica a endpoints estructurales que representan funciones o métodos con historial SCIP. Cuando está presente, `bilinker check` ejecuta adicionalmente la verificación del subgrafo de sciplinks (ver `concepts/sciplink.md`).
+
+Este campo es independiente de `hash.N` y `state.N` — no afecta la consistencia del bilink en sí, solo activa el seguimiento del subgrafo.
 
 ## Campos de la cache
 

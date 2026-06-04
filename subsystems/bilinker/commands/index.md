@@ -2,7 +2,7 @@
 
 ## Propósito
 
-Construye o reconstruye el índice `.bilink/.index` de una o más layers, permitiendo que `bilinker get` opere en O(1) en lugar de O(N).
+Construye o reconstruye el índice `.bilink/index/index` de una o más layers, permitiendo que `bilinker get` opere en O(1) en lugar de O(N).
 
 ## Firma
 
@@ -20,7 +20,7 @@ bilinker index [<path>] [--recursive]
 1. Localiza el directorio `.bilink/` en `<path>`.
 2. Escanea todos los `.bilink` de esa layer (excluyendo `.pending/`).
 3. Para cada endpoint estructural, extrae `(archivo, uuid, N)`.
-4. Escribe `.bilink/.index` con una línea `<archivo>\t<uuid>.<N>` por entrada.
+4. Escribe `.bilink/index/index` con una línea `<archivo>\t<uuid>.<N>` por entrada.
 5. Si `--recursive`, repite para cada layer descendiente encontrada en `.stratum/`.
 
 El índice generado reemplaza cualquier versión anterior — la operación es idempotente.
@@ -30,9 +30,9 @@ El índice generado reemplaza cualquier versión anterior — la operación es i
 ```
 $ bilinker index --recursive
 
-index: .bilink/.index              (3 entradas)
-index: .stratum/impl/.bilink/.index   (7 entradas)
-index: .stratum/impl/.bilink/.index   (2 entradas)
+index: .bilink/index/index              (3 entradas)
+index: .stratum/impl/.bilink/index/index   (7 entradas)
+index: .stratum/impl/.bilink/index/index   (2 entradas)
 ```
 
 Con `--quiet`, solo imprime errores.
@@ -48,9 +48,9 @@ Reporta si el índice de cada layer está actualizado, desactualizado o ausente,
 ```
 $ bilinker index status --recursive
 
-.bilink/.index              OK        (actualizado)
-.stratum/impl/.bilink/.index          STALE     (2 bilinks más nuevos)
-.stratum/impl/.bilink/.index  MISSING
+.bilink/index/index              OK        (actualizado)
+.stratum/impl/.bilink/index/index          STALE     (2 bilinks más nuevos)
+.stratum/impl/.bilink/index/index  MISSING
 ```
 
 ## Cuándo usarlo
