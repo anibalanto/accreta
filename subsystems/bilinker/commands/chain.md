@@ -25,7 +25,7 @@ bilinker chain new --tip <layer> "<referencia-estructural>" \
 
 Genera el UUID, crea el archivo `.bilink/<uuid>.bilink` en cada layer especificada con los endpoints correctos (estructurales en los tips, layer en los mids) y la sección de cache vacía (se completa en el primer `check`).
 
-Si algún tip referencia una función o método y el indexer SCIP del lenguaje está disponible, `chain new` añade automáticamente el campo `subgraph:` al `.bilink` con el símbolo SCIP correspondiente. Usar `--no-subgraph` para omitirlo.
+Si algún tip referencia una función o método y el indexer SCIP del lenguaje está disponible, `chain new` añade automáticamente el campo `subgraph.N:` al `.bilink` de la layer donde vive ese endpoint estructural, con el símbolo SCIP correspondiente. Usar `--no-subgraph` para omitirlo.
 
 **Ejemplo:**
 

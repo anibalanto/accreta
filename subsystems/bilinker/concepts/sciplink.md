@@ -84,6 +84,6 @@ No hay paso de aceptación inicial — `bilinker check` crea el `.sciplink` con 
 
 Un sciplink no es un bilink — no tiene dos endpoints, no forma cadenas, no tiene semántica de layer. Es un checkpoint de hash sobre un símbolo SCIP.
 
-El vínculo con un bilink es indirecto: el campo `subgraph` del `.bilink` declara el símbolo raíz; `bilinker check` atraviesa el grafo SCIP desde ese símbolo y verifica los `.sciplink` correspondientes.
+El vínculo con un bilink es indirecto: los campos `subgraph.N` del `.bilink` declaran los símbolos raíz; `bilinker check` atraviesa el grafo SCIP desde cada símbolo y verifica los `.sciplink` correspondientes.
 
 Un mismo `.sciplink` puede ser alcanzable desde múltiples bilinks raíz (si dos funciones distintas llaman al mismo callee). El archivo `.sciplink` es compartido — sus campos `hash`, `commit` y `state` reflejan el estado global del símbolo, no el de una cadena particular.

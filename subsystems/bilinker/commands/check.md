@@ -4,7 +4,7 @@
 
 Verifica la consistencia de uno o más bilinks comparando el estado actual de los archivos referenciados contra la cache del `.bilink`. Por cada bilink devuelve una tupla de estados `(state_link0, state_link1)` y actualiza `state.N` en el archivo.
 
-Si el bilink tiene campo `subgraph:`, verifica adicionalmente los `.sciplink` en `.bilink/sciplink/` recorriendo el subgrafo de llamadas en profundidad desde el símbolo raíz.
+Si el bilink tiene campos `subgraph.N:`, verifica adicionalmente los `.sciplink` en `.bilink/sciplink/` recorriendo el subgrafo de llamadas en profundidad desde cada símbolo raíz.
 
 Requiere git como dependencia dura. La verificación de subgrafo requiere adicionalmente el indexer SCIP del lenguaje detectado.
 
@@ -128,7 +128,8 @@ Cuando un bilink tiene campo `subgraph:`, `bilinker check` ejecuta adicionalment
 1. ¿Existe .bilink/index/index.scip y su mtime >= último git commit?
    SÍ → reusar caché
    NO → correr indexer SCIP → guardar en .bilink/index/index.scip
-2. Desde el símbolo raíz (campo subgraph:), recorrer el grafo de llamadas en profundidad
+2. Para cada subgraph.N presente donde link.N es endpoint estructural:
+   Recorrer el grafo de llamadas en profundidad desde ese símbolo raíz
    — visited-set para cortar ciclos (recursión directa y mutua)
 3. Por cada símbolo visitado:
    a. Derivar nombre: normalizar symbol ID → .bilink/sciplink/<id>.sciplink
@@ -151,7 +152,7 @@ Cuando un bilink tiene campo `subgraph:`, `bilinker check` ejecuta adicionalment
 
 ```
 7f3d8e9a  (OK, OK)
-  subgraph: scip://rust . voting/Voting#vote().  (27 símbolos)
+  subgraph.1: scip://rust . voting/Voting#vote().  (27 símbolos)
     ALTERED  rust.voting..Repo.save   src/repo.rs:45~89
       - fn save(&self, vote: Vote)
       + fn save(&self, vote: Vote, audit: bool)
