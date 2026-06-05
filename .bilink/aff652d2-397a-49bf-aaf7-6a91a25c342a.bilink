@@ -4,9 +4,9 @@ link.1: subsystems/bilinker>impl
 # Cache
 hash.0: 3991d40d0b6f1387c63262776843ce3302c25fb393cfcf337c4188921917dca8
 commit.0: 79f1589d4992ff686ab2d7187b9b3831a189f346
-range.0: 0~3229
+range.0: 0~3336
 hash.1: 1082134b0ab5bbb7894077e8783fe9952617b27047d2002cbff13e4c04b6d693
 commit.1: 2bdcb45bf508828c999eb255b8aa1e33a7625c03
-state.0: OK
+state.0: ALTERED
 state.1: OK
-resolved_at: 2026-06-02T04:35:42Z
+resolved_at: 2026-06-04T04:19:22Z
