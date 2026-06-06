@@ -41,6 +41,28 @@ bilinker check [<path>] [--prune]
 | **PENDING** | `hash.N` ausente — sin estado aceptado. | — Ejecutar `bilinker accept`. |
 | **CHAIN_DIRTY** | Hash actual del `.bilink` referenciado ≠ `hash.N`. | — Inspeccionar nodo origen. |
 
+## Optimización por diff de git
+
+Antes de parsear o hashear un archivo, `check` determina si tiene cambios desde la última aceptación:
+
+```
+git diff --name-only commit.N..HEAD -- <file.N>
+```
+
+Si el output está vacío → el archivo no cambió desde `commit.N` → el `state.N` cacheado sigue siendo válido; se omite el resto del algoritmo para ese endpoint.
+
+Si `commit.N` está ausente (endpoint nunca aceptado) → no se puede optimizar; se ejecuta el algoritmo completo.
+
+### Optimización de subgrafo
+
+Para bilinks con `subgraph.N`, los callees están registrados en sciplinks con su propio `file`. El check verifica en un solo comando qué callees cambiaron:
+
+```
+git diff --name-only commit.N..HEAD -- <callee1.file> <callee2.file> ...
+```
+
+Solo se re-verifica el contenido de los callees cuyos archivos aparecen en el output. Los que no aparecen conservan su estado cacheado en el `.sciplink`.
+
 ## Algoritmo de detección por tipo de endpoint
 
 ### Endpoint estructural
