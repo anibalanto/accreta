@@ -34,7 +34,7 @@ Si no hay bilinks que cubran esa posición, retorna lista vacía (código 0).
 ## Forma 2: endpoint → contenido del fragmento referenciado
 
 ```
-bilinker get <UUID>.<N> [-B <rows>] [-A <rows>]
+bilinker get <UUID>.<N> [-B <rows>] [-A <rows>] [--diff] [--recursive]
 ```
 
 | Argumento | Tipo | Descripción |
@@ -42,6 +42,8 @@ bilinker get <UUID>.<N> [-B <rows>] [-A <rows>]
 | `<UUID>.<N>` | string | Identificador del endpoint: UUID de la cadena + índice (0 o 1). |
 | `-B rows` | int | Líneas de contexto antes del fragmento. |
 | `-A rows` | int | Líneas de contexto después del fragmento. |
+| `--diff` | flag | Muestra el diff entre el fragmento aceptado y el fragmento actual. |
+| `--recursive` | flag | Recorre el subgrafo de callees. Con `--diff`, muestra el diff de cada callee que cambió. |
 
 Resuelve el endpoint `link.N` del bilink `<uuid>.bilink` de la layer actual y retorna el texto del fragmento que referencia.
 
@@ -74,6 +76,51 @@ impl: Persona#vote
 description: El método vote registra el voto del ciudadano.
 
 tests:
+```
+
+### Flag `--diff`
+
+Requiere `commit.N` y `range.N` presentes en el bilink (endpoint aceptado al menos una vez).
+
+- **"antes"**: extrae el fragmento de `git show commit.N:<file>` usando `range.N`.
+- **"después"**: resuelve el fragmento actual con la misma query AST que usa `get` normalmente.
+- Muestra un unified diff del fragmento, sin contexto extra de archivo.
+
+```
+$ bilinker get 7f3d8e9a.1 --diff
+
+# java-demo :: src/main/java/ar/example/demo/persona/Persona.java  lines 10–12
+--- aceptado (commit a3f2b1c)
++++ actual
+@@ -1,3 +1,4 @@
+ public void vote(String candidato) {
+-    repo.save(new Vote(candidato));
++    repo.save(new Vote(candidato, true));
++    audit.log(candidato);
+ }
+```
+
+Si el fragmento no cambió (estado OK), muestra el contenido sin diff.
+
+### Flag `--diff --recursive`
+
+Recorre el subgrafo de callees del endpoint (requiere `subgraph.N` en el bilink) y para cada callee muestra su diff usando el `commit.N` del bilink padre como baseline.
+
+```
+$ bilinker get 7f3d8e9a.1 --diff --recursive
+
+# java-demo :: src/.../Persona.java  lines 10–12  (OK)
+[sin cambios]
+
+  ↳ rust.voting..Repo.save  src/repo.rs:45~89  (ALTERED)
+  --- aceptado (commit a3f2b1c)
+  +++ actual
+  @@ -2,3 +2,3 @@
+  -    fn save(&self, vote: Vote) {
+  +    fn save(&self, vote: Vote, audit: bool) {
+
+  ↳ rust.voting..Audit.log  src/audit.rs:12~18  (OK)
+  [sin cambios]
 ```
 
 ## Forma 3: archivo → todos los endpoints que lo referencian
@@ -122,5 +169,5 @@ bilinker get 7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.1
 
 ## Propiedades garantizadas
 
-- **Independencia de git**: `get` no requiere control de versiones.
+- **Independencia de git**: `get` sin `--diff` no requiere control de versiones.
 - **Sin efectos secundarios**: `get` no escribe ningún archivo.
