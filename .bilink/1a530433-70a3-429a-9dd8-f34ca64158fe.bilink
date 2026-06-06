@@ -2,11 +2,12 @@ link.0: subsystems/bilinker/commands/index.md :: (section (atx_heading (inline) 
 link.1: subsystems/bilinker>impl
 
 # Cache
-hash.0: a698dd8d4942d8aac3f17587e49f21cf75a437724a904492a0d808f2d43466b6
-commit.0: 4b620df6546bce1f93b4aefe847b6d1c3fc18bc2
+hash.0: 935fc6085911a4656291edc5539e4a2c65c165f69a486aecb4fedd22d9c86119
+hash_ast.0: 990613e596c931736c88bd16b328afff752b5fa3da4a8479749a59bde7ec6950
+commit.0: 1caa218b3291debbd069dd5bfc2fc68ebd31c168
 range.0: 1230~1644
-hash.1: 5adb005107388c3fab13ca92755f89ee68fdb08e0b939889a1755687061c6c79
-commit.1: 2bdcb45bf508828c999eb255b8aa1e33a7625c03
-state.0: ALTERED
+hash.1: 5b920b66a0729aa00c821fba5d37bb74fee3ea67fa7e788fb6c42494b751b8c8
+commit.1: a360786ea98d4c7803b94d4b2b31ff6fe4ccaf92
+state.0: OK
 state.1: OK
-resolved_at: 2026-06-04T04:19:23Z
+resolved_at: 2026-06-06T03:13:05Z

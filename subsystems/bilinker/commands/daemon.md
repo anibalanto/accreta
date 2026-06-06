@@ -16,7 +16,7 @@ bilinker daemon start [--workspace <path>]
 |-----------|---------|-------------|
 | `--workspace` | cwd | Raíz del workspace a indexar. Los LSPs se inicializan con este directorio. |
 
-Arranca el daemon en background. Si ya hay un daemon corriendo para este workspace, no hace nada y retorna 0.
+Arranca el daemon en background. Si ya hay un daemon corriendo para este workspace, no hace nada y retorna 1.
 
 **Salida:**
 ```
@@ -40,19 +40,21 @@ bilinker daemon status
 Muestra el estado del daemon y los LSPs activos:
 
 ```
-daemon  pid=12345  uptime=2h14m  socket=~/.bilinker/daemon.sock
+daemon  pid=12345  socket=~/.bilinker/daemon.sock
 
 language servers:
-  rust-analyzer        RUNNING  queries=147  idle=0:23
-  typescript-server    RUNNING  queries=32   idle=1:05
-  jedi-language-server STOPPED  (no queries yet)
+  rust-analyzer             RUNNING  queries=147
+  typescript-language-server RUNNING  queries=32
+  (none started yet)
 ```
+
+> `uptime` e `idle` por LSP no están implementados en v1.
 
 ---
 
 ## Protocolo IPC (Unix socket)
 
-El daemon expone un socket Unix en `~/.bilinker/daemon.sock`. El protocolo es JSON-RPC 2.0 sobre el socket.
+El daemon expone un socket Unix en `~/.bilinker/daemon.sock`. El protocolo es JSON-RPC 2.0 sobre el socket, con **framing newline-delimited**: cada mensaje (request o response) es un objeto JSON en una sola línea, terminado con `\n`.
 
 ### Request: `callees`
 
@@ -141,7 +143,7 @@ Si el daemon no está corriendo → usa el `index.scip` cacheado si existe (fall
 
 ### `bilinker scip retrofit`
 
-Usa `symbol_at` para detectar el símbolo SCIP de cada endpoint estructural y agregar `subgraph.N` al `.bilink`. Mucho más preciso que la heurística actual de `find_callable_at`.
+Usa `symbol_at` para detectar el símbolo LSP de cada endpoint estructural y agregar `subgraph.N` al `.bilink`. En v1, `symbol_at` usa hover (best-effort); en una implementación futura, puede usar la extensión nativa del LSP para obtener el símbolo exacto en formato SCIP.
 
 ### `bilinker chain new`
 

@@ -7,7 +7,7 @@ El daemon de bilinker es un proceso de fondo que gestiona conexiones vivas a lan
 ## Responsabilidades
 
 1. **Gestión de language servers**: arranca, mantiene vivos y detiene los LSP servers de cada lenguaje detectado en el workspace.
-2. **Call graph queries**: responde `callees(file, symbol)` usando `callHierarchy/outgoingCalls` del LSP correspondiente.
+2. **Call graph queries**: responde `callees(file, line, col)` usando `callHierarchy/prepareCallHierarchy` + `callHierarchy/outgoingCalls` del LSP correspondiente.
 3. **IPC con el CLI**: expone un socket Unix local para que los comandos bilinker lo consulten.
 
 ## Arquitectura
@@ -40,7 +40,7 @@ Primera query para un lenguaje
 Queries siguientes
   → reusar conexión existente (sin overhead de arranque)
 
-Idle timeout (configurable, default: 10 min sin queries)
+Idle timeout (no implementado en v1; planificado: 10 min sin queries)
   → shutdown del LSP
   → el proceso se cierra
 
@@ -56,7 +56,7 @@ bilinker daemon stop
 | `.rs` | Rust | `rust-analyzer` |
 | `.ts` `.tsx` `.js` `.jsx` | TypeScript/JS | `typescript-language-server` |
 | `.py` | Python | `jedi-language-server`, `pylsp` |
-| `.java` | Java | `jdtls`, `eclipse.jdt.ls` |
+| `.java` | Java | `jdtls` |
 
 Si el ejecutable no está en PATH, el daemon retorna error claro: `LSP for rust not found: install rust-analyzer`.
 
@@ -74,7 +74,8 @@ Basado en [`async-lsp`](https://github.com/oxalica/async-lsp):
 ~/.bilinker/
   daemon.sock    ← Unix socket (creado al start, eliminado al stop)
   daemon.pid     ← PID del proceso daemon
-  daemon.log     ← log del daemon
 ```
+
+> `daemon.log` no implementado en v1 — el daemon corre con stderr redirigido a `/dev/null`. Para logs, redirigir stderr al lanzar manualmente.
 
 Si `daemon.sock` existe pero el proceso no responde → socket stale, arrancar nuevo daemon automáticamente.

@@ -19,7 +19,7 @@ bilinker check [<path>] [--prune]
 | `path` | path | Path a un `.bilink` individual, o a una layer (directorio que contiene `.bilink/`). Default: layer actual (cwd). |
 | `--prune` | flag | Elimina los `.sciplink` con estado `DELETED` cuyo callee ya no existe en el índice SCIP. |
 
-## Estados — endpoints estructurales (9 estados)
+## Estados — endpoints estructurales (10 estados)
 
 | Estado | Condición | Auto-fix |
 |---|---|---|
@@ -28,6 +28,7 @@ bilinker check [<path>] [--prune]
 | **DISPLACED** | Query matchea; hash en offset diferente dentro del nodo. | ✓ Actualiza `start~end`. |
 | **REANCHORED** | Anchor renombrado/movido; nueva posición detectada en AST. | ✓ Actualiza predicados de query. |
 | **EXPANDED** | Fragmento creció; AST interno sin cambio estructural. | ✓ Amplía `start~end`. |
+| **RESTYLED** | `hash.N` difiere pero `hash_ast.N` coincide — cambio solo de formato/espaciado, AST idéntico. | — Advertencia leve; ejecutar `bilinker accept`. |
 | **UNANCHORED** | Query no matchea; anchor no localizado. | — Requiere intervención. |
 | **ALTERED** | Fragmento encontrado; AST interno cambió estructuralmente. | — Requiere intervención. |
 | **DELETED** | Eliminación rastreable en git con `git log -S`. | — Requiere intervención. |
@@ -67,9 +68,11 @@ bilinker check [<path>] [--prune]
    SÍ → comparar AST interno:
         igual → EXPANDED
         distinto → ALTERED
-   NO → git log -S "<hash>" -- <file>
-        SÍ → DELETED
-        NO → BROKEN
+   NO → ¿hash_ast.N presente y hash_ast actual coincide?
+        SÍ → RESTYLED  (solo cambio de formato; AST idéntico)
+        NO → git log -S "<hash>" -- <file>
+             SÍ → DELETED
+             NO → BROKEN
 ```
 
 ### Endpoint layer
@@ -190,5 +193,5 @@ f1e2d3c4  (EXPANDED, OK)
 
 | Código | Condición |
 |---|---|
-| 0 | Todos los extremos en {OK, MOVED, DISPLACED, REANCHORED, EXPANDED}. |
+| 0 | Todos los extremos en {OK, MOVED, DISPLACED, REANCHORED, EXPANDED, RESTYLED}. |
 | 1 | Al menos un extremo en {UNANCHORED, ALTERED, DELETED, BROKEN, CHAIN_DIRTY}. |

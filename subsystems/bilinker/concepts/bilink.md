@@ -106,9 +106,11 @@ name.1: <etiqueta-del-extremo-1>
 
 # Cache
 hash.0: <sha256>
+hash_ast.0: <sha256>
 commit.0: <sha1>
 range.0: <start~end-bytes-absolutos>
 hash.1: <sha256>
+hash_ast.1: <sha256>
 commit.1: <sha1>
 range.1: <start~end-bytes-absolutos>
 state.0: <estado>
@@ -116,7 +118,7 @@ state.1: <estado>
 resolved_at: <iso8601-timestamp>
 ```
 
-No existe campo `id`: el UUID del nombre de archivo es el identificador. `range.N` es opcional. `hash.N` y `commit.N` están ausentes hasta que el endpoint es aceptado por primera vez. `kind`, `name.0` y `name.1` son opcionales. Presentes cuando el bilink tiene semántica declarada más allá del vínculo estructural.
+No existe campo `id`: el UUID del nombre de archivo es el identificador. `range.N` es opcional. `hash.N` y `commit.N` están ausentes hasta que el endpoint es aceptado por primera vez. `hash_ast.N` es opcional y solo se almacena para endpoints estructurales cuyo lenguaje tiene soporte tree-sitter. `kind`, `name.0` y `name.1` son opcionales. Presentes cuando el bilink tiene semántica declarada más allá del vínculo estructural.
 
 ## Campos semánticos
 
@@ -171,6 +173,14 @@ Para un endpoint layer, `hash.N` es idéntico al `hash.N` del endpoint estructur
 
 Ausente cuando el endpoint nunca fue aceptado (estado `PENDING`). Establecido por `bilinker accept`, sobrescrito en cada nueva aceptación.
 
+### `hash_ast.N`
+
+SHA-256 de la S-expression tree-sitter del fragmento referenciado, calculado al momento de la aceptación. Solo presente para endpoints estructurales con soporte tree-sitter; ausente para layer endpoints, task endpoints y tipos sin gramática disponible.
+
+Mientras `hash.N` captura el texto exacto (incluyendo espacios y formato), `hash_ast.N` captura la estructura sintáctica. Si en un check posterior `hash.N` difiere pero `hash_ast.N` coincide, el estado es `RESTYLED` — el fragmento cambió solo en formato (espacios, indentación) pero el AST es idéntico.
+
+Almacenado directamente después de `hash.N` en el archivo `.bilink`.
+
 ### `commit.N`
 
 SHA-1 del commit HEAD en el repo del contenido referenciado al momento de la aceptación.
@@ -204,7 +214,8 @@ Timestamp ISO 8601 UTC del último `check`.
 |--------|-------------|---------------|--------------|
 | `PENDING` | `hash.N` ausente | `chain new` / `capture` | `bilinker accept` |
 | `OK` | Hash actual del fragmento == `hash.N` | `bilinker accept` | Cambio en el archivo |
-| `ALTERED` | Archivo existe, query matchea, hash ≠ `hash.N` | `bilinker check` | `bilinker accept` |
+| `RESTYLED` | `hash.N` difiere pero `hash_ast.N` coincide — solo cambio de formato | `bilinker check` | `bilinker accept` |
+| `ALTERED` | Archivo existe, query matchea, hash ≠ `hash.N` y AST difiere | `bilinker check` | `bilinker accept` |
 | `DISPLACED` | Hash encontrado en posición diferente del mismo nodo AST | `bilinker check` | `bilinker accept` |
 | `UNANCHORED` | Query ya no matchea ningún nodo | `bilinker check` | `bilinker accept` (o re-capture) |
 | `DELETED` | Archivo no existe | `bilinker check` | Restaurar archivo + `accept` · o · `bilinker remove` |
