@@ -1,4 +1,6 @@
-# Concepto: sciplink
+# Concepto: sciplink (DEPRECADO)
+
+> **Deprecado.** El sistema de sciplinks y el campo `subgraph.N` fueron eliminados. El traversal del call graph se realiza en tiempo real vía daemon LSP (`callees` / `callers`). Ver `commands/daemon.md`, `commands/impact.md` y `commands/get.md`.
 
 ## Propósito
 

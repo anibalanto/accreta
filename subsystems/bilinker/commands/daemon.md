@@ -97,6 +97,49 @@ Retorna los callees directos de un símbolo dado, usando `callHierarchy/outgoing
 }
 ```
 
+### Request: `callers`
+
+Retorna los callers directos de un símbolo dado, usando `callHierarchy/incomingCalls` del LSP correspondiente. Es el dual de `callees`.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "callers",
+  "params": {
+    "file": "/abs/path/to/crates/bilinker/src/check.rs",
+    "line": 210,
+    "col": 4
+  }
+}
+```
+
+**Respuesta:**
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": [
+    {
+      "symbol": "rust-analyzer cargo bilinker 0.1.0 check/check_endpoint().",
+      "name": "check_endpoint",
+      "file": "crates/bilinker/src/check.rs",
+      "line": 174,
+      "col": 0
+    },
+    {
+      "symbol": "rust-analyzer cargo bilinker 0.1.0 check/check_file().",
+      "name": "check_file",
+      "file": "crates/bilinker/src/check.rs",
+      "line": 53,
+      "col": 0
+    }
+  ]
+}
+```
+
+La respuesta tiene el mismo esquema que `callees` — misma estructura `CalleeInfo`, mismos campos.
+
 ### Request: `symbol_at`
 
 Retorna el símbolo LSP en una posición dada (para `bilinker scip retrofit`).
@@ -137,17 +180,11 @@ Health check. Retorna `{"result": "pong"}`.
 
 ### `bilinker check`
 
-Si el daemon está corriendo, usa `callees` para detectar si el call graph del subgrafo cambió. Si un callee nuevo aparece → crea el `.sciplink` correspondiente con query tree-sitter.
+No usa el daemon. Opera únicamente con git + tree-sitter sobre los endpoints directos. El análisis de subgrafo hacia arriba o hacia abajo se delega a `bilinker impact` y `bilinker get --diff --recursive` respectivamente.
 
-Si el daemon no está corriendo → usa el `index.scip` cacheado si existe (fallback). Si tampoco existe → skip subgraph check con advertencia.
+### `bilinker impact`
 
-### `bilinker scip retrofit`
-
-Usa `symbol_at` para detectar el símbolo LSP de cada endpoint estructural y agregar `subgraph.N` al `.bilink`. En v1, `symbol_at` usa hover (best-effort); en una implementación futura, puede usar la extensión nativa del LSP para obtener el símbolo exacto en formato SCIP.
-
-### `bilinker chain new`
-
-Usa `symbol_at` para auto-detectar `subgraph.N` en el momento de creación de la cadena.
+Usa `callers` recursivamente para subir por el call graph desde las funciones afectadas (derivadas de bilinks con `state.N ≠ OK`) hasta alcanzar bilinks que las "poseen". Sin daemon, opera en modo degradado: solo reporta bilinks que apuntan directamente a los archivos afectados.
 
 ---
 

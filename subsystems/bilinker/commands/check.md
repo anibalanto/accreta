@@ -4,20 +4,17 @@
 
 Verifica la consistencia de uno o más bilinks comparando el estado actual de los archivos referenciados contra la cache del `.bilink`. Por cada bilink devuelve una tupla de estados `(state_link0, state_link1)` y actualiza `state.N` en el archivo.
 
-Si el bilink tiene campos `subgraph.N:`, verifica adicionalmente los `.sciplink` en `.bilink/sciplink/` recorriendo el subgrafo de llamadas en profundidad desde cada símbolo raíz.
-
-Requiere git como dependencia dura. La verificación de subgrafo requiere adicionalmente el indexer SCIP del lenguaje detectado.
+Requiere git como dependencia dura. Opera completamente offline — no requiere el daemon LSP ni ningún indexer externo.
 
 ## Firma
 
 ```
-bilinker check [<path>] [--prune]
+bilinker check [<path>]
 ```
 
 | Argumento | Tipo | Descripción |
 |---|---|---|
 | `path` | path | Path a un `.bilink` individual, o a una layer (directorio que contiene `.bilink/`). Default: layer actual (cwd). |
-| `--prune` | flag | Elimina los `.sciplink` con estado `DELETED` cuyo callee ya no existe en el índice SCIP. |
 
 ## Estados — endpoints estructurales (10 estados)
 
@@ -52,16 +49,6 @@ git diff --name-only commit.N..HEAD -- <file.N>
 Si el output está vacío → el archivo no cambió desde `commit.N` → el `state.N` cacheado sigue siendo válido; se omite el resto del algoritmo para ese endpoint.
 
 Si `commit.N` está ausente (endpoint nunca aceptado) → no se puede optimizar; se ejecuta el algoritmo completo.
-
-### Optimización de subgrafo
-
-Para bilinks con `subgraph.N`, los callees están registrados en sciplinks con su propio `file`. El check verifica en un solo comando qué callees cambiaron:
-
-```
-git diff --name-only commit.N..HEAD -- <callee1.file> <callee2.file> ...
-```
-
-Solo se re-verifica el contenido de los callees cuyos archivos aparecen en el output. Los que no aparecen conservan su estado cacheado en el `.sciplink`.
 
 ## Algoritmo de detección por tipo de endpoint
 
@@ -144,47 +131,6 @@ se superpone                  → WITHIN  (causa de EXPANDED, ALTERED, REANCHORE
 ## Auto-fix staging
 
 Los estados con auto-fix (MOVED, DISPLACED, REANCHORED, EXPANDED) generan un archivo en `.bilink/.pending/<uuid>-<N>.fix`. Nunca se aplican automáticamente.
-
-## Verificación de subgrafo (sciplinks)
-
-Cuando un bilink tiene campo `subgraph:`, `bilinker check` ejecuta adicionalmente la verificación del subgrafo de llamadas. SCIP es infraestructura transparente — el indexer se invoca internamente sin intervención del usuario.
-
-```
-1. ¿Existe .bilink/index/index.scip y su mtime >= último git commit?
-   SÍ → reusar caché
-   NO → correr indexer SCIP → guardar en .bilink/index/index.scip
-2. Para cada subgraph.N presente donde link.N es endpoint estructural:
-   Recorrer el grafo de llamadas en profundidad desde ese símbolo raíz
-   — visited-set para cortar ciclos (recursión directa y mutua)
-3. Por cada símbolo visitado:
-   a. Derivar nombre: normalizar symbol ID → .bilink/sciplink/<id>.sciplink
-   b. Si el .sciplink no existe:
-      → crearlo con symbol, file, range y hash calculado del código actual (state: OK)
-   c. Si existe:
-      - Symbol ID presente en index.scip:
-          leer código en file:range → calcular hash
-          hash == stored hash  → OK
-          hash != stored hash  → ALTERED  (reportar commit responsable vía git log)
-      - Symbol ID ausente en index.scip:
-          buscar por file+range similar o relación RENAMED_FROM → RENAMED
-            actualizar symbol y file en el .sciplink directamente
-          sin candidato → DELETED
-4. Actualizar state y resolved_at en cada .sciplink modificado
-5. Si --prune: eliminar .sciplink con state == DELETED
-```
-
-### Salida de subgrafo
-
-```
-7f3d8e9a  (OK, OK)
-  subgraph.1: scip://rust . voting/Voting#vote().  (27 símbolos)
-    ALTERED  rust.voting..Repo.save   src/repo.rs:45~89
-      - fn save(&self, vote: Vote)
-      + fn save(&self, vote: Vote, audit: bool)
-      source: commit a3f2b1c "Add audit param" (2026-06-03)
-    RENAMED  rust.voting..Val.check → rust.voting..Validator.validate  (actualizado)
-    DELETED  rust.voting..Legacy.run  src/legacy.rs  (usar --prune para eliminar)
-```
 
 ## Salida
 

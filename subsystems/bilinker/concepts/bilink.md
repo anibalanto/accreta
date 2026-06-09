@@ -143,21 +143,6 @@ name.0: architecture-decision
 name.1: spec-impl-bridge
 ```
 
-## Campos `subgraph.N`
-
-Declaran el símbolo SCIP del endpoint N, activando el seguimiento del subgrafo de llamadas para ese endpoint. Solo tiene sentido en endpoints estructurales que apuntan a una función o método.
-
-```
-subgraph.0: scip://rust . voting/Voting#vote().
-subgraph.1: scip://rust . repo/Repo#save().
-```
-
-Cada `subgraph.N` se asocia al endpoint `link.N` del mismo bilink. Si `link.N` no es un endpoint estructural, el campo se ignora.
-
-Vive en el bilink de la layer donde reside el código — típicamente el tip del impl layer, donde `link.N` apunta al archivo fuente. `bilinker check` ejecuta la verificación del subgrafo de sciplinks para cada `subgraph.N` presente (ver `concepts/sciplink.md`).
-
-Estos campos son independientes de `hash.N` y `state.N` — no afectan la consistencia del bilink, solo activan el seguimiento del subgrafo.
-
 ## Campos de la cache
 
 ### `hash.N`
