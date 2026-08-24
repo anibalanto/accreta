@@ -56,10 +56,14 @@ Comparan el contenido hallado contra `hash.N`.
 Antes de parsear o hashear un archivo, `check` determina si tiene cambios desde la última aceptación:
 
 ```
-git diff --name-only commit.N..HEAD -- <file.N>
+git diff --name-only <commit.N> -- <file>
 ```
 
+Sin `..HEAD`: la comparación es contra el **árbol de trabajo**, no contra HEAD. Con `..HEAD` se comparan dos commits y los cambios sin commitear quedan invisibles — que es el caso más común mientras alguien trabaja, y el fast-path devolvería un estado cacheado obsoleto.
+
 Si el output está vacío → el archivo no cambió desde `commit.N` → el `state.N` cacheado sigue siendo válido; se omite el resto del algoritmo para ese endpoint.
+
+Si git falla —commit inexistente, repo sin historial— se asume **cambiado**. No poder comparar no es evidencia de que nada cambió.
 
 Si `commit.N` está ausente (endpoint nunca aceptado) → no se puede optimizar; se ejecuta el algoritmo completo.
 
