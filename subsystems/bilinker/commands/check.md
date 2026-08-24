@@ -37,20 +37,28 @@ Comparan el contenido hallado contra `hash.N`.
 |---|---|---|
 | **OK** | Hash matchea en el `range` del capture. | — |
 | **DISPLACED** | Hash en otro offset dentro del nodo. | ✓ Actualiza `offset` del capture. |
-| **EXPANDED** | Fragmento creció; AST interno sin cambio estructural. | ✓ Amplía `offset` del capture. — *ver nota* |
+| **EXPANDED** | El fragmento contiene el texto aceptado verbatim y algo más. | ✓ Amplía `offset` del capture. |
 | **RESTYLED** | `hash.N` difiere pero `hash_ast.N` coincide — solo formato, AST idéntico. | — Advertencia leve; ejecutar `bilinker accept`. |
 | **ALTERED** | Fragmento encontrado; AST interno cambió estructuralmente. | — Requiere intervención. |
 | **UNRESOLVED** | El capture referenciado no resolvió. | — Se resuelve en el capture. |
 
 `DISPLACED` y `EXPANDED` se detectan acá porque necesitan `hash.N`, pero su fix se escribe en el capture. Ver [capture.md](../concepts/capture.md) § "Copy-on-write al aplicar un fix".
 
-> **`EXPANDED` no está implementado, y tal como está definido no es detectable.**
->
-> El paso 5 del algoritmo pregunta *"¿el texto guardado es subcadena del nodo?"*, pero el formato guarda `hash.N` —un hash— y no el texto. Se puede buscar el hash dentro del nodo con el largo del fragmento guardado, pero encontrarlo dice que el fragmento **se movió**, que es `DISPLACED`. No dice que ahora deba **abarcar más**, que es la afirmación de `EXPANDED`.
->
-> Distinguirlos requiere una decisión: definir `EXPANDED` de forma estructural —el nodo de la query creció y el fragmento guardado está contenido en él— asumiendo que la frontera con `DISPLACED` es heurística; o eliminar el estado y dejar que esos casos sean `DISPLACED` seguido de `accept`.
->
-> Mientras tanto `check` nunca lo devuelve, y la rama de `apply` que lo trata es código inalcanzable.
+### La frontera entre EXPANDED y DISPLACED
+
+Ambos se distinguen con un test de subcadena contra el **texto aceptado**, no con un umbral. Siendo `T` el texto aceptado y `F` el fragmento que el capture resuelve hoy:
+
+| Condición | Estado |
+|---|---|
+| `F == T` | OK |
+| `F ⊃ T` — contiene lo aceptado y algo más | **EXPANDED** |
+| `F ⊅ T`, pero el nodo contiene `T` en otro offset | **DISPLACED** |
+| `T` no aparece y `hash_ast.N` coincide | RESTYLED |
+| nada de lo anterior | ALTERED |
+
+Sin solapamiento y sin heurística: EXPANDED es *"creció alrededor de lo aceptado"*, DISPLACED es *"se corrió y sigue igual"*.
+
+Que `F` contenga a `T` verbatim implica que nada dentro de lo aceptado cambió, así que la condición de "AST interno sin cambio estructural" se satisface sola.
 
 ## Estados — endpoints layer (2 estados adicionales)
 
@@ -63,7 +71,7 @@ Comparan el contenido hallado contra `hash.N`.
 
 `hash.N` es exacto, y el nombre del anchor está **dentro** del fragmento capturado en la enorme mayoría de los casos — en este proyecto, en los 60 captures que existen. Renombrar el anchor cambia el fragmento, así que una comparación por hash no dispararía nunca: detectaría solo el caso raro en que lo renombrado queda fuera de lo capturado.
 
-El texto aceptado se recupera de git —`git show <commit.N>:<file>` recortado por el `range`, la misma reconstrucción que hace [`get --diff`](get.md)— y se compara contra cada candidato.
+El texto aceptado se recupera de git y se compara contra cada candidato. Ver "Recuperar el texto aceptado".
 
 **Umbral: 50%**, el mismo que usa `git diff -M` para renames de archivos. La pregunta es la misma —a dónde se fue algo que cambió de nombre— y usar dos criterios distintos para la misma pregunta sería arbitrario.
 
@@ -74,6 +82,21 @@ La medida es el coeficiente de Dice sobre líneas, con bigramas de caracteres co
 ### La incertidumbre está acotada
 
 Introducir una medida difusa en un sistema construido sobre hashes exactos necesita un límite claro, y lo tiene: **`REANCHORED` nunca cierra solo**. `apply` corrige la ubicación pero el endpoint queda no-OK hasta que un humano ejecute `accept`. La similitud sirve para *encontrar* el fragmento, nunca para afirmar que su contenido sigue siendo válido — eso lo sigue decidiendo un hash exacto.
+
+## Recuperar el texto aceptado
+
+Varias detecciones —EXPANDED, DISPLACED y REANCHORED— necesitan el texto del fragmento **tal como quedó aceptado**, no solo su hash. Se recupera de git:
+
+```
+git show <commit.N>:<file>   →  contenido en el momento de aceptar
+ejecutar la query sobre él   →  el nodo
+aplicar offset               →  el fragmento aceptado
+verificar sha256 == hash.N   →  o descartar
+```
+
+**No se recorta por el `range` guardado.** `check` reescribe `range` en cada corrida, así que apunta a dónde está el fragmento *ahora*; recortar contenido viejo con una posición nueva da bytes arbitrarios. Resolver la query contra el contenido viejo es lo correcto, y además se autoverifica.
+
+Si la verificación falla —no hay `commit.N`, el archivo no existía en ese commit, la query no resuelve ahí— el texto se descarta y esas detecciones no corren. Es preferible no detectar nada que razonar sobre el texto equivocado; queda el respaldo por hash para DISPLACED.
 
 ## Optimización por diff de git
 
@@ -119,14 +142,12 @@ Los pasos 1–2 resuelven el **capture**; los pasos 3–5 comparan contra `hash.
     todos los bilinks que lo referencian quedan UNRESOLVED y se corta acá)
 
 3. ¿Hash matchea en el range del capture?  → OK
-4. ¿Hash matchea en otro offset del nodo?  → DISPLACED
-5. ¿Texto guardado es subcadena del nodo?
-   SÍ → comparar AST interno:
-        igual → EXPANDED
-        distinto → ALTERED
-   NO → ¿hash_ast.N presente y hash_ast actual coincide?
-        SÍ → RESTYLED  (solo cambio de formato; AST idéntico)
-        NO → ALTERED
+5. Recuperar el texto aceptado T (ver "Recuperar el texto aceptado").
+   ¿F contiene T verbatim y es más grande?  → EXPANDED
+6. ¿hash_ast.N presente y hash_ast actual coincide?
+   SÍ → RESTYLED  (solo cambio de formato; AST idéntico)
+7. ¿T aparece en otro offset del nodo?  → DISPLACED
+8. → ALTERED
 ```
 
 Un mismo capture se resuelve **una sola vez por `check`**, aunque lo referencien varios bilinks. Los pasos 3–5 sí corren por endpoint, porque cada uno tiene su propio `hash.N`.
