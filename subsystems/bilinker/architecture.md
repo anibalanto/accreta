@@ -7,11 +7,15 @@ Bilinker vive en carpetas `.bilink/` dentro de cada layer del proyecto:
 ```
 proyecto/
   .bilink/
-    <uuid>.bilink     ← tip (fragmento en esta layer)
+    <uuid>.bilink     ← tip (relación)
+    capture/
+      <uuid>.capture  ← ubicación del fragmento en esta layer
   .stratum/
     impl/
       .bilink/
-        <uuid>.bilink ← tip (fragmento en impl)
+        <uuid>.bilink ← tip (relación)
+        capture/
+          <uuid>.capture
 ```
 
 El mismo UUID aparece en todas las layers que participan de una cadena.
@@ -37,14 +41,14 @@ La cadena es estrictamente lineal — sin ciclos ni bifurcaciones.
 
 ```mermaid
 flowchart LR
-    A[bilinker check] -->|"state.N · range.N"| B[bilinker accept]
+    A[bilinker check] -->|"capture.state · capture.range\nstate.N"| B[bilinker accept]
     A -->|"state.N"| C[bilinker apply]
     B -->|"hash.N · commit.N"| D([resuelto])
     C -->|"MOVED · DISPLACED\ncommit git"| D
     C -->|"EXPANDED · REANCHORED\nel contenido cambió"| B
 ```
 
-`check` actualiza `state.N` y `range.N`. `accept` es el único que establece `hash.N` y `commit.N`. `apply` usa `state.N` solo para seleccionar candidatos: el fix lo recalcula re-resolviendo el endpoint contra git y el AST actuales, y corrige a dónde apunta `link.N` sin tocar el contenido aceptado.
+`check` resuelve los captures (escribe `range` y `state` en cada uno) y luego compara contra `hash.N` (escribe `state.N` en el bilink). `accept` es el único que establece `hash.N`, `hash_ast.N` y `commit.N`. `apply` usa `state.N` solo para seleccionar candidatos: recalcula el fix re-resolviendo contra git y el AST actuales, y lo escribe en el capture — sin tocar el contenido aceptado.
 
 Para MOVED y DISPLACED el fragmento no cambió, así que `apply` cierra el ciclo por sí solo. Para EXPANDED y REANCHORED el fragmento sí cambió: `apply` corrige la referencia y `accept` fija el contenido nuevo.
 
@@ -64,17 +68,17 @@ Ningún nodo puede cambiar su estado aceptado sin que los nodos adyacentes lo de
 ## Componentes internos
 
 ```
-bilinker capture   → tree-sitter parse → query AST → hash SHA-256
-bilinker get       → lookup en .bilink/ por range.N → retorna fragmento
-bilinker check     → hash actual vs hash.N → actualiza state.N y range.N
-bilinker accept    → establece hash.N y commit.N con el estado actual
-bilinker apply     → recalcula fix desde git/AST → aplica como commit git
+bilinker capture   → tree-sitter parse → query AST → escribe .capture
+bilinker get       → lookup por range del capture → retorna fragmento
+bilinker check     → resuelve captures → hash actual vs hash.N → state.N
+bilinker accept    → establece hash.N, hash_ast.N y commit.N en el bilink
+bilinker apply     → recalcula fix desde git/AST → escribe el capture (forkea si es compartido)
 bilinker chain     → crea / inspecciona / lista cadenas
 ```
 
 ## Índice opcional
 
-Cada layer puede tener un `.bilink/index/index` que mapea archivos fuente a los endpoints que los referencian. Es un derivado regenerable — nunca fuente de verdad. `bilinker get` lo usa si está actualizado; si no, cae a scan O(N). `bilinker index` lo construye o reconstruye explícitamente.
+Cada layer puede tener un `.bilink/index/index` que mapea archivos fuente a los endpoints que los referencian y al capture de cada uno. Es un derivado regenerable — nunca fuente de verdad. `bilinker get` lo usa si está actualizado; si no, cae a scan O(N). `bilinker index` lo construye o reconstruye explícitamente.
 
 ```
 bilinker index --recursive   → construye .index en todas las layers

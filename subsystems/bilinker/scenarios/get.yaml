@@ -34,9 +34,9 @@ scenarios:
     impl: get_by_file_returns_bilink_after_check
 
   - id: get-by-position-filters-by-range
-    description: get <file>:<line>:<col> lista bilinks cuyo range.N cubre esa posición
+    description: get <file>:<line>:<col> lista bilinks cuyo capture tiene un range que cubre esa posición
     given:
-      - bilink con range.N conocido
+      - capture con range conocido
     when:
       - bilinker get <file>:<line>:<col> dentro del range
     expect:
@@ -45,7 +45,7 @@ scenarios:
   - id: get-by-position-outside-range
     description: get <file>:<line>:<col> fuera del range no retorna ese bilink
     given:
-      - bilink con range.N conocido
+      - capture con range conocido
     when:
       - bilinker get <file>:<line>:<col> fuera del range
     expect:

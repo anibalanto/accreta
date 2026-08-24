@@ -24,12 +24,12 @@ flowchart LR
 
 | Tipo de nodo | Endpoint 0 | Endpoint 1 | Posición en cadena |
 |---|---|---|---|
-| **tip** | estructural | layer | extremo (siempre dos por cadena) |
+| **tip** | estructural (`capture <uuid>`) | layer | extremo (siempre dos por cadena) |
 | **mid** | layer | layer | intermedio (cero o más) |
 
 **Restricciones de topología:**
 - Exactamente dos tips por cadena.
-- Los tips tienen un endpoint estructural y uno layer.
+- Los tips tienen un endpoint estructural —una referencia a un capture de su propia capa— y uno layer.
 - Los mids tienen ambos endpoints como layer.
 - La cadena es estrictamente lineal — sin ciclos ni bifurcaciones.
 - Cada archivo `.bilink/<uuid>.bilink` en una layer pertenece a una sola cadena.
@@ -84,9 +84,11 @@ bilinker chain new \
   --tip .stratum/impl "java-demo :: src/.../Persona.java :: (...) @target"
 ```
 
-Genera:
-- `.bilink/<uuid>.bilink` (tip en spec layer)
-- `.stratum/impl/.bilink/<uuid>.bilink` (tip en impl layer)
+Genera, por cada tip, un capture en su capa y el `.bilink` que lo referencia:
+- `.bilink/capture/<c0>.capture` + `.bilink/<uuid>.bilink` (tip en spec layer)
+- `.stratum/impl/.bilink/capture/<c1>.capture` + `.stratum/impl/.bilink/<uuid>.bilink` (tip en impl layer)
+
+Si un tip apunta a un fragmento ya capturado, `chain new` reusa ese capture en vez de crear uno nuevo.
 
 ### `bilinker chain status <uuid>`
 
@@ -123,7 +125,7 @@ $ bilinker chain list
 
 ```
 bilinker chain new   → crea archivos .bilink con UUID, sin cache
-bilinker check       → compara hash actual contra hash.N, actualiza state.N, range.N, resolved_at
+bilinker check       → resuelve captures (range, state) y compara contra hash.N → state.N
 bilinker accept      → establece hash.N y commit.N con el estado actual
 bilinker apply       → aplica auto-fixes (MOVED, DISPLACED, REANCHORED, EXPANDED)
 bilinker chain status <uuid> → inspecciona cadena completa

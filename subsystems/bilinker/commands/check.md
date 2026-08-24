@@ -2,7 +2,7 @@
 
 ## Propósito
 
-Verifica la consistencia de uno o más bilinks comparando el estado actual de los archivos referenciados contra la cache del `.bilink`. Por cada bilink devuelve una tupla de estados `(state_link0, state_link1)` y actualiza `state.N` en el archivo.
+Verifica la consistencia de uno o más bilinks. Opera en dos pasos: **resuelve los captures** referenciados —localizando cada fragmento en el árbol actual— y luego **compara** el contenido hallado contra `hash.N`. Escribe `state`, `range` y `resolved_at` en cada capture, y `state.N` en cada bilink.
 
 Requiere git como dependencia dura. Opera completamente offline — solo git y tree-sitter, sin language servers ni indexers externos.
 
@@ -16,20 +16,33 @@ bilinker check [<path>]
 |---|---|---|
 | `path` | path | Path a un `.bilink` individual, o a una layer (directorio que contiene `.bilink/`). Default: layer actual (cwd). |
 
-## Estados — endpoints estructurales (10 estados)
+## Estados — resolución (en el capture)
+
+Se evalúan sin ningún estado aceptado: son sobre dónde está el fragmento.
 
 | Estado | Condición | Auto-fix |
 |---|---|---|
-| **OK** | Hash matchea en el offset guardado. | — |
-| **MOVED** | Archivo cambió de path (git rename ≥ 50%); hash matchea en nuevo path. | ✓ Actualiza `file` en `link.N`. |
-| **DISPLACED** | Query matchea; hash en offset diferente dentro del nodo. | ✓ Actualiza `start~end`. |
-| **REANCHORED** | Anchor renombrado/movido; nueva posición detectada en AST. | ✓ Actualiza predicados de query. |
-| **EXPANDED** | Fragmento creció; AST interno sin cambio estructural. | ✓ Amplía `start~end`. |
-| **RESTYLED** | `hash.N` difiere pero `hash_ast.N` coincide — cambio solo de formato/espaciado, AST idéntico. | — Advertencia leve; ejecutar `bilinker accept`. |
+| **RESOLVED** | La query matchea; `range` actualizado. | — |
+| **MOVED** | Archivo cambió de path (git rename ≥ 50%). | ✓ Actualiza `file` del capture. |
+| **REANCHORED** | Anchor renombrado/movido; nueva posición detectada en AST. | ✓ Actualiza los predicados de `query`. |
 | **UNANCHORED** | Query no matchea; anchor no localizado. | — Requiere intervención. |
-| **ALTERED** | Fragmento encontrado; AST interno cambió estructuralmente. | — Requiere intervención. |
 | **DELETED** | Eliminación rastreable en git con `git log -S`. | — Requiere intervención. |
 | **BROKEN** | Ninguna hipótesis aplica. | — Requiere intervención. |
+
+## Estados — aceptación (en el bilink, endpoints estructurales)
+
+Comparan el contenido hallado contra `hash.N`.
+
+| Estado | Condición | Auto-fix |
+|---|---|---|
+| **OK** | Hash matchea en el `range` del capture. | — |
+| **DISPLACED** | Hash en otro offset dentro del nodo. | ✓ Actualiza `offset` del capture. |
+| **EXPANDED** | Fragmento creció; AST interno sin cambio estructural. | ✓ Amplía `offset` del capture. |
+| **RESTYLED** | `hash.N` difiere pero `hash_ast.N` coincide — solo formato, AST idéntico. | — Advertencia leve; ejecutar `bilinker accept`. |
+| **ALTERED** | Fragmento encontrado; AST interno cambió estructuralmente. | — Requiere intervención. |
+| **UNRESOLVED** | El capture referenciado no resolvió. | — Se resuelve en el capture. |
+
+`DISPLACED` y `EXPANDED` se detectan acá porque necesitan `hash.N`, pero su fix se escribe en el capture. Ver [capture.md](../concepts/capture.md) § "Copy-on-write al aplicar un fix".
 
 ## Estados — endpoints layer (2 estados adicionales)
 
@@ -54,6 +67,8 @@ Si `commit.N` está ausente (endpoint nunca aceptado) → no se puede optimizar;
 
 ### Endpoint estructural
 
+Los pasos 1–2 resuelven el **capture**; los pasos 3–5 comparan contra `hash.N` del **bilink**.
+
 ```
 1. ¿El archivo existe en el path conocido?
    NO → git diff -M --name-status HEAD
@@ -71,7 +86,10 @@ Si `commit.N` está ausente (endpoint nunca aceptado) → no se puede optimizar;
                     SÍ → DELETED
                     NO → UNANCHORED
 
-3. ¿Hash matchea en offset guardado?  → OK
+   (los pasos 1–2 escriben state del capture; si no es RESOLVED,
+    todos los bilinks que lo referencian quedan UNRESOLVED y se corta acá)
+
+3. ¿Hash matchea en el range del capture?  → OK
 4. ¿Hash matchea en otro offset del nodo?  → DISPLACED
 5. ¿Texto guardado es subcadena del nodo?
    SÍ → comparar AST interno:
@@ -79,10 +97,10 @@ Si `commit.N` está ausente (endpoint nunca aceptado) → no se puede optimizar;
         distinto → ALTERED
    NO → ¿hash_ast.N presente y hash_ast actual coincide?
         SÍ → RESTYLED  (solo cambio de formato; AST idéntico)
-        NO → git log -S "<hash>" -- <file>
-             SÍ → DELETED
-             NO → BROKEN
+        NO → ALTERED
 ```
+
+Un mismo capture se resuelve **una sola vez por `check`**, aunque lo referencien varios bilinks. Los pasos 3–5 sí corren por endpoint, porque cada uno tiene su propio `hash.N`.
 
 ### Endpoint layer
 
@@ -98,12 +116,20 @@ Si `commit.N` está ausente (endpoint nunca aceptado) → no se puede optimizar;
 
 ## Escritura de cache tras resolución
 
-Después de evaluar cada endpoint, `check` actualiza el archivo `.bilink`:
+`check` escribe en dos archivos distintos.
+
+**En el capture**, tras resolverlo:
+
+- **`range`** — byte range absoluto del fragmento, siempre que la resolución lo encuentre.
+- **`state`** — estado de resolución.
+- **`resolved_at`** — timestamp UTC.
+- **`file`, `query`, `offset`** — no se modifican. Solo los cambia `bilinker apply`.
+
+**En el bilink**, tras comparar:
 
 - **`state.N`** — nuevo estado calculado.
-- **`hash.N` / `commit.N`** — no se modifican. Solo se actualizan con `bilinker accept`.
-- **`range.N`** — byte range absoluto del fragmento en su archivo (`start~end`). Solo para endpoints estructurales; se actualiza siempre que la resolución encuentra el fragmento (OK, DISPLACED, REANCHORED, EXPANDED, ALTERED).
-- **`resolved_at`** — timestamp UTC de esta verificación.
+- **`resolved_at`** — timestamp UTC.
+- **`hash.N` / `hash_ast.N` / `commit.N`** — no se modifican. Solo los establece `bilinker accept`.
 
 Si `state.N` cambió respecto al valor anterior, el archivo cambia y su hash cambia, disparando CHAIN_DIRTY en el nodo adyacente de la cadena en el próximo `check`.
 
@@ -120,7 +146,7 @@ Para endpoints estructurales no-OK:
 ### Intersección hunk / fragmento
 
 ```
-fragmento: líneas F_start–F_end  (derivadas de range.N en bytes)
+fragmento: líneas F_start–F_end  (derivadas del range del capture, en bytes)
 hunk:      @@ -H_start,H_count +...
 
 H_start + H_count < F_start  → BEFORE  (posible causa de DISPLACED)
@@ -132,7 +158,7 @@ se superpone                  → WITHIN  (causa de EXPANDED, ALTERED, REANCHORE
 
 Los estados con auto-fix (MOVED, DISPLACED, REANCHORED, EXPANDED) se resuelven con `bilinker apply`, que usa `state.N` para seleccionar candidatos y recalcula cada fix re-resolviendo el endpoint contra git y el AST actuales. Nunca se aplican automáticamente.
 
-`apply` no lee `range.N` como fuente del fix: `range.N` refleja el último `check` y el archivo puede haber cambiado desde entonces. Si la re-resolución arroja un estado distinto de `state.N`, `apply` descarta el fix y pide correr `check`.
+`apply` no lee el `range` cacheado como fuente del fix: refleja el último `check` y el archivo puede haber cambiado desde entonces. Si la re-resolución arroja un estado distinto del cacheado, `apply` descarta el fix y pide correr `check`.
 
 ## Salida
 
@@ -163,5 +189,5 @@ f1e2d3c4  (EXPANDED, OK)
 
 | Código | Condición |
 |---|---|
-| 0 | Todos los extremos en {OK, MOVED, DISPLACED, REANCHORED, EXPANDED, RESTYLED}. |
-| 1 | Al menos un extremo en {UNANCHORED, ALTERED, DELETED, BROKEN, CHAIN_DIRTY}. |
+| 0 | Todos los captures en {RESOLVED, MOVED, REANCHORED} y todos los extremos en {OK, DISPLACED, EXPANDED, RESTYLED}. |
+| 1 | Algún capture en {UNANCHORED, DELETED, BROKEN} o algún extremo en {ALTERED, UNRESOLVED, CHAIN_DIRTY}. |

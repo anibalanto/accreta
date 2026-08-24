@@ -10,23 +10,24 @@ scenarios:
     when:
       - bilinker capture src/main.rs 37:5 40:10
     expect:
-      - output contiene query con `(function_item name: ... @n0 (#eq? @n0 "cmd_pull"))`
+      - el .capture creado contiene query con `(function_item name: ... @n0 (#eq? @n0 "cmd_pull"))`
     impl: capture_identifies_workspace_file_and_method
 
-  - id: capture-hash-is-stable
-    description: capturar el mismo fragmento dos veces produce el mismo hash
+  - id: capture-query-is-stable
+    description: capturar el mismo fragmento dos veces produce la misma query y el mismo range
     given:
       - archivo sin modificaciones
     when:
       - bilinker capture <file> <start> <end>  (dos veces)
     expect:
-      - mismo hash en stderr ambas veces
+      - misma query y mismo range en ambos .capture
+      - UUID distinto en cada uno — capture no deduplica
     impl: capture_hash_is_valid_sha256_and_stable
 
   - id: capture-hash-changes-on-modification
-    description: modificar el fragmento cambia el hash
+    description: modificar el fragmento cambia el hash que calcula accept
     given:
-      - archivo capturado con hash H1
+      - archivo capturado y aceptado con hash H1
       - contenido del fragmento modificado
     when:
       - bilinker capture <file> <start> <end>
@@ -41,5 +42,5 @@ scenarios:
     when:
       - bilinker chain new --tip "<file>"
     expect:
-      - link.N = "<file>" (sin "::")
+      - el .capture no tiene campo `query`
       - hash.N = SHA-256 del archivo completo

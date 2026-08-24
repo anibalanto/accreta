@@ -35,7 +35,7 @@ bilinker graph <selector>
 | Selector | Comportamiento |
 |----------|----------------|
 | `archivo.md` | Todos los bilinks que referencian ese archivo en la capa actual |
-| `archivo.md:42:5` | Bilinks cuyo `range.N` cubre esa posición |
+| `archivo.md:42:5` | Bilinks cuyo capture tiene un `range` que cubre esa posición |
 | `<uuid>` (8+ hex chars) | Bilink concreto por UUID o prefijo |
 | `.` o `*` | Todos los bilinks en la capa actual (con `--recursive`: en todas las capas) |
 

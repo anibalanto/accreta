@@ -22,12 +22,14 @@ El tipo de un endpoint se infiere del valor de `link.N` — no hay prefijo de ti
 
 | Tipo | Forma | Descripción |
 |---|---|---|
-| **Estructural** | `file [:: query [:: start~end]]` | Apunta a un archivo o fragmento concreto. |
+| **Estructural** | `capture <uuid>` | Referencia a un [capture](capture.md) de la misma capa, que describe dónde está el fragmento. |
 | **Layer** | path Stratum | Apunta a un nodo adyacente en otra capa. |
 | **Task** | `task <id>` | Apunta a un ítem del worklist en `<project-root>/.stratum/worklist/<id>.task`. Se hashea y verifica como un endpoint estructural. |
 | **Bilink** | `.bilink/<uuid>.bilink` | Apunta a otro bilink por UUID. Se trata como un archivo estructural. |
 
-Un endpoint estructural puede apuntar a un nodo AST específico (`:: query`) o al archivo completo (sin query).
+Un endpoint estructural **no describe el fragmento**: referencia un capture, que es quien guarda `file`, `query` y `offset`. Varios bilinks pueden referenciar el mismo capture, de modo que la ubicación de un fragmento se describe y se mantiene una sola vez.
+
+Lo que sí es propio de cada endpoint es **qué versión se aceptó**: `hash.N`, `hash_ast.N` y `commit.N` viven en el bilink. Dos bilinks sobre el mismo capture pueden haber aceptado contenidos distintos y reportar estados distintos.
 
 Los endpoints layer usan el lenguaje de paths Stratum (ver especificación en [Stratum — lenguaje de paths](../../stratum/concepts/paths.md)).
 
@@ -108,17 +110,15 @@ name.1: <etiqueta-del-extremo-1>
 hash.0: <sha256>
 hash_ast.0: <sha256>
 commit.0: <sha1>
-range.0: <start~end-bytes-absolutos>
 hash.1: <sha256>
 hash_ast.1: <sha256>
 commit.1: <sha1>
-range.1: <start~end-bytes-absolutos>
 state.0: <estado>
 state.1: <estado>
 resolved_at: <iso8601-timestamp>
 ```
 
-No existe campo `id`: el UUID del nombre de archivo es el identificador. `range.N` es opcional. `hash.N` y `commit.N` están ausentes hasta que el endpoint es aceptado por primera vez. `hash_ast.N` es opcional y solo se almacena para endpoints estructurales cuyo lenguaje tiene soporte tree-sitter. `kind`, `name.0` y `name.1` son opcionales. Presentes cuando el bilink tiene semántica declarada más allá del vínculo estructural.
+No existe campo `id`: el UUID del nombre de archivo es el identificador. No hay campo `range.N`: la ubicación del fragmento vive en el [capture](capture.md) que el endpoint referencia. `hash.N` y `commit.N` están ausentes hasta que el endpoint es aceptado por primera vez. `hash_ast.N` es opcional y solo se almacena para endpoints estructurales cuyo lenguaje tiene soporte tree-sitter. `kind`, `name.0` y `name.1` son opcionales. Presentes cuando el bilink tiene semántica declarada más allá del vínculo estructural.
 
 ## Campos semánticos
 
@@ -178,11 +178,7 @@ SHA-1 del commit HEAD en el repo del contenido referenciado al momento de la ace
 
 Ausente cuando `hash.N` está ausente. Siempre presente junto a `hash.N`.
 
-### `range.N`
-
-Solo para endpoints estructurales. Byte range absoluto (`start~end`) del fragmento en el archivo referenciado, correspondiente al último estado aceptado.
-
-Permite que `bilinker get <file>:<line>:<col>` localice endpoints sin re-ejecutar queries tree-sitter.
+> No existe `range.N` en el bilink. El byte range del fragmento es `range` en el capture referenciado, y lo mantiene `check`. Un bilink no sabe dónde está su fragmento — sabe qué capture preguntarle.
 
 ### `state.N`
 
@@ -196,16 +192,19 @@ Timestamp ISO 8601 UTC del último `check`.
 
 ### Endpoint estructural
 
+`state.N` responde una sola pregunta: **¿lo que hay en el capture coincide con lo que se aceptó?** Si el capture no resuelve —el archivo desapareció, la query no matchea— eso es estado del capture, no del bilink, y se reporta desde ahí. Ver [capture.md](capture.md) § "Estados".
+
 | Estado | Significado | Cómo se llega | Cómo se sale |
 |--------|-------------|---------------|--------------|
-| `PENDING` | `hash.N` ausente | `chain new` / `capture` | `bilinker accept` |
+| `PENDING` | `hash.N` ausente | `chain new` / referenciar un capture nuevo | `bilinker accept` |
 | `OK` | Hash actual del fragmento == `hash.N` | `bilinker accept` | Cambio en el archivo |
 | `RESTYLED` | `hash.N` difiere pero `hash_ast.N` coincide — solo cambio de formato | `bilinker check` | `bilinker accept` |
-| `ALTERED` | Archivo existe, query matchea, hash ≠ `hash.N` y AST difiere | `bilinker check` | `bilinker accept` |
-| `DISPLACED` | Hash encontrado en posición diferente del mismo nodo AST | `bilinker check` | `bilinker accept` |
-| `UNANCHORED` | Query ya no matchea ningún nodo | `bilinker check` | `bilinker accept` (o re-capture) |
-| `DELETED` | Archivo no existe | `bilinker check` | Restaurar archivo + `accept` · o · `bilinker remove` |
-| `BROKEN` | Error de lectura o parseo del archivo | `bilinker check` | Reparar archivo + `accept` · o · `bilinker remove` |
+| `ALTERED` | El fragmento se localizó, hash ≠ `hash.N` y el AST difiere | `bilinker check` | `bilinker accept` |
+| `DISPLACED` | `hash.N` encontrado en otro offset del nodo | `bilinker check` | `bilinker apply` |
+| `EXPANDED` | El fragmento creció; AST interno sin cambio estructural | `bilinker check` | `bilinker apply` + `accept` |
+| `UNRESOLVED` | El capture referenciado no resuelve | `bilinker check` | Resolver el capture (`apply`, re-capture) |
+
+`UNRESOLVED` es el estado que absorbe lo que antes eran `UNANCHORED`, `DELETED`, `BROKEN` y `MOVED` en el bilink: el problema no es el vínculo sino la ubicación, y quien lo detalla es el capture. El bilink solo registra que no puede evaluarse.
 
 ### Endpoint layer
 
@@ -216,6 +215,8 @@ Timestamp ISO 8601 UTC del último `check`.
 | `OK` | `hash.N` del endpoint estructural adyacente == `hash.N` almacenado | `bilinker accept` | El contenido del extremo estructural adyacente cambia y es re-aceptado |
 | `CHAIN_DIRTY` | El endpoint estructural adyacente fue re-aceptado con contenido diferente | `bilinker check` | `bilinker accept` |
 | `BROKEN` | `hash.N` presente pero la layer ya no existe, o el `.bilink` adyacente no tiene endpoint estructural aceptado | `bilinker check` | Restaurar layer + `accept` · o · `bilinker remove` |
+
+Los endpoints layer no tienen capture: apuntan a una capa, no a un fragmento.
 
 ### Endpoint bilink
 
@@ -250,8 +251,8 @@ Esta propagación garantiza que **ningún cambio de contenido puede ser aprobado
 - Las líneas de continuación (que no comienzan con clave reconocida) se concatenan
   al valor anterior con un espacio. Solo aplica a `link.N`.
 - Claves reconocidas: `link.0:`, `link.1:`, `kind:`, `name.0:`, `name.1:`,
-  `hash.0:`, `commit.0:`, `hash.1:`, `commit.1:`, `range.0:`, `range.1:`, `state.0:`, `state.1:`, `resolved_at:`.
-- El prefijo `task ` en el valor de `link.N` indica un endpoint task. El prefijo `task` sin espacio seguido es inválido.
+  `hash.0:`, `hash_ast.0:`, `commit.0:`, `hash.1:`, `hash_ast.1:`, `commit.1:`, `state.0:`, `state.1:`, `resolved_at:`.
+- Los prefijos `capture ` y `task ` en el valor de `link.N` indican endpoint estructural y task respectivamente. El prefijo sin espacio seguido es inválido.
 - Líneas que comienzan con `#` son comentarios y se ignoran.
 - El archivo usa codificación UTF-8 sin BOM.
 
@@ -309,17 +310,28 @@ resolved_at: 2026-05-29T09:00:00Z
 
 ## Ejemplo completo: cadena de 2 nodos spec → impl
 
+Cuatro archivos: dos bilinks (uno por capa) y un capture en cada capa.
+
 ```
-# .bilink/7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.bilink   (tip — spec layer)
-link.0: specs/voting.yaml :: (block_mapping_pair
+# spec layer — .bilink/capture/c1a2b3c4-….capture
+file:   specs/voting.yaml
+query:  (block_mapping_pair
   key: (flow_node) @n0 (#eq? @n0 "impl")
   value: (_) @target)
+
+range:       312~358
+state:       RESOLVED
+resolved_at: 2026-05-27T10:00:00Z
+```
+
+```
+# spec layer — .bilink/7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.bilink   (tip)
+link.0: capture c1a2b3c4-….capture
 link.1: .stratum/impl
 
 # Cache
 hash.0: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2   ← SHA-256 del fragmento spec
 commit.0: d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3
-range.0: 312~358
 hash.1: 479922a1ee55cc7f9f4f323bb002018e1b4e1cda65e069e0f6f4645926ce25ee   ← copia de impl.hash.1
 commit.1: c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2                          ← copia de impl.commit.1
 state.0: OK
@@ -328,26 +340,35 @@ resolved_at: 2026-05-27T10:00:00Z
 ```
 
 ```
-# .stratum/impl/.bilink/7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.bilink   (tip — impl layer)
-link.0: ../..
-link.1: src/main/java/ar/example/demo/persona/Persona.java :: (class_declaration
+# impl layer — .bilink/capture/d5e6f7a8-….capture
+file:   src/main/java/ar/example/demo/persona/Persona.java
+query:  (class_declaration
   name: (identifier) @n0 (#eq? @n0 "Persona")
   body: (class_body
     (method_declaration
       name: (identifier) @n1 (#eq? @n1 "vote")) @target))
+
+range:       245~389
+state:       RESOLVED
+resolved_at: 2026-05-27T10:00:00Z
+```
+
+```
+# impl layer — .bilink/7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.bilink   (tip)
+link.0: ../..
+link.1: capture d5e6f7a8-….capture
 
 # Cache
 hash.0: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2   ← copia de spec.hash.0
 commit.0: d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3                          ← copia de spec.commit.0
 hash.1: 479922a1ee55cc7f9f4f323bb002018e1b4e1cda65e069e0f6f4645926ce25ee   ← SHA-256 del método en Persona.java
 commit.1: c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2
-range.1: 245~389
 state.0: OK
 state.1: OK
 resolved_at: 2026-05-27T10:00:00Z
 ```
 
-Notar que `spec.hash.1 == impl.hash.1` y `impl.hash.0 == spec.hash.0`: los layer endpoints almacenan exactamente el hash del contenido estructural del nodo adyacente.
+Notar dos cosas: `spec.hash.1 == impl.hash.1` y `impl.hash.0 == spec.hash.0` — los layer endpoints almacenan exactamente el hash del contenido estructural del nodo adyacente. Y el UUID de cada capture es independiente del UUID de la cadena: los captures no participan de cadenas.
 
 ## Invariantes
 
@@ -358,11 +379,13 @@ Notar que `spec.hash.1 == impl.hash.1` y `impl.hash.0 == spec.hash.0`: los layer
 5. `hash.N` de un endpoint estructural: SHA-256 del fragmento referenciado.
 6. `hash.N` de un endpoint layer: idéntico al `hash.N` del endpoint estructural del bilink adyacente. Nunca es el hash del archivo `.bilink` adyacente.
 7. `hash.N` de un endpoint bilink: SHA-256 del archivo `.bilink` referenciado completo.
-8. Un endpoint `task <id>` se hashea como el contenido del archivo de tarea. `range.N` no aplica (no hay query tree-sitter sobre tareas).
+8. Un endpoint `task <id>` se hashea como el contenido del archivo de tarea. No tiene capture asociado.
 9. `state.N = OK` si y solo si el hash actual de lo apuntado == `hash.N`.
-10. `state.N` siempre está presente en la cache una vez que el bilink fue verificado.
-11. Si existe cualquier campo de cache, debe existir `resolved_at`.
-12. `resolved_at` es siempre UTC (`YYYY-MM-DDTHH:MM:SSZ`).
-13. La topología de la cadena es lineal — sin ciclos ni bifurcaciones.
-14. Solo se puede crear un bilink sobre archivos con historial git.
-15. `kind` y `name.N` son independientes de la cache — no afectan `hash.N` ni `state.N`.
+10. Un endpoint estructural referencia exactamente un capture, de su misma capa.
+11. Un bilink no contiene `file`, `query`, `offset` ni `range` — esos campos viven en el capture.
+12. `state.N` siempre está presente en la cache una vez que el bilink fue verificado.
+13. Si existe cualquier campo de cache, debe existir `resolved_at`.
+14. `resolved_at` es siempre UTC (`YYYY-MM-DDTHH:MM:SSZ`).
+15. La topología de la cadena es lineal — sin ciclos ni bifurcaciones.
+16. Solo se puede crear un bilink sobre archivos con historial git.
+17. `kind` y `name.N` son independientes de la cache — no afectan `hash.N` ni `state.N`.

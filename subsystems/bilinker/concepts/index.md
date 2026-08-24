@@ -13,17 +13,18 @@ El índice es **opcional y regenerable**. Si no existe o está desactualizado, l
 ## Formato
 
 ```
-docs/api-spec.md	7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.0
-src/Service.java	a3f9c821-4e5b-4c3d-9f2a-1b2c3d4e5f6a.1
-src/Service.java	7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.0
+docs/api-spec.md	7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.0	c1a2b3c4-…
+src/Service.java	a3f9c821-4e5b-4c3d-9f2a-1b2c3d4e5f6a.1	d5e6f7a8-…
+src/Service.java	7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.0	d5e6f7a8-…
 ```
 
-- Una entrada por línea: `<archivo>\t<uuid>.<N>`, separados por tabulador.
+- Una entrada por línea: `<archivo>\t<uuid>.<N>\t<capture-uuid>`, separados por tabulador.
+- Dos entradas pueden compartir `<capture-uuid>`: es el caso de un capture referenciado por varios bilinks.
 - Un mismo archivo puede tener múltiples entradas.
 - Las líneas que comienzan con `#` son comentarios y se ignoran.
 - Encoding UTF-8 sin BOM.
 
-La ruta del archivo es relativa a la raíz de la layer que contiene el `.bilink/`. El resto de la información (query, range, state) vive en el `.bilink` y se lee de ahí cuando es necesario.
+La ruta del archivo es relativa a la raíz de la layer que contiene el `.bilink/`. El resto de la información se lee de donde vive: `query` y `range` en el capture, `state.N` y los hashes en el `.bilink`.
 
 ## Ubicación
 
@@ -48,11 +49,11 @@ Los comandos que usan el índice lo verifican antes de usarlo:
 
 El scan de fallback nunca regenera el índice automáticamente — eso es responsabilidad explícita de `bilinker index`.
 
-## Relación con `range.N`
+## Relación con el `range` del capture
 
-El índice responde "¿qué bilinks referencian este archivo?" en O(1). Una vez recuperados los UUIDs relevantes, leer `range.N` de cada `.bilink` es O(1) por bilink — ya está resuelto en el archivo.
+El índice responde "¿qué bilinks referencian este archivo?" en O(1). Una vez recuperados los UUIDs relevantes, leer el `range` de cada capture es O(1) — ya está resuelto en el archivo.
 
-El índice no almacena ranges ni queries. Esa información vive en el `.bilink` y puede cambiar con cada `check` o `accept`.
+El índice no almacena ranges ni queries. Esa información vive en el capture y cambia con cada `check` o `apply`.
 
 ## Git
 

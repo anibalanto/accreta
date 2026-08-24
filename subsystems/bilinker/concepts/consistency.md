@@ -155,7 +155,7 @@ Para estados no-OK en endpoints estructurales, bilinker reporta el origen:
 ### Algoritmo de intersección hunk / fragmento
 
 ```
-fragmento: líneas F_start–F_end  (derivadas de range.N en bytes)
+fragmento: líneas F_start–F_end  (derivadas del range del capture, en bytes)
 hunk del diff: @@ -H_start,H_count +...
 
 H_start + H_count < F_start  → BEFORE  (posible causa de DISPLACED)

@@ -16,7 +16,7 @@ bilinker get <file>:<line>:<col>
 | `line` | int | Línea (1-based). |
 | `col` | int | Columna (1-based). |
 
-Retorna la lista de endpoints de bilinks cuyo `range.N` cubre la posición dada. Cada resultado se identifica como `<UUID>.<N>` y muestra una descripción del fragmento referenciado en el extremo opuesto.
+Retorna la lista de endpoints de bilinks cuyo capture tiene un `range` que cubre la posición dada. Cada resultado se identifica como `<UUID>.<N>` y muestra una descripción del fragmento referenciado en el extremo opuesto.
 
 Usa `.bilink/index/index` si está disponible y actualizado (O(1)); si no, escanea los `.bilink` de la layer actual (O(N)).
 
@@ -79,9 +79,9 @@ tests:
 
 ### Flag `--diff`
 
-Requiere `commit.N` y `range.N` presentes en el bilink (endpoint aceptado al menos una vez).
+Requiere `commit.N` presente en el bilink (endpoint aceptado al menos una vez) y el capture resuelto.
 
-- **"antes"**: extrae el fragmento de `git show commit.N:<file>` usando `range.N`.
+- **"antes"**: extrae el fragmento de `git show commit.N:<file>` usando el `range` del capture.
 - **"después"**: resuelve el fragmento actual con la misma query AST que usa `get` normalmente.
 - Muestra un unified diff del fragmento, sin contexto extra de archivo.
 
@@ -113,9 +113,9 @@ bilinker get <file>
 |---|---|---|
 | `file` | path | Path al archivo (absoluto o relativo al directorio de trabajo). |
 
-Retorna todos los endpoints de bilinks que referencian ese archivo, ya sea mediante un endpoint estructural con query AST, un endpoint de archivo completo (`workspace :: file`), o cualquier posición dentro del archivo.
+Retorna todos los endpoints de bilinks que referencian ese archivo, ya sea mediante un capture con query AST, un capture de archivo completo, o cualquier posición dentro del archivo.
 
-Usa `.bilink/index/index` si está disponible y actualizado (O(1)); si no, escanea los `.bilink` de la layer actual (O(N)). En ambos casos, no re-ejecuta queries tree-sitter — el `range.N` de cada bilink encontrado es suficiente.
+Usa `.bilink/index/index` si está disponible y actualizado (O(1)); si no, escanea los `.bilink` de la layer actual (O(N)). En ambos casos, no re-ejecuta queries tree-sitter — el `range` cacheado de cada capture es suficiente.
 
 **Salida:**
 
@@ -145,7 +145,7 @@ bilinker get 7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.1
 | Código | Condición |
 |---|---|
 | 0 | Operación exitosa (puede haber 0 resultados en forma 1). |
-| 1 | Error: archivo no encontrado, UUID inválido, endpoint sin fragmento estructural, query sin match, capa adyacente no accesible. |
+| 1 | Error: archivo no encontrado, UUID inválido, endpoint sin capture, capture sin resolver, capa adyacente no accesible. |
 
 ## Propiedades garantizadas
 

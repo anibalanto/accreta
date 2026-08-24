@@ -12,7 +12,8 @@ bilinker remove <uuid>
 
 1. Resuelve `.bilink/<uuid>.bilink` en la layer actual.
 2. Elimina el archivo.
-3. Los nodos adyacentes de la cadena detectarán `BROKEN` en el próximo `check`
+3. **No elimina los captures que referenciaba**: pueden estar en uso por otros bilinks. Un capture que queda sin referentes se limpia con `bilinker capture prune`.
+4. Los nodos adyacentes de la cadena detectarán `BROKEN` en el próximo `check`
    y deberán decidir: reparar o también remover. La remoción se propaga hop a hop — no es automática.
 
 ## Cuándo usarlo
@@ -27,6 +28,7 @@ No es un sustituto de `bilinker accept` — si el fragmento cambió pero sigue s
 removed: .bilink/7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.bilink
 
 note: nodos adyacentes detectarán BROKEN en el próximo check
+note: 1 capture quedó sin referentes — `bilinker capture prune` para limpiarlo
 ```
 
 ## Exit codes

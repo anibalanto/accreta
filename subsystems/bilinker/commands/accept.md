@@ -1,6 +1,8 @@
 # Comando: `bilinker accept`
 
-Registra el estado actual de un endpoint como aceptado, estableciendo `hash.N` y `commit.N` en el archivo `.bilink`.
+Registra el estado actual de un endpoint como aceptado, estableciendo `hash.N`, `hash_ast.N` y `commit.N` en el archivo `.bilink`.
+
+`accept` nunca escribe un capture: la ubicación del fragmento es asunto de `check` y `apply`. `accept` solo decide qué contenido queda bendecido.
 
 ## Uso
 
@@ -20,10 +22,10 @@ bilinker accept <path>
 
 ## Comportamiento
 
-1. Resuelve el archivo `.bilink/<uuid>.bilink`.
-2. Calcula o usa el `hash` provisto del contenido actual del endpoint.
+1. Resuelve el archivo `.bilink/<uuid>.bilink` y, para endpoints estructurales, el capture que referencia.
+2. Calcula o usa el `hash` provisto del contenido actual del endpoint. Si el capture no está `RESOLVED`, `accept` falla: no se puede aceptar contenido que no se pudo localizar.
 3. Calcula o usa el `commit` de HEAD en el repo correspondiente.
-4. Establece `hash.N` y `commit.N` en el archivo (sobrescribe valores anteriores).
+4. Establece `hash.N`, `hash_ast.N` y `commit.N` en el archivo (sobrescribe valores anteriores).
 5. Actualiza `state.N` a `OK` y `resolved_at`.
 
 El archivo `.bilink` cambia — esto dispara `CHAIN_DIRTY` en el nodo adyacente de la cadena en el próximo `check`.
@@ -58,10 +60,11 @@ note: nodo adyacente detectará CHAIN_DIRTY en el próximo check
 
 - Tras `bilinker check` cuando el estado es `PENDING`, `ALTERED` o `CHAIN_DIRTY`
   y el cambio es coherente con la intención del bilink.
-- No es necesario para los estados auto-reparables (MOVED, DISPLACED, REANCHORED,
-  EXPANDED) — esos se resuelven con `bilinker apply`.
+- No es necesario para MOVED y DISPLACED — `bilinker apply` los cierra solo.
+- Sí es necesario **después** de `bilinker apply` para EXPANDED y REANCHORED: apply
+  corrige la ubicación, pero el contenido cambió y hay que aceptarlo.
 
 ## Exit codes
 
 - `0`: aceptación registrada exitosamente
-- `1`: UUID no encontrado, endpoint inválido, o estado no aceptable
+- `1`: UUID no encontrado, endpoint inválido, capture sin resolver, o estado no aceptable
