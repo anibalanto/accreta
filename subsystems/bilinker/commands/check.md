@@ -118,7 +118,7 @@ Si `commit.N` está ausente (endpoint nunca aceptado) → no se puede optimizar;
 
 ### Endpoint estructural
 
-Los pasos 1–2 resuelven el **capture**; los pasos 3–8 comparan contra `hash.N` del **bilink**.
+Los pasos 1–2 resuelven el **capture**; los pasos 3–7 comparan contra `hash.N` del **bilink**.
 
 ```
 1. ¿El archivo existe en el path conocido?
@@ -142,12 +142,12 @@ Los pasos 1–2 resuelven el **capture**; los pasos 3–8 comparan contra `hash.
     todos los bilinks que lo referencian quedan UNRESOLVED y se corta acá)
 
 3. ¿Hash matchea en el range del capture?  → OK
-5. Recuperar el texto aceptado T (ver "Recuperar el texto aceptado").
+4. Recuperar el texto aceptado T (ver "Recuperar el texto aceptado").
    ¿F contiene T verbatim y es más grande?  → EXPANDED
-6. ¿hash_ast.N presente y hash_ast actual coincide?
+5. ¿hash_ast.N presente y hash_ast actual coincide?
    SÍ → RESTYLED  (solo cambio de formato; AST idéntico)
-7. ¿T aparece en otro offset del nodo?  → DISPLACED
-8. → ALTERED
+6. ¿T aparece en otro offset del nodo?  → DISPLACED
+7. → ALTERED
 ```
 
 Un mismo capture se resuelve **una sola vez por `check`**, aunque lo referencien varios bilinks. Los pasos 3–5 sí corren por endpoint, porque cada uno tiene su propio `hash.N`.
