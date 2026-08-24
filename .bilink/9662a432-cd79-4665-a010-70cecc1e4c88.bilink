@@ -1,13 +1,12 @@
-link.0: subsystems/bilinker/commands/check.md :: (section (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker check`")) (section (atx_heading (inline) @n1 (#eq? @n1 "Firma"))) @target)
+link.0: capture d5e96cb2-a81b-4154-be69-64a302a95653
 link.1: subsystems/bilinker>impl
 
 # Cache
 hash.0: 26e570fcce03af36a2d3f013007f1f9adffc00383f0d19192bab5e7e956a2c98
 hash_ast.0: 403b5c8f26a97cf27f2465ea615230adf00ae5dc9089b253d0a8f00306bb99ce
 commit.0: f76b7b751180716d3c1ddfb79faeb7511d6b7cb7
-range.0: 622~972
 hash.1: 662386b393160003e7d8d55747cb5b3593baee8fd397b11349071a97de7fc73c
 commit.1: bd3856134d9d838fc1f477063d3d5f9b76339564
-state.0: OK
+state.0: ALTERED
 state.1: OK
-resolved_at: 2026-06-06T12:15:35Z
+resolved_at: 2026-08-24T17:35:34Z

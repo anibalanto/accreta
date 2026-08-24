@@ -1,13 +1,12 @@
-link.0: subsystems/bilinker/commands/get.md :: (section (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker get`")) (section (atx_heading (inline) @n1 (#eq? @n1 "Forma 1: posición → endpoints que la cubren"))) @target)
+link.0: capture 57eba6eb-76d0-4ec7-bae8-5cb2dd65e7f0
 link.1: subsystems/bilinker>impl
 
 # Cache
 hash.0: 7e8e1d3a679a412b2f8bfd409d0d9db6f92ca3392a0d3d94c0f6eaabc137f90b
 hash_ast.0: 6616d04744a203152294023fb7ba60646e65529129823fdda108fb1dcb4bc6cb
 commit.0: 1caa218b3291debbd069dd5bfc2fc68ebd31c168
-range.0: 212~1160
 hash.1: b73341a648c245c7ab20928ee19a083c7c3f5da529c93e97d38d93194ae8a7e8
 commit.1: 7361428d62e6eab9b9893fc98bd990d9f7e912d6
-state.0: OK
+state.0: RESTYLED
 state.1: OK
-resolved_at: 2026-06-06T12:15:35Z
+resolved_at: 2026-08-24T17:35:34Z

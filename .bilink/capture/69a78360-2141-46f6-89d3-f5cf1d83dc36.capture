@@ -1,0 +1,7 @@
+file:   subsystems/bilinker/commands/chain.md
+query:  (section (atx_heading (inline) @n0 (#eq? @n0 "Subcomandos")) (section (atx_heading (inline) @n1 (#eq? @n1 "`bilinker chain new`"))) @target)
+
+# Cache
+range:       202~1462
+state:       RESOLVED
+resolved_at: 2026-08-24T17:35:01Z

@@ -1,13 +1,12 @@
-link.0: subsystems/bilinker/commands/check.md :: (section (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker check`")) (section (atx_heading (inline) @n1 (#eq? @n1 "Estados — endpoints estructurales (10 estados)"))) @target)
+link.0: capture 0c8accb6-813a-474f-bb68-34bc9cba8447
 link.1: subsystems/bilinker>impl
 
 # Cache
 hash.0: 6450ddbae7f03c3d53075465b021280c18871952f4103bdd7a535f1ce2685025
 hash_ast.0: 09fd8721b2a706fe8846001e26e37e578c96f3bc424cf82af39c3a0008daa666
 commit.0: f76b7b751180716d3c1ddfb79faeb7511d6b7cb7
-range.0: 972~2119
 hash.1: 23ac0977b753708f83310c12dcacae88ff88c4dfa58abfff5450afbd312d986b
 commit.1: ca76a590d1b5884c6c58530a6af8fba750c7e52c
-state.0: OK
+state.0: UNANCHORED
 state.1: OK
-resolved_at: 2026-06-06T12:15:35Z
+resolved_at: 2026-08-24T17:35:34Z

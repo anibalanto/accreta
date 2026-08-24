@@ -1,0 +1,7 @@
+file:   subsystems/bilinker/commands/graph.md
+query:  (section (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker graph`")) (section (atx_heading (inline) @n1 (#eq? @n1 "Formato `html` — visor interactivo"))) @target)
+
+# Cache
+range:       5281~6443
+state:       RESOLVED
+resolved_at: 2026-08-24T17:35:01Z

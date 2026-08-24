@@ -1,0 +1,7 @@
+file:   subsystems/bilinker/commands/accept.md
+query:  (section (atx_heading (inline) @n0 (#eq? @n0 "Comando: `bilinker accept`")) (section (atx_heading (inline) @n1 (#eq? @n1 "Uso"))) @target)
+
+# Cache
+range:       311~904
+state:       RESOLVED
+resolved_at: 2026-08-24T17:35:01Z

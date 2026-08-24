@@ -1,13 +1,12 @@
-link.0: subsystems/bilinker/commands/index.md :: (section (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker index`")) (section (atx_heading (inline) @n1 (#eq? @n1 "Subcomando `status`"))) @target)
+link.0: capture ed8b86c3-f8d8-41ad-94f7-28f685fcacef
 link.1: subsystems/bilinker>impl
 
 # Cache
 hash.0: 935fc6085911a4656291edc5539e4a2c65c165f69a486aecb4fedd22d9c86119
 hash_ast.0: 990613e596c931736c88bd16b328afff752b5fa3da4a8479749a59bde7ec6950
 commit.0: 1caa218b3291debbd069dd5bfc2fc68ebd31c168
-range.0: 1230~1644
 hash.1: 5b920b66a0729aa00c821fba5d37bb74fee3ea67fa7e788fb6c42494b751b8c8
 commit.1: a360786ea98d4c7803b94d4b2b31ff6fe4ccaf92
 state.0: OK
 state.1: OK
-resolved_at: 2026-06-06T12:15:35Z
+resolved_at: 2026-08-24T17:35:34Z

@@ -1,0 +1,7 @@
+file:   subsystems/bilinker/commands/get.md
+query:  (section (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker get`")) (section (atx_heading (inline) @n1 (#eq? @n1 "Forma 3: archivo → todos los endpoints que lo referencian"))) @target)
+
+# Cache
+range:       3551~4545
+state:       RESOLVED
+resolved_at: 2026-08-24T17:35:01Z

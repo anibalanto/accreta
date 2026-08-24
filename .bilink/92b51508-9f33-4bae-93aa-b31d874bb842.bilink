@@ -1,12 +1,11 @@
-link.0: subsystems/bilinker/commands/chain.md
+link.0: capture f664dfc0-0e3e-48c3-a23b-27d71de581d4
 link.1: subsystems/bilinker>impl
 
 # Cache
 hash.0: c0391320ccf728467e51e33e549b5791eca4a136ec8e391069d07f4129ce81f5
 commit.0: f76b7b751180716d3c1ddfb79faeb7511d6b7cb7
-range.0: 0~3496
 hash.1: df838ef7efab6c52c1e0544baaa8b48cf68bc00c13b27f0a9fd311ee88ebe1a1
 commit.1: 0e817130512537910c7473988b1e76172a5fd7fe
-state.0: OK
+state.0: ALTERED
 state.1: OK
-resolved_at: 2026-06-06T12:15:35Z
+resolved_at: 2026-08-24T17:35:34Z

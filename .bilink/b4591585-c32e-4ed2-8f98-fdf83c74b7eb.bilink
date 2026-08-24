@@ -1,13 +1,12 @@
-link.0: subsystems/bilinker/commands/index.md :: (section (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker index`")) (section (atx_heading (inline) @n1 (#eq? @n1 "Comportamiento"))) @target)
+link.0: capture af4a5ca7-c098-43dc-a7b7-b1031b038a96
 link.1: subsystems/bilinker>impl
 
 # Cache
 hash.0: cbe2f4b354717543f3d1d895be6c8258657ccf46a72aafde2f7b7d4fe745ee91
 hash_ast.0: 2c7ba37dd78e503de8009b0ea9ad5678b5010cd7e17989b0c9c8b364304f96e1
 commit.0: 1caa218b3291debbd069dd5bfc2fc68ebd31c168
-range.0: 511~977
 hash.1: 17ca3caa8d4241f6b0cc8d63d0e273b2642facfcb3c812cf062293fcb0b49d4e
 commit.1: a360786ea98d4c7803b94d4b2b31ff6fe4ccaf92
-state.0: OK
+state.0: RESTYLED
 state.1: OK
-resolved_at: 2026-06-06T12:15:35Z
+resolved_at: 2026-08-24T17:35:34Z

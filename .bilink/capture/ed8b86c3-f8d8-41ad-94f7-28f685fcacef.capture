@@ -1,0 +1,7 @@
+file:   subsystems/bilinker/commands/index.md
+query:  (section (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker index`")) (section (atx_heading (inline) @n1 (#eq? @n1 "Subcomando `status`"))) @target)
+
+# Cache
+range:       1252~1666
+state:       RESOLVED
+resolved_at: 2026-08-24T17:35:01Z

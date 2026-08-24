@@ -1,12 +1,11 @@
-link.0: subsystems/bilinker/scenarios/index.yaml :: (block_sequence_item (block_node (block_mapping (block_mapping_pair key: (flow_node) @_ (#eq? @_ "id") value: (flow_node) @n0 (#eq? @n0 "index-build-creates-file"))))) @target
+link.0: capture 30e19e58-25ec-4fbe-8a71-f4645a17a8d5
 link.1: subsystems/bilinker>impl
 
 # Cache
 hash.0: a188fead61e0afe4ae62c55a7723f128e35bf51a40c0d009087c3b83e2da0189
 commit.0: 7433e75dd92cab6af0eaa9bba74cbb1775c378d4
-range.0: 39~373
 hash.1: b061f774ea10b834b5c937bb0ecd0bc01ef801c9313164adf48cd47b5e4d462d
 commit.1: eb634780783d9e6482cb735206cbf50b0384f005
 state.0: OK
 state.1: OK
-resolved_at: 2026-06-06T12:15:35Z
+resolved_at: 2026-08-24T17:35:34Z

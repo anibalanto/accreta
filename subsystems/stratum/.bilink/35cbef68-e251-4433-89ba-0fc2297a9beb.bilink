@@ -1,10 +1,9 @@
-link.0: concepts/sublayer-config.md
+link.0: capture d3f6c619-ed17-4148-b91b-b29fe36f6114
 link.1: >impl
 
 # Cache
 hash.0: 01e41e300bf12afbcb332b6dd07d11ee1c531c03300a8d8e2612066c5b071dd9
 commit.0: 79f1589d4992ff686ab2d7187b9b3831a189f346
-range.0: 0~2984
 hash.1: 57687e814e3632ed8708750fc25d9b2b42362e636a4e8907aa88efb12ea29de1
 commit.1: 474327d83760d02f7ccddf336df85c0f5cc9752f
 state.0: OK

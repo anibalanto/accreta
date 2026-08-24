@@ -1,12 +1,11 @@
-link.0: subsystems/bilinker/scenarios/check.yaml :: (block_sequence_item (block_node (block_mapping (block_mapping_pair key: (flow_node) @_ (#eq? @_ "id") value: (flow_node) @n0 (#eq? @n0 "check-broken-file-missing"))))) @target
+link.0: capture f7258c65-f416-4f2e-b026-f3ee6188b0fc
 link.1: subsystems/bilinker>impl
 
 # Cache
 hash.0: e5ed130f32b10fa2552449098964d352526dda05fd5fc267eca98f8924e06da2
 commit.0: 7433e75dd92cab6af0eaa9bba74cbb1775c378d4
-range.0: 2106~2454
 hash.1: 41a55e11a3556a94679897dcfaad6a9cacf40aef86f0d3584c3c638af9be1bc5
 commit.1: 0e817130512537910c7473988b1e76172a5fd7fe
 state.0: OK
 state.1: OK
-resolved_at: 2026-06-06T12:15:35Z
+resolved_at: 2026-08-24T17:35:34Z

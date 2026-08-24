@@ -1,0 +1,7 @@
+file:   subsystems/bilinker/editors/vscode.md
+query:  (section (atx_heading (inline) @n0 (#eq? @n0 "Comandos de grafo")) (section (atx_heading (inline) @n1 (#eq? @n1 "`bilinker.openGraph` — Grafo del archivo actual"))) @target)
+
+# Cache
+range:       863~1139
+state:       RESOLVED
+resolved_at: 2026-08-24T17:35:01Z
