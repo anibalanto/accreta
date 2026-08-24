@@ -24,7 +24,7 @@ Se evalúan sin ningún estado aceptado: son sobre dónde está el fragmento.
 |---|---|---|
 | **RESOLVED** | La query matchea; `range` actualizado. | — |
 | **MOVED** | Archivo cambió de path (git rename ≥ 50%). | ✓ Actualiza `file` del capture. |
-| **REANCHORED** | Anchor renombrado/movido; nueva posición detectada en AST. | ✓ Actualiza los predicados de `query`. |
+| **REANCHORED** | Anchor renombrado; se localizó el fragmento bajo otro nombre por similitud. | ✓ Actualiza los predicados de `query`. |
 | **UNANCHORED** | Query no matchea; anchor no localizado. | — Requiere intervención. |
 | **DELETED** | Eliminación rastreable en git con `git log -S`. | — Requiere intervención. |
 | **BROKEN** | Ninguna hipótesis aplica. | — Requiere intervención. |
@@ -59,6 +59,22 @@ Comparan el contenido hallado contra `hash.N`.
 | **PENDING** | `hash.N` ausente — sin estado aceptado. | — Ejecutar `bilinker accept`. |
 | **CHAIN_DIRTY** | Hash actual del `.bilink` referenciado ≠ `hash.N`. | — Inspeccionar nodo origen. |
 
+### Por qué REANCHORED usa similitud y no el hash
+
+`hash.N` es exacto, y el nombre del anchor está **dentro** del fragmento capturado en la enorme mayoría de los casos — en este proyecto, en los 60 captures que existen. Renombrar el anchor cambia el fragmento, así que una comparación por hash no dispararía nunca: detectaría solo el caso raro en que lo renombrado queda fuera de lo capturado.
+
+El texto aceptado se recupera de git —`git show <commit.N>:<file>` recortado por el `range`, la misma reconstrucción que hace [`get --diff`](get.md)— y se compara contra cada candidato.
+
+**Umbral: 50%**, el mismo que usa `git diff -M` para renames de archivos. La pregunta es la misma —a dónde se fue algo que cambió de nombre— y usar dos criterios distintos para la misma pregunta sería arbitrario.
+
+**Margen sobre el segundo candidato: 15%.** Un archivo con varias funciones de forma parecida produciría un REANCHORED arbitrario. Ante un empate el estado es `UNANCHORED`: que lo mire un humano es mejor que reanclar al nodo equivocado.
+
+La medida es el coeficiente de Dice sobre líneas, con bigramas de caracteres como respaldo para fragmentos de una sola línea, donde las líneas no discriminan nada.
+
+### La incertidumbre está acotada
+
+Introducir una medida difusa en un sistema construido sobre hashes exactos necesita un límite claro, y lo tiene: **`REANCHORED` nunca cierra solo**. `apply` corrige la ubicación pero el endpoint queda no-OK hasta que un humano ejecute `accept`. La similitud sirve para *encontrar* el fragmento, nunca para afirmar que su contenido sigue siendo válido — eso lo sigue decidiendo un hash exacto.
+
 ## Optimización por diff de git
 
 Antes de parsear o hashear un archivo, `check` determina si tiene cambios desde la última aceptación:
@@ -91,10 +107,11 @@ Los pasos 1–2 resuelven el **capture**; los pasos 3–5 comparan contra `hash.
              NO → BROKEN
 
 2. Ejecutar query tree-sitter.
-   SIN MATCH → buscar anchor en AST actual (mismo tipo de nodo):
-               ¿anchor encontrado con nombre diferente?
+   SIN MATCH → relajar la query (quitar los predicados #eq?) y puntuar
+               cada candidato por similitud contra el texto aceptado:
+               ¿el mejor supera el umbral y le saca margen al segundo?
                SÍ → REANCHORED
-               NO → git log -S "<texto_anchor>" -- <file>
+               NO → git log -S "<hash.N>" -- <file>
                     SÍ → DELETED
                     NO → UNANCHORED
 
