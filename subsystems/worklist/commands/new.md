@@ -37,7 +37,7 @@ Si no hay conectividad, el comando falla con código de salida `3`.
 ```bash
 # Task con capture: marca trabajo pendiente en la spec
 cd accreta/bilinker/specific
-worklist new task "implementar bilinker accept" capture bilink-format.md:104:1
+worklist new task "implementar bilinker accept" capture concepts/bilink.md:104:1
 
 # Task con capture desde impl: spec necesita actualización
 cd accreta/bilinker/.stratum/impl/src
@@ -47,7 +47,7 @@ worklist new task "actualizar spec hash.N" capture lib.rs:88:1
 worklist new epic "implementar hash.N"
 
 # User story hija de un epic
-worklist new user-story "parsear hash.N en BiLinkFile" capture bilink-format.md:45:1 --under 1
+worklist new user-story "parsear hash.N en BiLinkFile" capture concepts/bilink.md:45:1 --under 1
 
 # Task hija de una user story, sin capture
 worklist new task "actualizar struct BiLinkFile" --under 2
@@ -59,7 +59,7 @@ worklist new task "actualizar struct BiLinkFile" --under 2
 created:  3
 type:     task
 path:     accreta/.stratum/worklist/3.task
-bilink:   a3f9c821-4e5b-4c3d-9f2a-1b2c3d4e5f6a  (bilink-format.md:104:1 → todo)
+bilink:   a3f9c821-4e5b-4c3d-9f2a-1b2c3d4e5f6a  (concepts/bilink.md:104:1 → todo)
 ```
 
 ## Exit codes

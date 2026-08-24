@@ -5,13 +5,13 @@ impact y worklist se complementan: impact detecta que algo cambió y abre un hil
 ## Flujo
 
 ```
-bilinker check → ALTERED en bilink-format.md
+bilinker check → ALTERED en concepts/bilink.md
 impact scan    → genera Impact Report con commits intercedidos
 impact thread  → abre hilo de discusión
                  → el hilo concluye: "hay que actualizar la implementación"
 
 # Desde spec, creando tarea hacia abajo
-worklist new task "implementar accepted.N en BiLinkFile" bilink-format.md:104:1
+worklist new task "implementar hash_ast.N en BiLinkFile" concepts/bilink.md:104:1
 
 # O desde impl, creando tarea hacia arriba
 worklist new task "actualizar spec en base a cambio en accept()" lib.rs:88:1

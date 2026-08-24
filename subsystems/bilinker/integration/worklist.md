@@ -7,7 +7,7 @@ Worklist usa bilinker como infraestructura de linking. Cada ítem de worklist na
 `worklist new` ejecuta `bilinker capture` internamente y crea el bilink:
 
 ```bash
-worklist new task "implementar bilinker accept" bilink-format.md:104:1
+worklist new task "implementar bilinker accept" concepts/bilink.md:104:1
 ```
 
 Produce `.bilink/<uuid>.bilink` que conecta el ítem de worklist con el fragmento exacto de la spec.

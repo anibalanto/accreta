@@ -9,7 +9,7 @@ Cuando `worklist new` recibe un selector, `bilinker capture` ubica el fragmento 
 ```bash
 # Desde spec hacia impl
 cd accreta/bilinker/specific
-worklist new task "implementar bilinker accept" bilink-format.md:104:1
+worklist new task "implementar bilinker accept" concepts/bilink.md:104:1
 
 # Desde impl hacia spec
 cd accreta/bilinker/.stratum/impl/src

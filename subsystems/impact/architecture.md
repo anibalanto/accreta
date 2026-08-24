@@ -11,9 +11,11 @@ flowchart TD
     EC --> CR[Chain Resolver]
     EC --> GA[Git Analyzer]
 
-    CR -->|bilinks afectados| IE[Impact Element Finder]
+    CR -->|lattice graph| LT[(lattice)]
+    LT -->|aristas accepted| IE[Impact Element Finder]
+    IE -->|lattice graph --via governs| LT
     GA -->|diff + commits| RB[Report Builder]
-    IE -->|elementos kind:impact| SK[Skill Runner]
+    IE -->|elementos kind:governs| SK[Skill Runner]
     SK -->|análisis semántico| RB
 
     RB --> IR[Impact Report]
@@ -27,19 +29,21 @@ flowchart TD
 Recibe eventos de múltiples fuentes y los normaliza en un formato uniforme: `{ file, kind: Modified|Created|Deleted, commit? }`.
 
 ### Chain Resolver
-Dado un archivo, consulta los `.bilink` files de la layer para encontrar todos los bilinks que lo referencian. Devuelve la lista de bilinks con sus endpoints y estado almacenado.
+Dado un archivo, consulta `lattice graph <archivo> --via bilink` para obtener las aristas que lo alcanzan, con sus nodos, `state` y `commit`.
+
+No lee archivos `.bilink` ni resuelve paths Stratum: lattice entrega las aristas ya resueltas entre capas. Ver [integración con lattice](integration/lattice.md).
 
 ### Impact Element Finder
-Dado un bilink afectado, consulta el índice de backlinks en `.bilink/.index` para encontrar todos los bilinks con `kind: impact` que referencian ese bilink en su `link.1`. Cada uno de esos elementos declara un documento de decisión que gobierna el vínculo afectado.
+Dado un vínculo afectado, consulta `lattice graph <uuid> --via governs` para encontrar los elementos con `kind: governs` que lo gobiernan. Cada uno declara un documento de decisión.
 
-La búsqueda es O(1) por bilink afectado.
+Las aristas `governs` son no dirigidas: recorrerlas desde el vínculo afectado da sus gobernantes sin necesidad de un índice de backlinks.
 
 ### Git Analyzer
-Lee el historial de git para obtener los commits que modificaron el archivo desde el último estado conocido. El ancla es `commit.N` del bilink — todo lo posterior son los commits que intercedieron en el cambio.
+Lee el historial de git para obtener los commits que modificaron el archivo desde el último estado conocido. El ancla es el `commit` que trae la arista — todo lo posterior son los commits que intercedieron en el cambio.
 
 ```mermaid
 flowchart LR
-    A[commit.N\núltimo accept] --> C[git log commit..HEAD\n-- file]
+    A[commit de la arista\núltimo accept] --> C[git log commit..HEAD\n-- file]
     C --> R[commits intercedidos\n→ Report Builder]
 ```
 
@@ -67,7 +71,7 @@ graph LR
 ```
 layer/
   .bilink/
-    <uuid>.bilink           ← elementos de impacto (kind: impact) junto al resto
+    <uuid>.bilink           ← elementos de impacto (kind: governs) junto al resto
   .impact/
     reports/
       <uuid>.impact

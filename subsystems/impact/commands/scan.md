@@ -1,6 +1,6 @@
 # Comando: `impact scan`
 
-Lee los `accepted.N` almacenados en los `.bilink` del proyecto y calcula qué archivos tienen commits no analizados desde el último anchor aceptado.
+Consulta el grafo del proyecto vía [lattice](../integration/lattice.md) y calcula qué archivos tienen commits no analizados desde el último estado aceptado.
 
 ## Uso
 
@@ -10,11 +10,13 @@ impact scan [--path <dir>] [--chain <uuid>]
 
 ## Comportamiento
 
-1. Recorre todos los `.bilink` bajo el directorio raíz (buscando `.bilink/`).
-2. Para cada endpoint estructural con entradas en `accepted.N`, toma el commit
-   de la última entrada aceptada y ejecuta:
+1. Consulta el grafo bajo el directorio raíz:
    ```
-   git log <accepted.N.last.commit>..HEAD -- <file>
+   lattice graph . --recursive --guarantee accepted --format json
+   ```
+2. Para cada arista con `commit` presente, toma el commit de cada extremo y ejecuta:
+   ```
+   git log <edge.commit[n]>..HEAD -- <file>
    ```
 3. Si el resultado es no vacío, el archivo tiene commits intercedidos desde
    el anchor — se genera un Impact Report en `.impact/reports/<uuid>.impact`.

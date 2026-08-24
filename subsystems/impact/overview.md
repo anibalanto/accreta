@@ -10,14 +10,14 @@ Impact hace ese trabajo: parte de los eventos de drift detectados por bilinker, 
 
 ## Elementos de impacto
 
-Un **elemento de impacto** es un bilink con `kind: impact` que declara que un documento de decisión gobierna un vínculo estructural entre capas:
+Un **elemento de impacto** es un bilink con `kind: governs` que declara que un documento de decisión gobierna un vínculo estructural entre capas:
 
 ```
 # .bilink/<uuid>.bilink
 link.0: docs/adr/design-voting-machine.md
 link.1: .bilink/7f3d8e9a-...bilink
 
-kind:   impact
+kind:   governs
 name.0: architecture-decision
 name.1: spec-impl-bridge
 ```
@@ -39,9 +39,12 @@ Ver [concepts/skills.md](concepts/skills.md).
 ```
 git          ← fuente de verdad del historial
 bilinker     ← detecta drift entre capas linkedeadas
+lattice      ← agrega las conexiones del proyecto en un grafo único
 impact       ← evalúa coherencia con decisiones declaradas
 accreta      ← gobierna la resolución del cambio
 ```
+
+Impact consulta el grafo a través de [lattice](../lattice/overview.md) en vez de recorrer los `.bilink` por su cuenta: el blast radius es una consulta sobre el grafo agregado, y las aristas ya llegan con su `state` y su `commit`.
 
 ## Principios de diseño
 

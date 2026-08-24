@@ -24,7 +24,7 @@ chains:
     endpoint: 0 | 1
     state: ALTERED | DELETED | ...
     file: <path>
-    commit_anchor: <sha1>  # commit de la última entrada en accepted.N del bilink
+    commit_anchor: <sha1>  # commit.N aceptado del endpoint
     commits_since:
       - sha: <sha1>
         author: <name>
@@ -62,7 +62,7 @@ Un reporte sin thread asociado es información pasiva. Al abrirse un thread, el 
 ## Invariantes
 
 - `id` es UUID v4, coincide con el nombre del archivo.
-- `commit_anchor` es el commit de la última entrada en `accepted.N` del bilink al momento de la detección.
+- `commit_anchor` es el `commit` que la arista reportaba para ese extremo al momento de la detección.
 - `commits_since` son exactamente los commits en `git log <commit_anchor>..HEAD -- <file>`.
 - Si `commits_since` está vacío, el cambio ocurrió pero no hay commits posteriores
   al anchor (archivo modificado sin commitear).

@@ -20,13 +20,13 @@ Las skills se configuran por layer en `.impact.toml` en la raíz de la layer:
 # bilinker/.impact.toml
 
 [[skill]]
-kind    = "impact"            # tipo de bilink que activa la skill
+kind    = "governs"            # tipo de bilink que activa la skill
 trigger = ["ALTERED"]         # estados de link.1 que la disparan
 model   = "claude-opus-4-7"   # modelo a usar
 prompt  = "skills/adr-review.md"  # prompt template (relativo a la layer)
 
 [[skill]]
-kind    = "impact"
+kind    = "governs"
 trigger = ["CHAIN_DIRTY"]
 model   = "claude-opus-4-7"
 prompt  = "skills/chain-drift.md"

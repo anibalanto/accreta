@@ -1,6 +1,6 @@
 # Elemento de impacto
 
-Un elemento de impacto es un bilink con `kind: impact` que declara que un documento de decisión gobierna o afecta a un vínculo estructural entre capas.
+Un elemento de impacto es un bilink con `kind: governs` que declara que un documento de decisión gobierna o afecta a un vínculo estructural entre capas.
 
 ## Estructura
 
@@ -9,7 +9,7 @@ Un elemento de impacto es un bilink con `kind: impact` que declara que un docume
 link.0: docs/adr/design-voting-machine.md
 link.1: .bilink/7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.bilink
 
-kind:   impact
+kind:   governs
 name.0: architecture-decision
 name.1: spec-impl-bridge
 
@@ -45,7 +45,13 @@ El elemento de impacto vive en `.bilink/` de la layer donde reside el documento 
 
 ## Descubrimiento
 
-El `.bilink/.index` registra backlinks: para cada bilink, qué otros bilinks lo referencian. Cuando bilinker detecta `ALTERED` o `CHAIN_DIRTY` en un bilink estructural, impact consulta el índice para encontrar todos los elementos de impacto que lo gobiernan. La búsqueda es O(1).
+Cuando bilinker detecta `ALTERED` o `CHAIN_DIRTY` en un vínculo, impact pregunta por los elementos que lo gobiernan:
+
+```
+lattice graph <uuid> --via governs
+```
+
+Las aristas `governs` son no dirigidas, así que encontrar "quién gobierna a X" es recorrerlas desde X — no hace falta un índice de backlinks. Lattice usa `.bilink/index/index` cuando está disponible para resolver el lookup en O(1), y cae a scan O(N) si no.
 
 ## Ciclo de vida
 
@@ -76,7 +82,7 @@ Ejemplos habituales:
 
 ## Invariantes
 
-1. `kind: impact` implica que `link.1` es siempre un path `.bilink/<uuid>.bilink`.
+1. `kind: governs` implica que `link.1` es siempre un path `.bilink/<uuid>.bilink`.
 2. El documento en `link.0` debe existir localmente para que `bilinker check` lo
    valide — si no existe, `state.0: DELETED`.
 3. El bilink gobernado en `link.1` puede estar en una layer no clonada localmente

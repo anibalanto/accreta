@@ -11,12 +11,14 @@ impact report --bilink <uuid>
 
 ## Comportamiento
 
-1. Resuelve el target: archivo en el filesystem o UUID de un `.bilink`.
-2. Busca todos los chains que referencian ese target.
-3. Para cada endpoint estructural con entradas en `accepted.N`, toma el commit
-   de la última entrada aceptada y ejecuta:
+1. Resuelve el target: archivo en el filesystem o UUID de un vínculo.
+2. Consulta las aristas que lo alcanzan:
    ```
-   git log <accepted.N.last.commit>..HEAD -- <file>
+   lattice graph <target> --guarantee accepted --format json
+   ```
+3. Para cada arista con `commit` presente, toma el commit de cada extremo y ejecuta:
+   ```
+   git log <edge.commit[n]>..HEAD -- <file>
    ```
 4. Construye el Impact Report con la lista de chains afectadas, el diff
    acumulado y los commits intercedidos.
