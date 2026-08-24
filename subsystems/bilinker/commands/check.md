@@ -118,7 +118,7 @@ Si `commit.N` está ausente (endpoint nunca aceptado) → no se puede optimizar;
 
 ### Endpoint estructural
 
-Los pasos 1–2 resuelven el **capture**; los pasos 3–5 comparan contra `hash.N` del **bilink**.
+Los pasos 1–2 resuelven el **capture**; los pasos 3–8 comparan contra `hash.N` del **bilink**.
 
 ```
 1. ¿El archivo existe en el path conocido?
