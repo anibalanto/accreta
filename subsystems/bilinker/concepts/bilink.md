@@ -373,7 +373,7 @@ Notar dos cosas: `spec.hash.1 == impl.hash.1` y `impl.hash.0 == spec.hash.0` —
 ## Invariantes
 
 1. El nombre del archivo es un UUID v4 válido con extensión `.bilink`.
-2. Siempre existen `link.0` y `link.1`.
+2. Siempre existen `link.0` y `link.1`, y solo esos dos. La aridad es fija: la multiplicidad la aporta el capture, que puede tener N bilinks asociados. Ver [capture.md](capture.md) § "El fan-out vive del lado del capture".
 3. Un bilink de misma capa tiene dos endpoints estructurales. Una cadena entre capas tiene exactamente dos tips. Un bilink de tarea conecta un endpoint bilink con un endpoint `task <id>`.
 4. `hash.N` y `commit.N` están siempre presentes juntos o ausentes juntos.
 5. `hash.N` de un endpoint estructural: SHA-256 del fragmento referenciado.

@@ -156,6 +156,22 @@ Un capture sin referentes es basura inofensiva — ocupa un archivo y se resuelv
 
 Dos captures pueden describir el mismo fragmento con queries distintas. No se deduplican: son baratos y su identidad es el UUID. La deduplicación es una consecuencia de reusarlos, no una regla que el formato imponga.
 
+### El fan-out vive del lado del capture
+
+Un bilink tiene **siempre exactamente dos endpoints**. La multiplicidad la aporta el capture: un fragmento puede tener N bilinks asociados.
+
+```
+                    ┌── bilink → spec de validación
+capture(vote) ──────┼── bilink → ADR de auditoría
+                    └── bilink → task 3a
+```
+
+Esto es deliberado y cierra la alternativa de darle aridad variable al `.bilink`. Un archivo llamado bilink con `link.0` … `link.4` sería una contradicción, y la aridad variable obligaría a redefinir la topología de cadena —hoy lineal, con exactamente dos tips— y el copiado de hash de los endpoints layer, que asume un único endpoint estructural adyacente.
+
+Con el fan-out en el capture no hace falta tocar nada de eso.
+
+**Lo que esta forma no expresa** es una relación conjunta entre tres cosas. Una estrella dice *"D se relaciona con A"* y *"D se relaciona con B"* por separado; no dice *"D gobierna el vínculo entre A y B"*. Para eso sigue haciendo falta que un bilink apunte a otro bilink — el endpoint de tipo bilink, que no cambia.
+
 ## Relación con las cadenas
 
 Las cadenas no cambian. Un bilink sigue viviendo en su capa, con endpoints layer hacia las capas vecinas y la misma propagación por copia de hash. Lo único que cambia es que sus **endpoints estructurales pasan a ser referencias a captures locales**.
