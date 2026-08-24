@@ -12,8 +12,6 @@ proyecto/
     impl/
       .bilink/
         <uuid>.bilink ← tip (fragmento en impl)
-        .pending/
-          <uuid>-0.fix
 ```
 
 El mismo UUID aparece en todas las layers que participan de una cadena.
@@ -35,16 +33,20 @@ flowchart LR
 
 La cadena es estrictamente lineal — sin ciclos ni bifurcaciones.
 
-## Ciclo check → accept → apply
+## Ciclo check → accept / apply
 
 ```mermaid
 flowchart LR
-    A[bilinker check] -->|"state.N · range.N\n.fix staging"| B[bilinker accept]
-    B -->|"hash.N · commit.N\nCHAIN_DIRTY"| C[bilinker apply]
-    C -->|commit git| D([resuelto])
+    A[bilinker check] -->|"state.N · range.N"| B[bilinker accept]
+    A -->|"state.N"| C[bilinker apply]
+    B -->|"hash.N · commit.N"| D([resuelto])
+    C -->|"MOVED · DISPLACED\ncommit git"| D
+    C -->|"EXPANDED · REANCHORED\nel contenido cambió"| B
 ```
 
-`check` nunca modifica `hash.N` ni `commit.N`. Solo `bilinker accept` los establece.
+`check` actualiza `state.N` y `range.N`. `accept` es el único que establece `hash.N` y `commit.N`. `apply` usa `state.N` solo para seleccionar candidatos: el fix lo recalcula re-resolviendo el endpoint contra git y el AST actuales, y corrige a dónde apunta `link.N` sin tocar el contenido aceptado.
+
+Para MOVED y DISPLACED el fragmento no cambió, así que `apply` cierra el ciclo por sí solo. Para EXPANDED y REANCHORED el fragmento sí cambió: `apply` corrige la referencia y `accept` fija el contenido nuevo.
 
 ## Propagación reactiva
 
@@ -64,9 +66,9 @@ Ningún nodo puede cambiar su estado aceptado sin que los nodos adyacentes lo de
 ```
 bilinker capture   → tree-sitter parse → query AST → hash SHA-256
 bilinker get       → lookup en .bilink/ por range.N → retorna fragmento
-bilinker check     → hash actual vs hash.N → estados + .fix staging
+bilinker check     → hash actual vs hash.N → actualiza state.N y range.N
 bilinker accept    → establece hash.N y commit.N con el estado actual
-bilinker apply     → aplica .fix como commit git
+bilinker apply     → recalcula fix desde git/AST → aplica como commit git
 bilinker chain     → crea / inspecciona / lista cadenas
 ```
 

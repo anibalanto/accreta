@@ -18,7 +18,7 @@ bilinker index [<path>] [--recursive]
 ## Comportamiento
 
 1. Localiza el directorio `.bilink/` en `<path>`.
-2. Escanea todos los `.bilink` de esa layer (excluyendo `.pending/`).
+2. Escanea todos los `.bilink` de esa layer.
 3. Para cada endpoint estructural, extrae `(archivo, uuid, N)`.
 4. Escribe `.bilink/index/index` con una línea `<archivo>\t<uuid>.<N>` por entrada.
 5. Si `--recursive`, repite para cada layer descendiente encontrada en `.stratum/`.
