@@ -13,9 +13,10 @@ Stratum define una convención de estructura que hace ese conocimiento navegable
 ```
 stratum      ← estructura y navegación entre capas
 bilinker     ← referencias verificables entre fragmentos de capas
+lattice      ← el grafo que forman todas las conexiones del proyecto
 impact       ← análisis de cambios entre capas
 worklist     ← trabajo pendiente entre capas
-accreta       ← gobernanza del sistema completo
+accreta      ← gobernanza del sistema completo
 ```
 
 ## Principios de diseño

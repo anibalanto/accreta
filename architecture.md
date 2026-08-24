@@ -53,6 +53,7 @@ Los sub-proyectos del ecosistema son carpetas hermanas siguiendo la convención 
 accreta/
   stratum/                   (git — specs Stratum)
   bilinker/                  (git — specs Bilinker)
+  lattice/                   (git — specs Lattice)
   impact/                    (git — specs Impact)
   worklist/                  (git — specs Worklist)
 ```

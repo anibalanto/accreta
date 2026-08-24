@@ -29,7 +29,7 @@ El tipo de un endpoint se infiere del valor de `link.N` — no hay prefijo de ti
 
 Un endpoint estructural puede apuntar a un nodo AST específico (`:: query`) o al archivo completo (sin query).
 
-Los endpoints layer usan el lenguaje de paths Stratum (ver especificación en [Stratum — lenguaje de paths](../../stratum/specific/paths.md)).
+Los endpoints layer usan el lenguaje de paths Stratum (ver especificación en [Stratum — lenguaje de paths](../../stratum/concepts/paths.md)).
 
 Un endpoint bilink referencia un archivo `.bilink` por su path relativo a la raíz de la layer actual. El tipo se reconoce por el prefijo `.bilink/` en el valor.
 
@@ -129,10 +129,11 @@ Clasifica la relación que el bilink representa. Valor libre; valores definidos:
 | Valor | Significado |
 |-------|-------------|
 | *(ausente)* | Vínculo estructural — relación de implementación entre fragmentos |
-| `impact` | Decisión o documento que gobierna/afecta un vínculo entre capas |
-| `calls` | Relación de llamada: `link.0` llama a `link.1`. Ambos endpoints son estructurales. Convención fija: link.0 = caller, link.1 = callee. |
+| `governs` | Decisión o documento que gobierna/afecta un vínculo entre capas |
 
 Otros valores posibles en el futuro: `validates`, `documents`, `depends-on`, etc.
+
+No existe un `kind` para relaciones de llamada. Un bilink declara una referencia que un humano aceptó; las aristas de llamada las deriva una herramienta del código actual y las agrega [lattice](../../lattice/overview.md) como aristas `derived`. Declararlas a mano crearía un duplicado permanente que hay que mantener sincronizado.
 
 ### `name.N`
 
@@ -254,7 +255,7 @@ Esta propagación garantiza que **ningún cambio de contenido puede ser aprobado
 - Líneas que comienzan con `#` son comentarios y se ignoran.
 - El archivo usa codificación UTF-8 sin BOM.
 
-## Ejemplo: bilink de impacto
+## Ejemplo: bilink de gobernanza
 
 Un documento de decisión que gobierna un vínculo entre capas:
 
@@ -263,7 +264,7 @@ Un documento de decisión que gobierna un vínculo entre capas:
 link.0: docs/adr/design-voting-machine.md
 link.1: .bilink/7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.bilink
 
-kind:   impact
+kind:   governs
 name.0: architecture-decision
 name.1: spec-impl-bridge
 
@@ -280,7 +281,7 @@ Esto crea una relación ternaria implícita:
 
 ```
 docs/adr/design-voting-machine.md
-        ↕ (f9a1b2c3 — impact)
+        ↕ (f9a1b2c3 — governs)
 specs/voting.yaml ↔ impl/Voting.java
         (7f3d8e9a)
 ```

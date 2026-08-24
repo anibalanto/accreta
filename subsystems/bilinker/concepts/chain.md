@@ -72,7 +72,7 @@ El estado global de una cadena es el **peor estado** entre todos sus nodos:
 
 ## Comandos relacionados
 
-Ver especificación completa en [commands/chain.md](commands/chain.md).
+Ver especificación completa en [commands/chain.md](../commands/chain.md).
 
 ### `bilinker chain new`
 

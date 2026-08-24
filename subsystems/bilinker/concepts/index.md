@@ -32,11 +32,8 @@ La ruta del archivo es relativa a la raíz de la layer que contiene el `.bilink/
   .bilink/
     index/
       index             ← índice bilinker de esta layer
-      index.scip        ← caché SCIP (gitignored)
     7f3d8e9a-….bilink
     a3f9c821-….bilink
-    sciplink/
-      …
 ```
 
 Cada layer tiene su propio índice. El índice solo cubre los endpoints estructurales de los bilinks que viven en esa layer — no endpoints layer ni bilinks de otras layers.

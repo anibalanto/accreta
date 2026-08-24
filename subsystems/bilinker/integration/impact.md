@@ -12,10 +12,14 @@ impact thread     →  abre hilo de discusión
 
 ## Datos compartidos
 
-Impact lee los `.bilink` directamente — no invoca bilinker en tiempo de ejecución. La coordinación es a nivel de datos:
+Impact no lee los `.bilink` ni invoca bilinker: consulta el grafo a través de [lattice](../../lattice/overview.md), que toma las aristas de bilinker vía `bilinker graph --format json` y las entrega ya resueltas entre capas.
 
-- `commit.N`: impact usa este valor para calcular `git log <commit>..HEAD -- <file>`
-- `state.N`: impact filtra endpoints en ALTERED, DELETED, CHAIN_DIRTY
+Los dos campos que impact necesita viajan en la arista:
+
+- `commit`: baseline de `git log <commit>..HEAD -- <file>`
+- `state`: para filtrar endpoints en ALTERED, DELETED, CHAIN_DIRTY
+
+Bilinker sigue siendo el dueño de esos valores — lattice los transporta sin interpretarlos.
 
 ## Tras la resolución
 

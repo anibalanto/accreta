@@ -16,10 +16,13 @@ Bilinker resuelve esto con dos mecanismos:
 
 ```
 bilinker     ← detecta drift entre capas linkedeadas
+lattice      ← agrega las conexiones del proyecto en un grafo único
 impact       ← analiza el alcance, abre hilos de discusión
 worklist     ← registra el trabajo concreto pendiente
-accreta       ← gobierna la resolución del cambio
+accreta      ← gobierna la resolución del cambio
 ```
+
+Bilinker produce y verifica un solo tipo de conexión: la referencia aceptada entre fragmentos. No recorre el grafo completo del proyecto ni consulta language servers — expone sus aristas vía `bilinker graph --format json` y lattice las compone con las de los demás proveedores.
 
 ## Principios de diseño
 
@@ -28,7 +31,9 @@ accreta       ← gobierna la resolución del cambio
 - **Universal por gramática**: funciona para cualquier lenguaje con gramática
   tree-sitter — Java, Rust, Python, TypeScript, Markdown, YAML, SQL, etc.
 - **Bidireccional por diseño**: dado un punto en un archivo, bilinker lista todos
-  los bilinks que lo referencian. El impact analysis es nativo.
+  los bilinks que lo referencian, sin índice inverso ni escaneo del proyecto.
+- **Responsabilidad acotada**: git y tree-sitter, nada más. El análisis de alcance
+  y el recorrido del grafo agregado viven fuera.
 - **Auto-reparable con confirmación**: 4 estados tienen auto-fix determinístico
   (MOVED, DISPLACED, REANCHORED, EXPANDED). Ningún fix se aplica sin `bilinker apply`.
 - **Git como fuente de verdad**: check usa git para rastrear el origen de cada

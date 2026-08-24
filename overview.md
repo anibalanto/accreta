@@ -13,9 +13,10 @@ Accreta conecta esos niveles, hace visible el drift entre capas y provee la estr
 ```
 stratum    ← estructura de capas y navegación
 bilinker   ← referencias verificables entre fragmentos de capas
+lattice    ← el grafo que forman todas las conexiones del proyecto
 impact     ← análisis de cambios entre capas
 worklist   ← trabajo concreto pendiente
-accreta     ← gobernanza: identidad, consenso, distribución P2P
+accreta    ← gobernanza: identidad, consenso, distribución P2P
 ```
 
 ## Principios

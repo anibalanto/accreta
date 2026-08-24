@@ -4,7 +4,7 @@
 
 CLI de navegación por el árbol de capas de un proyecto Stratum. Permite obtener paths hacia capas superiores e inferiores desde la posición actual, y visualizar el contexto de profundidad en el árbol.
 
-El argumento es un path Stratum — ver [paths.md](paths.md) para la gramática completa.
+El argumento es un path Stratum — ver [paths.md](../concepts/paths.md) para la gramática completa.
 
 El argumento de navegación se pasa siempre entre comillas simples porque contiene caracteres especiales del shell (`>`, `<`):
 

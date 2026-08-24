@@ -4,7 +4,7 @@
 
 Verifica la consistencia de uno o más bilinks comparando el estado actual de los archivos referenciados contra la cache del `.bilink`. Por cada bilink devuelve una tupla de estados `(state_link0, state_link1)` y actualiza `state.N` en el archivo.
 
-Requiere git como dependencia dura. Opera completamente offline — no requiere el daemon LSP ni ningún indexer externo.
+Requiere git como dependencia dura. Opera completamente offline — solo git y tree-sitter, sin language servers ni indexers externos.
 
 ## Firma
 
@@ -128,9 +128,11 @@ H_start > F_end               → AFTER   (irrelevante)
 se superpone                  → WITHIN  (causa de EXPANDED, ALTERED, REANCHORED)
 ```
 
-## Auto-fix staging
+## Auto-fix
 
-Los estados con auto-fix (MOVED, DISPLACED, REANCHORED, EXPANDED) generan un archivo en `.bilink/.pending/<uuid>-<N>.fix`. Nunca se aplican automáticamente.
+Los estados con auto-fix (MOVED, DISPLACED, REANCHORED, EXPANDED) se resuelven con `bilinker apply`, que usa `state.N` para seleccionar candidatos y recalcula cada fix re-resolviendo el endpoint contra git y el AST actuales. Nunca se aplican automáticamente.
+
+`apply` no lee `range.N` como fuente del fix: `range.N` refleja el último `check` y el archivo puede haber cambiado desde entonces. Si la re-resolución arroja un estado distinto de `state.N`, `apply` descarta el fix y pide correr `check`.
 
 ## Salida
 

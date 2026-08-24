@@ -11,7 +11,7 @@ Es una herramienta de navegación y exploración — no modifica nada.
 ```
 bilinker graph <selector>
   [--depth <n>]
-  [--format <tree|flat|dot|html>]
+  [--format <tree|flat|json|dot|html>]
   [--recursive]
   [--bilink-detail]
   [--url-scheme <line|file|none>]
@@ -22,7 +22,7 @@ bilinker graph <selector>
 |---|---|
 | `selector` | Archivo, posición `archivo:línea:col`, UUID de bilink, `.` (todos en capa actual) o `*` (igual que `.`). |
 | `--depth <n>` | Profundidad máxima de traversal. Por defecto: sin límite. |
-| `--format` | Formato de salida: `tree` (por defecto), `flat`, `dot` (Graphviz), `html` (visor interactivo). |
+| `--format` | Formato de salida: `tree` (por defecto), `flat`, `json` (contrato de proveedor lattice), `dot` (Graphviz), `html` (visor interactivo). |
 | `--recursive` | Con selector `.`/`*`: recolectar bilinks de **todas las capas** bajo la raíz del proyecto. |
 | `--bilink-detail` | En formato `dot`: mostrar nodos intermedios de bilink (diamantes). Por defecto solo aristas directas archivo↔archivo. |
 | `--url-scheme` | URLs en nodos `dot`/`html`: `line` (default, `file://path#Lnúmero`), `file` (`file://path`), `none`. Las URLs son relativas al archivo HTML al abrirlo en el browser. |
@@ -88,6 +88,29 @@ $ bilinker graph commands/pull.md --format flat
 c0feab23  OK ↔ OK  commands/pull.md  →  >impl  [.]
 c0feab23  OK ↔ OK  <  →  crates/main.rs :: (enum_item ...)  [.stratum/impl]
 ```
+
+## Formato `json` — contrato de proveedor
+
+Emite las aristas de bilinker en el modelo de [lattice](../../lattice/concepts/edge.md), con los nodos ya resueltos a forma canónica. Es la forma en que bilinker actúa como proveedor: la resolución de una cadena a través de capas la hace bilinker, porque la topología es conocimiento de su formato; componerla con aristas de otros proveedores es tarea de lattice.
+
+```json
+[
+  {
+    "from":      ".::commands/pull.md#312~358",
+    "to":        ".stratum/impl::crates/estrato-cli/src/main.rs#245~389",
+    "kind":      "bilink",
+    "guarantee": "accepted",
+    "provider":  "bilinker",
+    "directed":  false,
+    "ref":       "c0feab23-1b2c-4d5e-8f6a-7b8c9d0e1f2a",
+    "state":     ["OK", "OK"]
+  }
+]
+```
+
+Una cadena de N nodos emite **una** arista entre sus dos tips estructurales, no N-1 aristas entre nodos `.bilink`. Los mids son mecanismo interno de bilinker, no conexiones del proyecto.
+
+`state` lleva la tupla `(state.0, state.1)` de los tips. Los `kind` emitidos son `bilink`, `governs` y `task`, todos con garantía `accepted`.
 
 ## Formato `dot` — Graphviz
 

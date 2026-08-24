@@ -13,9 +13,10 @@ Worklist es ese lugar: un ítem por cada trabajo pendiente, linkedeado al fragme
 ```
 git          ← fuente de verdad del historial
 bilinker     ← detecta drift entre capas linkedeadas
+lattice      ← agrega las conexiones del proyecto en un grafo único
 impact       ← analiza el alcance, abre hilos de discusión
 worklist     ← registra el trabajo concreto pendiente
-accreta       ← gobierna la resolución del cambio
+accreta      ← gobierna la resolución del cambio
 ```
 
 ## Dónde vive
@@ -40,7 +41,7 @@ Un ítem de worklist no tiene dirección fija. Puede representar trabajo en cual
 ```bash
 # Parado en la spec: implementar algo
 cd accreta/bilinker/specific
-worklist new task "implementar bilinker accept" bilink-format.md:104:1
+worklist new task "implementar bilinker accept" concepts/bilink.md:104:1
 
 # Parado en impl: actualizar la spec en base al cambio
 cd accreta/bilinker/.stratum/impl/src
