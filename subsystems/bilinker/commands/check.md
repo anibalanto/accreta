@@ -37,12 +37,20 @@ Comparan el contenido hallado contra `hash.N`.
 |---|---|---|
 | **OK** | Hash matchea en el `range` del capture. | — |
 | **DISPLACED** | Hash en otro offset dentro del nodo. | ✓ Actualiza `offset` del capture. |
-| **EXPANDED** | Fragmento creció; AST interno sin cambio estructural. | ✓ Amplía `offset` del capture. |
+| **EXPANDED** | Fragmento creció; AST interno sin cambio estructural. | ✓ Amplía `offset` del capture. — *ver nota* |
 | **RESTYLED** | `hash.N` difiere pero `hash_ast.N` coincide — solo formato, AST idéntico. | — Advertencia leve; ejecutar `bilinker accept`. |
 | **ALTERED** | Fragmento encontrado; AST interno cambió estructuralmente. | — Requiere intervención. |
 | **UNRESOLVED** | El capture referenciado no resolvió. | — Se resuelve en el capture. |
 
 `DISPLACED` y `EXPANDED` se detectan acá porque necesitan `hash.N`, pero su fix se escribe en el capture. Ver [capture.md](../concepts/capture.md) § "Copy-on-write al aplicar un fix".
+
+> **`EXPANDED` no está implementado, y tal como está definido no es detectable.**
+>
+> El paso 5 del algoritmo pregunta *"¿el texto guardado es subcadena del nodo?"*, pero el formato guarda `hash.N` —un hash— y no el texto. Se puede buscar el hash dentro del nodo con el largo del fragmento guardado, pero encontrarlo dice que el fragmento **se movió**, que es `DISPLACED`. No dice que ahora deba **abarcar más**, que es la afirmación de `EXPANDED`.
+>
+> Distinguirlos requiere una decisión: definir `EXPANDED` de forma estructural —el nodo de la query creció y el fragmento guardado está contenido en él— asumiendo que la frontera con `DISPLACED` es heurística; o eliminar el estado y dejar que esos casos sean `DISPLACED` seguido de `accept`.
+>
+> Mientras tanto `check` nunca lo devuelve, y la rama de `apply` que lo trata es código inalcanzable.
 
 ## Estados — endpoints layer (2 estados adicionales)
 
