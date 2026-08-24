@@ -43,9 +43,13 @@ accreta/                      (git — specs Accreta)
   overview.md
   concepts/
   integration/
+  .accreta/
+    migrations               ← ledger de migraciones de metadatos aplicadas
   .stratum/
     worklist/                ← ítems de trabajo del ecosistema
 ```
+
+El ledger de migraciones es por repo, no global: cada repo del ecosistema tiene el suyo. Ver [concepts/migration.md](concepts/migration.md).
 
 Los sub-proyectos del ecosistema son carpetas hermanas siguiendo la convención Stratum:
 
