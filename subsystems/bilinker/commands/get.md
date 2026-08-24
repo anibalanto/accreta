@@ -81,9 +81,13 @@ tests:
 
 Requiere `commit.N` presente en el bilink (endpoint aceptado al menos una vez) y el capture resuelto.
 
-- **"antes"**: extrae el fragmento de `git show commit.N:<file>` usando el `range` del capture.
+- **"antes"**: el fragmento aceptado, recuperado resolviendo la query contra el contenido de `commit.N` y verificado contra `hash.N`. Ver [`check`](check.md) § "Recuperar el texto aceptado".
 - **"después"**: resuelve el fragmento actual con la misma query AST que usa `get` normalmente.
 - Muestra un unified diff del fragmento, sin contexto extra de archivo.
+
+No se recorta el contenido viejo por el `range` del capture: ese range es la posición **actual**, que `check` reescribe en cada corrida, así que aplicarlo a contenido de otro commit da bytes arbitrarios.
+
+Si la verificación por hash falla —el archivo no existía en ese commit, la query no resuelve ahí— `--diff` cae al recorte por range. Para un diff informativo mostrar algo aproximado es mejor que no mostrar nada; el contraste es con `check`, que ante la misma duda prefiere no detectar, porque de ahí salen decisiones.
 
 ```
 $ bilinker get 7f3d8e9a.1 --diff
