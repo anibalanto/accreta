@@ -28,7 +28,7 @@ lattice graph <selector>
 | `--guarantee <nivel>` | Garantía mínima: `accepted`, `derived`, `asserted`. Default: `asserted` (todas). |
 | `--state <filtro>` | Solo nodos alcanzados por aristas con ese estado. `non-ok` selecciona todo lo distinto de OK. |
 | `--depth <n>` | Profundidad máxima. Default: sin límite. |
-| `--recursive` | Con selector `.`: recolecta desde todas las capas bajo la raíz. |
+| `--recursive` | Recolecta también desde las capas descendientes. Se delega en el proveedor: dónde vive una capa es conocimiento de Stratum y del formato bilink, no del grafo agregado. |
 
 Las aristas no dirigidas (`bilink`, `governs`, `task`) se recorren en ambos sentidos siempre; `--up` / `--down` solo afectan a las dirigidas.
 

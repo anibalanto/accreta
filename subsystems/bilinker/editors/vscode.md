@@ -16,13 +16,21 @@ Cada línea con bilinks muestra una lente `⬡ N bilink(s)`. Al hacer click abre
 
 ## Comandos de grafo
 
+El visor vive en [lattice](../../lattice/commands/graph.md): bilinker recorre cadenas, lattice compone el grafo de todos los proveedores y lo renderiza. La extensión sigue usando `bilinker-lsp` para hover y code lens, que sí son de bilinker.
+
+Requiere el ejecutable `lattice` en PATH, además de `bilinker-lsp`.
+
 ### `bilinker.openGraph` — Grafo del archivo actual
 
-Corre `bilinker graph <ruta-relativa> --format html` desde la raíz del workspace. El selector es la ruta del archivo activo relativa al workspace root. Muestra el resultado en un WebviewPanel con `enableScripts: true`.
+Corre `lattice graph <ruta-relativa> --format html` desde la raíz del workspace. Muestra el resultado en un WebviewPanel con `enableScripts: true`.
 
 ### `bilinker.openSystemGraph` — Grafo del sistema completo
 
-Corre `bilinker graph . --recursive --format html` desde la raíz del workspace. Muestra el resultado en un WebviewPanel.
+Corre `lattice graph . --recursive --format html` desde la raíz del workspace.
+
+### Código de salida 3
+
+`lattice` devuelve 3 cuando algún proveedor no respondió — típicamente el daemon LSP apagado. **El grafo es válido igual**, así que la extensión lo muestra y avisa con un warning en vez de tratarlo como error. Confundir "grafo incompleto" con "falló" dejaría al usuario sin visor cada vez que el daemon no esté corriendo, que es el caso normal.
 
 ## Resolución del binario
 
