@@ -23,7 +23,7 @@ Sin `edges_from`, lattice enumera todo el scope y filtra. Con `edges_from`, el t
 La garantía de un `kind` es fija y la declara el proveedor, no cada arista. Un proveedor puede emitir varios `kind`:
 
 ```
-bilinker  → [(bilink, accepted), (impact, accepted), (task, accepted)]
+bilinker  → [(bilink, accepted), (governs, accepted), (task, accepted)]
 lsp       → [(call, derived)]
 doc       → [(doclink, asserted), (external, asserted)]
 ```
@@ -41,8 +41,6 @@ Se consulta **antes** de componer el grafo, no al primer error. Un proveedor que
 `Degraded` no es un matiz cosmético: separa *"puedo pedirle aristas"* de *"lo que devuelve alcanza para afirmar que no hay más"*. El caso que lo motiva es el daemon recién arrancado — responde al ping enseguida, pero el language server detrás sigue indexando, así que `callers` devuelve vacío. Reportarlo como `Available` haría pasar **"todavía no sé"** por **"no hay llamadas"**, que es la confusión más cara que puede cometer este subsistema.
 
 Un proveedor `Degraded` cuenta como grafo incompleto a los efectos del código de salida.
-
-`HtmlGraph.daemon_ok` (`html_graph.rs:105`) es la versión actual de esto: un `Option<bool>` que se resuelve en el primer uso. La diferencia es que el estado se consulta al inicio y viaja en el resultado.
 
 ## Los tres proveedores
 
@@ -67,7 +65,7 @@ Consulta el daemon (`callees`, `callers`) sobre el socket Unix. Implementa `edge
 
 Requiere resolver el anclaje del nodo antes de preguntar — ver [node.md](node.md) § "Anclaje".
 
-Es el único proveedor cuya ausencia es esperable en operación normal: el daemon puede no estar corriendo, el language server puede no estar instalado, o el lenguaje puede no tener soporte. Los tres casos son `Unavailable` con razón distinta, y las tres razones importan al consumidor.
+Es el único proveedor cuya ausencia es esperable en operación normal. Si el daemon no responde, lo arranca (ver [commands/daemon.md](../commands/daemon.md) § "Auto-start") y queda `Degraded` mientras el language server indexa. Que el ejecutable no esté instalado o que el lenguaje no tenga soporte sí son `Unavailable`, con razones distintas que le importan al consumidor.
 
 ### `doc`
 
