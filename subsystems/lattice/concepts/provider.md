@@ -73,7 +73,7 @@ Extrae links de documentos markdown. Emite `doclink` para destinos dentro del pr
 
 Un `doclink` cuyo destino no existe se emite igual, con `broken`. Un link muerto en un documento es información, no un error de lattice.
 
-Los links dentro de bloques de código se ignoran: un ejemplo no es una referencia.
+Se ignoran dos cosas: los links dentro de bloques de código —un ejemplo no es una referencia— y las imágenes `![alt](x.png)`, que son embeds y no referencias a otro documento. Modelar los embeds pediría un `kind` propio; hoy no hay consumidor que lo justifique.
 
 El nodo de origen y el de destino son **archivos completos**, no fragmentos — un link markdown apunta a un documento. Que un nodo de archivo completo contenga a los fragmentos de ese archivo (ver [node.md](node.md) § "Contención") es lo que permite que un doclink alcance los bilinks declarados sobre sus partes.
 
