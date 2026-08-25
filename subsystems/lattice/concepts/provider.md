@@ -73,9 +73,46 @@ Extrae links de documentos markdown. Emite `doclink` para destinos dentro del pr
 
 Un `doclink` cuyo destino no existe se emite igual, con `broken`. Un link muerto en un documento es información, no un error de lattice.
 
-Se ignoran dos cosas: los links dentro de bloques de código —un ejemplo no es una referencia— y las imágenes `![alt](x.png)`, que son embeds y no referencias a otro documento. Modelar los embeds pediría un `kind` propio; hoy no hay consumidor que lo justifique.
-
 El nodo de origen y el de destino son **archivos completos**, no fragmentos — un link markdown apunta a un documento. Que un nodo de archivo completo contenga a los fragmentos de ese archivo (ver [node.md](node.md) § "Contención") es lo que permite que un doclink alcance los bilinks declarados sobre sus partes.
+
+#### Qué no se emite
+
+Dos construcciones tienen forma de link y no lo son:
+
+| Construcción | Por qué no |
+|---|---|
+| Links dentro de bloques de código | Un ejemplo no es una referencia. |
+| Imágenes `![alt](x.png)` | Un embed no es una referencia a otro documento. Modelarlo pediría un `kind` propio, y hoy no hay consumidor que lo justifique. |
+
+Un documento con estos cuatro casos —los cuatro realistas en este ecosistema— produce **una** arista, no cinco:
+
+````markdown
+Una referencia real: [node](node.md).          ← se emite
+
+```markdown
+Ver [capture.md](capture.md) para el formato.   ← documentar la sintaxis
+```
+
+```markdown
+Evaluá el cambio contra [la decisión]({{adr}}). ← plantilla de skill
+```
+
+```markdown
+Ver el hilo en [impact](../threads/3a.md).      ← ejemplo del formato .task
+```
+````
+
+El caso de la **plantilla** es el que decide la regla. `{{adr}}` no existe ni puede existir, así que aparecería como `broken` **de forma permanente** — y encontrar links muertos es el uso principal de este proveedor. Un falso positivo que nunca se puede resolver enseña a ignorar el resultado, que es la peor falla posible para una herramienta de verificación.
+
+El de **documentar la sintaxis** es el más probable: es lo que pasa cuando una spec muestra un ejemplo del formato que define. Ahí el destino sí existe, así que no sale roto — el grafo simplemente afirma una relación que nadie escribió.
+
+#### Es una regla preventiva
+
+Al escribirla, el proyecto tenía **cero** links dentro de bloques de código y **cero** imágenes markdown. La regla no corrige nada observado.
+
+Lo que la justifica es dónde viven los bloques que ya existen: de los tres bloques etiquetados `markdown` en el ecosistema, dos son ejemplos de formato de archivo (`worklist/concepts/item.md`, `worklist/architecture.md`) y el tercero es una plantilla de prompt (`impact/concepts/skills.md`). Las tres son exactamente las construcciones que más probablemente terminen conteniendo un link.
+
+Si la regla estorba, sacarla es de dos líneas y los tests distinguen los dos comportamientos.
 
 ## Composición
 
