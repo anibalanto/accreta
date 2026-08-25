@@ -27,6 +27,7 @@ La forma canónica la produce el proveedor, no lattice. Un proveedor que emite u
 | `ref` | Identificador de la arista en su fuente (UUID del bilink, símbolo LSP, path + anchor). |
 | `state` | Estado que reporta el proveedor. Solo para `accepted`; ausente en el resto. |
 | `commit` | Commit en que se aceptó cada extremo. Solo para `accepted`. |
+| `broken` | El destino no se pudo resolver. Ausente cuando es falso. |
 
 `commit` existe porque es el baseline de todo diff: un consumidor que quiera saber *qué* cambió desde el último estado aceptado corre `git log <commit>..HEAD`. Sin él en la arista, tendría que reabrir el archivo del proveedor para recuperarlo.
 
@@ -86,9 +87,13 @@ Un proveedor debe:
 
 El punto 4 es el que hace honesta la degradación: si el proveedor LSP no está disponible, el grafo pierde todas sus aristas `call` y lattice lo declara en el resultado. Un análisis sobre un grafo degradado es válido, pero el consumidor tiene que poder saber que lo es.
 
+`broken` no viaja en `state` a propósito: `state` es lo que reporta el dueño de una arista `accepted` sobre su propia aceptación. Un link muerto en un documento es otra cosa — una arista que existe y apunta a la nada.
+
 ## Deduplicación
 
 Dos proveedores pueden emitir la misma conexión. La regla es deduplicar por `(from, to, kind)`, conservar la garantía más fuerte (`accepted` > `derived` > `asserted`) y registrar todos los proveedores que la emitieron.
+
+Los extremos se ordenan para comparar **solo si la arista no es dirigida**. En una dirigida el sentido es parte del hecho: dos documentos que se referencian mutuamente son dos links, no uno, y *"a llama a b"* no es *"b llama a a"*.
 
 Un corolario útil: si una conexión que un proveedor deriva automáticamente se declara además a mano, la declaración manual es un duplicado permanente que hay que mantener sincronizado. Declarar a mano solo se justifica para aristas que **ningún proveedor puede derivar** — llamadas entre lenguajes, entre repos, o hacia un binario externo.
 

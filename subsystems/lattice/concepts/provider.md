@@ -71,7 +71,11 @@ Es el único proveedor cuya ausencia es esperable en operación normal. Si el da
 
 Extrae links de documentos markdown. Emite `doclink` para destinos dentro del proyecto y `external` para URIs.
 
-Un `doclink` cuyo destino no existe se emite igual, marcado como roto. Un link muerto en un documento es información, no un error de lattice.
+Un `doclink` cuyo destino no existe se emite igual, con `broken`. Un link muerto en un documento es información, no un error de lattice.
+
+Los links dentro de bloques de código se ignoran: un ejemplo no es una referencia.
+
+El nodo de origen y el de destino son **archivos completos**, no fragmentos — un link markdown apunta a un documento. Que un nodo de archivo completo contenga a los fragmentos de ese archivo (ver [node.md](node.md) § "Contención") es lo que permite que un doclink alcance los bilinks declarados sobre sus partes.
 
 ## Composición
 
