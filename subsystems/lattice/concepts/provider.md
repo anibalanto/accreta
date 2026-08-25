@@ -31,12 +31,16 @@ doc       → [(doclink, asserted), (external, asserted)]
 ### `available()`
 
 ```
-Available                    puede responder
-Degraded { reason }          responde parcialmente
+Available                    puede responder, y lo que devuelve es completo
+Degraded { reason }          responde, pero lo que devuelve está incompleto
 Unavailable { reason }       no puede responder
 ```
 
 Se consulta **antes** de componer el grafo, no al primer error. Un proveedor que falla a mitad de un traversal deja un grafo incompleto que ya se reportó como completo.
+
+`Degraded` no es un matiz cosmético: separa *"puedo pedirle aristas"* de *"lo que devuelve alcanza para afirmar que no hay más"*. El caso que lo motiva es el daemon recién arrancado — responde al ping enseguida, pero el language server detrás sigue indexando, así que `callers` devuelve vacío. Reportarlo como `Available` haría pasar **"todavía no sé"** por **"no hay llamadas"**, que es la confusión más cara que puede cometer este subsistema.
+
+Un proveedor `Degraded` cuenta como grafo incompleto a los efectos del código de salida.
 
 `HtmlGraph.daemon_ok` (`html_graph.rs:105`) es la versión actual de esto: un `Option<bool>` que se resuelve en el primer uso. La diferencia es que el estado se consulta al inicio y viaja en el resultado.
 

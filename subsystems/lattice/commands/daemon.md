@@ -110,9 +110,19 @@ Si `daemon.sock` existe pero el proceso no responde, el socket está stale y se 
 
 ## Auto-start
 
-El proveedor `lsp` intenta conectarse al socket antes de cada consulta. Si no responde en 500ms, arranca el daemon y espera hasta 5s. Si falla, reporta `Unavailable` y lattice continúa en modo degradado.
+El proveedor `lsp` intenta conectarse al socket antes de cada consulta. Si no responde, arranca el daemon y espera hasta 5s.
+
+| Resultado | Estado del proveedor |
+|---|---|
+| El daemon ya estaba corriendo | `Available` |
+| Se arrancó recién y respondió | `Degraded` — el language server está indexando |
+| No se pudo arrancar | `Unavailable` |
+
+La distinción importa: el daemon responde al ping apenas arranca, pero rust-analyzer y sus pares tardan bastante más en indexar un proyecto. Durante esa ventana `callers` devuelve vacío, y reportar `Available` haría pasar "todavía no sé" por "no hay llamadas".
 
 Ningún comando de lattice **requiere** el daemon: su ausencia siempre degrada, nunca aborta.
+
+Arrancar un proceso desde un comando de solo lectura es un efecto, y vale la pena ser explícito: el daemon no escribe nada del proyecto — su socket y su pid viven en `~/.lattice/`.
 
 ## Exit codes
 
