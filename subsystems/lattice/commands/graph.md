@@ -150,6 +150,32 @@ Cada arista muestra su `kind` y su garantía. Un consumidor puede distinguir de 
 
 `providers` va primero y siempre está presente, incluso cuando todos respondieron. Un consumidor no debería tener que inferir la completitud del grafo a partir de su contenido.
 
+## Salida — `dot`
+
+```bash
+lattice graph . --format dot | dot -Tsvg > graph.svg
+```
+
+Nodos agrupados en `subgraph cluster_N` por capa. **La garantía se codifica en el trazo**: continuo para `accepted`, punteado para `derived`, punteado fino para `asserted`. Un grafo que mezcla lo verificado con lo inferido sin marcarlo induce a confiar en la inferencia.
+
+## Salida — `html`
+
+```bash
+lattice graph . --format html > graph.html
+xdg-open graph.html
+```
+
+Archivo HTML autocontenido (sin servidor) con:
+
+- **Grafo interactivo** con Cytoscape.js: zoom, pan, clusters por capa en columnas por profundidad stratum (spec izquierda → impl derecha), file-groups que agrupan fragmentos del mismo archivo.
+- **Panel de detalle** al hacer click en un **nodo**: el contenido del fragmento. `.md` renderizado; código con syntax highlighting y números de línea; link `file://` para abrirlo en el sistema.
+- **Panel de detalle** al hacer click en una **arista**: los dos fragmentos vinculados, con el `ref` y el estado en el separador.
+- Fragmentos distintos del mismo archivo como nodos separados.
+
+Cada arista lleva su `kind` y su garantía: en bilinker todas eran del mismo tipo, acá no, y una llamada inferida no puede verse igual que una referencia verificada.
+
+Requiere conexión a internet para las CDN de Cytoscape.
+
 ## Degradación
 
 Un proveedor `Unavailable` reduce el grafo sin abortar la consulta:
