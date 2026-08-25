@@ -1,0 +1,10 @@
+link.0: capture 05b350f6-5bde-4233-9e86-34a9fb44eb9a
+link.1: >impl
+
+# Cache
+hash.0: 1dd453d61196bfd6d486cf8fb6bd5a108b90409d7f6ad20f9682002f6dd04dca
+hash_ast.0: 9738e0f52adb76cc8947e94d131dd0eb155586607fa4842cef81aabd8443f86a
+commit.0: 42c93624a3dd6efc119e2b63129892e16d15b529
+state.0: OK
+state.1: PENDING
+resolved_at: 2026-08-25T00:33:48Z

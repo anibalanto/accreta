@@ -1,0 +1,10 @@
+file:   commands/graph.md
+query:  (section
+  (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `lattice graph`"))
+  (section
+  (atx_heading (inline) @n1 (#eq? @n1 "Salida — `html`"))) @target)
+
+# Cache
+range:       6761~7721
+state:       RESOLVED
+resolved_at: 2026-08-25T00:33:30Z
