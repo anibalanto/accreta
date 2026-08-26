@@ -28,7 +28,7 @@ fs-segment := componente de path sin '>' ni '<'
 
 ### Path tradicional (identidad)
 
-Un path que no comienza con `>` ni `<` es retornado sin cambios.
+Un path sin ningún token de navegación es retornado sin cambios.
 
 ```
 .stratum/tech-decisions      →  .stratum/tech-decisions
@@ -46,6 +46,19 @@ Cada segmento `>name` se expande a `.stratum/<name>`. Los segmentos se encadenan
 >tech-decisions>impl/src/main.rs   →  .stratum/tech-decisions/.stratum/impl/src/main.rs
 >tasks/pending.md                  →  .stratum/tasks/pending.md
 ```
+
+### Prefijo + Down: `fs-path>name/...`
+
+Un path puede empezar con un tramo de filesystem y seguir con navegación `>`. El tramo previo se toma tal cual y los segmentos `>name` se expanden desde ahí.
+
+```
+subsystems/bilinker>impl              →  subsystems/bilinker/.stratum/impl
+subsystems/lattice>impl/src/main.rs   →  subsystems/lattice/.stratum/impl/src/main.rs
+```
+
+Es la forma que usan los tips de una cadena cuando se los nombra desde fuera de la capa: `bilinker chain new --tip 'subsystems/lattice>impl/editors/vscode/src/extension.ts:15:1'`.
+
+Sin esto habría que estar parado en la capa para nombrarla, o escribir `.stratum/` a mano — que es justo lo que el lenguaje de paths evita.
 
 ### Up: `<</fs-path`
 
@@ -77,7 +90,7 @@ Cada `<` sube una capa stratum (`../../`) y luego encuentra el root verdadero de
 
 ## Invariantes
 
-1. Un path que no comienza con `>` ni `<` ni `*` es válido y se retorna tal cual.
+1. Un path sin tokens de navegación (`>`, `<`, `*`) es válido y se retorna tal cual. Un `>` en cualquier posición inicia navegación hacia abajo, no solo al principio.
 2. `<` (Up) y `>` (Down) no se mezclan. `*` (Root) puede ir seguido de tokens `>`.
 3. El `fs-path` no contiene `>` ni `<`.
 4. Cada `layer-name` es no vacío.
