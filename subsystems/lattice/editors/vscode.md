@@ -1,6 +1,14 @@
-# Editor VS Code: extensión bilinker
+# Editor VS Code
 
-Integra bilinker en VS Code con tres capacidades: hover sobre fragmentos binkados, code lens por línea y comandos de grafo interactivo.
+Integra el ecosistema en VS Code con tres capacidades: hover sobre fragmentos bilinkeados, code lens por línea y el visor de grafo.
+
+## Por qué vive en lattice
+
+La extensión invoca **dos** binarios: `bilinker-lsp` para hover y code lens, y `lattice` para el visor. Ubicarla del lado de lattice no invierte ninguna dependencia —lattice ya consume a bilinker por CLI— y evita que el consumidor del CLI de lattice viva enterrado en el repo de bilinker.
+
+`bilinker-lsp` se queda en bilinker: servir el otro extremo de un bilink al pasar el mouse es conocimiento de su formato.
+
+No es un subsistema propio: no modela nada del dominio, es un cliente de dos herramientas que sí lo hacen.
 
 ## Activación
 
@@ -16,7 +24,7 @@ Cada línea con bilinks muestra una lente `⬡ N bilink(s)`. Al hacer click abre
 
 ## Comandos de grafo
 
-El visor vive en [lattice](../../lattice/commands/graph.md): bilinker recorre cadenas, lattice compone el grafo de todos los proveedores y lo renderiza. La extensión sigue usando `bilinker-lsp` para hover y code lens, que sí son de bilinker.
+Corren [`lattice graph`](../commands/graph.md), que compone el grafo de todos los proveedores y lo renderiza.
 
 Requiere el ejecutable `lattice` en PATH, además de `bilinker-lsp`.
 
