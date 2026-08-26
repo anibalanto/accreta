@@ -81,6 +81,94 @@ scenarios:
       - con historial git del archivo el capture reporta DELETED en lugar de BROKEN, porque la eliminación es rastreable
     impl: check_unresolved_when_file_missing
 
+  - id: check-moved-after-git-rename
+    description: El capture reporta MOVED cuando git detecta un rename del archivo
+    given:
+      - bilink aceptado sobre un archivo commiteado
+      - archivo renombrado con git mv
+    when:
+      - bilinker check .
+    expect:
+      state: [UNRESOLVED, OK]
+      capture_state: MOVED
+    impl: check_detects_moved_after_git_rename
+
+  - id: check-deleted-when-file-removed
+    description: El capture reporta DELETED cuando git tiene historial del archivo eliminado
+    given:
+      - bilink aceptado sobre un archivo commiteado
+      - archivo borrado del filesystem, sin rename
+    when:
+      - bilinker check .
+    expect:
+      capture_state: DELETED
+    notes:
+      - distingue "alguien borró esto" de "esta referencia nunca ancló a nada"; lo segundo es BROKEN
+    impl: check_detects_deleted_when_file_removed_from_git
+
+  - id: check-reanchored-by-similarity
+    description: El capture reporta REANCHORED cuando el anchor se renombró y el fragmento se localiza por similitud
+    given:
+      - bilink aceptado sobre una declaración nombrada
+      - la declaración renombrada, su cuerpo intacto
+    when:
+      - bilinker check .
+    expect:
+      capture_state: REANCHORED
+    notes:
+      - no se compara por hash: el nombre está dentro del fragmento capturado, así que renombrar siempre cambia el hash
+      - el texto aceptado se recupera de git y se compara por similitud, con umbral del 50%
+    impl: check_detects_reanchored_when_anchor_is_renamed
+
+  - id: check-reanchored-tolerates-an-edit
+    description: REANCHORED sobrevive a un renombre acompañado de un cambio menor en el cuerpo
+    given:
+      - bilink aceptado sobre una declaración nombrada
+      - declaración renombrada y una línea del cuerpo modificada
+    when:
+      - bilinker check .
+    expect:
+      capture_state: REANCHORED
+    impl: reanchored_survives_a_rename_plus_small_edit
+
+  - id: check-ambiguous-stays-unanchored
+    description: Ante dos candidatos igual de parecidos el capture queda UNANCHORED
+    given:
+      - bilink aceptado sobre una declaración nombrada
+      - dos declaraciones nuevas, ambas casi idénticas al fragmento aceptado
+    when:
+      - bilinker check .
+    expect:
+      capture_state: UNANCHORED
+    notes:
+      - hace falta un margen del 15% sobre el segundo candidato; ante un empate es preferible que lo mire un humano antes que reanclar al nodo equivocado
+    impl: ambiguous_candidates_stay_unanchored
+
+  - id: check-expanded-when-fragment-grows
+    description: EXPANDED cuando el fragmento contiene el texto aceptado verbatim y algo más
+    given:
+      - bilink aceptado sobre una sección
+      - la sección gana contenido, sin que se modifique lo aceptado
+    when:
+      - bilinker check .
+    expect:
+      state: [EXPANDED, OK]
+    notes:
+      - la frontera con DISPLACED es un test de subcadena contra el texto aceptado, no un umbral
+      - que el fragmento contenga lo aceptado verbatim implica que su AST interno no cambió
+    impl: check_detects_expanded_when_fragment_grows_around_accepted_text
+
+  - id: check-altered-when-accepted-text-changed
+    description: ALTERED cuando el texto aceptado ya no aparece verbatim en el fragmento
+    given:
+      - bilink aceptado sobre una sección
+      - el contenido de la sección modificado
+    when:
+      - bilinker check .
+    expect:
+      state: [ALTERED, OK]
+    impl: check_says_altered_when_accepted_text_changed
+
   - id: check-exit-zero-all-ok
     description: Exit code 0 cuando todos los endpoints están en OK
     given:

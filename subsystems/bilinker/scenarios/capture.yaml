@@ -49,3 +49,53 @@ scenarios:
     expect:
       - el .capture no tiene campo `query`
       - hash.N = SHA-256 del archivo completo
+
+  - id: capture-finds-an-equivalent-reference
+    description: find_equivalent reconoce una referencia idéntica e ignora las distintas
+    given:
+      - un capture existente en la capa
+    when:
+      - buscar un equivalente con la misma (file, query, offset)
+      - buscar con otra query, o el mismo query en otro archivo
+    expect:
+      - la referencia idéntica devuelve el UUID existente
+      - las distintas no devuelven nada
+    impl: find_equivalent_matches_identical_reference
+
+  - id: capture-orphans-excludes-referenced
+    description: orphans lista solo los captures que ningún bilink referencia
+    given:
+      - dos captures en la capa, uno referenciado por un bilink
+    when:
+      - consultar los huérfanos
+    expect:
+      - solo el no referenciado aparece
+    notes:
+      - un capture huérfano no rompe nada; limpiarlo es higiene, no reparación
+    impl: orphans_excludes_referenced_captures
+
+  - id: capture-remove-refuses-with-referents
+    description: capture remove se niega a borrar un capture con referentes
+    given:
+      - un capture referenciado por al menos un bilink
+    when:
+      - bilinker capture remove <uuid>
+    expect:
+      - error sugiriendo `bilinker recapture`
+      - el capture sigue existiendo
+    notes:
+      - borrarlo dejaría bilinks apuntando a la nada; --force lo permite igual
+
+  - id: recapture-repoints-and-clears-state
+    description: recapture repunta link.N y limpia state.N, sin aceptar
+    given:
+      - endpoint estructural cuyo capture ya no ancla
+    when:
+      - bilinker recapture <uuid>.<N> <file> <línea>:<col>
+    expect:
+      - link.N apunta al capture nuevo
+      - state.N vacío — el estado anterior describía el capture viejo
+      - hash.N y commit.N intactos
+    notes:
+      - la misma separación que entre apply y accept, y por el mismo motivo
+      - el capture anterior no se borra, se informa si quedó sin referentes

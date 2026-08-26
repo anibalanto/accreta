@@ -128,6 +128,23 @@ Eliminar? [y/N]
 
 Un capture huérfano no rompe nada — se resuelve en cada `check` sin que nadie lea el resultado. `prune` es higiene, no reparación.
 
+## `bilinker capture remove`
+
+```
+bilinker capture remove <uuid> [--force]
+```
+
+Elimina un capture puntual. Acepta un prefijo del UUID, y falla si es ambiguo.
+
+**Se niega si tiene referentes**, porque borrarlo dejaría bilinks apuntando a la nada:
+
+```
+$ bilinker capture remove 5fdff600
+Error: el capture 5fdff600 tiene referentes — usar `bilinker recapture` para repuntarlos, o --force
+```
+
+`--force` lo borra igual y avisa que hay que correr `check`. `prune` es lo que corresponde para limpiar en bloque; esto es para un capture concreto.
+
 ## Código de salida
 
 | Código | Condición |

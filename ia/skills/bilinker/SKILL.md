@@ -116,6 +116,10 @@ bilinker apply -y              # sin confirmación
 # Aceptar cambios de contenido (ALTERED / RESTYLED / CHAIN_DIRTY / PENDING)
 bilinker accept <uuid>.<N>     # un endpoint
 bilinker accept .              # todos los que necesitan atención en la layer actual
+
+# Repuntar un endpoint que ya no ancla (UNANCHORED, o fragmento movido a otro repo)
+bilinker recapture <uuid>.<N> <file> <línea>:<col>
+# crea el capture, reescribe link.N y limpia state.N — no acepta
 ```
 
 ### Qué hace `apply` y qué no
@@ -164,7 +168,7 @@ Los estados están partidos en dos: **dónde está** (capture) y **coincide con 
 | `RESOLVED` | La query matchea; `range` actualizado | — |
 | `MOVED` | Archivo renombrado (≥50% similitud git) | `bilinker apply` |
 | `REANCHORED` | Anchor renombrado/movido, nueva posición en AST | `bilinker apply` + `accept` |
-| `UNANCHORED` | Query no matchea ningún nodo | re-capture o remove |
+| `UNANCHORED` | Query no matchea ningún nodo | `bilinker recapture` o `remove` |
 | `DELETED` | Archivo eliminado (rastreable en git) | restaurar o remove |
 | `BROKEN` | Ninguna hipótesis aplica | intervención |
 
@@ -213,6 +217,8 @@ bilinker accept <uuid>.0                      # aceptar endpoint 0 de un bilink
 bilinker index --recursive                    # reconstruir índice (acelera get / graph)
 bilinker capture <file> <l>:<c> <l>:<c>       # crear un capture, devuelve su UUID
 bilinker capture prune                        # borrar captures sin referentes
+bilinker capture remove <uuid>                # borrar un capture puntual
+bilinker recapture <uuid>.<N> <file> <l>:<c>  # repuntar un endpoint que ya no ancla
 bilinker get <uuid>.<N>                       # ver fragmento del endpoint
 bilinker get <uuid>.<N> --diff                # diff contra el estado aceptado
 bilinker graph <file>                         # bilinks que referencian el archivo
