@@ -5,35 +5,40 @@ scenarios:
   - id: capture-identifies-stable-anchor
     description: capture sube en el AST hasta el primer ancestro estable
     given:
-      - archivo Rust con función `fn cmd_pull`
-      - selección dentro del cuerpo de la función
+      - archivo con una declaración nombrada
+      - selección dentro del cuerpo de esa declaración
     when:
-      - bilinker capture src/main.rs 37:5 40:10
+      - bilinker capture <file> <start> <end>
     expect:
-      - el .capture creado contiene query con `(function_item name: ... @n0 (#eq? @n0 "cmd_pull"))`
-    impl: capture_identifies_workspace_file_and_method
+      - el .capture creado contiene query con el predicado del nombre del anchor
+      - el .capture no contiene hashes — describe ubicación, no aceptación
+    impl: capture_writes_a_capture_with_the_stable_anchor
 
-  - id: capture-query-is-stable
-    description: capturar el mismo fragmento dos veces produce la misma query y el mismo range
+  - id: capture-reuses-an-equivalent-capture
+    description: capturar el mismo fragmento dos veces reusa el capture existente
     given:
       - archivo sin modificaciones
     when:
       - bilinker capture <file> <start> <end>  (dos veces)
     expect:
-      - misma query y mismo range en ambos .capture
-      - UUID distinto en cada uno — capture no deduplica
-    impl: capture_hash_is_valid_sha256_and_stable
+      - el mismo UUID en ambas ejecuciones
+      - la segunda reporta "reusado" en stderr
+      - un solo .capture en la capa
+    impl: capturing_the_same_fragment_twice_reuses_the_capture
 
-  - id: capture-hash-changes-on-modification
-    description: modificar el fragmento cambia el hash que calcula accept
+  - id: capture-reference-survives-a-content-change
+    description: cambiar el contenido no cambia la referencia
     given:
-      - archivo capturado y aceptado con hash H1
-      - contenido del fragmento modificado
+      - fragmento capturado
+      - el cuerpo de la declaración modificado, su firma intacta
     when:
       - bilinker capture <file> <start> <end>
     expect:
-      - hash ≠ H1
-    impl: drift_changes_hash
+      - el mismo UUID que antes del cambio
+    notes:
+      - la referencia apunta a un nodo AST, no a un contenido; que sobreviva a
+        un cambio de cuerpo es la promesa central de la herramienta
+    impl: the_reference_survives_a_content_change
 
   - id: capture-whole-file-no-position
     description: sin posición captura el archivo completo sin query

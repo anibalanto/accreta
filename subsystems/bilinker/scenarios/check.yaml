@@ -66,16 +66,20 @@ scenarios:
       state: [PENDING, TODO]
     impl: check_layer_todo_when_adjacent_missing_and_no_hash
 
-  - id: check-broken-file-missing
-    description: Endpoint estructural reporta BROKEN cuando el archivo referenciado no existe
+  - id: check-unresolved-file-missing
+    description: El endpoint queda UNRESOLVED cuando el archivo no existe; el detalle lo lleva el capture
     given:
       - bilink aceptado con archivo existente
       - archivo eliminado del filesystem
     when:
       - bilinker check .
     expect:
-      state: [BROKEN, OK]
-    impl: check_structural_broken_when_file_missing
+      state: [UNRESOLVED, OK]
+      capture_state: BROKEN
+    notes:
+      - que el archivo no esté es un problema de ubicación, no del vínculo; el bilink solo registra que no puede evaluarse
+      - con historial git del archivo el capture reporta DELETED en lugar de BROKEN, porque la eliminación es rastreable
+    impl: check_unresolved_when_file_missing
 
   - id: check-exit-zero-all-ok
     description: Exit code 0 cuando todos los endpoints están en OK

@@ -2,6 +2,6 @@ file:   subsystems/bilinker/commands/check.md
 query:  (section (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker check`")) (section (atx_heading (inline) @n1 (#eq? @n1 "Estados — endpoints layer (2 estados adicionales)"))) @target)
 
 # Cache
-range:       2415~2722
+range:       3226~5109
 state:       RESOLVED
-resolved_at: 2026-08-24T17:35:01Z
+resolved_at: 2026-08-26T15:07:30Z

@@ -137,6 +137,7 @@ Un capture huérfano no rompe nada — se resuelve en cada `check` sin que nadie
 
 ## Propiedades garantizadas
 
-- **Determinismo de la referencia**: dos ejecuciones sobre el mismo archivo y selección sin modificaciones intermedias producen la misma `query` y el mismo `range`. El UUID, en cambio, es nuevo en cada ejecución — capturar dos veces el mismo fragmento crea dos captures.
+- **Determinismo de la referencia**: dos ejecuciones sobre el mismo archivo y selección sin modificaciones intermedias producen la misma `query` y el mismo `range`.
+- **Reuso**: capturar dos veces el mismo fragmento devuelve el **mismo** UUID. Antes de crear uno nuevo, `capture` busca un capture de la capa con la referencia exacta `(file, query, offset)` — el mismo criterio que usa la migración. Sin esto, cada cadena nueva volvería a duplicar lo que aquélla unificó.
 - **Independencia de git**: `capture` no requiere que el archivo esté bajo control de versiones.
 - **No toca bilinks**: `capture` crea el archivo del capture y nada más. Referenciarlo desde un `link.N` es un paso aparte, manual o vía `bilinker chain new`.
