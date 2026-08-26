@@ -26,7 +26,7 @@ Los archivos dentro de `.bilink/` se ignoran.
 $ bilinker watch
 watching /home/user/proyecto/subsystems/stratum  (Ctrl-C to stop)
 
-ALTERED  crates/estrato-cli/src/main.rs  chain 8e2e749a-fbb9-44aa-9b7f-a57972498371
+ALTERED  crates/stratum-cli/src/main.rs  chain 8e2e749a-fbb9-44aa-9b7f-a57972498371
 ALTERED  crates/stratum/src/path.rs      chain 9cfe0db7-65d3-4b26-bb08-ba661dcb071d
 ```
 

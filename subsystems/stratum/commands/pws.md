@@ -22,9 +22,9 @@ Sin argumentos.
 ## Salida
 
 ```
-$ cd /home/user/accreta/subsystems/stratum/.stratum/impl/crates/estrato-cli/src
+$ cd /home/user/accreta/subsystems/stratum/.stratum/impl/crates/stratum-cli/src
 $ stratum pws
-*/subsystems/stratum>impl/crates/estrato-cli/src
+*/subsystems/stratum>impl/crates/stratum-cli/src
 ```
 
 ```

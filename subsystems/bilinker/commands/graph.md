@@ -62,11 +62,11 @@ commands/pull.md
 │   │
 │   └── c0feab23  [OK ↔ OK]  (.stratum/impl)
 │       │  link.0  <
-│       │  link.1  crates/estrato-cli/src/main.rs :: (enum_item ...) @target
+│       │  link.1  crates/stratum-cli/src/main.rs :: (enum_item ...) @target
 │       │
 └── b95021d2  [OK ↔ OK]
     └── b95021d2  [OK ↔ OK]  (.stratum/impl)
-        │  link.1  crates/estrato-cli/src/main.rs :: (function_item ...) @target
+        │  link.1  crates/stratum-cli/src/main.rs :: (function_item ...) @target
         │
 ```
 
@@ -89,7 +89,7 @@ Emite las aristas de bilinker en el modelo de [lattice](../../lattice/concepts/e
 [
   {
     "from":      ".::commands/pull.md#312~358",
-    "to":        ".stratum/impl::crates/estrato-cli/src/main.rs#245~389",
+    "to":        ".stratum/impl::crates/stratum-cli/src/main.rs#245~389",
     "kind":      "bilink",
     "guarantee": "accepted",
     "provider":  "bilinker",
