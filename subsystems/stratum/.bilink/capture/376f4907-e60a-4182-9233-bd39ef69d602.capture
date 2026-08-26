@@ -1,4 +1,6 @@
 file:   commands/estrato.md
 
 # Cache
-range:       0~3125
+range:       0~3137
+state:       RESOLVED
+resolved_at: 2026-08-26T20:06:08Z

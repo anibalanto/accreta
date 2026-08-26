@@ -2,3 +2,5 @@ file:   concepts/sublayer-config.md
 
 # Cache
 range:       0~2984
+state:       RESOLVED
+resolved_at: 2026-08-26T20:06:08Z

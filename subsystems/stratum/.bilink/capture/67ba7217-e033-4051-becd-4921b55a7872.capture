@@ -2,3 +2,5 @@ file:   commands/pull.md
 
 # Cache
 range:       0~1763
+state:       RESOLVED
+resolved_at: 2026-08-26T20:06:08Z

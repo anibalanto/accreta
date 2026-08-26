@@ -1,7 +1,0 @@
-file:   subsystems/bilinker/editors/vscode.md
-query:  (section (atx_heading (inline) @n0 (#eq? @n0 "Editor VS Code: extensión bilinker")) (section (atx_heading (inline) @n1 (#eq? @n1 "LSP: hover"))) @target)
-
-# Cache
-range:       450~674
-state:       RESOLVED
-resolved_at: 2026-08-24T17:35:01Z
