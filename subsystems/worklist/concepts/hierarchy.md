@@ -9,7 +9,7 @@ La jerarquía de worklist es flexible. Cualquier tipo puede existir en el nivel 
 | Epic | raíz | user-stories, tasks |
 | User Story | raíz, carpeta de epic | tasks |
 | Task | raíz, carpeta de epic, carpeta de user-story | nada |
-| Sprint | `sprints/` | nada en carpetas — **referencia** user stories y tasks |
+| Sprint | `_sprints/` | nada en carpetas — **referencia** user stories y tasks |
 
 ## Estructura de ejemplo
 
@@ -58,7 +58,15 @@ Los IDs no codifican la jerarquía — un ítem hijo puede tener un ID posterior
 
 Un sprint no contiene: referencia. Y **vive en `sprints/`, fuera del árbol de descomposición**, porque no participa de él: puede llevarse ítems de épicas distintas, y los que nombra siguen viviendo donde estaban.
 
-Eso mantiene limpia la lectura de las carpetas. Una carpeta con nombre de id —`1/`— es contención: lo que hay adentro pertenece al ítem `1`. `sprints/` no es eso: es un espacio de nombres para el otro eje.
+Eso mantiene limpia la lectura de las carpetas. Una carpeta con nombre de id —`1/`— es contención: lo que hay adentro pertenece al ítem `1`. `_sprints/` no es eso: es un espacio de nombres para el otro eje.
+
+### Los directorios que no son ids llevan `_`
+
+> **Un directorio cuyo nombre no es un id de ítem empieza con `_`.**
+
+Los ids son base-36, `[0-9a-z]`, así que un nombre con `_` adelante **nunca puede ser uno**. Sin la regla, `sprints/` es un nombre libre que el contador alcanzaría en el ítem 62.507.780.128 — nunca, pero "nunca" por improbable y no por imposible, y entonces la lectura de una carpeta pasaría a depender de que ese número no llegue.
+
+Vale para cualquier directorio que se agregue después con otro propósito.
 
 ```
 1.epic.md                     ← épica 1
@@ -67,7 +75,7 @@ Eso mantiene limpia la lectura de las carpetas. Una carpeta con nombre de id —
   n/
     8.task.md
     o.task.md
-sprints/
+_sprints/
   1.sprint.md                 ← sprint 1; referencia a ../1/n.user-story.md
 ```
 

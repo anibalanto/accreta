@@ -13,7 +13,7 @@ El trabajo vive en `<project-root>/.stratum/worklist/`. Spec completa en [`subsy
   n.user-story.md
   n/
     8.task.md
-sprints/                  el otro eje, fuera del árbol de descomposición
+_sprints/                 el otro eje; el `_` garantiza que nunca sea un id
   1.sprint.md … 7.sprint.md
 ```
 
@@ -22,9 +22,9 @@ sprints/                  el otro eje, fuera del árbol de descomposición
 | Epic | `.epic.md` | raíz |
 | User Story | `.user-story.md` | raíz o carpeta de épica |
 | Task | `.task.md` | raíz, carpeta de épica o de user story |
-| Sprint | `.sprint.md` | `sprints/` |
+| Sprint | `.sprint.md` | `_sprints/` |
 
-Ids **base-36** (`1…9, a…z, 10…`), de orden de creación, no de prioridad. Los sprints llevan **contador aparte**: `sprints/1.sprint.md` es el sprint 1. Por eso `1` solo es ambiguo — desambiguar con el sufijo: `show 1` es el ítem, `show 1.sprint` es el sprint.
+Ids **base-36** (`1…9, a…z, 10…`), de orden de creación, no de prioridad. Los sprints llevan **contador aparte**: `_sprints/1.sprint.md` es el sprint 1. Por eso `1` solo es ambiguo — desambiguar con el sufijo: `show 1` es el ítem, `show 1.sprint` es el sprint.
 
 Frontmatter, exactamente cuatro campos:
 
