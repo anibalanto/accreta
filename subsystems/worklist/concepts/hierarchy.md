@@ -9,7 +9,7 @@ La jerarquía de worklist es flexible. Cualquier tipo puede existir en el nivel 
 | Epic | raíz | user-stories, tasks |
 | User Story | raíz, carpeta de epic | tasks |
 | Task | raíz, carpeta de epic, carpeta de user-story | nada |
-| Sprint | raíz | nada en carpetas — **referencia** user stories y tasks |
+| Sprint | `sprints/` | nada en carpetas — **referencia** user stories y tasks |
 
 ## Estructura de ejemplo
 
@@ -56,16 +56,19 @@ Los IDs no codifican la jerarquía — un ítem hijo puede tener un ID posterior
 
 ## Sprints
 
-Un sprint no contiene: referencia. Vive en la raíz porque puede llevarse ítems de épicas distintas, y los ítems que nombra siguen viviendo donde estaban.
+Un sprint no contiene: referencia. Y **vive en `sprints/`, fuera del árbol de descomposición**, porque no participa de él: puede llevarse ítems de épicas distintas, y los que nombra siguen viviendo donde estaban.
+
+Eso mantiene limpia la lectura de las carpetas. Una carpeta con nombre de id —`1/`— es contención: lo que hay adentro pertenece al ítem `1`. `sprints/` no es eso: es un espacio de nombres para el otro eje.
 
 ```
 1.epic.md                     ← épica 1
-1.sprint.md                   ← sprint 1, índice propio; referencia a 1/n.user-story.md
 1/
   n.user-story.md
   n/
     8.task.md
     o.task.md
+sprints/
+  1.sprint.md                 ← sprint 1; referencia a ../1/n.user-story.md
 ```
 
 ### La regla del ancestro
