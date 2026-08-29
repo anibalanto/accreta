@@ -59,8 +59,8 @@ Los IDs no codifican la jerarquía — un ítem hijo puede tener un ID posterior
 Un sprint no contiene: referencia. Vive en la raíz porque puede llevarse ítems de épicas distintas, y los ítems que nombra siguen viviendo donde estaban.
 
 ```
-1.epic.md
-u.sprint.md                   ← referencia a 1/n.user-story.md
+1.epic.md                     ← épica 1
+1.sprint.md                   ← sprint 1, índice propio; referencia a 1/n.user-story.md
 1/
   n.user-story.md
   n/

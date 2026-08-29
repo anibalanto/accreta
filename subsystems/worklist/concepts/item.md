@@ -13,6 +13,10 @@ Un ítem es la unidad de trabajo en worklist. Representa algo que hay que hacer 
 
 ## Identificación
 
+**Los sprints llevan índice propio.** Su id no sale del contador de épicas, user stories y tasks: `1.sprint.md` es el sprint 1. Son otro eje —tiempo, no descomposición— y su número es parte de cómo se los nombra, así que compartir contador daría `u.sprint.md` titulado "Sprint 1", dos nombres para lo mismo.
+
+El costo es que `1` deja de identificar una sola cosa. Se desambigua con el sufijo, que ya está en el nombre del archivo: `worklist show 1` es el ítem, `worklist show 1.sprint` es el sprint.
+
 El nombre del archivo es `<id>.<tipo>.md`. El **ID base-36 corto** lo asigna el servidor al crear el ítem; el tipo va en el medio; la extensión es siempre `.md`:
 
 ```
