@@ -3,6 +3,14 @@ name: bilinker
 description: "Crea, verifica y mantiene bilinks — referencias bidireccionales persistentes entre fragmentos de texto en distintas capas del proyecto (spec, impl, docs). Opera solo con git y tree-sitter. Carga esta skill cuando necesites crear un .bilink, interpretar su estado, o ejecutar bilinker check/accept/apply/get."
 ---
 
+> [!WARNING]
+> **Este skill describe el formato anterior.** ADR-0003, ADR-0004, ADR-0005 y ADR-0006 —en `subsystems/bilinker/.stratum/impl/docs/adr/`— lo cambian: los archivos pasan a YAML, el bloque `accepted` reemplaza a `hash.N`/`commit.N`, `resolved_at` desaparece, los endpoints llevan prefijo de tipo (`path >impl`, `repo hsi`) y los bilinks se mudan a `refs/bilink/<branch>`.
+>
+> Como este skill se carga solo, no es documentación desactualizada sino **una instrucción activa de escribir el formato anterior**. Hasta que se reescriba —es la primera task del sprint 1—, leerlo contra los ADRs y no al revés.
+>
+> **Y son dos copias**, `.claude/skills/bilinker/SKILL.md` e `ia/skills/bilinker/SKILL.md`. La que se carga es la primera; reescribir sólo la segunda no arregla nada.
+
+
 Bilinker mantiene referencias bidireccionales entre fragmentos de texto a través de capas Stratum. La referencia apunta a un nodo AST (via tree-sitter), no a un número de línea, por lo que sobrevive reformateos y movimientos.
 
 ## Conceptos clave
