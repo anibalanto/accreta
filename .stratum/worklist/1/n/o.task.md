@@ -42,4 +42,10 @@ Los ADRs esperan tocar: `bilink.rs` (las claves del formato y su escritura), `ca
 
 ## Cuándo está hecha
 
-Cada spec del inventario de los tres ADRs tiene al menos un bilink que llega al código que la implementa, y cada archivo de la lista de arriba es alcanzable desde alguna spec.
+> **Si una especificación tiene implementación, está bilinkeada.**
+
+No es "todo bilinkeado". Buena parte de una spec —el porqué de una decisión, una alternativa descartada, un ejemplo— no tiene código que la implemente, y vincularla no detecta nada porque no hay contra qué derivar. Y sobre-cubrir tiene un costo propio: si todo estuviera vinculado, editar una spec produciría cientos de no-OK y **el inventario dejaría de servir como inventario** — la respuesta racional pasaría a ser `accept .` a ciegas, que es justo lo que ADR-0003 prohíbe.
+
+El criterio es al revés: **partir del código**. Para cada cosa que la implementación hace, la spec que la describe tiene que llegar hasta ahí por un bilink. Un archivo con siete afirmaciones verificables lleva siete — `commands/check.md` ya tiene 7, y está bien así.
+
+**El cruce hay que hacerlo**: recorrer los comandos del CLI y los módulos del core contra las specs que los describen, y anotar dónde no hay bilink. La lista de arriba es el punto de partida medido, no el alcance.
