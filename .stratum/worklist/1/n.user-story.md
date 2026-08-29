@@ -13,11 +13,9 @@ Como quien va a ejecutar esta épica, quiero que cargar el skill y correr `bilin
 
 ## Por qué va primera
 
-Dos razones, y las dos son de método:
-
-**El skill se carga en cada tarea.** Hoy documenta el formato viejo, y ADR-0003 lo dice sin vueltas: un skill desactualizado *"no es documentación desactualizada sino una instrucción activa de crear bilinks en el formato anterior"*. Si el prerequisito de todo es cargarlo, cargarlo viejo envenena todo lo que sigue.
-
 **Los bilinks son el índice del trabajo, y hoy tiene agujeros.** El método se apoya en que tocar una spec rompa bilinks que apunten al código. Medido contra lo que los ADRs mandan tocar, eso hoy no se cumple: `concepts/capture.md` —la spec que ADR-0003 más reescribe— no tiene **ningún** bilink, y `apply.rs` —que cambia de raíz— tampoco. Reescribirlas no rompería nada y el método daría silencio justo donde hay más trabajo.
+
+Y va **antes** de tocar cualquier spec, no después: cerrar la cobertura sobre archivos ya reescritos sería vincular a ciegas.
 
 ## Cuándo está hecha
 
