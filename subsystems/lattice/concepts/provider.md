@@ -23,7 +23,7 @@ Sin `edges_from`, lattice enumera todo el scope y filtra. Con `edges_from`, el t
 La garantía de un `kind` es fija y la declara el proveedor, no cada arista. Un proveedor puede emitir varios `kind`:
 
 ```
-bilinker  → [(bilink, accepted), (governs, accepted), (task, accepted)]
+bilinker  → [(bilink, accepted), (task, accepted)]        # governs: ver edge.md
 lsp       → [(call, derived)]
 doc       → [(doclink, asserted), (external, asserted)]
 ```

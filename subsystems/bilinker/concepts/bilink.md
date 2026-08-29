@@ -24,16 +24,15 @@ El tipo de un endpoint se infiere del valor de `link.N` — no hay prefijo de ti
 |---|---|---|
 | **Estructural** | `capture <uuid>` | Referencia a un [capture](capture.md) de la misma capa, que describe dónde está el fragmento. |
 | **Layer** | path Stratum | Apunta a un nodo adyacente en otra capa. |
-| **Task** | `task <id>` | Apunta a un ítem del worklist en `<project-root>/.stratum/worklist/<id>.task`. Se hashea y verifica como un endpoint estructural. |
-| **Bilink** | `.bilink/<uuid>.bilink` | Apunta a otro bilink por UUID. Se trata como un archivo estructural. |
+| **Task** | `task <id>` | Apunta a un ítem del worklist en `<project-root>/.stratum/worklist/<id>.task.md`. Se hashea y verifica como un endpoint estructural. |
+
+Existió un cuarto tipo, el **endpoint bilink**, que apuntaba a otro bilink por UUID. Está especificado y no implementado, así que vive en [`proposals/bilink-endpoint.md`](../proposals/bilink-endpoint.md) con sus dos casos de uso — la gobernanza y el bilink de tarea — hasta que alguien lo implemente.
 
 Un endpoint estructural **no describe el fragmento**: referencia un capture, que es quien guarda `file`, `query` y `offset`. Varios bilinks pueden referenciar el mismo capture, de modo que la ubicación de un fragmento se describe y se mantiene una sola vez.
 
 Lo que sí es propio de cada endpoint es **qué versión se aceptó**: `hash.N`, `hash_ast.N` y `commit.N` viven en el bilink. Dos bilinks sobre el mismo capture pueden haber aceptado contenidos distintos y reportar estados distintos.
 
 Los endpoints layer usan el lenguaje de paths Stratum (ver especificación en [Stratum — lenguaje de paths](../../stratum/concepts/paths.md)).
-
-Un endpoint bilink referencia un archivo `.bilink` por su path relativo a la raíz de la layer actual. El tipo se reconoce por el prefijo `.bilink/` en el valor.
 
 ### Resolución de un endpoint layer
 
@@ -84,17 +83,6 @@ state.1: TODO                ← calculado por bilinker check
 
 Una vez creada la capa y aceptado el endpoint, el estado pasa a `OK`.
 
-### Bilink de tarea
-
-Un bilink puede conectar un bilink estructural con un ítem del worklist. Vive en la capa donde se debe ejecutar la tarea.
-
-```
-link.0: .bilink/<uuid-estructural>.bilink   ← bilink estructural como archivo
-link.1: task 3a                             ← ítem en worklist
-```
-
-`bilinker check` hashea el archivo de tarea (`<project-root>/.stratum/worklist/3a.task`) como cualquier endpoint estructural — detecta si el contenido de la tarea cambia.
-
 ## Estructura del archivo
 
 ```
@@ -130,6 +118,8 @@ Clasifica la relación que el bilink representa. Valor libre; valores definidos:
 |-------|-------------|
 | *(ausente)* | Vínculo estructural — relación de implementación entre fragmentos |
 | `governs` | Decisión o documento que gobierna/afecta un vínculo entre capas |
+
+`governs` es el único valor definido, y **todavía no se puede expresar**: exige que `link.1` apunte a otro bilink, y ese tipo de endpoint está en [`proposals/bilink-endpoint.md`](../proposals/bilink-endpoint.md). El campo sí existe y se preserva; su valor documentado espera a que vuelva el endpoint.
 
 Otros valores posibles en el futuro: `validates`, `documents`, `depends-on`, etc.
 
@@ -218,15 +208,6 @@ Timestamp ISO 8601 UTC del último `check`.
 
 Los endpoints layer no tienen capture: apuntan a una capa, no a un fragmento.
 
-### Endpoint bilink
-
-| Estado | Significado | Cómo se llega | Cómo se sale |
-|--------|-------------|---------------|--------------|
-| `PENDING` | `hash.N` ausente | creación | `bilinker accept` |
-| `OK` | Hash actual del `.bilink` referenciado == `hash.N` | `bilinker accept` | Cambio en el bilink referenciado |
-| `CHAIN_DIRTY` | `.bilink` referenciado existe pero su hash ≠ `hash.N` | `bilinker check` | `bilinker accept` |
-| `UNREACHABLE` | `.bilink` referenciado no existe localmente | `bilinker check` | Obtener la layer + `accept` |
-
 `bilinker remove` elimina el archivo `.bilink` del nodo actual. Los nodos adyacentes detectarán `BROKEN` en el próximo `check` y deberán también decidir: reparar o remover. La remoción se propaga hop a hop por la cadena.
 
 ## Propagación reactiva y hash chain
@@ -255,58 +236,6 @@ Esta propagación garantiza que **ningún cambio de contenido puede ser aprobado
 - Los prefijos `capture ` y `task ` en el valor de `link.N` indican endpoint estructural y task respectivamente. El prefijo sin espacio seguido es inválido.
 - Líneas que comienzan con `#` son comentarios y se ignoran.
 - El archivo usa codificación UTF-8 sin BOM.
-
-## Ejemplo: bilink de gobernanza
-
-Un documento de decisión que gobierna un vínculo entre capas:
-
-```
-# .bilink/f9a1b2c3-0000-0000-0000-000000000000.bilink
-link.0: docs/adr/design-voting-machine.md
-link.1: .bilink/7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.bilink
-
-kind:   governs
-name.0: architecture-decision
-name.1: spec-impl-bridge
-
-hash.0: b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2
-commit.0: d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3
-hash.1: e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6
-commit.1: f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6
-state.0: OK
-state.1: OK
-resolved_at: 2026-05-29T09:00:00Z
-```
-
-Esto crea una relación ternaria implícita:
-
-```
-docs/adr/design-voting-machine.md
-        ↕ (f9a1b2c3 — governs)
-specs/voting.yaml ↔ impl/Voting.java
-        (7f3d8e9a)
-```
-
-## Ejemplo: bilink de tarea
-
-Bilink que conecta un bilink estructural con un ítem del worklist:
-
-```
-# .bilink/a3f9c821-4e5b-4c3d-9f2a-1b2c3d4e5f6a.bilink
-link.0: .bilink/7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.bilink
-link.1: task 3a
-
-# Cache
-hash.0: e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6
-commit.0: d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3
-hash.1: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2
-commit.1: c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2
-state.0: OK
-state.1: OK
-resolved_at: 2026-05-29T09:00:00Z
-```
-
-`link.0` apunta al archivo del bilink estructural (tratado como structural). `link.1` apunta al ítem `3a` en `<project-root>/.stratum/worklist/3a.task`. Si el contenido de la tarea cambia, `bilinker check` reporta `ALTERED` en `state.1`.
 
 ## Ejemplo completo: cadena de 2 nodos spec → impl
 
@@ -374,18 +303,17 @@ Notar dos cosas: `spec.hash.1 == impl.hash.1` y `impl.hash.0 == spec.hash.0` —
 
 1. El nombre del archivo es un UUID v4 válido con extensión `.bilink`.
 2. Siempre existen `link.0` y `link.1`, y solo esos dos. La aridad es fija: la multiplicidad la aporta el capture, que puede tener N bilinks asociados. Ver [capture.md](capture.md) § "El fan-out vive del lado del capture".
-3. Un bilink de misma capa tiene dos endpoints estructurales. Una cadena entre capas tiene exactamente dos tips. Un bilink de tarea conecta un endpoint bilink con un endpoint `task <id>`.
+3. Un bilink de misma capa tiene dos endpoints estructurales. Una cadena entre capas tiene exactamente dos tips.
 4. `hash.N` y `commit.N` están siempre presentes juntos o ausentes juntos.
 5. `hash.N` de un endpoint estructural: SHA-256 del fragmento referenciado.
 6. `hash.N` de un endpoint layer: idéntico al `hash.N` del endpoint estructural del bilink adyacente. Nunca es el hash del archivo `.bilink` adyacente.
-7. `hash.N` de un endpoint bilink: SHA-256 del archivo `.bilink` referenciado completo.
-8. Un endpoint `task <id>` se hashea como el contenido del archivo de tarea. No tiene capture asociado.
-9. `state.N = OK` si y solo si el hash actual de lo apuntado == `hash.N`.
-10. Un endpoint estructural referencia exactamente un capture, de su misma capa.
-11. Un bilink no contiene `file`, `query`, `offset` ni `range` — esos campos viven en el capture.
-12. `state.N` siempre está presente en la cache una vez que el bilink fue verificado.
-13. Si existe cualquier campo de cache, debe existir `resolved_at`.
-14. `resolved_at` es siempre UTC (`YYYY-MM-DDTHH:MM:SSZ`).
-15. La topología de la cadena es lineal — sin ciclos ni bifurcaciones.
-16. Solo se puede crear un bilink sobre archivos con historial git.
-17. `kind` y `name.N` son independientes de la cache — no afectan `hash.N` ni `state.N`.
+7. Un endpoint `task <id>` se hashea como el contenido del archivo de tarea. No tiene capture asociado.
+8. `state.N = OK` si y solo si el hash actual de lo apuntado == `hash.N`.
+9. Un endpoint estructural referencia exactamente un capture, de su misma capa.
+10. Un bilink no contiene `file`, `query`, `offset` ni `range` — esos campos viven en el capture.
+11. `state.N` siempre está presente en la cache una vez que el bilink fue verificado.
+12. Si existe cualquier campo de cache, debe existir `resolved_at`.
+13. `resolved_at` es siempre UTC (`YYYY-MM-DDTHH:MM:SSZ`).
+14. La topología de la cadena es lineal — sin ciclos ni bifurcaciones.
+15. Solo se puede crear un bilink sobre archivos con historial git.
+16. `kind` y `name.N` son independientes de la cache — no afectan `hash.N` ni `state.N`.

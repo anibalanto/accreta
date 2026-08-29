@@ -24,7 +24,7 @@ lattice graph <selector>
 | `--up` | Sigue aristas dirigidas en sentido inverso (callers). Default en presencia de `--state`. |
 | `--down` | Sigue aristas dirigidas en sentido directo (callees). |
 | `--both` | Ambos sentidos. Default cuando no se especifica ninguno. |
-| `--via <kinds>` | Lista de `kind` habilitados: `bilink,governs,task,call,doclink,external`. Default: todos los disponibles. |
+| `--via <kinds>` | Lista de `kind` habilitados: `bilink,governs,task,call,doclink,external`. Default: todos los disponibles — y `governs` todavía no lo emite ningún proveedor, ver [edge.md](../concepts/edge.md) § "Tipos de arista". |
 | `--guarantee <nivel>` | Garantía mínima: `accepted`, `derived`, `asserted`. Default: `asserted` (todas). |
 | `--state <filtro>` | Solo nodos alcanzados por aristas con ese estado. `non-ok` selecciona todo lo distinto de OK. |
 | `--depth <n>` | Profundidad máxima. Default: sin límite. |
@@ -54,7 +54,7 @@ lattice graph fac79bf8.1
 lattice graph fac79bf8 --via governs
 ```
 
-La distinción importa porque una arista `governs` no apunta a un fragmento: apunta al vínculo entre dos fragmentos. Su nodo destino es el archivo `.bilink`, que comparte `ref` con la arista `bilink` de esa cadena — ver [integration/bilinker.md](../integration/bilinker.md) § "El endpoint bilink y las aristas `governs`".
+El segundo ejemplo no devuelve nada todavía, porque `governs` no se emite; la distinción importa igual, y es la razón de que `<uuid>` exista como selector. Una arista `governs` no apunta a un fragmento: apunta al vínculo entre dos fragmentos. Su nodo destino es el archivo `.bilink`, que comparte `ref` con la arista `bilink` de esa cadena — ver [integration/bilinker.md](../integration/bilinker.md) § "El endpoint bilink y las aristas `governs`".
 
 Con `<uuid>` el traversal arranca desde ese nodo *y* desde los dos tips, de modo que una consulta sin `--via` devuelve el vínculo completo con lo que lo gobierna.
 

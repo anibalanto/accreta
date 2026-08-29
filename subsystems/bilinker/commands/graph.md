@@ -102,7 +102,7 @@ Emite las aristas de bilinker en el modelo de [lattice](../../lattice/concepts/e
 
 Una cadena de N nodos emite **una** arista entre sus dos tips estructurales, no N-1 aristas entre nodos `.bilink`. Los mids son mecanismo interno de bilinker, no conexiones del proyecto.
 
-`state` lleva la tupla `(state.0, state.1)` de los tips. Los `kind` emitidos son `bilink`, `governs` y `task`, todos con garantía `accepted`.
+`state` lleva la tupla `(state.0, state.1)` de los tips. Los `kind` emitidos son `bilink` y `task`, los dos con garantía `accepted`. `governs` **no se emite**: exige el endpoint de tipo bilink, que está en [`proposals/bilink-endpoint.md`](../proposals/bilink-endpoint.md).
 
 > Los formatos `dot` y `html` se movieron a [`lattice graph`](../../lattice/commands/graph.md). Recorrer una cadena es conocimiento del formato bilink; renderizar el grafo nunca lo fue, y en lattice el visor puede mostrar además las aristas de los otros proveedores.
 

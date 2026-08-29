@@ -36,7 +36,7 @@ lattice graph <archivo> --both --guarantee accepted --format json
 La definición no cambia; cambia quién la calcula. Y gana un nivel que antes no tenía: con el proveedor LSP disponible,
 
 ```bash
-lattice graph <archivo> --up --via bilink,governs,call --format json
+lattice graph <archivo> --up --via bilink,governs,call --format json   # governs: pendiente del proveedor
 ```
 
 alcanza también las specs que gobiernan funciones que *llaman* al código modificado, no solo las que lo referencian directamente. Esas aristas llegan marcadas `derived`, y el reporte debe distinguirlas.

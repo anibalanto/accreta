@@ -58,6 +58,8 @@ Un consumidor puede filtrar por garantía, pero nunca recibe una arista sin ella
 
 Un proveedor puede emitir varios `kind`, pero la garantía de cada `kind` es fija: no existe un `call` aceptado ni un `bilink` derivado.
 
+> **`governs` todavía no lo emite nadie.** Exige el endpoint de tipo bilink de bilinker, que está especificado y no implementado — ver [`proposals/bilink-endpoint.md`](../../bilinker/proposals/bilink-endpoint.md). El `kind` queda declarado acá porque lattice ya sabe transportarlo; lo que falta es el proveedor.
+
 ## Contención
 
 Dos proveedores nunca van a nombrar el mismo fragmento con el mismo rango. Bilinker dice que el fragmento son los bytes `245~389`; el LSP dice que la función `vote` empieza en la línea 11. Si el grafo exigiera identidad exacta de nodos, se fragmentaría en casi-duplicados y ninguna consulta cruzaría de un proveedor a otro.

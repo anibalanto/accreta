@@ -37,7 +37,7 @@ Bilinker emite sus aristas con los nodos ya en forma canónica y la topología d
 }
 ```
 
-`kinds()` del proveedor: `bilink`, `governs` y `task`, los tres con garantía `accepted`.
+`kinds()` del proveedor: `bilink` y `task`, los dos con garantía `accepted`. `governs` está definido pero bilinker no lo emite todavía: ver la sección de más abajo.
 
 ### Qué resuelve bilinker antes de emitir
 
@@ -67,6 +67,8 @@ Un `state` desactualizado es un `check` que no se corrió, no un error de lattic
 Esto mantiene la propiedad de que lattice es solo lectura y no tiene efectos sobre las fuentes.
 
 ## El endpoint bilink y las aristas `governs`
+
+> **Pendiente del proveedor.** Todo lo de esta sección depende del endpoint de tipo bilink, que bilinker tiene especificado y no implementado — ver [`proposals/bilink-endpoint.md`](../../bilinker/proposals/bilink-endpoint.md). El diseño de lattice queda escrito acá porque no cambia: cuando el endpoint vuelva, estas aristas se emiten sin tocar nada de este lado.
 
 Un bilink con `kind: governs` apunta en su `link.1` a otro archivo `.bilink`, no a un fragmento. Su nodo canónico es el archivo:
 

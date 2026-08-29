@@ -132,7 +132,7 @@ task <id>
 ### Resolución
 
 ```
-<project-root>/.stratum/worklist/<id>.task
+<project-root>/.stratum/worklist/<id>.task.md
 ```
 
 El project root se encuentra subiendo `depth * 2` componentes desde la layer actual (donde `depth = stratum::depth(layer_root)`).
@@ -145,15 +145,7 @@ SHA-256 del contenido del archivo de tarea y commit del repo raíz.
 
 ## Endpoint bilink
 
-Identifica un archivo `.bilink` de otra cadena.
-
-### Forma
-
-```
-.bilink/<uuid>.bilink
-```
-
-Se trata como un endpoint estructural: se hashea el contenido completo del archivo.
+Especificado y no implementado: vive en [`proposals/bilink-endpoint.md`](../proposals/bilink-endpoint.md).
 
 ---
 

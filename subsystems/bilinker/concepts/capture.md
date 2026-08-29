@@ -170,7 +170,7 @@ Esto es deliberado y cierra la alternativa de darle aridad variable al `.bilink`
 
 Con el fan-out en el capture no hace falta tocar nada de eso.
 
-**Lo que esta forma no expresa** es una relación conjunta entre tres cosas. Una estrella dice *"D se relaciona con A"* y *"D se relaciona con B"* por separado; no dice *"D gobierna el vínculo entre A y B"*. Para eso sigue haciendo falta que un bilink apunte a otro bilink — el endpoint de tipo bilink, que no cambia.
+**Lo que esta forma no expresa** es una relación conjunta entre tres cosas. Una estrella dice *"D se relaciona con A"* y *"D se relaciona con B"* por separado; no dice *"D gobierna el vínculo entre A y B"*. Para eso hace falta que un bilink apunte a otro bilink — el endpoint de tipo bilink, que está especificado y no implementado, en [`proposals/bilink-endpoint.md`](../proposals/bilink-endpoint.md).
 
 ## Relación con las cadenas
 
