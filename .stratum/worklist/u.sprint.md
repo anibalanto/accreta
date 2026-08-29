@@ -1,0 +1,12 @@
+---
+title: Sprint 1 — el terreno
+status: open
+created_at: 2026-08-29T00:00:00Z
+updated_at: 2026-08-29T00:00:00Z
+---
+
+# Sprint 1 — el terreno
+
+Las dos precondiciones del método, y nada más. Es la puerta: hasta que el skill no enseñe el formato correcto y tocar una spec no rompa algo, todo lo que venga después se hace a ciegas.
+
+- [`n`](1/n.user-story.md) — El terreno está preparado para trabajar spec-first

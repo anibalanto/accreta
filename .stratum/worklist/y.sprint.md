@@ -1,0 +1,13 @@
+---
+title: Sprint 5 — la ref
+status: open
+created_at: 2026-08-29T00:00:00Z
+updated_at: 2026-08-29T00:00:00Z
+---
+
+# Sprint 5 — la ref
+
+El corte `005` y el día a día encima. Van juntas porque una ref sin `init`, `head` y `adopt` es inusable: el corte deja los bilinks fuera de la vista de git, y estas dos son las que devuelven la vista.
+
+- [`c`](1/c.user-story.md) — Los bilinks salen de las ramas del proyecto
+- [`f`](1/f.user-story.md) — El trabajo diario sobre la ref no requiere pensar en ella

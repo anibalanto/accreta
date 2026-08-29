@@ -9,6 +9,7 @@ La jerarquía de worklist es flexible. Cualquier tipo puede existir en el nivel 
 | Epic | raíz | user-stories, tasks |
 | User Story | raíz, carpeta de epic | tasks |
 | Task | raíz, carpeta de epic, carpeta de user-story | nada |
+| Sprint | raíz | nada en carpetas — **referencia** user stories y tasks |
 
 ## Estructura de ejemplo
 
@@ -52,3 +53,39 @@ Use the full ID.
 ## IDs secuenciales y jerarquía
 
 Los IDs no codifican la jerarquía — un ítem hijo puede tener un ID posterior o anterior al de su padre. La estructura es la carpeta, no el número.
+
+## Sprints
+
+Un sprint no contiene: referencia. Vive en la raíz porque puede llevarse ítems de épicas distintas, y los ítems que nombra siguen viviendo donde estaban.
+
+```
+1.epic.md
+u.sprint.md                   ← referencia a 1/n.user-story.md
+1/
+  n.user-story.md
+  n/
+    8.task.md
+    o.task.md
+```
+
+### La regla del ancestro
+
+> **Un ítem entra a un sprint sólo si ninguno de sus ancestros entra.**
+
+Si va una user story, sus tasks van por contención y no se enumeran. Una task se nombra sola cuando no tiene user story arriba — o cuando cuelga directamente de una épica.
+
+Dos consecuencias, y las dos son deliberadas:
+
+**Una user story no puede atravesar sprints.** Si entra, entra entera. Con lo cual una que no cabe en una iteración deja de ser algo que se parte en el planning y pasa a ser una user story mal dimensionada — el problema se vuelve visible en vez de esconderse en un compromiso parcial.
+
+**Y si una task se quiere sola pero cuelga de una user story**, la pregunta no es cómo sacarla al sprint sino si está bien colgada de esa user story. La regla lleva la discusión a la descomposición, que es donde va.
+
+### El backlog no es un archivo
+
+Un ítem que no está referenciado por ningún sprint está en el backlog **por definición**, y lo lista un comando. Mantenerlo como archivo obligaría a editar dos lugares para mover algo, y los dos podrían divergir.
+
+El cálculo va sobre lo efectivamente referenciado: si las tasks de una user story están en sprints pero la user story no se nombra, la user story no está en ningún sprint. Está bien — el trabajo son las tasks, y la user story es agrupación.
+
+### Épicas
+
+Una épica no entra a un sprint. No lo prohíbe el formato, pero no tiene sentido: si cabe en una iteración, no era una épica.

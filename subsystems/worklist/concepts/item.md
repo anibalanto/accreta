@@ -9,6 +9,7 @@ Un ítem es la unidad de trabajo en worklist. Representa algo que hay que hacer 
 | **Epic** | `.epic.md` | Objetivo de alto nivel. Agrupa user stories o tasks relacionados. |
 | **User Story** | `.user-story.md` | Funcionalidad desde la perspectiva del usuario. Agrupa tasks. |
 | **Task** | `.task.md` | Unidad de trabajo concreta y ejecutable. Sin hijos. |
+| **Sprint** | `.sprint.md` | Iteración. Agrupa por **referencia**, no por contención. |
 
 ## Identificación
 
@@ -28,6 +29,8 @@ El ID es base-36 con el alfabeto `[0-9a-z]`, empezando en `1`. El servidor manti
 ```
 1, 2, 3, …, 9, a, b, …, z, 10, 11, …, 1a, 1b, …, 1z, 20, …
 ```
+
+**El sprint agrupa distinto que los demás.** Una épica agrupa por descomposición y lo expresa con carpetas: sus user stories viven adentro. Un sprint agrupa por tiempo, y lo expresa con **links en su cuerpo**: los ítems que se lleva siguen viviendo donde estaban. Un mismo sprint puede tomar ítems de épicas distintas, y una user story no deja de pertenecer a su épica por entrar en uno.
 
 **La extensión es `.md` a propósito.** El contenido de un ítem es markdown —frontmatter más descripción— y los ítems se editan a mano, a diferencia de los archivos de bilinker. Un `.epic` a secas no lo abre ningún editor con resaltado, ningún visor lo previsualiza, y las herramientas que indexan una carpeta por extensión —Obsidian entre ellas— no lo ven. El tipo sigue estando en el nombre, que es lo que permite leerlo de un `ls` sin abrir el archivo.
 

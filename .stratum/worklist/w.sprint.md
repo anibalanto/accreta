@@ -1,0 +1,13 @@
+---
+title: Sprint 3 — las specs y el formato
+status: open
+created_at: 2026-08-29T00:00:00Z
+updated_at: 2026-08-29T00:00:00Z
+---
+
+# Sprint 3 — las specs y el formato
+
+La spec primero y el código detrás, que es el método de la épica ejercido sobre el cambio más grande. Van juntas porque `5` es lo que rompe los bilinks que `2` sigue hasta el código.
+
+- [`5`](1/5.user-story.md) — Las specs describen lo que existe
+- [`2`](1/2.user-story.md) — El formato nuevo funciona end-to-end en accreta

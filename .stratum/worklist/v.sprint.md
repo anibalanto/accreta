@@ -1,0 +1,12 @@
+---
+title: Sprint 2 — el crate de formato
+status: open
+created_at: 2026-08-29T00:00:00Z
+updated_at: 2026-08-29T00:00:00Z
+---
+
+# Sprint 2 — el crate de formato
+
+Refactor puro, antes de cambiar nada. Extraer primero y modificar después deja dos cambios chicos en vez de uno grande sobre código que además se está moviendo. Y el test de versión queda puesto antes de que haya una segunda versión que verificar.
+
+- [`r`](1/r.user-story.md) — El formato vive en un crate y su versión se verifica sola

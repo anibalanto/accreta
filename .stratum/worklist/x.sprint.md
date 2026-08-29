@@ -1,0 +1,12 @@
+---
+title: Sprint 4 — la migración, hasta el corte de formato
+status: open
+created_at: 2026-08-29T00:00:00Z
+updated_at: 2026-08-29T00:00:00Z
+---
+
+# Sprint 4 — la migración, hasta el corte de formato
+
+Termina en el corte `004`: el formato nuevo vivo en las ramas, con git normal. Nada de la ref todavía — ésa es la razón de que los cortes sean dos.
+
+- [`9`](1/9.user-story.md) — La migración corre en los 4 repos sin perder aceptaciones
