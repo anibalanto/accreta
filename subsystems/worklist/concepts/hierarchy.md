@@ -56,7 +56,7 @@ Los IDs no codifican la jerarquía — un ítem hijo puede tener un ID posterior
 
 ## Sprints
 
-Un sprint no contiene: referencia. Y **vive en `sprints/`, fuera del árbol de descomposición**, porque no participa de él: puede llevarse ítems de épicas distintas, y los que nombra siguen viviendo donde estaban.
+Un sprint no contiene: referencia. Y **vive en `_sprints/`, fuera del árbol de descomposición**, porque no participa de él: puede llevarse ítems de épicas distintas, y los que nombra siguen viviendo donde estaban.
 
 Eso mantiene limpia la lectura de las carpetas. Una carpeta con nombre de id —`1/`— es contención: lo que hay adentro pertenece al ítem `1`. `_sprints/` no es eso: es un espacio de nombres para el otro eje.
 
