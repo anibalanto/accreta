@@ -4,7 +4,7 @@ Specs de un ecosistema de herramientas: **bilinker** (referencias verificadas en
 
 ## Dónde está el trabajo
 
-En `.stratum/worklist/` — épicas, user stories, tasks y sprints. Para saber qué sigue: el sprint con `status: in-progress` en `_sprints/`, y de ahí a los ítems que referencia.
+En `.stratum/worklist/` — épicas, user stories, tasks y sprints. Para saber qué sigue: el sprint con `status: in-progress` en `_sprints/` —o, si no hay ninguno, el próximo `open` por número—, y de ahí a los ítems que referencia.
 
 Guía operativa del formato: `.claude/skills/worklist/SKILL.md`. Spec completa: `subsystems/worklist/`.
 
