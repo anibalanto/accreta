@@ -7,45 +7,44 @@ updated_at: 2026-08-29T00:00:00Z
 
 # Cerrar la cobertura de bilinks antes de tocar nada
 
-Crear los bilinks que faltan para que reescribir una spec rompa algo que lleve al código. **Es la única tarea de la épica donde hay que buscar código a mano** — y se hace una vez, precisamente para no volver a hacerlo.
+Crear los bilinks que faltan para que reescribir una spec rompa algo que lleve al código. **Es la primera tarea de la épica**, y la única donde hay que buscar código a mano — se hace una vez, precisamente para no volver a hacerlo.
 
-## Los agujeros medidos
+Opera sobre el **formato de hoy**, con el binario de hoy. No depende de ninguno de los cuatro ADRs.
 
-Del lado de las specs, sobre los 63 bilinks de la raíz:
+## Antes de empezar
 
-| Spec que los ADRs reescriben | Bilinks hoy |
-|---|---|
-| `concepts/capture.md` | **0** — es la que ADR-0003 más reescribe |
-| `commands/migrate.md` | **0** |
-| `architecture.md` | **0** |
-| `concepts/index.md` | **0** |
-| `concepts/bilink.md` | 1, en un archivo de 300+ líneas |
-| `commands/check.md` | 7 — bien cubierta |
-| `commands/accept.md` · `capture.md` · `chain.md` · `get.md` | 3-4 — aceptable |
+Cargar dos skills:
 
-Del lado del código, sobre los 47 captures de la capa impl:
+- **`bilinker`** — es el prerequisito del método de la épica, y acá además se crean bilinks a mano con `capture` y `chain new`. Su aviso dice que describe el formato anterior: para esta tarea eso **no molesta**, porque el formato anterior es el vigente hasta el corte `004`.
+- **`stratum-paths`** — el cruce va de la capa de spec a la de impl, que son repos distintos. Los paths se componen con `$(stratum '...')`, no a mano.
 
-| Archivo | Captures |
-|---|---|
-| `check.rs` | 13 |
-| `accept.rs` | 3 · `bilinker-cli/src/main.rs` 4 · `index.rs` 3 |
-| `bilink.rs` | 2 · `get.rs` 2 · `chain.rs` 2 |
-| `capture.rs` · `link.rs` · `grammar.rs` · `config.rs` | 1 |
-| **`apply.rs`** | **0** |
-| `task.rs` · `migrations.rs` · `hash.rs` · `git.rs` · `query.rs` | **0** |
-
-## Dónde apuntar — pista, no instrucción
-
-Esta lista salió de grepear el código a mano, y **sirve sólo para saber dónde falta un bilink**. No es la lista de cambios a hacer: eso lo dicta lo que se rompa. Si al terminar esta tarea un archivo de acá no aparece por ningún bilink, es que falta uno; si aparece algo que no está acá, mejor.
-
-Los ADRs esperan tocar: `bilink.rs` (las claves del formato y su escritura), `capture.rs` (el id y el escaneo de equivalentes), `accept.rs` (qué escribe y contra qué falla), `apply.rs` (el fork por tipo de fix), `check.rs` (las comparaciones y los estados), `task.rs` (la extensión del ítem de worklist), y `migrations.rs` (las dos migraciones nuevas).
-
-## Cuándo está hecha
+## El criterio
 
 > **Si una especificación tiene implementación, está bilinkeada.**
 
 No es "todo bilinkeado". Buena parte de una spec —el porqué de una decisión, una alternativa descartada, un ejemplo— no tiene código que la implemente, y vincularla no detecta nada porque no hay contra qué derivar. Y sobre-cubrir tiene un costo propio: si todo estuviera vinculado, editar una spec produciría cientos de no-OK y **el inventario dejaría de servir como inventario** — la respuesta racional pasaría a ser `accept .` a ciegas, que es justo lo que ADR-0003 prohíbe.
 
-El criterio es al revés: **partir del código**. Para cada cosa que la implementación hace, la spec que la describe tiene que llegar hasta ahí por un bilink. Un archivo con siete afirmaciones verificables lleva siete — `commands/check.md` ya tiene 7, y está bien así.
+El cruce **parte del código**: para cada cosa que la implementación hace, la spec que la describe tiene que llegar hasta ahí por un bilink. Un archivo con siete afirmaciones verificables lleva siete — `commands/check.md` ya tiene 7, y está bien así.
 
-**El cruce hay que hacerlo**: recorrer los comandos del CLI y los módulos del core contra las specs que los describen, y anotar dónde no hay bilink. La lista de arriba es el punto de partida medido, no el alcance.
+## Aceptar no es automático
+
+Crear un bilink es decir *"este fragmento de spec y este de código se corresponden"*. Aceptarlo es además decir *"y apruebo el estado en que están"*. Encadenar `capture`, `chain new` y `accept .` sobre cincuenta bilinks nuevos **fabrica cincuenta aprobaciones que nadie miró** — y a partir de ahí el `check` reporta verde sobre correspondencias que quizá no existen.
+
+Cada bilink nuevo se verifica antes de aceptarlo: que el fragmento de código sea efectivamente lo que la spec describe, y que lo que dice hoy sea cierto. Si no lo es, el hallazgo es la tarea — no se acepta para dejar el árbol limpio.
+
+## El punto de partida medido
+
+De las specs de bilinker, 22 de 27 archivos ya tienen al menos un bilink. Los que el cambio va a tocar y hoy no señalan nada:
+
+| | Bilinks |
+|---|---|
+| `concepts/capture.md` | **0** — y es la que más se reescribe |
+| `concepts/configuration.md` | **0** |
+| `concepts/consistency.md` | **0** |
+| `commands/migrate.md` | **0** |
+| `commands/status.md` | **0** |
+| `architecture.md` | **0** |
+
+Y del lado del código, sobre los 47 captures de la capa impl: `check.rs` tiene 13, `accept.rs` 3, `bilink.rs` 2, `capture.rs` 1 — y **`apply.rs`, `task.rs`, `migrations.rs`, `hash.rs`, `git.rs` y `query.rs` tienen 0**.
+
+Es el punto de partida, no el alcance. El cruce completo —los 17 comandos del CLI y los módulos del core contra las specs que los describen— es parte de la tarea.
