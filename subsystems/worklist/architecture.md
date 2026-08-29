@@ -8,16 +8,16 @@ Worklist vive en una única capa dentro del proyecto principal Accreta:
 accreta/
   .stratum/
     worklist/
-      1.epic
+      1.epic.md
       1/
-        2.user-story
+        2.user-story.md
         2/
-          3.task
-        4.task
-      5.user-story
+          3.task.md
+        4.task.md
+      5.user-story.md
       5/
-        6.task
-      7.task
+        6.task.md
+      7.task.md
       <bilink-uuid>.tasks   ← índice de tasks por bilink
 ```
 

@@ -4,23 +4,23 @@ Un ítem es la unidad de trabajo en worklist. Representa algo que hay que hacer 
 
 ## Tipos
 
-| Tipo | Extensión | Descripción |
-|------|-----------|-------------|
-| **Epic** | `.epic` | Objetivo de alto nivel. Agrupa user stories o tasks relacionados. |
-| **User Story** | `.user-story` | Funcionalidad desde la perspectiva del usuario. Agrupa tasks. |
-| **Task** | `.task` | Unidad de trabajo concreta y ejecutable. Sin hijos. |
+| Tipo | Sufijo | Descripción |
+|------|--------|-------------|
+| **Epic** | `.epic.md` | Objetivo de alto nivel. Agrupa user stories o tasks relacionados. |
+| **User Story** | `.user-story.md` | Funcionalidad desde la perspectiva del usuario. Agrupa tasks. |
+| **Task** | `.task.md` | Unidad de trabajo concreta y ejecutable. Sin hijos. |
 
 ## Identificación
 
-El nombre del archivo es un **ID base-36 corto**, asignado por el servidor al crear el ítem. La extensión define el tipo:
+El nombre del archivo es `<id>.<tipo>.md`. El **ID base-36 corto** lo asigna el servidor al crear el ítem; el tipo va en el medio; la extensión es siempre `.md`:
 
 ```
-1.epic
-2.user-story
-3.task
-a.task
-1f.task
-2z.epic
+1.epic.md
+2.user-story.md
+3.task.md
+a.task.md
+1f.task.md
+2z.epic.md
 ```
 
 El ID es base-36 con el alfabeto `[0-9a-z]`, empezando en `1`. El servidor mantiene el contador e incrementa al procesar cada creación:
@@ -28,6 +28,8 @@ El ID es base-36 con el alfabeto `[0-9a-z]`, empezando en `1`. El servidor manti
 ```
 1, 2, 3, …, 9, a, b, …, z, 10, 11, …, 1a, 1b, …, 1z, 20, …
 ```
+
+**La extensión es `.md` a propósito.** El contenido de un ítem es markdown —frontmatter más descripción— y los ítems se editan a mano, a diferencia de los archivos de bilinker. Un `.epic` a secas no lo abre ningún editor con resaltado, ningún visor lo previsualiza, y las herramientas que indexan una carpeta por extensión —Obsidian entre ellas— no lo ven. El tipo sigue estando en el nombre, que es lo que permite leerlo de un `ls` sin abrir el archivo.
 
 Se referencia directamente por ID:
 
@@ -65,12 +67,12 @@ La asociación con bilinks se declara desde el bilink (endpoint `todo <id>`), no
 La relación padre-hijo se expresa con carpetas:
 
 ```
-1.epic
+1.epic.md
 1/
-  2.user-story
+  2.user-story.md
   2/
-    3.task
-4.task
+    3.task.md
+4.task.md
 ```
 
 ## Invariantes

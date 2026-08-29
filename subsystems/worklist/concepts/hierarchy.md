@@ -14,17 +14,17 @@ La jerarquía de worklist es flexible. Cualquier tipo puede existir en el nivel 
 
 ```
 accreta/.stratum/worklist/
-  1.epic                        ← epic en raíz
+  1.epic.md                        ← epic en raíz
   1/
-    2.user-story
+    2.user-story.md
     2/
-      3.task
-      4.task
-    5.task                      ← task directo bajo epic
-  6.user-story                  ← story en raíz, sin epic
+      3.task.md
+      4.task.md
+    5.task.md                      ← task directo bajo epic
+  6.user-story.md                  ← story en raíz, sin epic
   6/
-    7.task
-  8.task                        ← task en raíz, sin padre
+    7.task.md
+  8.task.md                        ← task en raíz, sin padre
 ```
 
 ## Referencia por ID

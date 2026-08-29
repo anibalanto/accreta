@@ -27,9 +27,9 @@ Todos los ítems viven en una única carpeta dentro del proyecto principal, en u
 accreta/
   .stratum/
     worklist/
-      1.epic
-      2.user-story
-      3.task
+      1.epic.md
+      2.user-story.md
+      3.task.md
 ```
 
 No hay una instancia de worklist por repo ni por capa. Los bilinks resuelven la conexión con los fragmentos en cualquier repo del ecosistema.

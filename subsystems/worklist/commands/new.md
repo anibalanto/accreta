@@ -58,7 +58,7 @@ worklist new task "actualizar struct BiLinkFile" --under 2
 ```
 created:  3
 type:     task
-path:     accreta/.stratum/worklist/3.task
+path:     accreta/.stratum/worklist/3.task.md
 bilink:   a3f9c821-4e5b-4c3d-9f2a-1b2c3d4e5f6a  (concepts/bilink.md:104:1 → todo)
 ```
 

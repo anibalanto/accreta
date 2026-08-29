@@ -19,9 +19,9 @@ worklist new task "actualizar spec en base a cambio en accept()" lib.rs:88:1
 En ambos casos produce:
 
 ```
-accreta/.bilink/<uuid-struct>.bilink      ← bilink estructural: fragmento ↔ layer
-accreta/.bilink/<uuid-task>.bilink        ← bilink de tarea: .bilink/<uuid-struct>.bilink ↔ task <id>
-accreta/.stratum/worklist/<id>.task       ← ítem del worklist
+accreta/.bilink/<uuid-struct>.bilink         ← bilink estructural: fragmento ↔ layer
+accreta/.bilink/<uuid-task>.bilink           ← bilink de tarea: .bilink/<uuid-struct>.bilink ↔ task <id>
+accreta/.stratum/worklist/<id>.task.md       ← ítem del worklist
 ```
 
 La asociación vive en el bilink de tarea. El ítem no tiene `source_bilink` en su frontmatter.
