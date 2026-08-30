@@ -11,3 +11,17 @@
     notes:
       - costó una versión del lector de formato 1, que no los modelaba
     impl: the_declaration_fields_survive_the_migration
+
+  - id: migrate-from-raw-format-1
+    description: un repo que nunca corrió 001 llega igual al formato 2
+    given:
+      - un bilink en formato 1 crudo, con la ubicación embebida en link.N
+    when:
+      - bilinker migrate
+    expect:
+      - el endpoint estructural apunta a un capture acuñado en el acto
+      - la aceptación sobrevive
+    notes:
+      - es la prueba de que retirar 001 fue legítimo y no un borrado con otro nombre
+      - 002 lee la forma embebida además de la que 001 producía
+    impl: a_repo_that_never_ran_001_still_reaches_format_2

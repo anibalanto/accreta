@@ -83,11 +83,38 @@ Es lo único que permite que alguien parado en una versión vieja llegue a la ac
 
 Lo que se acumula es el **build**, no la lectura. Si una migración depende de dos versiones del crate de formato, esas dos quedan en el repo para siempre; pero el binario del día a día linkea sólo la última. Es la distinción que hace que esto no sea lo que § "Por qué no alcanza con que la herramienta lo tolere" descarta.
 
+#### Lo que no se puede romper es el camino, no la lista
+
+La regla protege una propiedad: **desde cualquier formato publicado se llega al actual corriendo la cadena**. Quitar un paso la rompe casi siempre, y por eso "nunca se borra" es la formulación operativa correcta.
+
+Casi siempre y no siempre. Un paso cuyo trabajo hace otro —porque el siguiente aprendió a leer el formato de entrada del anterior— se puede **retirar** sin romper nada: el camino sigue completo, con un salto menos. Pasó con `bilinker-001-capture-split`, que `002` absorbió al leer también la forma embebida.
+
+Retirar no es borrar, y la diferencia está en el ledger:
+
+| | Registro de migraciones | Ledger de un repo |
+|---|---|---|
+| **Retirar** | sale | **se queda** |
+| **Borrar** | sale | sale |
+
+El ledger registra qué le pasó a este repo, no qué sabe hacer este binario. Sacar de ahí un id que corrió sería reescribir el pasado, y además volvería a correr esa migración en el próximo `migrate`.
+
+La prueba de que un retiro es legítimo es un test: un repo en el formato de entrada del paso retirado llega al actual. Sin ese test es un borrado con otro nombre.
+
 ### Una migración conoce los dos formatos que puentea
 
 Una migración lleva archivos de lo que entiende el formato N a lo que entiende el N+1, así que **declara ese par y depende de las dos versiones**. No hay otra forma de que un componente lea los dos.
 
 De ahí sale algo que no es evidente: **la verificación de que la migración no perdió nada la hace la migración**, no un comando que compare dos árboles. Un comando así linkea un solo parser y sólo puede leer uno de los dos lados.
+
+## Una migración no es todo el proceso
+
+Una migración es lo que este documento define: transformación sintáctica, idempotente, con `--dry-run`, que no consulta git. El **proceso** de migración es la transición completa, y tiene pasos que no son migraciones — sobre todo los **cortes**, donde el formato nuevo reemplaza al viejo en el árbol de trabajo.
+
+Un corte mueve directorios, hace backup, y se puede revertir. No transforma archivos: los intercambia. Aplicarle las reglas de una migración no tendría sentido, y darle una excepción a las reglas las vaciaría.
+
+**Entran en la misma secuencia numerada y el mismo ledger, y los corre otro comando.** La numeración compartida es lo que hace que el orden entre un corte y las migraciones que lo rodean esté escrito en un solo lugar. Que el comando sea otro es lo que salva las invariantes: el runner de migraciones sigue sin consultar git y sin commitear, porque no es él quien corta.
+
+Una consecuencia práctica: **la entrada en el ledger va cuando el paso terminó**, no cuando empezó. Un corte que registrara al generar su carpeta dejaría el repo marcado como migrado mientras sigue corriendo el formato viejo.
 
 ## El runner
 
