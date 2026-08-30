@@ -1,8 +1,8 @@
 ---
 title: El saldo de cobertura que la task `o` no cerró
-status: open
+status: done
 created_at: 2026-08-29T23:53:53Z
-updated_at: 2026-08-30T00:37:31Z
+updated_at: 2026-08-30T07:29:58Z
 parent: 5
 ---
 
@@ -45,3 +45,13 @@ Ninguna spec de lattice con implementación queda muda, el LSP tiene spec o una 
 ## Prioridad
 
 No es urgente. Nada de lo que enumera está en el camino de los cuatro ADRs: es cobertura de superficie que hoy no bloquea ningún cambio.
+
+## Cómo quedó
+
+Lattice pasó de 16 a 30 bilinks: ninguna de sus specs con implementación queda muda. `commands/daemon.md` cubre el crate del daemon —IPC, language servers, `symbol_at`, arranque—, `concepts/edge.md` y `concepts/provider.md` cubren el modelo y los tres proveedores, y `architecture.md`, `overview.md` e `integration/impact.md` tienen su ancla.
+
+`bilinker-lsp` tiene spec: [`commands/lsp.md`](../../subsystems/bilinker/commands/lsp.md), con cinco bilinks. Lo que documenta y lo que deja escrito que no hace —no corre `check`, no escribe, no ofrece acciones de código— salió de leer las 187 líneas del servidor.
+
+`integration/worklist.md` ya no describe el `<uuid>.tasks` que nunca existió: remite a `bilink-tasks.md`, que es la fuente.
+
+De paso, las specs de lattice dejaron de describir el formato 1 —`.bilink` como extensión, `state.0`, `link.1: file :: query`— y se destaparon dos defectos: `git show` no traducía el path desde una capa que no es la raíz de su repo, y el rango de un fragmento YAML depende de lo que venga después, que es la task [`18`](18.task.md).
