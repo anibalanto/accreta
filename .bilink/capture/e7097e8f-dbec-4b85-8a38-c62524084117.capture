@@ -1,0 +1,10 @@
+file:   subsystems/bilinker/commands/migrate.md
+query:  (section
+  (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker migrate`"))
+  (section
+  (atx_heading (inline) @n1 (#eq? @n1 "Firma"))) @target)
+
+# Cache
+range:       257~574
+state:       RESOLVED
+resolved_at: 2026-08-29T23:39:40Z

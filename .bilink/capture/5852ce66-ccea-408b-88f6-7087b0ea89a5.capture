@@ -1,0 +1,10 @@
+file:   subsystems/bilinker/concepts/capture.md
+query:  (section
+  (atx_heading (inline) @n0 (#eq? @n0 "Estados"))
+  (section
+  (atx_heading (inline) @n1 (#eq? @n1 "Aceptación — en el bilink"))) @target)
+
+# Cache
+range:       4108~4743
+state:       RESOLVED
+resolved_at: 2026-08-29T23:36:37Z

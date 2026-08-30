@@ -1,0 +1,10 @@
+file:   subsystems/bilinker/commands/migrate.md
+query:  (section
+  (atx_heading (inline) @n0 (#eq? @n0 "Migraciones"))
+  (section
+  (atx_heading (inline) @n1 (#eq? @n1 "`bilinker-001-capture-split`"))) @target)
+
+# Cache
+range:       1211~2174
+state:       RESOLVED
+resolved_at: 2026-08-29T23:39:40Z

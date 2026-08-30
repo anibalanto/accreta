@@ -1,0 +1,12 @@
+link.0: capture 18a9e65d-26ba-4ed0-ad91-4b1567f5438e
+link.1: subsystems/bilinker>impl
+
+# Cache
+hash.0: 10484561baf7c1a04a4923c3fe90896c740398c6236b061df2e3eddc12427d8d
+hash_ast.0: 40292a3286b8c92a197a106704f32fbbb82cfc1e6e471ff90654afdac80d53ad
+commit.0: 79ff6ef84e5cb3863b8fcfe9b4c917ed0c929a5c
+hash.1: 5bb92aa7d479c5c1904720b2c682e1bd4d0e3c94f20e4dfa44d43782825e0b99
+commit.1: 9276852d314cbf6e026a8ab2c61e073a1412e05a
+state.0: OK
+state.1: OK
+resolved_at: 2026-08-30T00:37:06Z

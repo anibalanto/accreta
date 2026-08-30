@@ -1,0 +1,10 @@
+file:   subsystems/bilinker/commands/check.md
+query:  (section
+  (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker check`"))
+  (section
+  (atx_heading (inline) @n1 (#eq? @n1 "Salida"))) @target)
+
+# Cache
+range:       11601~12870
+state:       RESOLVED
+resolved_at: 2026-08-30T00:28:06Z

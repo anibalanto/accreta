@@ -1,0 +1,10 @@
+file:   subsystems/bilinker/concepts/capture.md
+query:  (section
+  (atx_heading (inline) @n0 (#eq? @n0 "Especificación: Formato del archivo `.capture`"))
+  (section
+  (atx_heading (inline) @n1 (#eq? @n1 "Referencia desde un bilink"))) @target)
+
+# Cache
+range:       2629~3302
+state:       RESOLVED
+resolved_at: 2026-08-29T23:36:37Z

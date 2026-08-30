@@ -1,0 +1,10 @@
+file:   subsystems/bilinker/commands/apply.md
+query:  (section
+  (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker apply`"))
+  (section
+  (atx_heading (inline) @n1 (#eq? @n1 "Flujo de `apply`"))) @target)
+
+# Cache
+range:       1332~2935
+state:       RESOLVED
+resolved_at: 2026-08-29T23:41:11Z

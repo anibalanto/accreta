@@ -1,0 +1,10 @@
+file:   subsystems/bilinker/concepts/reference.md
+query:  (section
+  (atx_heading (inline) @n0 (#eq? @n0 "Referencia: tipos de endpoint"))
+  (section
+  (atx_heading (inline) @n1 (#eq? @n1 "Âncoras estables recomendadas"))) @target)
+
+# Cache
+range:       3221~3596
+state:       RESOLVED
+resolved_at: 2026-08-30T00:36:49Z

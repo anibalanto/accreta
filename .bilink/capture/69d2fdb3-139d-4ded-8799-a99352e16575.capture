@@ -1,0 +1,10 @@
+file:   subsystems/bilinker/commands/capture.md
+query:  (section
+  (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker capture`"))
+  (section
+  (atx_heading (inline) @n1 (#eq? @n1 "Propiedades garantizadas"))) @target)
+
+# Cache
+range:       6335~7598
+state:       RESOLVED
+resolved_at: 2026-08-30T00:33:48Z

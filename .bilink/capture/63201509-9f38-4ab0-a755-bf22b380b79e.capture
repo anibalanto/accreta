@@ -5,6 +5,6 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "Auto-fix"))) @target)
 
 # Cache
-range:       10292~10808
+range:       11085~11601
 state:       RESOLVED
-resolved_at: 2026-08-26T18:26:21Z
+resolved_at: 2026-08-30T00:22:48Z

@@ -1,0 +1,10 @@
+file:   subsystems/bilinker/concepts/reference.md
+query:  (section
+  (atx_heading (inline) @n0 (#eq? @n0 "Referencia: tipos de endpoint"))
+  (section
+  (atx_heading (inline) @n1 (#eq? @n1 "Endpoint task"))) @target)
+
+# Cache
+range:       2701~3088
+state:       RESOLVED
+resolved_at: 2026-08-29T23:41:11Z

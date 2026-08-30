@@ -1,0 +1,10 @@
+file:   concepts/migration.md
+query:  (section
+  (atx_heading (inline) @n0 (#eq? @n0 "El runner"))
+  (section
+  (atx_heading (inline) @n1 (#eq? @n1 "Ledger por repo, migraciones por capa"))) @target)
+
+# Cache
+range:       4743~5510
+state:       RESOLVED
+resolved_at: 2026-08-29T23:39:41Z

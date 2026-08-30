@@ -1,0 +1,10 @@
+file:   subsystems/bilinker/concepts/capture.md
+query:  (section
+  (atx_heading (inline) @n0 (#eq? @n0 "Especificación: Formato del archivo `.capture`"))
+  (section
+  (atx_heading (inline) @n1 (#eq? @n1 "Migración desde el formato anterior"))) @target)
+
+# Cache
+range:       11747~12281
+state:       RESOLVED
+resolved_at: 2026-08-30T00:36:46Z

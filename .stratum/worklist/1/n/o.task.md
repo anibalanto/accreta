@@ -1,8 +1,8 @@
 ---
 title: Cerrar la cobertura de bilinks antes de tocar nada
-status: open
+status: done
 created_at: 2026-08-29T00:00:00Z
-updated_at: 2026-08-29T00:00:00Z
+updated_at: 2026-08-30T00:37:31Z
 ---
 
 # Cerrar la cobertura de bilinks antes de tocar nada
@@ -48,3 +48,36 @@ De las specs de bilinker, 22 de 27 archivos ya tienen al menos un bilink. Los qu
 Y del lado del código, sobre los 47 captures de la capa impl: `check.rs` tiene 13, `accept.rs` 3, `bilink.rs` 2, `capture.rs` 1 — y **`apply.rs`, `task.rs`, `migrations.rs`, `hash.rs`, `git.rs` y `query.rs` tienen 0**.
 
 Es el punto de partida, no el alcance. El cruce completo —los 17 comandos del CLI y los módulos del core contra las specs que los describen— es parte de la tarea.
+
+## Resultado
+
+55 cadenas nuevas: la capa raíz pasó de 63 a 111 bilinks y la de lattice de 7 a 16.
+
+Los archivos que el enunciado listaba en cero quedaron cubiertos —`concepts/capture.md` con 8, `commands/migrate.md` con 5, `architecture.md` con 4, `commands/recapture.md` con 2— y también `concepts/migration.md` de la capa raíz, que tiene su implementación en el crate `accreta-migrate` y tampoco señalaba nada. Del lado de lattice, `concepts/node.md` e `integration/bilinker.md`, que ADR-0003 reescribe.
+
+Del lado del código quedan sin captures tres archivos, los tres a propósito: `lib.rs` (manifiesto de módulos), `bin/debug_ast.rs` (herramienta de desarrollo) y `crates/bilinker-lsp/` (no hay spec de la cual salir — ver task `x`).
+
+## Hallazgos
+
+Cinco, y ninguno se aceptó para dejar el árbol limpio:
+
+| | Dónde quedó |
+|---|---|
+| El endpoint `task` no resuelve a ningún archivo | task `u` — deja 5 endpoints no-OK |
+| La salida de `check` no es fiel a lo que `check` sabe | task `v` |
+| `capture` ancla al primer nodo del tipo si no hay campo `name` | task `w` |
+| `chain new` no alcanza la capa de un subsistema hermano | task `y` |
+| Cobertura pendiente fuera del alcance de los ADRs | task `x` |
+
+La contradicción sobre `hash.N` de un endpoint layer apareció por el mismo camino y se cerró en el momento: es la task `6`, adelantada del sprint 3.
+
+## Que ninguna quede muda, medido y no supuesto
+
+Cubrir por secciones deja un hueco: agregar una sección **nueva** al final de una spec no toca ninguna de las existentes, así que no rompe nada. Se midió archivo por archivo —agregar `## Sección de prueba` al final y correr `check`— y aparecieron cinco mudas: `commands/migrate.md`, `commands/recapture.md`, `concepts/migration.md`, `lattice/concepts/node.md` y `lattice/integration/bilinker.md`.
+
+Se cerraron con una cadena archivo-entero ↔ archivo-entero, que es la forma que el resto de las specs ya tenía. `architecture.md` y `concepts/capture.md` llevan una también, aunque pasaban la prueba por casualidad —su última sección estaba bilinkeada—. La de `architecture.md` apunta a `lib.rs`, que así deja de ser una exclusión: el manifiesto de módulos *es* lo que "Componentes internos" describe.
+
+Los `.capture` de archivo entero se escribieron a mano: el CLI no puede crearlos (task `y`).
+
+Hoy las quince specs que los ADRs tocan rompen algo al editarlas.
+
