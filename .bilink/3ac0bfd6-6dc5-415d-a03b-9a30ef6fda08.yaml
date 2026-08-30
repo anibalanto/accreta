@@ -2,9 +2,8 @@ endpoint:
   0:
     link: capture 35381ea1d8adb8105cc3aab478eb0581
     accepted:
-      link: capture df5b1e3f8a15b02cc6ee5680ded68b1d
+      link: capture 35381ea1d8adb8105cc3aab478eb0581
       hash: 06816ccc01cca812b0443e31c67d8c3bbff9cdb8a5d783e88298f3044690e065
-      hash_ast: c5a223ea43e99cc92c2c7cea2fb230910e3191af105a1dd273d84f33934792b7
   1:
     link: path subsystems/bilinker>impl
     accepted:

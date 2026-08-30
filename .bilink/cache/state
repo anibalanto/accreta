@@ -387,7 +387,7 @@ endpoints:
     state: OK
     commit: 8c41b8be7c694e3247b2131e1a72377895d119f5
   0396ebf8-42e6-4054-89d4-6d388dad2a25.0:
-    state: RELOCATED
+    state: ALTERED
     commit: 20c5c63e795651278dd615bb2144aa0c102cfab6
   0396ebf8-42e6-4054-89d4-6d388dad2a25.1:
     state: OK
@@ -423,7 +423,7 @@ endpoints:
     state: OK
     commit: 408de1de6cedc250d7dc509f27a68311768fb73d
   1379f134-cb74-41de-b997-37e2e0755a51.0:
-    state: RELOCATED
+    state: ALTERED
     commit: f552dfe533b65a685769b303a13a908ee4e48f9f
   1379f134-cb74-41de-b997-37e2e0755a51.1:
     state: OK
@@ -435,13 +435,13 @@ endpoints:
     state: OK
     commit: 4197314a5472f179a74fe1b9dff71c90d2eab8ca
   168f2d87-e219-4776-9eb8-f10e3cdf8da4.0:
-    state: RELOCATED
+    state: ALTERED
     commit: f552dfe533b65a685769b303a13a908ee4e48f9f
   168f2d87-e219-4776-9eb8-f10e3cdf8da4.1:
     state: OK
     commit: cb931c107b65e4ca34534ec6ccdd8293d7018588
   19eaea13-ade0-47e1-8da0-11414a475925.0:
-    state: RELOCATED
+    state: ALTERED
     commit: 20c5c63e795651278dd615bb2144aa0c102cfab6
   19eaea13-ade0-47e1-8da0-11414a475925.1:
     state: OK
@@ -453,7 +453,7 @@ endpoints:
     state: OK
     commit: a360786ea98d4c7803b94d4b2b31ff6fe4ccaf92
   1ab52cdc-bdb5-40c4-9c64-734eafb64d25.0:
-    state: RELOCATED
+    state: ALTERED
     commit: 79ff6ef84e5cb3863b8fcfe9b4c917ed0c929a5c
   1ab52cdc-bdb5-40c4-9c64-734eafb64d25.1:
     state: OK
@@ -471,7 +471,7 @@ endpoints:
     state: OK
     commit: 1e3c71f174f5861f6a40d220b260b068c9e0aabc
   25ad0171-6d42-498b-9c30-b4607e25eedf.0:
-    state: RELOCATED
+    state: ALTERED
     commit: 79ff6ef84e5cb3863b8fcfe9b4c917ed0c929a5c
   25ad0171-6d42-498b-9c30-b4607e25eedf.1:
     state: OK
@@ -495,7 +495,7 @@ endpoints:
     state: OK
     commit: b66af5b792af137cb1290fb4983c26f6a03066db
   2e630237-3a5d-4180-8ea3-ebde8fb75a95.0:
-    state: RELOCATED
+    state: ALTERED
     commit: f552dfe533b65a685769b303a13a908ee4e48f9f
   2e630237-3a5d-4180-8ea3-ebde8fb75a95.1:
     state: OK
@@ -537,7 +537,7 @@ endpoints:
     state: OK
     commit: 408de1de6cedc250d7dc509f27a68311768fb73d
   3ac0bfd6-6dc5-415d-a03b-9a30ef6fda08.0:
-    state: RELOCATED
+    state: ALTERED
     commit: f552dfe533b65a685769b303a13a908ee4e48f9f
   3ac0bfd6-6dc5-415d-a03b-9a30ef6fda08.1:
     state: OK
@@ -567,13 +567,13 @@ endpoints:
     state: OK
     commit: 8c41b8be7c694e3247b2131e1a72377895d119f5
   42fb317e-fdb5-4481-ac67-96703344334d.0:
-    state: RELOCATED
+    state: ALTERED
     commit: 20c5c63e795651278dd615bb2144aa0c102cfab6
   42fb317e-fdb5-4481-ac67-96703344334d.1:
     state: OK
     commit: cb931c107b65e4ca34534ec6ccdd8293d7018588
   4303daea-9efe-437f-905a-f7f674aa70a0.0:
-    state: RELOCATED
+    state: ALTERED
     commit: d4d7ea92c911b6de096e78ad2449aa36fa78a1be
   4303daea-9efe-437f-905a-f7f674aa70a0.1:
     state: OK
@@ -643,13 +643,13 @@ endpoints:
     state: OK
     commit: 50fa571b46b0afc15c7f97eaa1fb31eee5381d88
   7351fadb-6c4e-4972-b5b5-f2815f7e77f9.0:
-    state: RELOCATED
+    state: ALTERED
     commit: 79ff6ef84e5cb3863b8fcfe9b4c917ed0c929a5c
   7351fadb-6c4e-4972-b5b5-f2815f7e77f9.1:
     state: OK
     commit: 9276852d314cbf6e026a8ab2c61e073a1412e05a
   74241cfb-1c3d-4d34-ae5b-b32e98358c52.0:
-    state: RELOCATED
+    state: ALTERED
     commit: 169c34e7c4883af20d2c7c11be639d151265dce6
   74241cfb-1c3d-4d34-ae5b-b32e98358c52.1:
     state: OK
@@ -745,7 +745,7 @@ endpoints:
     state: OK
     commit: fc68106a2643d6db5e700e97e6a579d4b7510dbe
   944d60fb-1f0f-40a6-99f9-229749d5e57c.0:
-    state: RELOCATED
+    state: ALTERED
     commit: f552dfe533b65a685769b303a13a908ee4e48f9f
   944d60fb-1f0f-40a6-99f9-229749d5e57c.1:
     state: OK
@@ -785,7 +785,7 @@ endpoints:
     state: OK
     commit: 0a2cdbeb63c7b7dd2b968b97408050f1e6c4663e
   9f0dfe2e-6ab5-4c7d-a044-9332f1d2bf85.0:
-    state: RELOCATED
+    state: ALTERED
     commit: d4d7ea92c911b6de096e78ad2449aa36fa78a1be
   9f0dfe2e-6ab5-4c7d-a044-9332f1d2bf85.1:
     state: OK
@@ -827,13 +827,13 @@ endpoints:
     state: OK
     commit: cf09e398f5b2dcb6366a0a4839b5837a73ec6f9f
   a7e30f3d-2872-43f4-835c-dae8e1bfe610.0:
-    state: RELOCATED
+    state: ALTERED
     commit: 79ff6ef84e5cb3863b8fcfe9b4c917ed0c929a5c
   a7e30f3d-2872-43f4-835c-dae8e1bfe610.1:
     state: OK
     commit: 9276852d314cbf6e026a8ab2c61e073a1412e05a
   a8a64807-8ca8-4706-975f-6f4bbac154dc.0:
-    state: RELOCATED
+    state: ALTERED
     commit: 20c5c63e795651278dd615bb2144aa0c102cfab6
   a8a64807-8ca8-4706-975f-6f4bbac154dc.1:
     state: OK
@@ -923,7 +923,7 @@ endpoints:
     state: OK
     commit: 643bde24219d1e7d84eec1c447901e732ad7e6d2
   c4b8d57e-1682-49c2-b248-cc47cef331b7.0:
-    state: RELOCATED
+    state: ALTERED
     commit: f552dfe533b65a685769b303a13a908ee4e48f9f
   c4b8d57e-1682-49c2-b248-cc47cef331b7.1:
     state: OK
@@ -935,7 +935,7 @@ endpoints:
     state: OK
     commit: 4197314a5472f179a74fe1b9dff71c90d2eab8ca
   c83bd15d-9a86-4532-9f8c-1372cddec2b3.0:
-    state: RELOCATED
+    state: ALTERED
     commit: f552dfe533b65a685769b303a13a908ee4e48f9f
   c83bd15d-9a86-4532-9f8c-1372cddec2b3.1:
     state: OK
@@ -957,7 +957,7 @@ endpoints:
   d1a182ac-3d9d-43a0-a478-339d1283ee85.1:
     state: PENDING
   d44f9f91-8877-4ca2-9245-190fabc040d2.0:
-    state: RELOCATED
+    state: ALTERED
     commit: 20c5c63e795651278dd615bb2144aa0c102cfab6
   d44f9f91-8877-4ca2-9245-190fabc040d2.1:
     state: OK
@@ -987,7 +987,7 @@ endpoints:
     state: OK
     commit: fc6ba89103d86d8308d59794d865b82a0f70e5db
   da36be7a-3a4d-4745-bb2e-8faf6484a2ed.0:
-    state: RELOCATED
+    state: ALTERED
     commit: 20c5c63e795651278dd615bb2144aa0c102cfab6
   da36be7a-3a4d-4745-bb2e-8faf6484a2ed.1:
     state: OK
@@ -1021,7 +1021,7 @@ endpoints:
     state: OK
     commit: e4788c2962663fb22471755b4669bb7f3757e828
   e3e6b0fd-47cd-4cde-9fd9-cd2d6ce3a690.0:
-    state: RELOCATED
+    state: ALTERED
     commit: 79ff6ef84e5cb3863b8fcfe9b4c917ed0c929a5c
   e3e6b0fd-47cd-4cde-9fd9-cd2d6ce3a690.1:
     state: OK
@@ -1045,7 +1045,7 @@ endpoints:
     state: OK
     commit: fc68106a2643d6db5e700e97e6a579d4b7510dbe
   edb26585-d474-4e30-9386-e763f637973f.0:
-    state: RELOCATED
+    state: ALTERED
     commit: 7433e75dd92cab6af0eaa9bba74cbb1775c378d4
   edb26585-d474-4e30-9386-e763f637973f.1:
     state: OK
@@ -1091,7 +1091,7 @@ endpoints:
     state: OK
     commit: fc6ba89103d86d8308d59794d865b82a0f70e5db
   fbe61ceb-961b-4242-887e-58447e6b618f.0:
-    state: RELOCATED
+    state: ALTERED
     commit: d4d7ea92c911b6de096e78ad2449aa36fa78a1be
   fbe61ceb-961b-4242-887e-58447e6b618f.1:
     state: OK
