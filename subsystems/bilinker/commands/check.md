@@ -155,13 +155,16 @@ Un mismo capture se resuelve **una sola vez por `check`**, aunque lo referencien
 ### Endpoint layer
 
 ```
-1. ¿hash.N ausente?  → PENDING
-2. Resolver path: ../<link.N>/.bilink/<uuid>.bilink
-3. ¿El archivo existe?
-   NO → BROKEN (nodo de la cadena eliminado)
-4. Calcular SHA-256 del archivo completo.
-   == hash.N → OK
-   ≠  hash.N → CHAIN_DIRTY
+1. Resolver path: ../<link.N>/.bilink/<uuid>.bilink
+2. ¿La capa o el archivo no existen?
+   hash.N ausente  → TODO   (la capa todavía no existe)
+   hash.N presente → BROKEN (nodo de la cadena eliminado)
+3. Leer el hash.N del endpoint **estructural** del bilink adyacente.
+   ausente → PENDING (el otro extremo nunca se aceptó)
+4. ¿hash.N propio ausente? → PENDING
+5. Comparar la copia guardada contra ese hash estructural.
+   == → OK
+   ≠  → CHAIN_DIRTY
 ```
 
 ## Escritura de cache tras resolución
@@ -181,7 +184,7 @@ Un mismo capture se resuelve **una sola vez por `check`**, aunque lo referencien
 - **`resolved_at`** — timestamp UTC.
 - **`hash.N` / `hash_ast.N` / `commit.N`** — no se modifican. Solo los establece `bilinker accept`.
 
-Si `state.N` cambió respecto al valor anterior, el archivo cambia y su hash cambia, disparando CHAIN_DIRTY en el nodo adyacente de la cadena en el próximo `check`.
+Escribir `state.N` **no** dispara CHAIN_DIRTY en el nodo adyacente. Un endpoint layer no hashea el archivo `.bilink` vecino: guarda una copia del `hash.N` de su endpoint estructural, que solo cambia con `accept`. Es lo que evita que refrescar la cache se propague por la cadena como si fuera un cambio de contenido.
 
 ## Fuente del cambio
 

@@ -54,13 +54,15 @@ Para MOVED y DISPLACED el fragmento no cambió, así que `apply` cierra el ciclo
 
 ## Propagación reactiva
 
-Cada nodo ancla en `hash.N` el SHA-256 del `.bilink` adyacente. Cuando un nodo cambia de estado, su archivo `.bilink` cambia, su hash cambia, y el nodo vecino detecta CHAIN_DIRTY en el próximo `check`:
+Un endpoint layer **no** ancla en el hash del archivo `.bilink` vecino: guarda una copia del `hash.N` del endpoint **estructural** de ese bilink. La distinción es lo que evita la cascada circular — si hasheara el archivo entero, aceptar un endpoint layer reescribiría su propio `.bilink` y esa escritura volvería al vecino como un cambio, sin que ningún fragmento se hubiera tocado.
+
+Cuando el fragmento de un tip cambia y alguien lo acepta, su `hash.N` estructural cambia, y el nodo adyacente ve que la copia que guardaba dejó de coincidir:
 
 ```mermaid
 flowchart TD
-    B(["fragmento B cambia"]) --> TB["tip-B\nhash ≠ hash.1 → ALTERED\narchivo tip-B cambia"]
-    TB --> M["mid\nhash&#40;tip-B&#41; ≠ hash.1 → CHAIN_DIRTY\narchivo mid cambia"]
-    M --> TA["tip-A\nhash&#40;mid&#41; ≠ hash.1 → CHAIN_DIRTY"]
+    B(["fragmento B cambia"]) --> TB["tip-B\nhash ≠ hash.1 → ALTERED"]
+    TB --> AC["accept en tip-B\nactualiza su hash.1"]
+    AC --> TA["tip-A\nsu hash.1 ya no coincide con el\nhash estructural de tip-B → CHAIN_DIRTY"]
 ```
 
 Ningún nodo puede cambiar su estado aceptado sin que los nodos adyacentes lo detecten.

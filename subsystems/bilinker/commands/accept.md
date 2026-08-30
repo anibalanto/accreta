@@ -16,7 +16,7 @@ bilinker accept <path>
 | Argumento | Descripción |
 |-----------|-------------|
 | `<uuid>.<N>` | Endpoint a aceptar: UUID del bilink + índice (0 o 1). |
-| `<hash>` | SHA-256 del fragmento (o del `.bilink` adyacente para layer). Si se omite, bilinker lo calcula. |
+| `<hash>` | SHA-256 del fragmento. Para un endpoint layer, la copia del `hash.N` del endpoint estructural del bilink adyacente — nunca el hash del archivo `.bilink`. Si se omite, bilinker lo calcula. |
 | `<commit>` | SHA-1 del commit del repo. Si se omite, bilinker usa HEAD. |
 | `.` o `<path>` | Acepta en bulk todos los endpoints con estado `PENDING`, `ALTERED` o `CHAIN_DIRTY` en la layer actual (o bajo el path dado). |
 

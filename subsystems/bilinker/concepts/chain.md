@@ -44,17 +44,17 @@ No existe un archivo de registro central de cadenas — la cadena se descubre re
 
 El mecanismo de propagación está integrado en el formato del archivo:
 
-1. `hash.N` de un endpoint layer contiene el SHA-256 del archivo `.bilink`
-   referenciado en el momento de la última aceptación.
-2. `state.N` es parte del archivo — si cambia, el archivo cambia, su hash cambia.
-3. Si el nuevo hash ≠ `hash.N` del nodo adyacente, el próximo `check` detecta CHAIN_DIRTY.
+1. `hash.N` de un endpoint layer es una **copia** del `hash.N` del endpoint estructural del bilink adyacente — no el SHA-256 del archivo `.bilink`.
+2. Por eso refrescar la cache no propaga: `state.N` y `resolved_at` cambian en cada `check`, pero un `hash.N` estructural solo cambia con `accept`.
+3. Si la copia guardada ≠ el `hash.N` estructural del nodo adyacente, el próximo `check` detecta CHAIN_DIRTY.
 
 **Flujo de propagación cuando un fragmento cambia:**
 
 ```mermaid
 flowchart TD
-    B(["fragmento B cambia"]) --> TB["tip-B\nstate.1 = ALTERED\narchivo tip-B cambia"]
-    TB --> M["mid\nstate.1 = CHAIN_DIRTY\narchivo mid cambia"]
+    B(["fragmento B cambia"]) --> TB["tip-B\nstate.0 = ALTERED"]
+    TB --> AC(["accept en tip-B\ncambia su hash.0 estructural"])
+    AC --> M["mid\nla copia guardada quedó vieja\nstate.1 = CHAIN_DIRTY"]
     M --> TA["tip-A\nstate.1 = CHAIN_DIRTY"]
 ```
 
