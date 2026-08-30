@@ -3,7 +3,7 @@ endpoint:
     link: capture e0e68e006bcad6297983e99819c793bf
     accepted:
       link: capture e0e68e006bcad6297983e99819c793bf
-      hash: 63bf8ca7d978c8d05b3157df6c19fb2d2f5a6a8d7fe2106d39e5670ec016235d
+      hash: 18508fb098764477b91557b54e3b553cb6f69c0df11219ac9259ad2bf5beb5b8
   1:
     link: path subsystems/bilinker>impl
     accepted:
