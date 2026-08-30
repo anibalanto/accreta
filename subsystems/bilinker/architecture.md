@@ -92,7 +92,10 @@ bilinker check     → resuelve captures → compara contra accepted → cache/s
 bilinker accept    → escribe accepted en el bilink
 bilinker apply     → recalcula fix desde git/AST → acuña capture y repunta link
 bilinker chain     → crea / inspecciona / lista cadenas
+bilinker-lsp       → hover y codeLens sobre find_by_file y get
 ```
+
+`bilinker-lsp` no agrega lógica: expone por LSP las mismas dos llamadas que usa el CLI. Ver [`commands/lsp.md`](commands/lsp.md).
 
 ## Índice opcional
 
