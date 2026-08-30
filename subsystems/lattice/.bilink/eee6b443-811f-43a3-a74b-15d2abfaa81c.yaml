@@ -1,11 +1,11 @@
 endpoint:
-  '0':
+  0:
     link: capture a4d88f0f13864ccd1aea390bf170a56f
     accepted:
       link: capture a4d88f0f13864ccd1aea390bf170a56f
       hash: 17b9a4a0f113a369925efdebf5fcdcacd37282435c45b0d23ee3fdb4edb7366e
       hash_ast: a9bf11a6af56b2eda19f39ab172d844d733a2afce1a82fe134e6623fa96d64e6
-  '1':
+  1:
     link: path >impl
     accepted:
       link: capture 5da4685d330987fe54fa8a83584f967d
