@@ -2,13 +2,13 @@
 title: Ejecutar el corte a la ref (`005`) en los 4 repos
 status: open
 created_at: 2026-08-29T00:00:00Z
-updated_at: 2026-08-29T00:00:00Z
+updated_at: 2026-08-30T22:26:30Z
 parent: c
 ---
 
 # Ejecutar el corte a la ref (`005`) en los 4 repos
 
-El segundo corte, y sólo después de que el `004` esté validado entero.
+El segundo corte, y sólo después de que el `004` esté validado entero **y de que [`1a`](1a.task.md) pruebe la secuencia contra la forma real** — varios repos, no un directorio.
 
 ```
 1. UN commit que saca .bilink/ del índice de la rama   → X   (pushear antes de seguir)
