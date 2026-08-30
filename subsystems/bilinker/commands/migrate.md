@@ -24,23 +24,23 @@ Invocar `migrate` capa por capa registra la migración al terminar la primera, y
 
 ## Migraciones
 
-| Id | Qué hace |
-|---|---|
-| `bilinker-001-capture-split` | Extrae la ubicación de cada endpoint estructural a un `.capture`, y reemplaza `link.N` por `capture <uuid>`. |
-| `bilinker-002-file-partition` | Reescribe cada bilink a YAML, con los endpoints bajo `endpoint.0`/`endpoint.1` y el tipo de cada `link` explícito. Lo derivable sale a la cache. |
+| Id | Estado | Qué hace |
+|---|---|---|
+| `bilinker-001-capture-split` | retirada | Extrajo la ubicación de cada endpoint estructural a un `.capture` y reemplazó `link.N` por `capture <uuid>`. |
+| `bilinker-002-file-partition` | vigente | Reescribe cada bilink a YAML, con los endpoints bajo `endpoint.0`/`endpoint.1` y el tipo de cada `link` explícito. Lo derivable sale a la cache. |
+
+**Una migración retirada no se borra del ledger; se borra del registro.** `001` corrió en todos los repos que existían y su id sigue en cada ledger —quitarlo sería reescribir lo que pasó—, pero su código ya no está: `002` lee la forma embebida directamente, así que un repo que nunca corrió `001` se migra igual, en un paso.
+
+Es la asimetría que hace útil al ledger: registra qué le pasó a este repo, no qué sabe hacer este binario.
 
 
-### `bilinker-001-capture-split`
+### `bilinker-001-capture-split` (retirada)
 
-Convierte los endpoints con la ubicación embebida —`file :: query :: offset`— al formato con [capture](../concepts/capture.md) aparte.
+Convertía los endpoints con la ubicación embebida —`file :: query :: offset`— al formato con [capture](../concepts/capture.md) aparte, deduplicando: dos endpoints con `(file, query, offset)` idénticos compartían un capture, porque referencias idénticas describen la misma ubicación.
 
-**Deduplica.** Dos endpoints con `(file, query, offset)` idénticos comparten un capture, porque referencias idénticas describen la misma ubicación. Sin esto la duplicación existente quedaría congelada: nada la fusionaría después.
+**Su trabajo lo hace `002` en una sola pasada.** El id de un capture sale de la ubicación, así que la dedup es por construcción y no hace falta un paso que la produzca; y `002` lee la forma embebida además de la de `001`, así que no hay orden que respetar entre las dos. Lo que `001` hacía en dos pasos, `002` lo hace en uno.
 
-La deduplicación crea captures compartidos, que es el diseño funcionando y no un efecto colateral. Con `003` deja de hacer falta: el id sale de la ubicación, así que dos referencias iguales son el mismo archivo por construcción.
-
-**No resuelve.** El `range` se copia tal cual estaba y el `state` del capture queda vacío. El `check` siguiente los recalcula.
-
-**Descarta `subgraph.N`**, campo eliminado del formato, y lo reporta en el resumen para que la desaparición no sea silenciosa.
+Descartaba también `subgraph.N`, campo eliminado del formato.
 
 ### `bilinker-002-file-partition`
 
