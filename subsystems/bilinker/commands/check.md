@@ -6,7 +6,9 @@ Verifica la consistencia de uno o más bilinks y **no escribe ni un byte en git*
 
 Opera en dos pasos: resuelve los captures referenciados —localizando cada fragmento en el árbol actual— y compara lo hallado contra `accepted`, en sus **dos dimensiones**: dónde está y qué dice. El resultado va a [`cache/state`](../concepts/cache.md).
 
-Requiere git como dependencia dura. Opera completamente offline — sólo git y tree-sitter, sin language servers ni indexers.
+Requiere git como dependencia dura. Sólo git y tree-sitter, sin language servers ni indexers.
+
+**`check` opera completamente offline, y eso es de `check` y no de toda la herramienta.** Es masivo: corre sobre todos los bilinks de una capa, así que no puede clonar ni fetchear como efecto colateral. Un repo ajeno que no está clonado se reporta `REMOTE_UNREACHABLE` y se sigue. Las operaciones de red viven en otros comandos y son explícitas: el clon de un proveedor, el fetch de su ref, y la profundización de [`get --diff`](get.md).
 
 ## Firma
 
@@ -209,6 +211,53 @@ Un mismo capture se resuelve **una sola vez por `check`**, aunque lo referencien
 ```
 
 Se comparan **dos** valores, no uno: `accepted.link` y `accepted.hash`. Cada uno cambia por una sola razón —la ubicación aprobada del vecino, o su contenido aprobado— y los dos son inmunes a etiquetas, comentarios y reordenamientos de su archivo.
+
+El paso 2 distingue tres ausencias, no una:
+
+```
+2. ¿La capa o el archivo no existen?
+   .toml presente, directorio ausente        → LAYER_UNREACHABLE
+   ni .toml ni directorio, accepted ausente  → TODO
+   ni .toml ni directorio, accepted presente → LAYER_UNCONFIGURED
+   capa presente, .bilink del uuid ausente   → BROKEN
+```
+
+Ver [la frontera](../concepts/frontier.md) § "Taxonomía de ausencia": las dos primeras se arreglan trayendo o declarando algo y son normales; sólo `BROKEN` es una regresión.
+
+### Endpoint `abstract`
+
+```
+→ OPEN
+```
+
+No hay contra qué comparar. Constante, sana, y `accept .` nunca la toca.
+
+### Endpoint repo
+
+Es el endpoint `path` con la dirección resuelta por alias, y **sin red**:
+
+```
+1. Resolver el alias: .bilink/.{alias}.toml → .bilink/{alias}/
+2. ¿El clon no está?  → REMOTE_UNREACHABLE   (no se clona: check no hace red)
+3. Verificar el .bilink/version del clon.
+   no se entiende → error, no un estado: se para en vez de malinterpretar
+4. Resolver <clon>/.bilink/<uuid>.yaml
+   ausente → BROKEN
+5. ¿El link de la otra punta del bilink remoto sigue siendo `abstract`?
+   NO → REJECTED
+6. Leer el `accepted` de su endpoint estructural.
+   ausente → PENDING (el proveedor nunca aceptó lo que publica)
+7. ¿accepted propio ausente? → PENDING
+8. Comparar las dos copias guardadas contra las del proveedor.
+   las dos coinciden → OK
+   alguna difiere    → CHAIN_DIRTY
+```
+
+**El paso 3 no devuelve un estado.** Una versión de formato que no se entiende no es drift: es no poder leer los archivos, y reportar cualquier estado sobre eso sería inventar. Entre proyectos con releases independientes la divergencia de versiones es lo normal, no un accidente — ver [la frontera](../concepts/frontier.md) § "La versión del proveedor se verifica".
+
+**El paso 5 va antes que el 8**, y es la razón de leer dos cosas del remoto y no una: que la punta dejó de ser `abstract` es un hecho distinto de que el fragmento cambió, y mezclarlos en el mismo token perdería cuál de los dos pasó.
+
+Nada de esto abre un archivo del proveedor: los pasos 5 a 8 leen su `.bilink`, que el clon superficial ya trae. Mirar el fragmento es trabajo de [`get`](get.md), y ahí sí puede hacer falta profundizar.
 
 ## Escritura de cache
 

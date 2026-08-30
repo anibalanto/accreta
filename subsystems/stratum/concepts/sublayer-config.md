@@ -40,6 +40,12 @@ depth = 1
 | `repo` | string | sí | URL del repositorio git (ssh o https) |
 | `branch` | string | sí | Rama a clonar |
 | `sparse` | array de strings | no | Paths a incluir en sparse checkout. Sin este campo se clona completo. |
+
+### `sparse` se escribe acá, y no en todas partes
+
+Para una **subcapa** el conjunto es una decisión de quien la declara: qué parte de una capa vecina le interesa a este proyecto no se deduce de nada.
+
+Para un **repo ajeno** no: ahí el conjunto sale de los bilinks que cruzan la frontera —qué archivos del proveedor hacen falta es exactamente qué fragmentos se referencian— y declararlo a mano sería meter un valor derivado en un archivo de declaración, que además quedaría viejo con el primer vínculo nuevo. Por eso `.bilink/.{alias}.toml` **no tiene** campo `sparse`. Ver [la frontera](../../bilinker/concepts/frontier.md) § "El sparse se calcula, no se declara".
 | `depth` | entero | no | Profundidad del clon. Sin este campo se clona el historial completo. |
 
 ## Relación con `stratum pull`
@@ -67,7 +73,9 @@ bilinker/
     # technical-decisions/ y impl/ ausentes — no clonadas
 ```
 
-`bilinker check` y `bilinker graph` reportan `UNREACHABLE` para los endpoints que apuntan a subcapas no presentes, sin fallar.
+`bilinker check` y `bilinker graph` reportan **`LAYER_UNREACHABLE`** para los endpoints que apuntan a subcapas declaradas y no presentes, sin fallar.
+
+**Declarada y ausente no es lo mismo que ausente a secas.** Una subcapa con su `.toml` y sin directorio es `LAYER_UNREACHABLE` y se arregla con `stratum pull`; una sin `.toml` ni directorio, pero con aceptación previa, es `LAYER_UNCONFIGURED` y lo que le falta es la declaración. Un solo nombre no distinguía *"me falta traer algo"* de *"algo se rompió"*, que es la diferencia que decide si alguien tiene que mirar. El desglose completo está en [la frontera](../../bilinker/concepts/frontier.md) § "Taxonomía de ausencia".
 
 ## Invariantes
 

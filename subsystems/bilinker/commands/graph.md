@@ -108,7 +108,21 @@ Una cadena de N nodos emite **una** arista entre sus dos tips estructurales, no 
 
 ## Traversal entre repos
 
-Si el `.bilink/<uuid>.bilink` en la capa adyacente no existe localmente (repo no clonado), el traversal se detiene silenciosamente. El nodo actual se muestra con su endpoint layer.
+Si el `.bilink/<uuid>.yaml` en la capa adyacente no existe localmente (repo no clonado), el traversal se detiene silenciosamente. El nodo actual se muestra con su endpoint `path`.
+
+## Terminadores
+
+Una cadena termina en un endpoint que no lleva a ningún lado más. Son tres, y el traversal se detiene en los tres:
+
+| Terminador | Qué es | Cómo se emite |
+|---|---|---|
+| tip estructural | un fragmento de esta capa | el nodo, con su range |
+| [`abstract`](../concepts/frontier.md#el-endpoint-abstract) | una punta abierta a quien la consuma | un nodo sin destino, estado `OPEN` |
+| [repo](../concepts/frontier.md#el-endpoint-repo) | un fragmento de otro proyecto | una arista hacia el alias, sin cruzarla |
+
+**El traversal no cruza la frontera.** Un endpoint repo se emite como arista y se detiene ahí, aunque el clon esté: seguirla significaría recorrer el grafo de otro proyecto, y el consumidor no sabe —ni tiene por qué saber— cuántas capas tiene el proveedor del otro lado.
+
+**Y `abstract` no es un traversal que falló.** Es una punta que nunca va a tener contraparte en su propio repo: quien la consume vive en otro proyecto que este repo no conoce. Emitirla como nodo con estado `OPEN` la distingue de una capa que no se pudo alcanzar, que es lo que un hueco confundiría.
 
 ## Ciclos
 

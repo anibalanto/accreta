@@ -15,8 +15,8 @@ Partir en el primer espacio y matchear el prefijo. Nada más.
 | `capture <id>` | un id de capture de esta capa | implementado |
 | `path <stratum-path>` | un path Stratum hacia una capa vecina | implementado |
 | `issue <id>` | un id de ítem del worklist | implementado |
-| `repo <alias>` | un alias de repo ajeno | [ADR-0005](../.stratum/impl/docs/adr/0005-frontera-entre-proyectos.md) |
-| `abstract` | nada — no lleva valor | [ADR-0005](../.stratum/impl/docs/adr/0005-frontera-entre-proyectos.md) |
+| `repo <alias>` | un alias de repo ajeno | implementado |
+| `abstract` | nada — no lleva valor | implementado |
 | `bilink <uuid>` | otro bilink | [`proposals/bilink-endpoint.md`](../proposals/bilink-endpoint.md) |
 
 **Un prefijo desconocido es un error, no un fallback.** Antes el endpoint layer era lo que quedaba cuando ninguna otra forma matcheaba, y eso obligaba a una regla de precedencia entre prefijos, palabras reservadas y paths. Sin fallback, esa regla no existe.
@@ -101,9 +101,61 @@ Lleva `hash` y no lleva `link`: no hay capture que aprobar, porque la ubicación
 
 ---
 
-## Endpoints que todavía no existen
+## Endpoint `abstract`
 
-`repo <alias>` y `abstract` llegan con la frontera entre proyectos, en [ADR-0005](../.stratum/impl/docs/adr/0005-frontera-entre-proyectos.md). Son aditivos: ningún archivo existente los usa.
+Una punta abierta: no la resuelve quien la declara, la aporta quien la consuma.
+
+```
+link: abstract
+```
+
+**No lleva valor y no lleva `accepted`.** No hay nada que bendecir del lado abierto, y con el bloque entero ausente eso es una ausencia y no una lista de campos vacíos.
+
+Es palabra reservada, y con el tipo adelante no hace falta ninguna regla de desempate: es la única forma sin valor, y ninguna otra se le parece.
+
+### Estado
+
+`OPEN`, constante. Siempre sana, nunca pide acción, y `accept .` nunca la toca. Ver [la frontera](frontier.md) § "El estado es `OPEN`, constante".
+
+---
+
+## Endpoint repo
+
+Identifica un fragmento **de otro proyecto**, por un alias local.
+
+```
+link: repo hsi
+```
+
+El UUID es el mismo que el del bilink remoto, así que no se escribe. El alias se declara en `.bilink/.{alias}.toml`, y es el único lugar del consumidor que sabe algo del otro repo — el `link` no contiene ninguna URL.
+
+### Resolución
+
+```
+resolved = <clon de .{alias}.toml @ refs/bilink/{branch}>/.bilink/<uuid>.yaml
+```
+
+Es el [endpoint path](#endpoint-path) generalizado: misma convención de UUID compartido, mismo `.bilink/` implícito — sólo cambia que la dirección se resuelve por alias en vez de por path relativo.
+
+El `.toml` declara la rama **del proyecto**; la traducción a `refs/bilink/<branch>` la hace la herramienta.
+
+### `accepted`
+
+Copia de `accepted.link` y `accepted.hash` del endpoint **estructural** del bilink remoto. Dos SHA-256 opacos: ninguno revela path, query, texto ni commit del proveedor.
+
+```yaml
+accepted:
+  link: 8f2a4c6e…      # id del capture del proveedor — ubicación publicada
+  hash: c4e1770b…      # hash del fragmento del proveedor — contenido publicado
+```
+
+**`accepted.link` no lleva prefijo**, a diferencia del caso local: es una copia opaca de un id ajeno, y se compara sin resolverse. Poner `capture <id>` afirmaría que ese capture es de esta capa, que es justo lo que no es.
+
+Ver [la frontera](frontier.md) para lo demás: qué se compara, la verificación de versión, el clon y la taxonomía de ausencia.
+
+---
+
+## Endpoints que todavía no existen
 
 `bilink <uuid>` está especificado y no implementado, en [`proposals/bilink-endpoint.md`](../proposals/bilink-endpoint.md).
 
