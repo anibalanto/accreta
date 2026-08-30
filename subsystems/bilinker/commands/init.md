@@ -87,7 +87,9 @@ error: el repo no está inicializado para bilinker.
   Correr `bilinker init`.
 ```
 
-La detección es por la ausencia del refspec en `.git/config`: es la pieza que no puede estar por accidente. Un `.bilink/` en el árbol no alcanza —puede venir de antes del corte— y el exclude tampoco, porque alguien pudo escribirlo a mano.
+La detección pide **las dos** piezas que `init` escribe: el exclude, y el refspec en cada remoto que haya. El refspec es la que no puede estar por accidente —un `.bilink/` en el árbol puede venir de antes del corte, y el exclude lo pudo escribir alguien a mano— pero en un repo sin remoto no existe, y pedirla sola lo dejaría sin forma de estar nunca inicializado.
+
+**Y sólo se exige donde corresponde: en un repo que ya cortó**, que es lo que dice su [ledger](migrate.md). Antes del corte los bilinks viven en la rama, no hacen falta ni exclude ni refspec, y exigirlos rompería todos los repos que todavía no cortaron — incluida la herramienta con la que se corta. Lo dice el ledger y no el filesystem porque el ledger está commiteado: un clon fresco de un repo que cortó lo sabe **antes** de tener una sola `refs/bilink/*` local, que es exactamente el caso en el que hay que exigirlo. Mirar si hay refs daría la respuesta contraria justo ahí.
 
 ## Es idempotente
 

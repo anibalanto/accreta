@@ -22,6 +22,8 @@ Dos líneas en `.git/`, y las pone [`init`](../commands/init.md):
 
 No son configuración de bilinker sino del repo del usuario, y por eso se piden en vez de escribirse solas: **bilinker arregla solo lo que es suyo, y pide lo que es del repo del usuario.** Sin `init` ningún comando corre.
 
+**Que el clon esté puesto a punto se detecta pidiendo las dos**, y cada una cubre un caso que la otra no. El refspec es la que no puede estar por accidente —un `.bilink/` en el árbol puede venir de antes del corte, y el exclude lo pudo escribir alguien a mano— pero **no existe en un repo sin remoto**, y ahí pedirla sola dejaría al repo sin forma de estar nunca inicializado: todo comando se negaría para siempre. Un repo local sin origen usa la ref igual, sólo que nunca la empuja.
+
 Que sean por clon y no por repo es lo que las obliga a estar acá: no viajan con un `git clone`, así que la primera cosa que hace quien clona es correr `init`.
 
 ## Uso con múltiples capas y repositorios
