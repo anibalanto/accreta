@@ -1,249 +1,207 @@
 ---
 name: bilinker
-description: "Crea, verifica y mantiene bilinks — referencias bidireccionales persistentes entre fragmentos de texto en distintas capas del proyecto (spec, impl, docs). Opera solo con git y tree-sitter. Carga esta skill cuando necesites crear un .bilink, interpretar su estado, o ejecutar bilinker check/accept/apply/get."
+description: Referencias verificadas entre fragmentos de texto a través de capas Stratum. Cargar antes de cualquier tarea que toque bilinks — crear, revisar, aceptar, repuntar o seguir el inventario de un cambio.
 ---
 
-> [!WARNING]
-> **Este skill describe el formato anterior.** ADR-0003, ADR-0004, ADR-0005 y ADR-0006 —en `subsystems/bilinker/.stratum/impl/docs/adr/`— lo cambian: los archivos pasan a YAML, el bloque `accepted` reemplaza a `hash.N`/`commit.N`, `resolved_at` desaparece, los endpoints llevan prefijo de tipo (`path >impl`, `repo hsi`) y los bilinks se mudan a `refs/bilink/<branch>`.
->
-> Como este skill se carga solo, no es documentación desactualizada sino **una instrucción activa de escribir el formato anterior**. Hasta que se reescriba —es la task `7`, en el sprint 3, junto con el corte de formato—, leerlo contra los ADRs y no al revés.
->
-> Vive en `ia/skills/bilinker/SKILL.md`. `.claude/skills` es un symlink a `ia/skills`, así que hay un solo archivo y se edita ahí.
+Bilinker mantiene referencias bidireccionales entre fragmentos a través de capas Stratum. La referencia apunta a un nodo del AST vía tree-sitter, no a un número de línea, así que sobrevive reformateos y movimientos.
 
+Opera **solo con git y tree-sitter**. No consulta language servers ni indexers: el call graph vive en lattice, el alcance de un cambio en impact.
 
-Bilinker mantiene referencias bidireccionales entre fragmentos de texto a través de capas Stratum. La referencia apunta a un nodo AST (via tree-sitter), no a un número de línea, por lo que sobrevive reformateos y movimientos.
+No hay archivo de configuración. La raíz se resuelve caminando hacia arriba desde cwd, buscando `.bilink/` o `.git/`.
 
-## Conceptos clave
-
-- **Capture**: un archivo `.bilink/capture/<uuid>.capture` que describe **dónde** está un fragmento (`file`, `query`, `offset`). No guarda hashes. Varios bilinks pueden referenciar el mismo.
-- **Bilink**: un archivo `.bilink/<uuid>.bilink` con dos endpoints (`link.0`, `link.1`). Guarda **qué se aceptó** (`hash.N`, `commit.N`), no dónde está.
-- **Cadena**: el mismo UUID en múltiples layers. Dos *tips* (endpoint estructural + layer) y cero o más *mids* (dos layer endpoints).
-- **Endpoint estructural**: `capture <uuid>` — referencia a un capture de la misma capa.
-- **Endpoint layer**: apunta a otra layer usando path Stratum (`.stratum/impl`, `../..`).
-- Bilinker opera **solo con git y tree-sitter**. No consulta language servers ni indexers. El call graph y el análisis de alcance viven en lattice e impact.
-- No hay archivo de configuración. Bilinker resuelve la raíz buscando `.bilink/` o `.git/` hacia arriba desde cwd.
-
-## Estructura de `.bilink/`
+## Las tres cosas y qué guarda cada una
 
 ```
 .bilink/
-  <uuid>.bilink          ← relaciones (qué se aceptó)
+  <uuid>.yaml            ← el bilink: qué se relaciona con qué, y qué se aprobó
   capture/
-    <uuid>.capture       ← ubicaciones (dónde está el fragmento)
-  index/
-    index                ← índice de lookup O(1) para bilinker get / graph
+    <id>.yaml            ← una ubicación, inmutable. El id es su hash.
+  cache/state            ← lo derivable · no versionado
+  version                ← la versión de formato
+  .gitignore             ← cache/ e index/
+  index/index            ← lookup O(1) · no versionado
 ```
 
-## Formato del archivo `.bilink`
+**Un capture es una ubicación y nada más** — `file`, `query`, `offset`. Su nombre es `H(file, query, offset)`, así que es inmutable por construcción: cambiarle la ubicación le cambiaría el nombre. Dos referencias a la misma ubicación son el mismo archivo, sin buscar duplicados.
 
-```
-# .bilink/<uuid>.bilink
-link.0: capture c1a2b3c4-…       # endpoint estructural
-link.1: .stratum/impl            # endpoint layer
+**Un bilink referencia captures y guarda decisiones.** No sabe dónde está su fragmento: sabe a qué capture preguntarle.
 
-# Semántica (opcionales)
-kind:         governs        # opcional; ver concepts/bilink.md
-name.0:       <etiqueta>
-name.1:       <etiqueta>
+**La cache no está en git.** Estar fría es normal — un clon fresco, otra rama, otra máquina.
 
-# Cache (ausente hasta el primer accept)
-hash.0: <sha256>
-hash_ast.0: <sha256>
-commit.0: <sha1>
-hash.1: <sha256>
-hash_ast.1: <sha256>
-commit.1: <sha1>
-state.0: <estado>
-state.1: <estado>
-resolved_at: 2026-06-04T10:00:00Z
-```
+## El archivo de bilink
 
-```
-# .bilink/capture/c1a2b3c4-….capture
-file:   src/lib.rs
-query:  (function_item name: (identifier) @n0 (#eq? @n0 "foo")) @target
-offset: 42~118                   # opcional: sub-rango relativo al nodo
-
-range:       5100~7300           # cache: absoluto en el archivo
-state:       RESOLVED
-resolved_at: 2026-06-04T10:00:00Z
+```yaml
+kind: governs                       # opcional, inerte
+endpoint:
+  0:
+    link: capture 67ba7217e0334051becd4921b55a7872
+    name: la-decision               # opcional, inerte
+    accepted:
+      link: capture 67ba7217e0334051becd4921b55a7872
+      hash: c00e07602bd5…
+      hash_ast: 1b9e44a2f0c8…       # sólo donde el AST discrimina contenido
+  1:
+    link: path subsystems/bilinker>impl
+    accepted:
+      link: capture f5e8a7d7164c58cc32e8a5f035c54bcb
+      hash: 30985a8c8437…
 ```
 
-- El nombre de cada archivo es su UUID v4. El del capture es independiente del de la cadena.
-- **El bilink no sabe dónde está su fragmento** — sabe qué capture preguntarle. No tiene `file`, `query` ni `range`.
-- `hash.N` es el SHA-256 del texto del fragmento; `hash_ast.N` el de su S-expression tree-sitter. Si `hash.N` difiere pero `hash_ast.N` coincide, el cambio fue solo de formato → `RESTYLED`.
-- `hash.N` de un endpoint layer es una **copia** del `hash.N` del endpoint estructural del bilink adyacente, no el hash del archivo `.bilink`.
-- Los hashes viven en el bilink y no en el capture **a propósito**: dos bilinks sobre el mismo fragmento pueden haber aceptado versiones distintas y deben poder reportar estados distintos.
+**La ausencia de `accepted` *es* el estado PENDING.** No hay campo que lo diga.
+
+`hash_ast` cubre la forma del árbol más el texto de cada token. No se escribe sobre prosa: en markdown el AST no lleva el texto, así que compararlo llamaría "sólo formato" a una reescritura entera.
 
 ## Tipos de endpoint
 
-| Tipo | Forma | Ejemplo |
-|------|-------|---------|
-| Estructural | `capture <uuid>` | `capture c1a2b3c4-2e3f-4a5b-9c6d-7e8f9a0b1c2d` |
-| Layer | path Stratum | `.stratum/impl` · `../..` |
-| Issue | `issue <id>` | `issue 3a` |
-| Bilink | `.bilink/<uuid>.bilink` | `.bilink/7f3d8e9a-….bilink` |
+El tipo va **adelante**, en un prefijo. Partir en el primer espacio y matchear. **Un prefijo desconocido es un error, no un fallback.**
 
-## Workflow: crear un nuevo bilink
+| Prefijo | El resto es |
+|---|---|
+| `capture <id>` | un capture de esta capa |
+| `path <stratum-path>` | una capa vecina — `path <`, `path >impl`, `path subsystems/bilinker>impl` |
+| `issue <id>` | un ítem del worklist |
 
-```bash
-# 1. Generar UUID
-uuid=$(uuidgen | tr '[:upper:]' '[:lower:]')
+`repo <alias>` y `abstract` están especificados y no implementados (ADR-0005); `bilink <uuid>` también (`proposals/bilink-endpoint.md`).
 
-# 2. Capturar cada endpoint estructural (selección por línea:col)
-c0=$(bilinker capture <archivo> <start_line>:<start_col> <end_line>:<end_col>)
-# stdout → UUID del capture creado
-# stderr → metadata (path, anchor, range)
+## Las dos dimensiones
 
-# 3. Crear el archivo .bilink referenciando el capture
-cat > .bilink/$uuid.bilink <<EOF
-link.0: capture $c0
-link.1: <endpoint-1>
-EOF
+Un endpoint puede derivar de dos maneras independientes, y se aprueban por separado:
 
-# 4. Aceptar el estado inicial
-bilinker accept .
-```
+| Dimensión | Se compara | Deriva a |
+|---|---|---|
+| **ubicación** | `link` contra `accepted.link` | `RELOCATED` |
+| **contenido** | el fragmento contra `accepted.hash` | `ALTERED`, `EXPANDED`, `DISPLACED`, `RESTYLED` |
 
-Para cadenas entre layers: usar `bilinker chain new --tip <layer>:<ref> --tip <layer>:<ref>`.
+La de ubicación son dos ids: no abre ningún archivo, y por eso se decide siempre — incluso donde la otra degrada.
 
-## Workflow: mantener bilinks
+### Resolución del capture
 
-```bash
-# Ver estado almacenado (no re-verifica)
-bilinker status [<path>]
+| Estado | Significado | Fix |
+|---|---|---|
+| `RESOLVED` | La query matchea. | — |
+| `MOVED` | El archivo cambió de path (git rename ≥ 50%). | `apply` |
+| `REANCHORED` | El anchor se renombró; se localizó por similitud. | `apply` |
+| `UNANCHORED` | La query no matchea y el anchor no aparece. | `recapture` |
 
-# Re-verificar y actualizar estados — solo git + tree-sitter, offline
-bilinker check [<path>]
+### Aceptación
 
-# Aplicar auto-fixes (MOVED / DISPLACED / REANCHORED / EXPANDED)
-bilinker apply --dry-run       # ver qué haría
-bilinker apply                 # pide confirmación
-bilinker apply -y              # sin confirmación
+| Estado | Significado | Fix |
+|---|---|---|
+| `PENDING` | `accepted` ausente. | `accept` |
+| `OK` | Ubicación y contenido coinciden. | — |
+| `RELOCATED` | `link` ≠ `accepted.link`. | `accept --place` |
+| `DISPLACED` | El texto aceptado está en otro offset del nodo. | `apply` + `accept` |
+| `EXPANDED` | El fragmento contiene lo aceptado y algo más. | `apply` + `accept` |
+| `RESTYLED` | El texto difiere y los tokens no — sólo espaciado. | `accept` |
+| `ALTERED` | El fragmento cambió. | revisar + `accept` |
+| `UNRESOLVED` | El capture no resolvió. | resolver el capture |
 
-# Aceptar cambios de contenido (ALTERED / RESTYLED / CHAIN_DIRTY / PENDING)
-bilinker accept <uuid>.<N>     # un endpoint
-bilinker accept .              # todos los que necesitan atención en la layer actual
+Propios de un endpoint `path`: `TODO` (la capa todavía no existe), `CHAIN_DIRTY` (el vecino re-aceptó), `BROKEN` (la capa o el bilink vecino desaparecieron).
 
-# Repuntar un endpoint que ya no ancla (UNANCHORED, o fragmento movido a otro repo)
-bilinker recapture <uuid>.<N> <file> <línea>:<col>
-# crea el capture, reescribe link.N y limpia state.N — no acepta
-```
+## Quién escribe qué
 
-### Qué hace `apply` y qué no
+| Comando | Escribe |
+|---|---|
+| `capture` | un capture nuevo, si no existía |
+| `check` | sólo `cache/state`. **Ni el bilink ni el capture se tocan.** |
+| `accept` | `accepted` en el bilink. Lo único que escribe una decisión. |
+| `apply` | acuña captures y repunta un `link`. Nunca escribe `accepted`. |
+| `recapture` | repunta un `link` a mano. Tampoco acepta. |
 
-`apply` corrige **dónde está el fragmento**, escribiendo en el **capture** (`file`, `query`, `offset`). Nunca escribe `hash.N`, `hash_ast.N` ni `commit.N` — eso es exclusivo de `accept`.
+**`apply` propone, `accept` dispone.** Un fix nunca cierra el ciclo solo: `apply` repunta y deja el endpoint en `RELOCATED`, porque mover un vínculo a otro fragmento es una decisión igual que aprobar un contenido.
 
-Si el capture está compartido por varios bilinks, `apply` **forkea** en vez de corregir en el lugar para DISPLACED y REANCHORED (dependen de `hash.N` o de una inferencia ambigua). MOVED y EXPANDED sí se corrigen en el lugar: son hechos objetivos sobre el archivo o el nodo.
+Ningún comando modifica un capture existente. La única operación sobre el conjunto es agregar, y `prune` sacar los que no referencia nadie.
 
-| Estado | Tras `apply` |
-|--------|--------------|
-| `MOVED`, `DISPLACED` | queda `OK` — el contenido no cambió |
-| `EXPANDED`, `REANCHORED` | sigue no-OK — el contenido cambió, hace falta `bilinker accept` |
+## El método
 
-`apply` re-resuelve cada endpoint en el momento en vez de confiar en el `range` cacheado del capture. Si el estado re-derivado no coincide con `state.N` (la cache quedó vieja), descarta el fix y pide correr `check`. Correr `check` antes de `apply` es la secuencia normal.
+1. Se toca **la spec**, nunca el código primero.
+2. `bilinker check .` reporta los endpoints no-OK.
+3. Cada no-OK es un puntero al fragmento de código que implementaba esa spec. Se sigue con `bilinker get`.
+4. Se cambia el código y se acepta.
 
-## Navegar el código referenciado
+**El inventario de trabajo de un cambio *es* la lista de no-OK.** Buscar el código a mano produce una lista que envejece el mismo día que se escribe.
 
-```bash
-# Ver el fragmento de un endpoint
-bilinker get <uuid>.<N>
-
-# Contexto adicional
-bilinker get <uuid>.<N> -B 3 -A 3
-
-# Diff entre el fragmento aceptado (commit.N) y el actual
-bilinker get <uuid>.<N> --diff
-
-# Recorrer el grafo de bilinks (cruza capas)
-bilinker graph <file>                 # bilinks que referencian el archivo
-bilinker graph . --recursive          # todas las capas bajo la raíz
-bilinker graph . --format json        # aristas para lattice
-```
-
-El baseline de `--diff` es siempre el `commit.N` del endpoint, nunca un ref externo.
-
-El traversal del call graph (qué llama a qué) **no es de bilinker** — vive en lattice, que agrega las aristas de bilinker con las derivadas del LSP y las de links en documentos.
-
-## Estados de un endpoint
-
-Los estados están partidos en dos: **dónde está** (capture) y **coincide con lo aceptado** (bilink).
-
-### Resolución — en el capture
-
-| Estado | Significado | Acción |
-|--------|-------------|--------|
-| `RESOLVED` | La query matchea; `range` actualizado | — |
-| `MOVED` | Archivo renombrado (≥50% similitud git) | `bilinker apply` |
-| `REANCHORED` | Anchor renombrado/movido, nueva posición en AST | `bilinker apply` + `accept` |
-| `UNANCHORED` | Query no matchea ningún nodo | `bilinker recapture` o `remove` |
-| `DELETED` | Archivo eliminado (rastreable en git) | restaurar o remove |
-| `BROKEN` | Ninguna hipótesis aplica | intervención |
-
-### Aceptación — en el bilink (endpoint estructural)
-
-| Estado | Significado | Acción |
-|--------|-------------|--------|
-| `OK` | Hash coincide | — |
-| `DISPLACED` | Hash en otro offset del nodo | `bilinker apply` |
-| `EXPANDED` | Fragmento creció; AST interno sin cambio estructural | `bilinker apply` + `accept` |
-| `RESTYLED` | `hash.N` difiere pero `hash_ast.N` coincide — solo formato | `bilinker accept` |
-| `ALTERED` | Fragmento encontrado; AST interno cambió | revisar + `bilinker accept` |
-| `UNRESOLVED` | El capture referenciado no resuelve | resolver el capture |
-
-### Endpoint layer
-
-| Estado | Significado | Acción |
-|--------|-------------|--------|
-| `PENDING` | Sin hash aceptado | `bilinker accept` |
-| `TODO` | Layer destino no existe todavía | crear layer + `bilinker accept` |
-| `OK` | Hash sincronizado con el nodo adyacente | — |
-| `CHAIN_DIRTY` | El extremo estructural adyacente cambió y fue re-aceptado | `bilinker accept` |
-| `BROKEN` | Layer o bilink adyacente no existe | restaurar o remove |
-
-## Propagación de cambios
-
-Cuando el contenido de un endpoint estructural cambia:
-1. `check` → `ALTERED` en el tip estructural.
-2. `accept` → actualiza `hash.N` del tip → el `.bilink` cambia.
-3. En el próximo `check` del nodo layer adyacente → `CHAIN_DIRTY`.
-4. `accept` en el layer → sincroniza su `hash.N`.
-
-La propagación es siempre unidireccional desde el endpoint estructural hacia los layer endpoints.
-
-## Comandos de referencia rápida
+## Comandos
 
 ```bash
-bilinker status                               # resumen de la layer actual
-bilinker status $(stratum '*')                # resumen desde la raíz del proyecto
-bilinker check .                              # verificar todos los bilinks de la layer
-bilinker check .bilink/<uuid>.bilink          # verificar un bilink concreto
-bilinker apply --dry-run                      # ver qué fixes se aplicarían
-bilinker apply -y                             # aplicar todos los fixes sin confirmar
-bilinker accept .                             # aceptar todo lo pendiente en la layer
-bilinker accept <uuid>.0                      # aceptar endpoint 0 de un bilink
-bilinker index --recursive                    # reconstruir índice (acelera get / graph)
-bilinker capture <file> <l>:<c> <l>:<c>       # crear un capture, devuelve su UUID
+bilinker check .                              # verificar la capa
+bilinker check <path>                         # verificar lo que caiga bajo ese path
+bilinker status                               # resumen sin re-verificar
+
+bilinker get <uuid>.<N>                       # ver el fragmento
+bilinker get <uuid>.<N> -B 3 -A 3             # con contexto
+bilinker get <uuid>.<N> --diff                # contra el contenido aceptado
+bilinker get <file>                           # endpoints que referencian el archivo
+
+bilinker apply --dry-run                      # qué repuntaría
+bilinker apply -y                             # repuntar sin confirmar
+
+bilinker accept <uuid>.<N>                    # un endpoint
+bilinker accept <uuid>                        # los dos
+bilinker accept .                             # todo lo pendiente de la capa
+bilinker accept --place <uuid>.<N>            # sólo la ubicación
+bilinker accept --content <uuid>.<N>          # sólo el contenido
+
+bilinker recapture <uuid>.<N> <file> [<l>:<c> <l>:<c>]   # repuntar a mano
+bilinker capture <file> [<l>:<c> <l>:<c>]     # un capture suelto; sin posición, el archivo entero
 bilinker capture prune                        # borrar captures sin referentes
-bilinker capture remove <uuid>                # borrar un capture puntual
-bilinker recapture <uuid>.<N> <file> <l>:<c>  # repuntar un endpoint que ya no ancla
-bilinker get <uuid>.<N>                       # ver fragmento del endpoint
-bilinker get <uuid>.<N> --diff                # diff contra el estado aceptado
-bilinker graph <file>                         # bilinks que referencian el archivo
-bilinker graph . --recursive --format json    # aristas para lattice
-bilinker chain new --tip <ref> --tip <ref>    # crear cadena entre layers
+
+bilinker chain new --tip <REF> --tip <REF>    # crear una cadena
+bilinker chain status <uuid>                  # todos los nodos de una cadena
+bilinker chain list
+
+bilinker index --recursive                    # reconstruir el índice
+bilinker migrate --recursive                  # migrar el formato
+bilinker remove <uuid>                        # borrar un bilink de esta capa
 ```
 
-## Invariantes a recordar
+Cada `--tip` es un path Stratum con `:LINE:COL` opcional. Sin posición captura el archivo entero. El path puede atravesar directorios comunes antes de bajar a una capa:
 
-- `hash.N` y `commit.N` siempre presentes juntos o ausentes juntos.
-- `hash.N` de un endpoint layer == `hash.N` del endpoint estructural del nodo adyacente.
-- Solo `accept` escribe `hash.N` / `hash_ast.N` / `commit.N`, y solo en el bilink.
-- `check` escribe `range` y `state` en el capture, y `state.N` en el bilink.
-- `apply` escribe el capture; su único efecto sobre el bilink es `state.N` y repuntar `link.N` al forkear.
-- Un endpoint estructural referencia exactamente un capture, **de su misma capa**.
+```bash
+bilinker chain new \
+  --tip 'subsystems/bilinker/concepts/capture.md:29:1' \
+  --tip 'subsystems/bilinker>impl/crates/bilinker/src/capture.rs:523:1'
+```
+
+Para poblar `kind` y `name`: `--kind governs --name.0 <etiqueta> --name.1 <etiqueta>`.
+
+## Crear una cadena
+
+Siempre con `chain new`. Escribir los archivos a mano es lo que el formato no le pide a nadie — y `capture` verifica que la query identifique el fragmento unívocamente antes de escribir, cosa que a mano no pasa.
+
+El fragmento tiene que estar commiteado: aceptar fija un contenido, y ese contenido tiene que existir en la historia.
+
+**Elegir un ancla que se nombre a sí misma.** Un nodo sin nombre propio produce una query que matchea el primero de su tipo en el archivo. `capture` falla antes de escribir si no puede identificarlo, y el error dice qué seleccionar en su lugar.
+
+| Tipo de documento | Ánclas estables | Frágil |
+|---|---|---|
+| Código | función, método, clase, declaración con nombre | comentario, `use`/`import` |
+| Markdown | heading h1–h4, bloque de código | párrafo libre |
+| YAML / TOML | clave de mapping, item con `id:` | valor string libre |
+
+## Propagación por la cadena
+
+Un endpoint `path` **no** hashea el archivo vecino: copia el `accepted` del endpoint **estructural** de ese bilink. Es lo que evita la cascada circular — si hasheara el archivo entero, aceptar reescribiría su propio archivo y esa escritura volvería al vecino como un cambio.
+
+```
+el fragmento de B cambia   → tip-B: ALTERED
+accept en tip-B            → su accepted cambia
+                           → tip-A: CHAIN_DIRTY
+accept en tip-A            → sincronizado
+```
+
+Siempre unidireccional, desde el endpoint estructural hacia los `path`.
+
+## Invariantes
+
+- Sólo `accept` escribe `accepted`.
+- `check` no escribe nada versionado.
+- Un `link` referencia captures de **su misma capa**. Un `accepted.link` de un endpoint `path` lleva una copia opaca del id ajeno: se compara, no se resuelve.
 - Borrar un bilink nunca borra un capture.
-- `kind` y `name.N` son independientes de la cache — no afectan `state.N`.
-- Un bilink solo se puede crear sobre archivos con historial git.
+- Un bilink tiene siempre exactamente dos endpoints. La multiplicidad la aporta el capture: un fragmento puede tener N bilinks.
 - La topología de una cadena es lineal — sin ciclos ni bifurcaciones.
-- Bilinker no persiste nada derivado del código más allá de hashes aceptados. No hay índice de símbolos ni call graph bajo control de versiones.
+- `kind` y `name` son inertes: no entran en ningún hash ni en ningún estado.
+
+## Defectos conocidos
+
+`.stratum/worklist/18.task.md` — el rango de un item de secuencia YAML cambia si se agrega otro item más abajo. Sale como `RESTYLED` sobre un fragmento que nadie tocó.

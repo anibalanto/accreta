@@ -19,7 +19,7 @@ Las decisiones que ese trabajo ejecuta viven en `docs/adr/` de la capa impl del 
 
 **El inventario de trabajo de un cambio *es* la lista de no-OK.** Buscar el código a mano produce una lista que envejece el mismo día que se escribe; los bilinks están vivos.
 
-Guía operativa: `.claude/skills/bilinker/SKILL.md` — **hoy describe el formato anterior**, ver el aviso adentro.
+Guía operativa: `ia/skills/bilinker/SKILL.md`. `.claude/skills` es un symlink relativo a `ia/skills`: hay una sola copia de cada skill, y no puede divergir.
 
 ## Paths
 
