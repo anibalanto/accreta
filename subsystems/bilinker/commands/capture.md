@@ -39,11 +39,13 @@ bilinker capture prune [<path>]
    - **YAML `block_sequence_item`**: busca el par `id:` dentro del item y usa su valor como predicado, capturando el item completo.
    - **YAML `block_mapping_pair`**: usa el texto de la clave como predicado.
    - **Markdown `section`**: busca el heading dentro del section y usa su texto inline como predicado, capturando toda la sección (heading + contenido).
+   - **Rust `impl_item`**: el discriminante no es un campo `name` sino el tipo implementado (`type:`) y, cuando es la implementación de un trait, también el trait (`trait:`). Con uno solo, `impl Foo` y `impl Bar for Foo` quedan indistinguibles.
 5. Construir la query como el camino del AST desde ese ancestro hasta el nodo target. Cada predicado usa un nombre de captura único (`@n0`, `@n1`, …). El `@target` se coloca en el nodo que representa el fragmento completo.
-6. Determinar si la selección coincide exactamente con los límites del nodo target:
+6. **Verificar que la query identifica el fragmento**: resolverla contra el mismo archivo y comprobar que devuelve exactamente un match, en los bytes del nodo seleccionado. Si devuelve otro nodo o más de uno, `capture` falla sin escribir nada.
+7. Determinar si la selección coincide exactamente con los límites del nodo target:
    - **Exacta**: no escribir `offset`.
    - **Parcial**: calcular offsets en bytes relativos al inicio del nodo target y escribirlos en `offset`.
-7. Generar un UUID v4 y escribir `.bilink/capture/<uuid>.capture` con `state: RESOLVED`, `range` absoluto y `resolved_at`.
+8. Generar un UUID v4 y escribir `.bilink/capture/<uuid>.capture` con `state: RESOLVED`, `range` absoluto y `resolved_at`.
 
 `capture` no calcula ni almacena hashes: un capture describe ubicación, no contenido aceptado. El hash lo establece `bilinker accept` en el bilink que lo referencie.
 
@@ -154,6 +156,7 @@ Error: el capture 5fdff600 tiene referentes — usar `bilinker recapture` para r
 
 ## Propiedades garantizadas
 
+- **Unicidad de la referencia**: la `query` resuelve al nodo que se seleccionó, y a ninguno otro. Un ancla sin discriminante —un `impl` sin tipo, un comentario, un `use`— produce una query que matchea el **primer** nodo de ese tipo del archivo: un capture que apunta a otra cosa y no falla. `capture` verifica antes de escribir y falla si no puede identificar el fragmento unívocamente. Un capture mal anclado es peor que uno roto, porque reporta OK sobre una correspondencia que no existe.
 - **Determinismo de la referencia**: dos ejecuciones sobre el mismo archivo y selección sin modificaciones intermedias producen la misma `query` y el mismo `range`.
 - **Reuso**: capturar dos veces el mismo fragmento devuelve el **mismo** UUID. Antes de crear uno nuevo, `capture` busca un capture de la capa con la referencia exacta `(file, query, offset)` — el mismo criterio que usa la migración. Sin esto, cada cadena nueva volvería a duplicar lo que aquélla unificó.
 - **Independencia de git**: `capture` no requiere que el archivo esté bajo control de versiones.
