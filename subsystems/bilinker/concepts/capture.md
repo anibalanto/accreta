@@ -1,12 +1,18 @@
 # Especificación: Formato del archivo `.capture`
 
-Un **capture** es una ubicación: qué archivo, qué nodo del AST, y qué parte de ese nodo. Nada más. No sabe qué versión del fragmento alguien aprobó, ni dónde cayó la última vez que se lo resolvió.
+Un **capture** es una ubicación: qué archivo y qué nodo del AST. Nada más. No sabe qué versión del fragmento alguien aprobó, ni dónde cayó la última vez que se lo resolvió.
 
 Un bilink no describe un fragmento: **referencia un capture**. Varios bilinks pueden referenciar el mismo.
 
 ## El id es el hash de la ubicación
 
-El nombre del archivo es `H(file, query, offset)` — el hash de lo único que contiene.
+El nombre del archivo es el hash de lo único que contiene: **cada campo seguido de un `\0`**.
+
+```
+id = sha256( file "\0" query "\0" )[..32]
+```
+
+El terminador va después de cada campo y no entre campos, y eso importa: así el id no cambia cuando un campo desaparece del formato. Es lo que permitió sacar el `offset` sin re-acuñar los 316 captures que existían.
 
 De ahí salen tres propiedades que antes había que sostener con reglas:
 
@@ -50,14 +56,22 @@ file: subsystems/bilinker/commands/check.md
 query: |-
   (section (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker check`"))
     (section (atx_heading (inline) @n1 (#eq? @n1 "Estados — endpoints layer"))) @target)
-offset: 3226~5109
 ```
 
 | Campo | Descripción |
 |---|---|
 | `file` | Path relativo a la raíz de la capa. |
 | `query` | Query tree-sitter con captura `@target`. Ausente = el archivo completo. |
-| `offset` | Sub-rango **relativo al inicio del nodo** matcheado. Ausente = el nodo entero. |
+
+### No hay sub-rango
+
+Un capture nombra un nodo entero. **No se puede referenciar un rango de bytes adentro de uno**, y la selección con la que se lo crea sirve para *encontrar* el nodo, no para recortarlo.
+
+Un rango adentro de un nodo se corre con cualquier edición encima suya dentro del mismo nodo: su granularidad es ilusoria, se rompe todo el tiempo y hay que repuntarlo a mano. Un ancla de nodo entero es estable, y sus falsas alarmas son honestas — *"esto cambió, fijate si tu spec sigue valiendo"*.
+
+Lo que se pierde es **atribución**, no detección: dos fragmentos de spec que describen dos partes de la misma función pasan a compartir capture. `hash` dice que cambió y `hash_ast` si fue sólo espaciado; cuál parte cambió lo dice `bilinker get --diff`, que es trabajo de quien mira.
+
+**Si hace falta más precisión, la respuesta es una query que nombre algo más chico**, no un recorte sobre una que nombra algo más grande. Por eso una fila de tabla markdown se ancla por el texto de su primera celda: es un nodo, y tiene con qué distinguirse.
 
 ### El rango excluye el espacio que rodea al nodo
 
@@ -65,9 +79,9 @@ Dónde empieza un nodo depende de qué hay alrededor. En YAML el mismo item de s
 
 Eso contradice la propiedad central, así que **el rango resuelto se recorta en los dos bordes**. El fragmento es su contenido; el espacio que lo separa de sus vecinos es de los dos y no de él.
 
-Va en el único lugar donde un nodo se convierte en rango, así que no hay forma de obtener uno sin recortar. Y no toca al `offset`, que sigue siendo relativo al inicio —ahora recortado— del nodo.
+Va en el único lugar donde un nodo se convierte en rango, así que no hay forma de obtener uno sin recortar.
 
-Tres campos, y los tres entran en el id. **No hay más**: ni `range`, ni `state`, ni `resolved_at`. Todo eso se puede reconstruir resolviendo la query, así que vive en [`cache/state`](cache.md) y no en git.
+Dos campos, y los dos entran en el id. **No hay más**: ni `range`, ni `state`, ni `resolved_at`. Todo eso se puede reconstruir resolviendo la query, así que vive en [`cache/state`](cache.md) y no en git.
 
 Que el archivo tenga exactamente los campos que lo nombran es lo que hace verificable el id: cualquiera puede recalcularlo leyendo el archivo.
 
@@ -97,7 +111,7 @@ Eso reemplaza el copy-on-write que el formato anterior necesitaba:
 | había que decidir por tipo de fix si forkear | no hay decisión que tomar |
 | un fix se le imponía a los demás referentes | ninguno se entera |
 
-La regla de fork por tipo de fix —MOVED y EXPANDED en el lugar, DISPLACED y REANCHORED forkeando— desaparece con ella. Existía porque mutar era el caso normal y forkear la excepción; con captures inmutables no hay caso normal que proteger.
+La regla de fork por tipo de fix —MOVED en el lugar, REANCHORED forkeando— desaparece con ella. Existía porque mutar era el caso normal y forkear la excepción; con captures inmutables no hay caso normal que proteger.
 
 **Y repuntar ya no es gratis.** `apply` repunta el `link` pero **no** devuelve el endpoint a `OK`: la ubicación cambió, y aprobar una ubicación es una decisión humana como aprobar un contenido. El endpoint queda en `RELOCATED` hasta que alguien acepte. Ver [aceptación](accept.md).
 
@@ -155,11 +169,11 @@ El `range` sale de la cache, no del capture. Un clon fresco no lo tiene hasta qu
 
 ## Invariantes
 
-1. El nombre de un capture es `H(file, query, offset)`, y el archivo contiene exactamente esos tres campos.
+1. El nombre de un capture es el hash de sus campos, cada uno seguido de un `\0`, y el archivo contiene exactamente esos campos.
 2. Un capture es inmutable. Ningún comando modifica uno existente.
 3. Un capture describe ubicación, nunca aceptación. No contiene hashes ni commits.
 4. `file` es relativo a la raíz de la capa donde vive el capture.
-5. `offset` es relativo al nodo matcheado. El rango absoluto en el archivo es derivado y vive en la cache.
+5. Un capture nombra un nodo entero: no hay sub-rango. El rango absoluto en el archivo es derivado y vive en la cache.
 6. Un `link` sólo referencia captures de su propia capa. Un `accepted.link` de endpoint layer o repo puede contener una copia opaca de un id ajeno, que no se resuelve localmente.
 7. Un capture puede ser referenciado por cualquier cantidad de bilinks, incluido cero.
 8. `apply` acuña captures y repunta un `link`; nunca escribe `accepted`.
@@ -171,4 +185,4 @@ El `range` sale de la cache, no del capture. Un clon fresco no lo tiene hasta qu
 
 Una migración, `bilinker-002-file-partition`. Ver [`bilinker migrate`](../commands/migrate.md).
 
-Acuña cada capture bajo `H(file, query, offset)` —los tres campos que sobreviven, no el archivo— y repunta cada `link` y cada `accepted.link`. Dos captures con la misma ubicación colapsan en uno: la dedup por construcción, aplicada de una vez a lo que ya existía.
+Acuña cada capture bajo el hash de sus campos —no del archivo— y repunta cada `link` y cada `accepted.link`. **Los sub-rangos del formato 1 se descartan y se cuentan**: el formato ya no los tiene, y reubicarlos exigiría resolver la query, cosa que una migración no hace. Dos captures con la misma ubicación colapsan en uno: la dedup por construcción, aplicada de una vez a lo que ya existía.

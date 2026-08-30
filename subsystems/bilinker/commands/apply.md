@@ -8,7 +8,7 @@ Corrige **dónde apunta** un endpoint cuando el fragmento se movió. Calcula el 
 
 > **`apply` propone, `accept` dispone.**
 
-Ésa es la diferencia con el comportamiento anterior, donde MOVED y DISPLACED volvían a `OK` solos. Mover un vínculo a otro fragmento es una decisión —el fragmento nuevo puede no ser el que la spec describe— y una decisión sin aprobar es trabajo pendiente, no trabajo hecho.
+Ésa es la diferencia con el comportamiento anterior, donde MOVED volvía a `OK` solo. Mover un vínculo a otro fragmento es una decisión —el fragmento nuevo puede no ser el que la spec describe— y una decisión sin aprobar es trabajo pendiente, no trabajo hecho.
 
 Requiere git como dependencia dura.
 
@@ -40,8 +40,7 @@ bilinker apply [--dry-run] [--filter <estado>] [-y]
 bilinker: repuntar 3 endpoint(s) (2026-08-30)
 
 - 7f3d8e9a… endpoint.1  MOVED       → specs/domain/voting.yaml
-- 3a4b5c6d… endpoint.0  DISPLACED   → offset 8~45
-- f1e2d3c4… endpoint.0  EXPANDED    → offset ampliado
+- 3a4b5c6d… endpoint.0  REANCHORED  → query: (function_item name: … "check_endpoint")
 ```
 
 ## Cálculo del fix por estado
@@ -49,22 +48,11 @@ bilinker: repuntar 3 endpoint(s) (2026-08-30)
 | Estado | Cómo se encuentra la ubicación nueva |
 |---|---|
 | **MOVED** | El índice de renames de git: `git diff -M --name-status`. Se verifica que la query resuelva en el destino. |
-| **DISPLACED** | El texto aceptado aparece en otro offset del mismo nodo. |
-| **EXPANDED** | El nodo contiene lo aceptado y algo más; el offset se amplía. |
 | **REANCHORED** | La query relajada matchea un nodo con nombre distinto, por encima del umbral y con margen sobre el segundo. |
 
-Los cuatro producen lo mismo: **un `(file, query, offset)` nuevo**, y con él un capture nuevo. Ver [`check`](check.md) para los criterios de detección.
+Los dos producen lo mismo: **un `(file, query)` nuevo**, y con él un capture nuevo. Ver [`check`](check.md) para los criterios de detección.
 
-### Un estado con fix no siempre tiene fix calculable
-
-`check` dice que hay un fix disponible; `apply` es quien tiene que producirlo, y a veces no puede. El caso más claro es un `DISPLACED` detectado porque el texto aceptado aparece **en el archivo** pero fuera del nodo: un `offset` es relativo al nodo, así que ninguno lo nombra. También falta el texto aceptado cuando git no lo entrega, y sin él no hay qué buscar.
-
-**Cuando no puede, lo dice.** Omitir en silencio deja a `check` reportando un estado con fix y a `apply` contestando que no hay nada que hacer, sin nadie que explique la contradicción:
-
-```
-warn: 09b88fe0… endpoint.0: DISPLACED, pero el texto aceptado no está dentro del
-      nodo — un offset no puede nombrarlo. Repuntar con `bilinker recapture`.
-```
+**Ningún estado de aceptación tiene fix.** `apply` corrige dónde está el fragmento, y eso lo dice el capture; que el contenido coincida con lo aprobado es una decisión, y las decisiones las escribe `accept`.
 
 ## No hay fork, porque no hay mutación
 
@@ -75,27 +63,29 @@ Eso reemplaza el copy-on-write del formato anterior, donde `apply` mutaba el cap
 | Antes | Ahora |
 |---|---|
 | MOVED y EXPANDED mutaban en el lugar | todos acuñan |
-| DISPLACED y REANCHORED forkeaban si había más de un referente | no hay caso especial |
+| REANCHORED forkeaba si había más de un referente | no hay caso especial |
 | había que contar referentes antes de aplicar | no hace falta |
 
 El capture viejo queda: sigue vivo mientras algún `accepted.link` lo nombre —es la ubicación que alguien aprobó— y lo limpia [`capture prune`](capture.md) cuando ya no lo alcanza nadie.
 
-## Validación de frescura
+## El estado se re-deriva; la cache no decide
 
-El estado cacheado lo escribió el último `check`, y el archivo pudo cambiar después. Por eso `apply` nunca aplica un fix derivado de la cache: re-resuelve el endpoint y compara.
+`apply` **no lee el estado cacheado**. El que escribió el último `check` describe el árbol de ese momento, y el archivo pudo cambiar después: aplicar un fix derivado de esa foto es corregir contra algo que ya no está.
 
-| Situación | Acción |
-|---|---|
-| Estado re-derivado == el cacheado | Aplicar el fix. |
-| Estado re-derivado == `OK` | Omitir en silencio — el fix ya no hace falta. |
-| Estado re-derivado distinto y no `OK` | Descartar el fix, refrescar la cache y advertir. |
+Así que re-resuelve el capture contra el árbol actual y decide con eso. De la cache sólo sale `commit`, que es un dato de git y no una conclusión sobre el estado del árbol.
+
+Es más simple que la validación que había antes —re-derivar y comparar contra lo cacheado— y no puede quedar desincronizada, porque no hay dos valores que comparar.
+
+## Cuando el fix no se puede calcular
+
+Un capture en `MOVED` o `REANCHORED` no siempre produce una ubicación nueva: git puede no reportar el rename, el anchor puede no localizarse, la query puede no tener predicado de nombre que reescribir.
+
+**Cuando no puede, lo dice y sigue.** Abortar dejaría sin revisar a todos los demás endpoints por culpa de uno:
 
 ```
-warn: 3a4b5c6d… endpoint.0: la cache dice DISPLACED y la resolución actual da ALTERED
-      — fix descartado. Correr `bilinker check`.
+warn: 09b88fe0… endpoint.0: MOVED: git no reporta un rename de 'docs/spec.md'.
+      Si el archivo nuevo no está trackeado, `git add` y volver a correr.
 ```
-
-Un endpoint que pasó de tener fix a no tenerlo —DISPLACED → ALTERED— nunca se toca.
 
 ## Qué escribe
 
@@ -114,8 +104,7 @@ $ bilinker apply
 
 Pending fixes (3):
   MOVED      7f3d8e9a…  endpoint.1  → specs/domain/voting.yaml
-  DISPLACED  3a4b5c6d…  endpoint.0  → offset 8~45
-  EXPANDED   f1e2d3c4…  endpoint.0  → offset ampliado
+  REANCHORED 3a4b5c6d…  endpoint.0  → anchor check_endpoint  (similitud 83%)
 
 Apply? [y/N] y
 

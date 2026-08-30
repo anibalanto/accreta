@@ -35,7 +35,7 @@ Bilinker produce y verifica un solo tipo de conexión: la referencia aceptada en
 - **Responsabilidad acotada**: git y tree-sitter, nada más. El análisis de alcance
   y el recorrido del grafo agregado viven fuera.
 - **Auto-reparable con confirmación**: 4 estados tienen auto-fix determinístico
-  (MOVED, DISPLACED, REANCHORED, EXPANDED). Ningún fix se aplica sin `bilinker apply`.
+  (MOVED, REANCHORED). Ningún fix se aplica sin `bilinker apply`.
 - **Git como fuente de verdad**: check usa git para rastrear el origen de cada
   cambio. Los auto-fixes se aplican como commits git.
 - **Aceptación explícita**: el hash de un fragmento solo se acepta con

@@ -147,7 +147,6 @@ Un endpoint puede desalinearse en dos dimensiones —dónde está y qué dice—
 | `RELOCATED` | `link` ≠ `accepted.link` — la ubicación cambió y nadie la aprobó | `bilinker accept --place` |
 | `RESTYLED` | El texto difiere pero el AST coincide — sólo formato | `bilinker accept` |
 | `ALTERED` | El contenido cambió | revisar + `bilinker accept` |
-| `DISPLACED` | Lo aceptado está en otro offset del nodo | `bilinker apply` + `accept` |
 | `EXPANDED` | El fragmento creció alrededor de lo aceptado | `bilinker apply` + `accept` |
 | `UNRESOLVED` | El capture referenciado no resuelve | `bilinker apply` o `recapture` |
 
@@ -252,7 +251,7 @@ Cada endpoint `path` copia los **dos** valores del endpoint estructural de su ve
 7. Un endpoint `issue` se hashea como el contenido del archivo del ítem. No tiene capture, así que su `accepted` no lleva `link`.
 8. `state.N = OK` si y sólo si `link` == `accepted.link` **y** el hash actual == `accepted.hash`.
 9. Un endpoint estructural referencia exactamente un capture de su misma capa.
-10. Un bilink no contiene `file`, `query`, `offset` ni `range`: viven en el capture.
+10. Un bilink no contiene `file`, `query` ni `range`: los dos primeros viven en el capture y el tercero en la cache.
 11. Un bilink no contiene `state`, `commit` ni ningún derivado: viven en la cache.
 12. La topología de la cadena es lineal — sin ciclos ni bifurcaciones.
 13. Sólo se puede aceptar un endpoint sobre un fragmento commiteado.

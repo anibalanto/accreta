@@ -60,13 +60,12 @@ Comparan lo hallado contra `accepted`.
 | **PENDING** | `accepted` ausente. | `accept` |
 | **OK** | La ubicación y el contenido coinciden con lo aceptado. | — |
 | **RELOCATED** | `link` ≠ `accepted.link`. | `accept --place` |
-| **DISPLACED** | El texto aceptado está en otro offset del nodo. | `apply` + `accept` |
-| **EXPANDED** | El fragmento contiene lo aceptado verbatim y algo más. | `apply` + `accept` |
+| **EXPANDED** | El fragmento contiene lo aceptado verbatim y algo más. | revisar + `accept` |
 | **RESTYLED** | El texto difiere pero el AST coincide — sólo formato. Sólo donde el AST discrimina contenido. | `accept` |
 | **ALTERED** | El fragmento cambió estructuralmente. | revisar + `accept` |
 | **UNRESOLVED** | El capture referenciado no resolvió. | se resuelve en el capture |
 
-`DISPLACED` y `EXPANDED` se detectan acá porque necesitan el texto aceptado, pero lo que producen es una **ubicación nueva**, y eso lo escribe `apply` acuñando un capture.
+`EXPANDED` necesita el texto aceptado, así que se detecta acá y no en la dimensión de ubicación.
 
 ### `RESTYLED` sólo existe donde el AST discrimina contenido
 
@@ -86,27 +85,20 @@ Un comentario es un token, así que cambiarlo no es RESTYLED. Es lo correcto: un
 
 **Un `hash_ast` calculado con la definición anterior simplemente no coincide**, y el endpoint sale ALTERED — que pide revisión, que es la respuesta segura. No hace falta migrar nada.
 
-### La frontera entre EXPANDED y DISPLACED
+### EXPANDED: creció alrededor de lo aceptado
 
-Ambos se distinguen con un test de subcadena contra el **texto aceptado**, no con un umbral. Siendo `T` el texto aceptado y `F` el fragmento que el capture resuelve hoy:
+Se distingue con un test de subcadena contra el **texto aceptado**, no con un umbral. Siendo `T` el texto aceptado y `F` el fragmento que el capture resuelve hoy:
 
 | Condición | Estado |
 |---|---|
 | `F == T` | OK |
 | `F ⊃ T` — contiene lo aceptado y algo más | **EXPANDED** |
-| `F ⊅ T`, pero el nodo contiene `T` en otro offset | **DISPLACED** |
-| `T` no aparece y `accepted.hash_ast` coincide | RESTYLED |
+| `T` no aparece y `hash_ast` coincide | RESTYLED |
 | nada de lo anterior | ALTERED |
-
-Sin solapamiento y sin heurística: EXPANDED es *"creció alrededor de lo aceptado"*, DISPLACED es *"se corrió y sigue igual"*.
 
 Que `F` contenga a `T` verbatim implica que nada dentro de lo aceptado cambió, así que la condición de "AST interno sin cambio estructural" se satisface sola.
 
-#### Cuando git no entrega el texto aceptado
-
-La tabla necesita `T`, y `T` sale de git: `accepted.commit` más el path del capture. Eso puede no estar —un endpoint sin commit cacheado, un archivo que en ese commit no existía, una query que ahí no resuelve—, y entonces la comparación por subcadena no se puede hacer.
-
-El respaldo es buscar el **hash** aceptado en cada offset del nodo, del tamaño del fragmento aceptado. Encuentra el mismo caso que la tabla llama DISPLACED, sin necesitar el texto: si el fragmento sigue ahí íntegro pero corrido, su hash aparece en algún offset. Lo que el respaldo no puede distinguir es EXPANDED, que exige comparar contenidos y no hashes; ese caso cae en ALTERED, que pide revisión.
+**Sin `T` no hay EXPANDED.** El texto aceptado sale de git —`accepted.commit` más el path del capture— y eso puede no estar. Cuando falta, la comparación por subcadena no se puede hacer y el estado cae en ALTERED, que pide revisión. Es la respuesta segura, y desde la task `17` el commit se re-deriva, así que el caso es raro.
 
 ### Estados propios de un endpoint `path`
 
@@ -134,18 +126,18 @@ Introducir una medida difusa en un sistema construido sobre hashes exactos neces
 
 ## Recuperar el texto aceptado
 
-Varias detecciones —EXPANDED, DISPLACED y REANCHORED— necesitan el texto del fragmento **tal como quedó aceptado**, no solo su hash. Se recupera de git:
+Dos detecciones —EXPANDED y REANCHORED— necesitan el texto del fragmento **tal como quedó aceptado**, no solo su hash. Se recupera de git:
 
 ```
 git show <commit>:<file>   →  contenido en el momento de aceptar
 ejecutar la query sobre él   →  el nodo
-aplicar offset               →  el fragmento aceptado
+resolver la query            →  el fragmento aceptado
 verificar sha256 == accepted.hash   →  o descartar
 ```
 
 **No se recorta por el `range` cacheado.** `check` lo reescribe en cada corrida, así que apunta a dónde está el fragmento *ahora*; recortar contenido viejo con una posición nueva da bytes arbitrarios. Resolver la query contra el contenido viejo es lo correcto, y además se autoverifica.
 
-Si la verificación falla —no hay `commit`, el archivo no existía en ese commit, la query no resuelve ahí— el texto se descarta y esas detecciones no corren. Es preferible no detectar nada que razonar sobre el texto equivocado; queda el respaldo por hash para DISPLACED.
+Si la verificación falla —no hay `commit`, el archivo no existía en ese commit, la query no resuelve ahí— el texto se descarta y esas detecciones no corren: el estado cae en ALTERED, que pide revisión. Es preferible no distinguir que razonar sobre el texto equivocado.
 
 ## Optimización por diff de git
 
@@ -197,9 +189,8 @@ Los pasos 1–2 resuelven el **capture**; los pasos 3–9 comparan contra `accep
 6. Recuperar el texto aceptado T (ver "Recuperar el texto aceptado").
    ¿F contiene T verbatim y es más grande?  → EXPANDED
 7. ¿accepted.hash_ast presente y el hash_ast actual coincide?
-   SÍ → RESTYLED  (sólo formato; AST idéntico)
-8. ¿T aparece en otro offset del nodo?  → DISPLACED
-9. → ALTERED
+   SÍ → RESTYLED  (sólo espaciado; mismos tokens)
+8. → ALTERED
 ```
 
 **El paso 4 va antes que el 5 y no cuesta nada.** Comparar dos ids no abre ningún archivo, así que la dimensión de ubicación se decide siempre — incluso cruzando la frontera, donde el clon superficial no permite recuperar el texto aceptado y la de contenido degrada a `ALTERED`.
@@ -255,16 +246,20 @@ El baseline es `commit` —el commit en que el fragmento quedó con el contenido
 fragmento: líneas F_start–F_end  (derivadas del range, en bytes)
 hunk:      @@ -H_start,H_count +...
 
-H_start + H_count < F_start  → BEFORE  (posible causa de DISPLACED)
+H_start + H_count < F_start  → BEFORE  (el fragmento se corrió, no cambió)
 H_start > F_end              → AFTER   (irrelevante)
 se superpone                 → WITHIN  (causa de EXPANDED, ALTERED, REANCHORED)
 ```
 
+Un `BEFORE` no produce ningún estado: el fragmento es un nodo entero y la query lo encuentra corrido sin ayuda. Lo que el corrimiento sí puede alimentar es a lattice — ver [`proposals/displacement-por-hunks.md`](../proposals/displacement-por-hunks.md).
+
 ## Fix disponible
 
-`MOVED`, `DISPLACED`, `REANCHORED` y `EXPANDED` los repunta [`apply`](apply.md), que usa el estado cacheado sólo para elegir candidatos y recalcula cada fix re-resolviendo contra git y el AST actuales. Nunca se aplican solos.
+`MOVED` y `REANCHORED` los repunta [`apply`](apply.md), que **no lee el estado cacheado**: re-resuelve el capture contra el árbol actual. Nunca se aplican solos.
 
 Y ninguno cierra solo: `apply` repunta y deja el endpoint en `RELOCATED`, que sale con 1 hasta que alguien acepte.
+
+Los dos son estados del **capture** —dónde está el fragmento—. Ningún estado de aceptación tiene fix automático: aprobar un contenido es una decisión.
 
 ## Salida
 
@@ -299,7 +294,7 @@ f1e2d3c4  (EXPANDED, OK)
 
 | Código | Condición |
 |---|---|
-| 0 | Todos los captures resuelven y todos los endpoints están en `OK`, `DISPLACED`, `EXPANDED` o `RESTYLED`. |
+| 0 | Todos los captures resuelven y todos los endpoints están en `OK`, `EXPANDED` o `RESTYLED`. |
 | 1 | Algún capture en `UNANCHORED`, `DELETED` o `BROKEN`, o algún endpoint en `RELOCATED`, `ALTERED`, `UNRESOLVED`, `PENDING` o `CHAIN_DIRTY`. |
 
-**`RELOCATED` sale con 1.** Antes `MOVED` y `DISPLACED` salían con 0 porque `apply` los cerraba solo; ahora repuntar no aprueba, y un vínculo apuntando a un fragmento que nadie miró es trabajo pendiente, no un detalle de mantenimiento.
+**`RELOCATED` sale con 1.** Antes `MOVED` salía con 0 porque `apply` lo cerraba solo; ahora repuntar no aprueba, y un vínculo apuntando a un fragmento que nadie miró es trabajo pendiente, no un detalle de mantenimiento.

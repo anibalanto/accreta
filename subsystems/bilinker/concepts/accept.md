@@ -47,7 +47,7 @@ endpoint:
 
 No es una recomendación: es lo que hace posible calcular `commit`, que es el commit en el que el fragmento quedó con el contenido aprobado. Ese commit no existe si el fragmento no está commiteado.
 
-Y es lo que garantiza que lo aprobado sea recuperable. Sin commit no hay `git show <commit>:<file>`, y sin eso `check` no puede recuperar el texto aceptado — que es lo que distingue `EXPANDED`, `DISPLACED` y `REANCHORED` de un `ALTERED` genérico.
+Y es lo que garantiza que lo aprobado sea recuperable. Sin commit no hay `git show <commit>:<file>`, y sin eso `check` no puede recuperar el texto aceptado — que es lo que distingue `EXPANDED` y `REANCHORED` de un `ALTERED` genérico.
 
 ## Aceptar es determinista
 

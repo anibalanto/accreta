@@ -2,15 +2,15 @@
 
 ## Principio fundamental
 
-La consistencia de un bilink se evalúa por extremo. `check` retorna una tupla `(state_link0, state_link1)` — cada extremo puede estar en un estado diferente. Ejemplos: `(OK, MOVED)`, `(DISPLACED, ALTERED)`, `(OK, OK)`.
+La consistencia de un bilink se evalúa por extremo. `check` retorna una tupla `(state_link0, state_link1)` — cada extremo puede estar en un estado diferente. Ejemplos: `(OK, MOVED)`, `(RELOCATED, ALTERED)`, `(OK, OK)`.
 
 Los estados disponibles dependen del tipo de endpoint:
-- **Endpoint estructural**: 10 estados (PENDING, OK, MOVED, DISPLACED, REANCHORED,
+- **Endpoint estructural**: 9 estados (PENDING, OK, MOVED, REANCHORED,
   EXPANDED, UNANCHORED, ALTERED, DELETED, BROKEN).
 - **Endpoint layer**: 5 estados (TODO, PENDING, OK, CHAIN_DIRTY, BROKEN).
 - **Endpoint issue**: mismos estados que estructural (es un archivo en worklist).
 
-Un bilink es "saludable" si ambos extremos están en {OK, MOVED, DISPLACED, REANCHORED, EXPANDED, TODO}. Requiere acción si alguno está en {PENDING, UNANCHORED, ALTERED, DELETED, BROKEN, CHAIN_DIRTY}.
+Un bilink es "saludable" si ambos extremos están en {OK, MOVED, REANCHORED, EXPANDED, TODO}. Requiere acción si alguno está en {PENDING, UNANCHORED, ALTERED, DELETED, BROKEN, CHAIN_DIRTY}.
 
 ## Estado TODO (endpoint `path`)
 
@@ -42,12 +42,12 @@ Con cache fría el estado **no está disponible** y hay que correr `check`. Es d
 Para determinar el estado, bilinker aplica hipótesis en orden de especificidad:
 
 ```
-1. Hash exacto en offset guardado          → OK
-2. Archivo movido (git rename)             → MOVED
-3. Hash exacto en otro offset del nodo    → DISPLACED
-4. Anchor renombrado/movido (AST search)  → REANCHORED
-5. Fragmento creció, AST interno igual    → EXPANDED
-6. Fragmento encontrado, AST interno ≠    → ALTERED
+1. Hash exacto en el nodo que la query resuelve  → OK
+2. Archivo movido (git rename)                   → MOVED
+3. Anchor renombrado/movido (AST search)         → REANCHORED
+4. Fragmento creció alrededor de lo aceptado     → EXPANDED
+5. Mismos tokens, distinto espaciado             → RESTYLED
+6. Fragmento encontrado, contenido distinto      → ALTERED
 7. Borrado determinístico (git log -S)    → DELETED
 8. Sin evidencia                          → BROKEN / UNANCHORED
 ```
@@ -79,17 +79,6 @@ Condiciones necesarias:
 
 Fix: `apply` acuña el capture del path nuevo y repunta el `link`. El endpoint queda en `RELOCATED`.
 
-### DISPLACED
-
-Condiciones necesarias:
-- La query matchea el nodo target en el archivo actual.
-- El hash NO matchea en el offset guardado.
-- El hash SÍ matchea en algún otro offset dentro del nodo.
-
-Causa típica: texto insertado dentro del mismo nodo antes de la selección.
-
-Auto-fix: actualizar `start~end` al nuevo offset donde se encontró el hash.
-
 ### REANCHORED
 
 Condiciones necesarias:
@@ -105,7 +94,7 @@ Auto-fix: actualizar los predicados de la query con el nuevo nombre.
 
 Condiciones necesarias:
 - La query matchea el nodo target.
-- El hash no matchea en ningún offset del nodo.
+- El hash del nodo no coincide con el aceptado.
 - El texto del fragmento guardado ES subcadena del texto actual del nodo.
 - El AST interno del fragmento guardado y del texto actual son estructuralmente iguales.
 
@@ -126,7 +115,7 @@ Requiere intervención humana.
 
 Condiciones necesarias:
 - La query matchea el nodo target.
-- El hash no matchea en ningún offset del nodo.
+- El hash del nodo no coincide con el aceptado.
 - El texto del fragmento guardado ES subcadena del texto actual del nodo.
 - El AST interno cambió estructuralmente.
 
@@ -168,7 +157,7 @@ Para estados no-OK en endpoints estructurales, bilinker reporta el origen:
 fragmento: líneas F_start–F_end  (derivadas del range del capture, en bytes)
 hunk del diff: @@ -H_start,H_count +...
 
-H_start + H_count < F_start  → BEFORE  (posible causa de DISPLACED)
+H_start + H_count < F_start  → BEFORE  (el fragmento se corrió, no cambió)
 H_start > F_end               → AFTER   (irrelevante)
 se superpone con [F_start, F_end]  → WITHIN  (causa de EXPANDED, ALTERED, etc.)
 ```
@@ -178,7 +167,6 @@ se superpone con [F_start, F_end]  → WITHIN  (causa de EXPANDED, ALTERED, etc.
 | Estado | Comando git principal |
 |---|---|
 | MOVED | `git diff -M --name-status HEAD` |
-| DISPLACED | `git diff -U0 -- <file>` (intersección hunk) |
 | REANCHORED | `git diff -- <file>` + búsqueda en AST actual |
 | EXPANDED | `git diff -U0 -- <file>` + comparación de AST |
 | ALTERED | `git log -S "<hash>" -- <file>` |

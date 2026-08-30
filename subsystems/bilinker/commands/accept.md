@@ -44,7 +44,7 @@ error: crates/bilinker/src/check.rs tiene cambios sin commitear.
        Aceptar fija un contenido, y ese contenido tiene que existir en la historia.
 ```
 
-No es una recomendación. `commit` es el commit en que el fragmento quedó con el contenido aprobado, y ese commit **no existe** si el fragmento no está commiteado. Sin él no hay `git show <commit>:<file>`, y sin eso `check` no puede recuperar el texto aceptado — que es lo que distingue `EXPANDED`, `DISPLACED` y `REANCHORED` de un `ALTERED` genérico.
+No es una recomendación. `commit` es el commit en que el fragmento quedó con el contenido aprobado, y ese commit **no existe** si el fragmento no está commiteado. Sin él no hay `git show <commit>:<file>`, y sin eso `check` no puede recuperar el texto aceptado — que es lo que distingue `EXPANDED` y `REANCHORED` de un `ALTERED` genérico.
 
 ## `commit` es del contenido, no de quien acepta
 

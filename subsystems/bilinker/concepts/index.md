@@ -24,7 +24,7 @@ src/Service.java	7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.0	d5e6f7a8-…
 - Las líneas que comienzan con `#` son comentarios y se ignoran.
 - Encoding UTF-8 sin BOM.
 
-La ruta del archivo es relativa a la raíz de la layer que contiene el `.bilink/`. El resto de la información se lee de donde vive: `query` y `offset` en el capture, `accepted` en el bilink, y `range` y `state.N` en [la cache](cache.md).
+La ruta del archivo es relativa a la raíz de la layer que contiene el `.bilink/`. El resto de la información se lee de donde vive: `file` y `query` en el capture, `accepted` en el bilink, y `range` y `state.N` en [la cache](cache.md).
 
 ## Ubicación
 

@@ -33,7 +33,7 @@ Identifica un fragmento, referenciando el [capture](capture.md) que lo ubica.
 link: capture 67ba7217e0334051becd4921b55a7872
 ```
 
-El id es `H(file, query, offset)` — el hash de la ubicación. El endpoint no describe el fragmento: pregunta.
+El id es el hash de la ubicación — sus campos, cada uno seguido de un `\0`. El endpoint no describe el fragmento: pregunta.
 
 ### `accepted`
 

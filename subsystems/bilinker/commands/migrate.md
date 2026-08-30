@@ -54,7 +54,9 @@ De `clave: valor` plano a YAML. `hash.N` → `accepted.hash`, `hash_ast.N` → `
 
 #### Los captures, en la misma pasada
 
-Cada capture se acuña bajo `H(file, query, offset)` y se repuntan las dos clases de referencia: `link` y `accepted.link`.
+Cada capture se acuña bajo el hash de sus campos y se repuntan las dos clases de referencia: `link` y `accepted.link`.
+
+**El sub-rango se descarta, y se cuenta.** El formato 3 no lo tiene: un fragmento es un nodo entero. Reubicarlo exigiría resolver la query y buscar el nodo correcto, y una migración no corre tree-sitter — así que el endpoint queda apuntando al nodo que lo contenía y el resumen dice cuántos, la misma regla que `001` con `subgraph.N`.
 
 **No tiene fan-out.** Como el id no depende del hash del contenido, dos bilinks que aceptaron contenidos distintos del mismo fragmento siguen compartiendo capture, y la divergencia queda en sus `accepted`. Dos captures con la misma ubicación colapsan en uno: es la dedup por construcción, aplicada de una vez a lo que ya existía.
 

@@ -22,7 +22,7 @@ bilinker recapture <uuid>.<N> <file> [<pos>] [<end>]
 ## Comportamiento
 
 1. Resolver el bilink y verificar que el endpoint sea estructural. Un endpoint `path` o `issue` no tiene capture que repuntar.
-2. Crear el capture del fragmento nuevo — reusa uno existente si la referencia `(file, query, offset)` es idéntica, igual que `bilinker capture`.
+2. Crear el capture del fragmento nuevo — reusa uno existente si la referencia `(file, query)` es idéntica, igual que `bilinker capture`.
 3. Escribir el `link` apuntando al capture nuevo.
 4. **Limpiar `state.N`**: el estado anterior describía el capture viejo, y dejarlo mentiría hasta el próximo `check`.
 5. Reportar si el capture anterior quedó sin referentes.
@@ -57,7 +57,7 @@ Borrar por si acaso dejaría bilinks apuntando a la nada; dejar un archivo huér
 - El fragmento se movió a otro archivo, y no fue un rename que git pueda detectar — el caso de código que migra a otro repo.
 - El vínculo sigue teniendo sentido pero conviene apuntarlo a un fragmento distinto.
 
-Para lo que sí tiene auto-fix —MOVED, DISPLACED, EXPANDED, REANCHORED— corresponde [`apply`](apply.md), que recalcula el fix en vez de pedir la posición.
+Para lo que sí tiene auto-fix —MOVED y REANCHORED— corresponde [`apply`](apply.md), que recalcula el fix en vez de pedir la posición.
 
 ## Código de salida
 

@@ -20,6 +20,12 @@ Cambiar los tipos sin subir la versión **falla el test**. La versión ordinal s
 
 Una entrada registra lo que se publicó bajo esa versión. Corregirla en vez de agregar una nueva reescribiría el pasado, y el hash dejaría de certificar el artefacto que alguien ya descargó.
 
+#### Sacar un campo sube el major
+
+`3.0.0` saca el `offset` del capture: un fragmento es un nodo entero. Quitar un campo no es aditivo —un lector de `3.0.0` no entiende un archivo que lo lleve— así que sube el major, y con él se va `DISPLACED`, el único estado que hablaba de un sub-rango.
+
+**Los ids no cambiaron.** El id termina cada campo con un `\0` en vez de unirlos con separadores, así que el campo que desaparece contribuía la cadena vacía y su terminador sigue estando. Es una propiedad del formato del id, no una casualidad: vale para cualquier campo que se saque en el futuro.
+
 #### Un formato que ya no se escribe todavía se lee
 
 `bilink-format-v1` está congelado en el sentido que importa: nadie escribe formato 1 nunca más. Eso no lo deja quieto — **leerlo mejor también cambia el esquema**.
