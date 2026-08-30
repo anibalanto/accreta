@@ -3,31 +3,42 @@ spec: commands/index.md
 scenarios:
 
   - id: index-build-creates-file
-    description: index build genera .bilink/.index con entradas tab-separadas
+    description: index build genera .bilink/index/index con entradas tab-separadas
     given:
       - directorio .bilink/ con bilinks existentes
     when:
       - bilinker index build
     expect:
-      - .bilink/.index creado
+      - .bilink/index/index creado
       - cada línea: "<file>\t<uuid>.<N>"
     impl: index_build_creates_index_file
 
-  - id: index-gitignore-updated
-    description: index build agrega .index a .bilink/.gitignore
+  - id: derived-dirs-gitignored
+    description: los directorios derivados quedan declarados fuera de git
     given:
       - directorio .bilink/ sin .gitignore
     when:
       - bilinker index build
     expect:
-      - .bilink/.gitignore contiene ".index"
-      - .bilink/.gitignore contiene ".pending/"
-    impl: index_gitignore_contains_index_entry
+      - .bilink/.gitignore contiene "cache/"
+      - .bilink/.gitignore contiene "index/"
+    impl: the_derived_directories_are_left_out_of_git
+
+  - id: check-alone-gitignores-cache
+    description: check declara la cache ignorada al escribirla, sin esperar a index
+    given:
+      - directorio .bilink/ sin .gitignore ni cache
+    when:
+      - bilinker check .
+    expect:
+      - .bilink/cache/state creado
+      - .bilink/.gitignore contiene "cache/"
+    impl: check_alone_leaves_the_cache_out_of_git
 
   - id: index-status-ok-after-build
     description: index status reporta OK cuando el índice está actualizado
     given:
-      - .bilink/.index construido y sin cambios en .bilink/ desde entonces
+      - .bilink/index/index construido y sin cambios en .bilink/ desde entonces
     when:
       - bilinker index status
     expect:
@@ -38,7 +49,7 @@ scenarios:
   - id: index-status-stale
     description: index status reporta STALE cuando hay bilinks más nuevos que el índice
     given:
-      - .bilink/.index construido
+      - .bilink/index/index construido
       - nuevo bilink creado después del build
     when:
       - bilinker index status
@@ -47,9 +58,9 @@ scenarios:
       - exit code: 1
 
   - id: index-status-missing
-    description: index status reporta MISSING cuando no existe .bilink/.index
+    description: index status reporta MISSING cuando no existe .bilink/index/index
     given:
-      - directorio .bilink/ sin archivo .index
+      - directorio .bilink/ sin archivo index/index
     when:
       - bilinker index status
     expect:

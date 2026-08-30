@@ -21,6 +21,21 @@ El criterio es uno solo: **si un valor se puede recalcular, no va en el bilink.*
 
 **Es un archivo por capa**, igual que `index/index`: reescritura atómica, menos inodos, y cero conflictos de merge porque no está versionado.
 
+## Que no esté versionado hay que declararlo
+
+Nada impide commitear un derivado; que no se commitee es una regla, y la regla vive en `.bilink/.gitignore`:
+
+```
+cache/
+index/
+```
+
+**Adentro de `.bilink/`, no en el `.gitignore` del repo ni en `.git/info/exclude`.** Adentro viaja con el directorio que gobierna: una capa nueva en cualquier repo trae su regla puesta, y un clon fresco la tiene sin que nadie la configure. `info/exclude` es por clon —el segundo desarrollador no la hereda—, y el `.gitignore` del repo obligaría a una entrada por capa, que es una lista que se desincroniza con las capas que existen.
+
+**La escriben los comandos que crean los directorios**, en la misma operación: `check` al escribir la cache, `index` al escribir el índice. Que la regla sea un paso aparte es lo que la vuelve olvidable —y de hecho se olvidó: en el corte a formato 2 las cinco capas quedaron con `cache/state` versionado hasta que alguien lo miró.
+
+Un `.gitignore` que ya exista se respeta: se agregan las entradas que falten y no se toca lo demás.
+
 ## Estar fría es normal
 
 La cache no está en git, así que no tenerla es un estado corriente y no una anomalía: un clon fresco, un cambio de rama, después del corte de formato, `rm -rf .bilink/cache/`, u otra máquina.

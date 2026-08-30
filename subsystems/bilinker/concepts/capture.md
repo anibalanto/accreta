@@ -33,6 +33,7 @@ Por el mismo motivo tampoco entra `commit`: la procedencia de una decisión no e
     cache/
       state                  ← lo derivable · no versionado
     version                  ← la versión de formato
+    .gitignore               ← qué de acá adentro no se versiona
     index/
       index                  ← lookup O(1) · no versionado
 ```
