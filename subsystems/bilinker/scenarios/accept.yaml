@@ -62,3 +62,15 @@ scenarios:
       - bilinker check . (desde spec layer)
     expect:
       - state = [OK, CHAIN_DIRTY]
+
+  - id: accept-preserves-declaration-fields
+    description: kind y name sobreviven a un accept
+    given:
+      - un bilink con kind y name declarados
+    when:
+      - bilinker accept .
+    expect:
+      - kind y name siguen ahí
+    notes:
+      - son inertes — no entran en ningún hash ni en ningún estado
+    impl: the_declaration_fields_survive_an_accept

@@ -48,7 +48,7 @@ De `clave: valor` plano a YAML. `hash.N` → `accepted.hash`, `hash_ast.N` → `
 
 **`resolved_at` se descarta** en los dos archivos: no se muda a la cache, desaparece del formato.
 
-**`kind` y `name.N` se preservan** —es el momento en que dejan de perderse— y `name.N` pasa a ser `name` adentro de su endpoint.
+**`kind` y `name.N` se preservan** —es el momento en que dejan de perderse— y `name.N` pasa a ser `name` adentro de su endpoint. Que la frase fuera cierta costó una versión del lector de formato 1: no los modelaba, así que la migración recibía `None` y esta línea describía algo que no pasaba. Ver [versión del formato](../concepts/format-version.md) § "Un formato que ya no se escribe todavía se lee".
 
 **`accepted.link` se siembra copiando `link.N`** donde había `hash.N`. Es exacto donde el endpoint estaba `OK`: en el formato viejo un endpoint `OK` es uno cuyo contenido actual coincide con el aceptado en la ubicación que `link.N` describe, así que esa ubicación *es* la bendecida. Donde estaba no-OK es la única lectura disponible —el formato viejo no distingue drift de ubicación de drift de contenido— y es la que preserva la invariante de aceptación sin poner todos los bilinks en `RELOCATED` de golpe ni degradarlos a `PENDING`, que borraría el inventario de trabajo. En un endpoint `PENDING`, `accepted` queda ausente y sólo sobrevive `link`.
 

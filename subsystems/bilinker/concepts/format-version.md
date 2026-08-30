@@ -20,6 +20,14 @@ Cambiar los tipos sin subir la versión **falla el test**. La versión ordinal s
 
 Una entrada registra lo que se publicó bajo esa versión. Corregirla en vez de agregar una nueva reescribiría el pasado, y el hash dejaría de certificar el artefacto que alguien ya descargó.
 
+#### Un formato que ya no se escribe todavía se lee
+
+`bilink-format-v1` está congelado en el sentido que importa: nadie escribe formato 1 nunca más. Eso no lo deja quieto — **leerlo mejor también cambia el esquema**.
+
+Pasó: el lector no modelaba `kind` ni `name.N`, que estaban en el formato desde siempre. La migración decía preservarlos y no podía, porque nadie se los pasaba. Agregarlos al tipo movió el hash, el guard lo detectó, y el registro ganó `1.1.0` con `1.0.0` intacto.
+
+La regla no distingue entre "el formato cambió" y "lo entendemos mejor": lo que registra es qué esquema se publicó bajo qué número, y los dos casos publican uno distinto. Un comentario que dijera "esta versión nunca va a tener otra entrada" sería una predicción, no una invariante — y las predicciones se corrigen.
+
 ### El esquema lleva su versión adentro
 
 El documento publicado incluye el número de versión, así que el hash certifica las dos cosas a la vez: qué tipos describe y bajo qué nombre se publicó. Un esquema no puede circular diciendo ser una versión que no es.

@@ -1,0 +1,13 @@
+
+  - id: migrate-preserves-declaration-fields
+    description: 002 preserva kind y name.N
+    given:
+      - un bilink en formato 1 con kind, name.0 y name.1
+    when:
+      - bilinker migrate
+    expect:
+      - kind sobrevive en el bilink
+      - name.N pasa a ser name adentro de su endpoint
+    notes:
+      - costó una versión del lector de formato 1, que no los modelaba
+    impl: the_declaration_fields_survive_the_migration

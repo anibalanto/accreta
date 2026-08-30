@@ -69,3 +69,16 @@ scenarios:
       - es la forma de accreta, donde la capa raíz tiene las specs de cinco subsistemas
       - el formato lo acepta desde siempre en un endpoint path
     impl: a_tip_can_cross_plain_directories_before_a_layer
+
+  - id: chain-new-writes-declaration-fields
+    description: chain new puebla kind y name sin que nadie abra el YAML
+    given:
+      - una capa con dos archivos
+    when:
+      - bilinker chain new --tip ... --tip ... --kind governs --name.0 a --name.1 b
+    expect:
+      - el bilink lleva kind y el name de cada endpoint
+      - sin los flags no aparece ningún campo — son opcionales, no vacíos
+    notes:
+      - son campos de declaración, y todo archivo de bilinker sale de un comando
+    impl: chain_new_writes_the_declaration_fields
