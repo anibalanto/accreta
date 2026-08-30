@@ -145,11 +145,13 @@ Copia de `accepted.link` y `accepted.hash` del endpoint **estructural** del bili
 
 ```yaml
 accepted:
-  link: 8f2a4c6e…      # id del capture del proveedor — ubicación publicada
-  hash: c4e1770b…      # hash del fragmento del proveedor — contenido publicado
+  link: capture 8f2a4c6e…   # el capture del proveedor — ubicación publicada
+  hash: c4e1770b…           # hash del fragmento del proveedor — contenido publicado
 ```
 
-**`accepted.link` no lleva prefijo**, a diferencia del caso local: es una copia opaca de un id ajeno, y se compara sin resolverse. Poner `capture <id>` afirmaría que ese capture es de esta capa, que es justo lo que no es.
+**Es una copia opaca: se compara, no se resuelve.** El `capture <id>` que lleva adentro es de la capa del proveedor, no de ésta, y buscarlo acá no encontraría nada — pero eso ya vale para un endpoint [`path`](#endpoint-path), donde el id copiado es del vecino. La forma es la misma en los dos casos, y por eso el campo se lee igual.
+
+Lo que la vuelve inofensiva es que nadie la resuelve: de esos dos SHA-256 no se reconstruye path, query, texto ni commit del proveedor.
 
 Ver [la frontera](frontier.md) para lo demás: qué se compara, la verificación de versión, el clon y la taxonomía de ausencia.
 
