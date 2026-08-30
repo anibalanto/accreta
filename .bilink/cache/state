@@ -657,9 +657,10 @@ endpoints:
     state: OK
     commit: 4197314a5472f179a74fe1b9dff71c90d2eab8ca
   70854b44-6fcf-4aab-a521-7908efd98b6a.0:
-    state: PENDING
+    state: OK
+    commit: 63debd0c840d2cfec667e7d24afa53cd08bcd716
   70854b44-6fcf-4aab-a521-7908efd98b6a.1:
-    state: PENDING
+    state: OK
   71cae0df-d290-4ca4-96a2-43b59f1e5e17.0:
     state: OK
     commit: 1caa218b3291debbd069dd5bfc2fc68ebd31c168
@@ -724,7 +725,7 @@ endpoints:
     state: OK
     commit: 63debd0c840d2cfec667e7d24afa53cd08bcd716
   86d5f6e8-a0d5-4a9d-b517-b84a38b96ff7.1:
-    state: PENDING
+    state: OK
   87bd0d04-8121-445c-ab5f-2eb73eefedfb.0:
     state: OK
     commit: 3e3fa5c675d1913bf108e4770d356f3ad7219550
@@ -986,7 +987,7 @@ endpoints:
     state: OK
     commit: 63debd0c840d2cfec667e7d24afa53cd08bcd716
   d02212c9-5ee3-4267-94e2-3a1f0d572cc2.1:
-    state: PENDING
+    state: OK
   d1a182ac-3d9d-43a0-a478-339d1283ee85.0:
     state: OK
     commit: 0cf1be7551a5f8d9c93f24733e16a684603f93f3
@@ -1026,7 +1027,7 @@ endpoints:
     state: OK
     commit: 63debd0c840d2cfec667e7d24afa53cd08bcd716
   d80bdf12-5287-4a54-9a32-559285fcb046.1:
-    state: PENDING
+    state: OK
   da36be7a-3a4d-4745-bb2e-8faf6484a2ed.0:
     state: OK
     commit: dea9b017173fefd6e868341d2dadf9378d76adcc
