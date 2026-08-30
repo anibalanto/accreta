@@ -22,7 +22,9 @@ No hay archivo de configuración. La raíz se resuelve caminando hacia arriba de
   index/index            ← lookup O(1) · no versionado
 ```
 
-**Un capture es una ubicación y nada más** — `file`, `query`, `offset`. Su nombre es `H(file, query, offset)`, así que es inmutable por construcción: cambiarle la ubicación le cambiaría el nombre. Dos referencias a la misma ubicación son el mismo archivo, sin buscar duplicados.
+**Un capture es una ubicación y nada más** — `file` y `query`. Su nombre es el hash de esos campos, así que es inmutable por construcción: cambiarle la ubicación le cambiaría el nombre. Dos referencias a la misma ubicación son el mismo archivo, sin buscar duplicados.
+
+**Nombra un nodo entero.** No hay sub-rango: la selección con la que se crea sirve para *encontrar* el nodo y después se descarta. Seleccionar media función captura la función. Para algo más chico hace falta una query que lo nombre.
 
 **Un bilink referencia captures y guarda decisiones.** No sabe dónde está su fragmento: sabe a qué capture preguntarle.
 
@@ -70,7 +72,7 @@ Un endpoint puede derivar de dos maneras independientes, y se aprueban por separ
 | Dimensión | Se compara | Deriva a |
 |---|---|---|
 | **ubicación** | `link` contra `accepted.link` | `RELOCATED` |
-| **contenido** | el fragmento contra `accepted.hash` | `ALTERED`, `EXPANDED`, `DISPLACED`, `RESTYLED` |
+| **contenido** | el fragmento contra `accepted.hash` | `ALTERED`, `EXPANDED`, `RESTYLED` |
 
 La de ubicación son dos ids: no abre ningún archivo, y por eso se decide siempre — incluso donde la otra degrada.
 
@@ -90,8 +92,7 @@ La de ubicación son dos ids: no abre ningún archivo, y por eso se decide siemp
 | `PENDING` | `accepted` ausente. | `accept` |
 | `OK` | Ubicación y contenido coinciden. | — |
 | `RELOCATED` | `link` ≠ `accepted.link`. | `accept --place` |
-| `DISPLACED` | El texto aceptado está en otro offset del nodo. | `apply` + `accept` |
-| `EXPANDED` | El fragmento contiene lo aceptado y algo más. | `apply` + `accept` |
+| `EXPANDED` | El fragmento contiene lo aceptado y algo más. | revisar + `accept` |
 | `RESTYLED` | El texto difiere y los tokens no — sólo espaciado. | `accept` |
 | `ALTERED` | El fragmento cambió. | revisar + `accept` |
 | `UNRESOLVED` | El capture no resolvió. | resolver el capture |
@@ -109,6 +110,8 @@ Propios de un endpoint `path`: `TODO` (la capa todavía no existe), `CHAIN_DIRTY
 | `recapture` | repunta un `link` a mano. Tampoco acepta. |
 
 **`apply` propone, `accept` dispone.** Un fix nunca cierra el ciclo solo: `apply` repunta y deja el endpoint en `RELOCATED`, porque mover un vínculo a otro fragmento es una decisión igual que aprobar un contenido.
+
+Y sólo tienen fix los estados del **capture** —`MOVED`, `REANCHORED`—, que son sobre dónde está el fragmento. Ningún estado de aceptación se arregla solo: aprobar un contenido es una decisión.
 
 Ningún comando modifica un capture existente. La única operación sobre el conjunto es agregar, y `prune` sacar los que no referencia nadie.
 
@@ -176,7 +179,7 @@ El fragmento tiene que estar commiteado: aceptar fija un contenido, y ese conten
 | Tipo de documento | Ánclas estables | Frágil |
 |---|---|---|
 | Código | función, método, clase, declaración con nombre | comentario, `use`/`import` |
-| Markdown | heading h1–h4, bloque de código | párrafo libre |
+| Markdown | heading h1–h4, fila de tabla, bloque de código | párrafo libre |
 | YAML / TOML | clave de mapping, item con `id:` | valor string libre |
 
 ## Propagación por la cadena
@@ -204,4 +207,4 @@ Siempre unidireccional, desde el endpoint estructural hacia los `path`.
 
 ## Defectos conocidos
 
-`.stratum/worklist/18.task.md` — el rango de un item de secuencia YAML cambia si se agrega otro item más abajo. Sale como `RESTYLED` sobre un fragmento que nadie tocó.
+Ninguno abierto sobre el formato. `subsystems/bilinker/proposals/` lleva lo especificado y no implementado: el endpoint de tipo `bilink`, y detectar el corrimiento con los hunks de git en vez de un escaneo.
