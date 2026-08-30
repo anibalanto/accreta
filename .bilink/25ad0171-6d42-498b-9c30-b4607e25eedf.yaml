@@ -8,4 +8,5 @@ endpoint:
     link: path subsystems/bilinker>impl
     accepted:
       link: capture 35d95639f42ddabb58772f3dac10d38e
-      hash: 5bb92aa7d479c5c1904720b2c682e1bd4d0e3c94f20e4dfa44d43782825e0b99
+      hash: 6be89734b1ecd6f753276f2f7f9856f1bb00bd56caac9c27008d545eca25a968
+      hash_ast: ff38f04ca51d9240510387bd3b3be5ebf27225e8667663afd060292efb9ff5eb

@@ -7,5 +7,6 @@ endpoint:
   1:
     link: path subsystems/bilinker>impl
     accepted:
-      link: capture 01743e841aa94b5c264f68eb69b7e1dc
-      hash: 9f5bb714d2d9a2d23bd40e0fcd088da6a2dcf54ef2ab21d27fb68cee360c7e56
+      link: capture 84fdb38015db9236bcc9228b35b0cd54
+      hash: 691626b1ac2844e9aef55d1021f53edadf505f5bd03b9d2dff4c19a761e3ad59
+      hash_ast: ff38f04ca51d9240510387bd3b3be5ebf27225e8667663afd060292efb9ff5eb
