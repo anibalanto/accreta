@@ -1,0 +1,8 @@
+file: subsystems/bilinker/commands/apply.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "Cálculo del fix por estado"))
+    (pipe_table
+    (pipe_table_row
+    (pipe_table_cell) @n1 (#eq? @n1 "**MOVED** ")) @target))
+offset: 2~7
