@@ -55,6 +55,17 @@ bilinker: repuntar 3 endpoint(s) (2026-08-30)
 
 Los cuatro producen lo mismo: **un `(file, query, offset)` nuevo**, y con él un capture nuevo. Ver [`check`](check.md) para los criterios de detección.
 
+### Un estado con fix no siempre tiene fix calculable
+
+`check` dice que hay un fix disponible; `apply` es quien tiene que producirlo, y a veces no puede. El caso más claro es un `DISPLACED` detectado porque el texto aceptado aparece **en el archivo** pero fuera del nodo: un `offset` es relativo al nodo, así que ninguno lo nombra. También falta el texto aceptado cuando git no lo entrega, y sin él no hay qué buscar.
+
+**Cuando no puede, lo dice.** Omitir en silencio deja a `check` reportando un estado con fix y a `apply` contestando que no hay nada que hacer, sin nadie que explique la contradicción:
+
+```
+warn: 09b88fe0… endpoint.0: DISPLACED, pero el texto aceptado no está dentro del
+      nodo — un offset no puede nombrarlo. Repuntar con `bilinker recapture`.
+```
+
 ## No hay fork, porque no hay mutación
 
 Un capture es inmutable y su id es el hash de su ubicación, así que corregir una ubicación **siempre** produce un capture distinto. `apply` lo acuña y repunta un solo `link`: el del endpoint que está corrigiendo. Los demás referentes no se enteran, sin que haya que decidir nada.
