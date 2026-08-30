@@ -9,7 +9,7 @@ bilinker determina la raíz del proyecto buscando desde el directorio de trabajo
 
 Si ninguno se encuentra, se usa el directorio de trabajo actual como raíz. Esto permite usar bilinker en proyectos nuevos sin ningún paso de inicialización.
 
-No existe ningún archivo de configuración.
+No existe ningún archivo de configuración de bilinker. Dentro de `.bilink/` sí hay dos archivos que el propio bilinker escribe y lee —[`version`](format-version.md), que dice qué formato son estos archivos, y [`cache/state`](cache.md)— pero no son configuración: nadie los edita a mano y salen de un comando.
 
 ## Uso con múltiples capas y repositorios
 
@@ -25,13 +25,7 @@ Esto funciona sin configuración adicional porque **solo se puede crear un bilin
 
 ## Lenguaje de los archivos
 
-El lenguaje (gramática tree-sitter) se determina automáticamente por la extensión del archivo referenciado:
-
-| Extensión | Lenguaje |
-|-----------|----------|
-| `.java`   | java     |
-| `.rs`     | rust     |
-| otros     | text     |
+El lenguaje (gramática tree-sitter) se determina automáticamente por la extensión del archivo referenciado. La tabla completa está en [`commands/capture.md`](../commands/capture.md) § "Lenguajes soportados"; una extensión sin gramática se trata como texto plano, y ahí no hay `hash_ast` ni `RESTYLED`.
 
 ## Invariantes
 
@@ -39,3 +33,4 @@ El lenguaje (gramática tree-sitter) se determina automáticamente por la extens
 - Todos los paths de archivos en endpoints estructurales son relativos a la raíz de su capa.
 - No se requiere configuración explícita del lenguaje: la extensión es suficiente.
 - No existe `.bilinker.toml` ni ningún otro archivo de configuración.
+- Ningún archivo de bilinker se escribe a mano: todos salen de un comando.

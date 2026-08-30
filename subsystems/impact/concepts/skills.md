@@ -52,7 +52,7 @@ Cada skill recibe en contexto:
 | Contenido de `link.0` | Documento de decisión de la layer actual |
 | Estado y diff de `link.1` | Bilink estructural gobernado |
 | `name.0`, `name.1` | Contexto semántico del elemento de impacto |
-| Commits intercedidos | `git log <commit.N>..HEAD -- <archivo>` |
+| Commits intercedidos | `git log <commit>..HEAD -- <archivo>`, con el commit aceptado del endpoint |
 | Blast radius | Lista de nodos afectados por propagación |
 
 ## Prompt templates

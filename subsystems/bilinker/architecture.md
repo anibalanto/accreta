@@ -41,22 +41,21 @@ La cadena es estrictamente lineal — sin ciclos ni bifurcaciones.
 
 ```mermaid
 flowchart LR
-    A[bilinker check] -->|"capture.state · capture.range\nstate.N"| B[bilinker accept]
-    A -->|"state.N"| C[bilinker apply]
-    B -->|"hash.N · commit.N"| D([resuelto])
-    C -->|"MOVED · DISPLACED\ncommit git"| D
-    C -->|"EXPANDED · REANCHORED\nel contenido cambió"| B
+    A[bilinker check] -->|"cache/state"| B[bilinker accept]
+    A -->|"cache/state"| C[bilinker apply]
+    B -->|"accepted"| D([resuelto])
+    C -->|"link repuntado\nRELOCATED"| B
 ```
 
-`check` resuelve los captures (escribe `range` y `state` en cada uno) y luego compara contra `hash.N` (escribe `state.N` en el bilink). `accept` es el único que establece `hash.N`, `hash_ast.N` y `commit.N`. `apply` usa `state.N` solo para seleccionar candidatos: recalcula el fix re-resolviendo contra git y el AST actuales, y lo escribe en el capture — sin tocar el contenido aceptado.
+`check` resuelve los captures y compara contra `accepted`; todo lo que produce va a [`cache/state`](concepts/cache.md) y nada a git. `accept` es el único que escribe `accepted`. `apply` usa la cache sólo para elegir candidatos: recalcula el fix re-resolviendo contra git y el AST actuales, acuña el capture de la ubicación nueva y repunta el `link`.
 
-Para MOVED y DISPLACED el fragmento no cambió, así que `apply` cierra el ciclo por sí solo. Para EXPANDED y REANCHORED el fragmento sí cambió: `apply` corrige la referencia y `accept` fija el contenido nuevo.
+**Ningún fix cierra el ciclo solo.** `apply` deja el endpoint en `RELOCATED`, y sale de ahí con `accept`: mover un vínculo a otro fragmento es una decisión, igual que aprobar un contenido.
 
 ## Propagación reactiva
 
-Un endpoint layer **no** ancla en el hash del archivo `.bilink` vecino: guarda una copia del `hash.N` del endpoint **estructural** de ese bilink. La distinción es lo que evita la cascada circular — si hasheara el archivo entero, aceptar un endpoint layer reescribiría su propio `.bilink` y esa escritura volvería al vecino como un cambio, sin que ningún fragmento se hubiera tocado.
+Un endpoint `path` **no** ancla en el hash del archivo vecino: guarda una copia del `accepted` del endpoint **estructural** de ese bilink. La distinción es lo que evita la cascada circular — si hasheara el archivo entero, aceptar un endpoint `path` reescribiría su propio archivo y esa escritura volvería al vecino como un cambio, sin que ningún fragmento se hubiera tocado.
 
-Cuando el fragmento de un tip cambia y alguien lo acepta, su `hash.N` estructural cambia, y el nodo adyacente ve que la copia que guardaba dejó de coincidir:
+Cuando el fragmento de un tip cambia y alguien lo acepta, su `accepted` cambia, y el nodo adyacente ve que la copia que guardaba dejó de coincidir:
 
 ```mermaid
 flowchart TD
@@ -78,9 +77,9 @@ bilink-format     los tipos y su serialización. No resuelve nada.
         └── bilinker-lsp
 ```
 
-La línea que los separa es **qué hace falta para leer un archivo y qué hace falta para juzgarlo**. Un `.capture` dice dónde está un fragmento; saber si el fragmento sigue ahí exige tree-sitter y git, y eso ya no es el formato.
+La línea que los separa es **qué hace falta para leer un archivo y qué hace falta para juzgarlo**. Un capture dice dónde está un fragmento; saber si el fragmento sigue ahí exige tree-sitter y git, y eso ya no es el formato.
 
-Se ve en `capture.rs`, que era un archivo y ahora son dos: la mitad que describe el `.capture` está en el crate de formato, y el algoritmo que lo produce —el walk-up por el AST, la construcción de la query— se quedó en `bilinker`, porque depende de las gramáticas.
+Se ve en `capture.rs`, que era un archivo y ahora son dos: la mitad que describe el capture está en el crate de formato, y el algoritmo que lo produce —el walk-up por el AST, la construcción de la query— se quedó en `bilinker`, porque depende de las gramáticas.
 
 **La versión del crate es la versión del formato**, y se verifica sola. Ver [versión del formato](concepts/format-version.md).
 
@@ -89,9 +88,9 @@ Se ve en `capture.rs`, que era un archivo y ahora son dos: la mitad que describe
 ```
 bilinker capture   → tree-sitter parse → query AST → escribe .capture
 bilinker get       → lookup por range del capture → retorna fragmento
-bilinker check     → resuelve captures → hash actual vs hash.N → state.N
-bilinker accept    → establece hash.N, hash_ast.N y commit.N en el bilink
-bilinker apply     → recalcula fix desde git/AST → escribe el capture (forkea si es compartido)
+bilinker check     → resuelve captures → compara contra accepted → cache/state
+bilinker accept    → escribe accepted en el bilink
+bilinker apply     → recalcula fix desde git/AST → acuña capture y repunta link
 bilinker chain     → crea / inspecciona / lista cadenas
 ```
 

@@ -5,7 +5,7 @@ Impact es consumidor de lattice. No lee `.bilink` ni habla con language servers:
 ## Reparto
 
 ```
-bilinker   detecta drift          → state.N por endpoint
+bilinker   detecta drift          → estado por endpoint
 lattice    agrega y recorre       → qué está conectado con qué, y con qué garantía
 impact     evalúa coherencia      → si el cambio contradice una decisión declarada
 ```
@@ -61,9 +61,9 @@ El baseline de todo diff sale del campo `commit` de la arista `accepted` alcanza
 git log <edge.commit[n]>..HEAD -- <archivo>
 ```
 
-Es lo que hace hoy el Git Analyzer, con el `commit.N` leído del `.bilink`. Cambia de dónde viene el dato, no el cálculo.
+Es lo que hace hoy el Git Analyzer, leyendo el commit aceptado por su cuenta. Cambia de dónde viene el dato, no el cálculo.
 
-El campo del `.bilink` es `commit.N`; lattice lo transporta como `commit` en la arista, así que impact ya no lo lee del archivo.
+El dato es el commit en que el contenido aceptado quedó establecido; lattice lo transporta como `commit` en la arista, así que impact ya no lo busca por su cuenta.
 
 ## Degradación
 

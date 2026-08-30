@@ -43,7 +43,7 @@ Bilinker emite sus aristas con los nodos ya en forma canónica y la topología d
 
 - **La cadena entera.** Una cadena de N nodos produce **una** arista, entre sus dos tips estructurales. Los mids son mecanismo interno del formato — si lattice los viera, el grafo se llenaría de nodos `.bilink` que no son contenido del proyecto.
 - **Los paths Stratum.** `link.N: .stratum/impl` se resuelve a la raíz de capa concreta antes de emitir.
-- **El rango vigente.** El `range.N` del último `check`.
+- **El rango vigente.** El `range` que el último `check` dejó en la cache del capture.
 
 Nada de eso es conocimiento que lattice pueda tener sin duplicar el formato de bilinker.
 
@@ -52,7 +52,7 @@ Nada de eso es conocimiento que lattice pueda tener sin duplicar el formato de b
 Dos campos que ningún otro proveedor emite y que existen porque impact los necesita:
 
 - `state` — la tupla `(state.0, state.1)`. Permite filtrar por no-OK sin abrir archivos.
-- `commit` — el `commit.N` de cada tip. Es el baseline de `git log <commit>..HEAD`.
+- `commit` — el commit en que el contenido aceptado de cada tip quedó establecido. Es el baseline de `git log <commit>..HEAD`.
 
 Sin ellos en la arista, un consumidor tendría que reabrir los `.bilink` para completarlos — exactamente la duplicación que lattice elimina.
 

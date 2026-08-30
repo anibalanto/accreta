@@ -34,7 +34,7 @@ Cada línea muestra:
 - UUID corto (8 chars)
 - Estado de ambos endpoints: `(state.0, state.1)`
 
-Los bilinks se agrupan por el directorio del endpoint estructural. Si el bilink no tiene endpoint estructural (solo layer endpoints), aparece bajo `(layer)`.
+Los bilinks se agrupan por el directorio del endpoint estructural. Un bilink sin endpoint estructural —los dos son `path`— aparece bajo `(layer)`.
 
 ## Códigos de salida
 
@@ -42,7 +42,22 @@ Los bilinks se agrupan por el directorio del endpoint estructural. Si el bilink 
 |--------|-----------|
 | 0 | Éxito. |
 
+## Con la cache fría no hay nada que mostrar
+
+`status` lee [`cache/state`](../concepts/cache.md); no resuelve ninguna query. Y la cache no está en git, así que **un clon fresco no tiene estados**:
+
+```
+$ bilinker status
+
+sin estados: la cache está fría.
+  Correr `bilinker check .` para calcularlos.
+```
+
+No es un error: la cache fría es un estado normal —clon fresco, cambio de rama, otra máquina— y `check` es offline y barato. Lo que `status` no hace es inventar: mostrar `OK` sin haber verificado sería peor que no mostrar nada.
+
+Si la cache corresponde a otra rama, se descarta sola y el resultado es el mismo.
+
 ## Propiedades
 
-- **Solo lectura**: no modifica ningún archivo.
-- Usa el estado almacenado en los archivos `.bilink` — no re-ejecuta queries. Para actualizar el estado, correr `bilinker check` primero.
+- **Sólo lectura**: no modifica ningún archivo, ni siquiera la cache.
+- No re-ejecuta queries. Para actualizar los estados, `bilinker check` primero.

@@ -9,7 +9,7 @@ Las referencias por número de línea son frágiles: cualquier inserción o refo
 Bilinker resuelve esto con dos mecanismos:
 - **Query AST via tree-sitter**: la referencia identifica el fragmento por estructura
   sintáctica, no por posición. Sobrevive reformateos e inserciones.
-- **Hash SHA-256 + `hash.N`/`commit.N`**: detecta cuando el contenido del fragmento
+- **Hash SHA-256 en `accepted`**: detecta cuando el contenido del fragmento
   cambia y requiere aceptación explícita del nuevo estado.
 
 ## Posición en el ecosistema

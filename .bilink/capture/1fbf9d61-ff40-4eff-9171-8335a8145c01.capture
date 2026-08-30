@@ -5,6 +5,5 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "Compartición y ciclo de vida"))) @target)
 
 # Cache
-range:       8137~9947
-state:       RESOLVED
-resolved_at: 2026-08-30T01:55:43Z
+state:       UNANCHORED
+resolved_at: 2026-08-30T02:58:10Z

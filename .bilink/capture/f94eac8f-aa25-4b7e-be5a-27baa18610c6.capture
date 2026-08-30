@@ -5,6 +5,5 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "Estados — aceptación (en el bilink, endpoints estructurales)"))) @target)
 
 # Cache
-range:       1467~3226
-state:       RESOLVED
-resolved_at: 2026-08-26T18:26:21Z
+state:       REANCHORED
+resolved_at: 2026-08-30T03:06:45Z

@@ -5,6 +5,6 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "Propagación reactiva"))) @target)
 
 # Cache
-range:       1811~2733
+range:       1654~2558
 state:       RESOLVED
-resolved_at: 2026-08-29T23:43:09Z
+resolved_at: 2026-08-30T03:10:34Z

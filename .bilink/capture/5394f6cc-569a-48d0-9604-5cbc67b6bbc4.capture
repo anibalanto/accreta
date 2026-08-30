@@ -5,6 +5,6 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "Recuperar el texto aceptado"))) @target)
 
 # Cache
-range:       5109~6101
+range:       6242~7232
 state:       RESOLVED
-resolved_at: 2026-08-29T23:45:34Z
+resolved_at: 2026-08-30T03:06:45Z

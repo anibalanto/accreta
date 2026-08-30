@@ -27,18 +27,68 @@ Invocar `migrate` capa por capa registra la migración al terminar la primera, y
 | Id | Qué hace |
 |---|---|
 | `bilinker-001-capture-split` | Extrae la ubicación de cada endpoint estructural a un `.capture`, y reemplaza `link.N` por `capture <uuid>`. |
+| `bilinker-002-file-partition` | Reescribe cada bilink a YAML, con los endpoints bajo `endpoint.0`/`endpoint.1` y el tipo de cada `link` explícito. Lo derivable sale a la cache. |
+| `bilinker-003-immutable-captures` | Renombra cada capture a `capture/<H(file, query, offset)>.yaml` y repunta cada `link` y cada `accepted.link`. |
+
+**El orden importa y no es el obvio.** La partición va primera: mientras `range`, `state` y `resolved_at` sigan adentro del `.capture`, no se le puede calcular un id estable.
 
 ### `bilinker-001-capture-split`
 
-Convierte los endpoints con la ubicación embebida —`file :: query :: offset`, más `range.N` en la cache— al formato con [capture](../concepts/capture.md) aparte.
+Convierte los endpoints con la ubicación embebida —`file :: query :: offset`— al formato con [capture](../concepts/capture.md) aparte.
 
 **Deduplica.** Dos endpoints con `(file, query, offset)` idénticos comparten un capture, porque referencias idénticas describen la misma ubicación. Sin esto la duplicación existente quedaría congelada: nada la fusionaría después.
 
-La deduplicación crea captures compartidos, y con ellos el fork de `bilinker apply` para los fixes que dependen de `hash.N`. Eso es el diseño funcionando, no un efecto colateral — ver [capture.md](../concepts/capture.md) § "Copy-on-write al aplicar un fix".
+La deduplicación crea captures compartidos, que es el diseño funcionando y no un efecto colateral. Con `003` deja de hacer falta: el id sale de la ubicación, así que dos referencias iguales son el mismo archivo por construcción.
 
 **No resuelve.** El `range` se copia tal cual estaba y el `state` del capture queda vacío. El `check` siguiente los recalcula.
 
 **Descarta `subgraph.N`**, campo eliminado del formato, y lo reporta en el resumen para que la desaparición no sea silenciosa.
+
+### `bilinker-002-file-partition`
+
+De `clave: valor` plano a YAML. `hash.N` → `accepted.hash`, `hash_ast.N` → `accepted.hash_ast`; `commit.N`, `state.N`, y el `range` y el `state` que salen del `.capture` van a [`cache/state`](../concepts/cache.md). Se escribe `.bilink/version`.
+
+**`resolved_at` se descarta** en los dos archivos: no se muda a la cache, desaparece del formato.
+
+**`kind` y `name.N` se preservan** —es el momento en que dejan de perderse— y `name.N` pasa a ser `name` adentro de su endpoint.
+
+**`accepted.link` se siembra copiando `link.N`** donde había `hash.N`. Es exacto donde el endpoint estaba `OK`: en el formato viejo un endpoint `OK` es uno cuyo contenido actual coincide con el aceptado en la ubicación que `link.N` describe, así que esa ubicación *es* la bendecida. Donde estaba no-OK es la única lectura disponible —el formato viejo no distingue drift de ubicación de drift de contenido— y es la que preserva la invariante de aceptación sin poner todos los bilinks en `RELOCATED` de golpe ni degradarlos a `PENDING`, que borraría el inventario de trabajo. En un endpoint `PENDING`, `accepted` queda ausente y sólo sobrevive `link`.
+
+### `bilinker-003-immutable-captures`
+
+Renombra cada capture a su id de contenido y repunta las dos clases de referencia: `link` y `accepted.link`.
+
+**No tiene fan-out.** Como el id no depende del hash, dos bilinks que aceptaron contenidos distintos del mismo fragmento siguen compartiendo capture, y la divergencia queda en sus `accepted`. Dos captures con la misma ubicación colapsan en uno: es la dedup por construcción, aplicada de una vez a lo que ya existía.
+
+## El problema de bootstrap
+
+La herramienta que cambia de formato es la que se usa para cambiarlo, y las specs que describen el formato están bilinkeadas al código que lo implementa. Durante la transición conviven specs viejas y nuevas, binario viejo y nuevo, y bilinks en los dos formatos.
+
+**Coexistencia por path.** Los dos formatos no pueden ocupar `.bilink/` a la vez, así que la migración escribe en un path transitorio y deja `.bilink/` intacto:
+
+```
+.bilink/  →  .bilink-migrate-002-file-partition/  →  .bilink-migrate-003-immutable-captures/
+```
+
+El binario viejo sigue trabajando contra `.bilink/` sin enterarse; el nuevo se ejerce contra el path nuevo con datos reales antes de que nada sea irreversible. Los dos corriendo en el mismo instante sobre el mismo repo, cada uno contra la carpeta que entiende.
+
+**El path lleva el id de la migración.** Sin él, dos migraciones en vuelo colisionan y una carpeta abandonada es indistinguible de una en curso. El prefijo `bilinker-` se omite: dentro del directorio de bilinker es redundante.
+
+**Es un derivado, no un espacio de trabajo.** No se edita a mano: si se lo edita, deja de poder regenerarse, que es lo único que lo vuelve seguro. Y tiene que poder regenerarse, porque si entre la generación y el corte alguien acepta algo con el binario viejo, la copia migrada queda vieja y el corte se comería esa aceptación.
+
+**La idempotencia tiene dos regímenes.** Antes del corte, `migrate` **siempre regenera** — la regla operativa es regenerar justo antes de cortar. Después del corte el ledger la vuelve no-op, que es lo que [`migration.md`](../../../concepts/migration.md) exige.
+
+**La entrada en el ledger va en el corte, no en la generación.** Si se escribiera al generar, el repo quedaría marcado como migrado mientras sigue corriendo el formato viejo. Se registra cuando el estado es verdadero, no cuando el trabajo empezó.
+
+`.git/info/exclude` recibe `.bilink-migrate-*` al empezar: esas carpetas son temporales y nunca se commitean.
+
+## Lo que no necesita migración
+
+**Los endpoints `repo` y `abstract`** de [ADR-0005](../.stratum/impl/docs/adr/0005-frontera-entre-proyectos.md) son **aditivos**: ningún archivo existente los usa y todos siguen siendo válidos. La frontera se adopta bilink por bilink.
+
+Que un cambio aditivo no lleve migración es justamente por qué `.bilink/version` hace falta además del ledger: un parser viejo leería `abstract` como un path y no fallaría, y el ledger no puede expresar eso porque no hubo migración que registrar. Ver [versión del formato](../concepts/format-version.md).
+
+**Mover los bilinks a una ref** ([ADR-0004](../.stratum/impl/docs/adr/0004-bilinks-en-ref-paralela.md)) tampoco es una migración, y no puede serlo: no transforma ningún archivo —los deja idénticos y cambia dónde viven— y `migration.md` prohíbe que una migración consulte git, que es todo lo que esa operación hace.
 
 ## Salida
 

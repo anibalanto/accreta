@@ -4,12 +4,12 @@
 
 Un bilink conecta exactamente dos fragmentos estructurales. Hay dos formas:
 
-- **Link directo** — ambos endpoints en la misma layer, un solo archivo `.bilink`.
+- **Link directo** — los dos endpoints en la misma capa, un solo archivo.
   No hay chain traversal. Útil para conectar dos fragmentos dentro de la misma capa.
 - **Cadena** — los fragmentos están en layers distintas. El mismo UUID aparece en
-  un archivo `.bilink` en cada layer involucrada, con endpoints relativos a su posición.
+  un archivo en cada capa involucrada, con endpoints relativos a su posición.
 
-Una **cadena** es una secuencia lineal de bilinks que conecta dos fragmentos estructurales a través de las layers de un proyecto. Todos los bilinks de una cadena comparten el mismo UUID, que es simultáneamente su identificador de cadena y el nombre de su archivo `.bilink`.
+Una **cadena** es una secuencia lineal de bilinks que conecta dos fragmentos estructurales a través de las layers de un proyecto. Todos los bilinks de una cadena comparten el mismo UUID, que es simultáneamente su identificador de cadena y el nombre de su archivo.
 
 ## Topología
 
@@ -44,9 +44,9 @@ No existe un archivo de registro central de cadenas — la cadena se descubre re
 
 El mecanismo de propagación está integrado en el formato del archivo:
 
-1. `hash.N` de un endpoint layer es una **copia** del `hash.N` del endpoint estructural del bilink adyacente — no el SHA-256 del archivo `.bilink`.
-2. Por eso refrescar la cache no propaga: `state.N` y `resolved_at` cambian en cada `check`, pero un `hash.N` estructural solo cambia con `accept`.
-3. Si la copia guardada ≠ el `hash.N` estructural del nodo adyacente, el próximo `check` detecta CHAIN_DIRTY.
+1. El `accepted` de un endpoint `path` es una **copia** del `accepted` del endpoint estructural del bilink adyacente —su `link` y su `hash`— y no el hash del archivo vecino.
+2. Por eso refrescar la cache no propaga: los estados viven fuera del archivo, y un `accepted` sólo cambia con `accept`.
+3. Si alguna de las dos copias ≠ la del nodo adyacente, el próximo `check` detecta CHAIN_DIRTY.
 
 **Flujo de propagación cuando un fragmento cambia:**
 
@@ -76,19 +76,19 @@ Ver especificación completa en [commands/chain.md](../commands/chain.md).
 
 ### `bilinker chain new`
 
-Crea una nueva cadena generando un UUID y los archivos `.bilink` en las layers especificadas:
+Crea una cadena generando un UUID y un bilink en cada capa:
 
 ```bash
 bilinker chain new \
-  --tip specs "specs :: voting.yaml :: (...) @target" \
-  --tip .stratum/impl "java-demo :: src/.../Persona.java :: (...) @target"
+  --tip 'commands/check.md:63:1' \
+  --tip '>impl/crates/bilinker/src/check.rs:405:1'
 ```
 
-Genera, por cada tip, un capture en su capa y el `.bilink` que lo referencia:
-- `.bilink/capture/<c0>.capture` + `.bilink/<uuid>.bilink` (tip en spec layer)
-- `.stratum/impl/.bilink/capture/<c1>.capture` + `.stratum/impl/.bilink/<uuid>.bilink` (tip en impl layer)
+Genera, por cada tip, un capture en su capa y el bilink que lo referencia:
+- `.bilink/capture/<c0>.yaml` + `.bilink/<uuid>.yaml` (tip en la capa spec)
+- `.stratum/impl/.bilink/capture/<c1>.yaml` + `.stratum/impl/.bilink/<uuid>.yaml` (tip en la capa impl)
 
-Si un tip apunta a un fragmento ya capturado, `chain new` reusa ese capture en vez de crear uno nuevo.
+Si un tip apunta a un fragmento ya capturado, el capture es literalmente el mismo archivo: el id sale de la ubicación.
 
 ### `bilinker chain status <uuid>`
 
@@ -124,9 +124,9 @@ $ bilinker chain list
 ## Ciclo de vida
 
 ```
-bilinker chain new   → crea archivos .bilink con UUID, sin cache
-bilinker check       → resuelve captures (range, state) y compara contra hash.N → state.N
-bilinker accept      → establece hash.N y commit.N con el estado actual
-bilinker apply       → aplica auto-fixes (MOVED, DISPLACED, REANCHORED, EXPANDED)
+bilinker chain new   → crea los bilinks con el UUID, sin accepted
+bilinker check       → resuelve captures y compara contra accepted → cache/state
+bilinker accept      → escribe accepted con el estado actual
+bilinker apply       → repunta link a la ubicación nueva; deja RELOCATED
 bilinker chain status <uuid> → inspecciona cadena completa
 ```

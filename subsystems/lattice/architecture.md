@@ -84,7 +84,7 @@ El modelo unificado de [concepts/node.md](concepts/node.md) los colapsa en un so
 
 ### 2. El desajuste posición ↔ rango
 
-Un bilink localiza un fragmento por **rango de bytes** (`range.N`). El LSP necesita **(línea, columna) del identificador** para `callHierarchy/prepareCallHierarchy`. Hoy el puente entre los dos es `impact.rs:285` — `fn_col_from_source`, un escáner que recorre la línea salteando una lista hardcodeada de keywords (`pub`, `fn`, `def`, `public`, `static`, `abstract`, `synchronized`, …) hasta encontrar el primer identificador.
+Un bilink localiza un fragmento por **rango de bytes** — el `range` que `check` deja en la cache del capture. El LSP necesita **(línea, columna) del identificador** para `callHierarchy/prepareCallHierarchy`. Hoy el puente entre los dos es `impact.rs:285` — `fn_col_from_source`, un escáner que recorre la línea salteando una lista hardcodeada de keywords (`pub`, `fn`, `def`, `public`, `static`, `abstract`, `synchronized`, …) hasta encontrar el primer identificador.
 
 **Ese dato ya está computado y se descarta dos veces.**
 
@@ -94,7 +94,7 @@ Un bilink localiza un fragmento por **rango de bytes** (`range.N`). El LSP neces
 name: (identifier) @n0 (#eq? @n0 "check_structural")
 ```
 
-O sea que **la query almacenada en el `.bilink` ya localiza el identificador**, no solo el fragmento. Y al resolverla, `find_target_with_sexp` (`query.rs:27-33`) itera todas las capturas del match y descarta las que no son `@target` — incluida `@n0`.
+O sea que **la query almacenada en el capture ya localiza el identificador**, no solo el fragmento. Y al resolverla, `find_target_with_sexp` (`query.rs:27-33`) itera todas las capturas del match y descarta las que no son `@target` — incluida `@n0`.
 
 La resolución del anclaje no necesita parsing nuevo: es devolver esa captura. `cap.node.start_position()` da un `Point` de tree-sitter, que ya es `(row, column)` — exactamente el formato que espera el LSP, sin conversión de bytes a líneas.
 

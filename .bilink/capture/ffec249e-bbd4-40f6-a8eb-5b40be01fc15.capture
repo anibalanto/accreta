@@ -2,6 +2,6 @@ file:   subsystems/bilinker/commands/capture.md
 query:  (section (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker capture`")) (section (atx_heading (inline) @n1 (#eq? @n1 "Flujo interno"))) @target)
 
 # Cache
-range:       1689~3656
+range:       1762~3749
 state:       RESOLVED
-resolved_at: 2026-08-30T02:21:32Z
+resolved_at: 2026-08-30T03:10:34Z

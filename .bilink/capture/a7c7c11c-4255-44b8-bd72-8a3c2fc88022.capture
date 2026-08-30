@@ -5,6 +5,6 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "Optimización por diff de git"))) @target)
 
 # Cache
-range:       6101~7413
+range:       7232~8422
 state:       RESOLVED
-resolved_at: 2026-08-30T00:22:48Z
+resolved_at: 2026-08-30T03:07:55Z

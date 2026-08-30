@@ -5,6 +5,5 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "Por qué REANCHORED usa similitud y no el hash"))) @target)
 
 # Cache
-range:       3533~4674
-state:       RESOLVED
-resolved_at: 2026-08-29T23:45:34Z
+state:       REANCHORED
+resolved_at: 2026-08-30T03:06:45Z

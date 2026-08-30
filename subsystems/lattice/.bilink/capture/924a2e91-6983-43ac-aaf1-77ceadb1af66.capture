@@ -5,6 +5,6 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "Nodos sin rango"))) @target)
 
 # Cache
-range:       4651~4909
+range:       4679~4937
 state:       RESOLVED
-resolved_at: 2026-08-30T02:01:14Z
+resolved_at: 2026-08-30T03:11:33Z

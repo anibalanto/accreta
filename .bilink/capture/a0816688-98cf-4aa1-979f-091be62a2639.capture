@@ -5,6 +5,6 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "Validación de frescura"))) @target)
 
 # Cache
-range:       5848~6711
+range:       3754~4471
 state:       RESOLVED
-resolved_at: 2026-08-29T23:41:11Z
+resolved_at: 2026-08-30T03:04:00Z

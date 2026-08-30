@@ -10,7 +10,7 @@ Dado un archivo `F` modificado:
    apuntando a `F`. El nodo con ese endpoint pasa a estado `ALTERED` o `DELETED`.
 
 2. **Propagación reactiva**: cada nodo alterado cambia el contenido de su archivo
-   `.bilink`. Esto hace que el hash almacenado en el nodo adyacente ya no coincida, propagando `CHAIN_DIRTY` hacia los extremos.
+   el bilink. Esto hace que la copia guardada en el nodo adyacente ya no coincida, propagando `CHAIN_DIRTY` hacia los extremos.
 
 El blast radius incluye ambos niveles: los nodos directamente afectados y todos los nodos que detectarán `CHAIN_DIRTY` en el próximo `check`.
 
@@ -49,7 +49,7 @@ No implica que todo lo del blast radius esté efectivamente roto — solo que ne
 
 ## Relación con la propagación reactiva de bilinker
 
-El mecanismo de propagación es el descripto en [el formato bilink](../../bilinker/concepts/bilink.md): `state.N` es parte del archivo `.bilink`, por lo que cambiar el estado de un nodo cambia el hash que el nodo adyacente tiene almacenado, desencadenando `CHAIN_DIRTY` en el próximo check.
+El mecanismo de propagación es el descripto en [el formato bilink](../../bilinker/concepts/bilink.md): un nodo guarda una copia del `accepted` de su vecino, así que aceptar en un extremo desencadena `CHAIN_DIRTY` en el próximo check. Verificar no propaga nada: los estados viven fuera del archivo versionado.
 
 impact no replica ese mecanismo ni lo consulta directamente — lo recibe en el campo `state` de cada arista. El blast radius que calcula impact es una proyección de lo que bilinker detectaría si se corriese `check` en todas las capas afectadas.
 

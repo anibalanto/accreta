@@ -5,6 +5,6 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "Formato"))) @target)
 
 # Cache
-range:       1420~2629
+range:       2352~3280
 state:       RESOLVED
-resolved_at: 2026-08-29T23:34:02Z
+resolved_at: 2026-08-30T03:11:32Z

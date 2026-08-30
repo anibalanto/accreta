@@ -5,6 +5,5 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "`hash.N` y `commit.N`"))) @target)
 
 # Cache
-range:       2962~3073
-state:       RESOLVED
-resolved_at: 2026-08-30T01:55:43Z
+state:       UNANCHORED
+resolved_at: 2026-08-30T03:01:35Z

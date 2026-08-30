@@ -24,7 +24,7 @@ chains:
     endpoint: 0 | 1
     state: ALTERED | DELETED | ...
     file: <path>
-    commit_anchor: <sha1>  # commit.N aceptado del endpoint
+    commit_anchor: <sha1>  # el commit en que el contenido aceptado quedó establecido
     commits_since:
       - sha: <sha1>
         author: <name>

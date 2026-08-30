@@ -5,6 +5,5 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "REANCHORED"))) @target)
 
 # Cache
-range:       4280~4820
-state:       RESOLVED
-resolved_at: 2026-08-29T23:41:11Z
+state:       UNANCHORED
+resolved_at: 2026-08-30T03:04:00Z

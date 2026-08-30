@@ -18,7 +18,7 @@ bilinker get <file>:<line>:<col>
 
 Retorna la lista de endpoints de bilinks cuyo capture tiene un `range` que cubre la posición dada. Cada resultado se identifica como `<UUID>.<N>` y muestra una descripción del fragmento referenciado en el extremo opuesto.
 
-Usa `.bilink/index/index` si está disponible y actualizado (O(1)); si no, escanea los `.bilink` de la layer actual (O(N)).
+Usa `.bilink/index/index` si está disponible y actualizado (O(1)); si no, escanea los bilinks de la capa actual (O(N)).
 
 **Salida:**
 
@@ -44,9 +44,9 @@ bilinker get <UUID>.<N> [-B <rows>] [-A <rows>] [--diff]
 | `-A rows` | int | Líneas de contexto después del fragmento. |
 | `--diff` | flag | Muestra el diff entre el fragmento aceptado y el fragmento actual. |
 
-Resuelve el endpoint `link.N` del bilink `<uuid>.bilink` de la layer actual y retorna el texto del fragmento que referencia.
+Resuelve el endpoint N del bilink `<uuid>.yaml` de la capa actual y retorna el texto del fragmento que referencia.
 
-Si `link.N` es un endpoint layer, resuelve el path Stratum hacia la capa adyacente, localiza el mismo UUID en su `.bilink/`, y retorna el fragmento del endpoint estructural que contiene. Requiere que los archivos de la capa adyacente estén accesibles localmente.
+Si el endpoint es de tipo `path`, resuelve el path Stratum hacia la capa adyacente, localiza el mismo UUID en su `.bilink/`, y retorna el fragmento del endpoint estructural que contiene. Requiere que los archivos de la capa adyacente estén accesibles localmente.
 
 **stdout** — El texto del fragmento.
 
@@ -79,9 +79,9 @@ tests:
 
 ### Flag `--diff`
 
-Requiere `commit.N` presente en el bilink (endpoint aceptado al menos una vez) y el capture resuelto.
+Requiere el `commit` del endpoint —el commit en que el contenido aceptado quedó establecido— y el capture resuelto. Vive en [la cache](../concepts/cache.md); con cache fría se re-deriva.
 
-- **"antes"**: el fragmento aceptado, recuperado resolviendo la query contra el contenido de `commit.N` y verificado contra `hash.N`. Ver [`check`](check.md) § "Recuperar el texto aceptado".
+- **"antes"**: el fragmento aceptado, recuperado resolviendo la query contra el contenido del `commit` del endpoint y verificado contra `accepted.hash`. Ver [`check`](check.md) § "Recuperar el texto aceptado".
 - **"después"**: resuelve el fragmento actual con la misma query AST que usa `get` normalmente.
 - Muestra un unified diff del fragmento, sin contexto extra de archivo.
 
@@ -119,7 +119,7 @@ bilinker get <file>
 
 Retorna todos los endpoints de bilinks que referencian ese archivo, ya sea mediante un capture con query AST, un capture de archivo completo, o cualquier posición dentro del archivo.
 
-Usa `.bilink/index/index` si está disponible y actualizado (O(1)); si no, escanea los `.bilink` de la layer actual (O(N)). En ambos casos, no re-ejecuta queries tree-sitter — el `range` cacheado de cada capture es suficiente.
+Usa `.bilink/index/index` si está disponible y actualizado (O(1)); si no, escanea los bilinks de la capa actual (O(N)). En ambos casos, no re-ejecuta queries tree-sitter — el `range` cacheado de cada capture es suficiente.
 
 **Salida:**
 

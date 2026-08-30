@@ -2,9 +2,13 @@
 
 ## Propósito
 
-Aplica los auto-fixes para bilinks en estado auto-fixeable (MOVED, DISPLACED, REANCHORED, EXPANDED). Calcula el fix en el momento re-resolviendo el endpoint contra git y el AST actual — nunca reutiliza un cálculo previo. Cada aplicación se registra como un commit git con un mensaje descriptivo. El humano siempre confirma antes de que los cambios se escriban.
+Corrige **dónde apunta** un endpoint cuando el fragmento se movió. Calcula el fix en el momento re-resolviendo contra git y el AST actuales — nunca reutiliza un cálculo previo.
 
-`apply` corrige **dónde** apunta el fragmento, escribiendo en el [capture](../concepts/capture.md) (`file`, `query`, `offset`). Nunca toca `hash.N`, `hash_ast.N` ni `commit.N` — eso es exclusivo de `bilinker accept`. Su único efecto sobre un bilink es repuntar un `link.N` cuando forkea un capture compartido. Para MOVED y DISPLACED el contenido del fragmento no cambió, así que el endpoint queda `OK` tras el fix; para EXPANDED y REANCHORED el contenido sí cambió y el endpoint sigue no-OK hasta que el humano ejecute `bilinker accept`.
+`apply` acuña el [capture](../concepts/capture.md) de la ubicación nueva y repunta el `link` del endpoint. **No escribe `accepted`**, así que el endpoint no queda `OK`: queda en `RELOCATED` hasta que alguien apruebe la ubicación nueva.
+
+> **`apply` propone, `accept` dispone.**
+
+Ésa es la diferencia con el comportamiento anterior, donde MOVED y DISPLACED volvían a `OK` solos. Mover un vínculo a otro fragmento es una decisión —el fragmento nuevo puede no ser el que la spec describe— y una decisión sin aprobar es trabajo pendiente, no trabajo hecho.
 
 Requiere git como dependencia dura.
 
@@ -17,118 +21,80 @@ bilinker apply [--dry-run] [--filter <estado>] [-y]
 | Flag | Descripción |
 |---|---|
 | `--dry-run` | Muestra los fixes que se aplicarían sin escribir nada. |
-| `--filter <estado>` | Aplica solo fixes de un estado específico (e.g., `--filter MOVED`). |
+| `--filter <estado>` | Aplica sólo fixes de un estado específico (e.g. `--filter MOVED`). |
 | `-y` | Omite la confirmación interactiva. |
 
-## Flujo de `apply`
+## Flujo
 
-1. Escanear todos los `.bilink` de la layer actual y contar los referentes de cada capture.
-2. Para cada bilink con algún endpoint en {MOVED, DISPLACED, REANCHORED, EXPANDED}, **re-resolver el endpoint** con el mismo algoritmo de detección que usa `check` (ver [`check`](check.md) § "Algoritmo de detección por tipo de endpoint"). Esto produce un estado re-derivado y la posición actual del fragmento.
-3. Validar el estado re-derivado contra `state.N` (ver "Validación de frescura"). Si difieren, descartar ese endpoint.
-4. Calcular el fix a partir de la re-resolución (ver "Cálculo del fix por estado"). Si el fix es un no-op — el `.bilink` ya apunta al lugar correcto — omitir ese endpoint.
-5. Mostrar resumen:
-   ```
-   Pending fixes (3):
-     MOVED      7f3d8e9a…  link.1  capture c1a2b3c4… → specs/domain/voting.yaml
-     DISPLACED  3a4b5c6d…  link.0  capture d5e6f7a8… offset 5~42 → 8~45   [fork: 2 referentes]
-     EXPANDED   f1e2d3c4…  link.0  capture 9a8b7c6d… offset ampliado      → requiere accept
-   ```
-6. Pedir confirmación (o `-y` para omitirla).
-7. Para cada fix, escribir el capture —o crear el fork y repuntar el `link.N`— y actualizar la cache (ver "Escritura de cache").
-8. Crear un commit git con todos los `.capture` y `.bilink` modificados o creados.
+1. Escanear los bilinks de la capa actual.
+2. Para cada endpoint en un estado con fix, **re-resolverlo** con el mismo algoritmo que usa `check` (ver [`check`](check.md) § "Algoritmo de detección por tipo de endpoint"). Eso produce un estado re-derivado y la ubicación actual del fragmento.
+3. Validar el estado re-derivado contra el cacheado (ver "Validación de frescura"). Si difieren, descartar ese endpoint.
+4. Calcular la ubicación nueva. Si coincide con la que el `link` ya tiene, es un no-op y se omite.
+5. Mostrar el resumen y pedir confirmación (o `-y`).
+6. Para cada fix: acuñar el capture de la ubicación nueva —si no existía— y repuntar el `link`.
+7. Commitear los archivos escritos.
 
 **Mensaje de commit:**
 
 ```
-bilinker: auto-fix MOVED + DISPLACED + EXPANDED (2026-05-24)
+bilinker: repuntar 3 endpoint(s) (2026-08-30)
 
-- 7f3d8e9a… link.1: MOVED → specs/domain/voting.yaml
-- 3a4b5c6d… link.0: DISPLACED offset 5~42 → 8~45  (capture forkeado)
-- f1e2d3c4… link.0: EXPANDED offset ampliado
+- 7f3d8e9a… endpoint.1  MOVED       → specs/domain/voting.yaml
+- 3a4b5c6d… endpoint.0  DISPLACED   → offset 8~45
+- f1e2d3c4… endpoint.0  EXPANDED    → offset ampliado
 ```
 
 ## Cálculo del fix por estado
 
-### MOVED
+| Estado | Cómo se encuentra la ubicación nueva |
+|---|---|
+| **MOVED** | El índice de renames de git: `git diff -M --name-status`. Se verifica que la query resuelva en el destino. |
+| **DISPLACED** | El texto aceptado aparece en otro offset del mismo nodo. |
+| **EXPANDED** | El nodo contiene lo aceptado y algo más; el offset se amplía. |
+| **REANCHORED** | La query relajada matchea un nodo con nombre distinto, por encima del umbral y con margen sobre el segundo. |
 
-```
-git diff -M --name-status HEAD
-→ R<similarity>  <old_path>  <new_path>
-```
+Los cuatro producen lo mismo: **un `(file, query, offset)` nuevo**, y con él un capture nuevo. Ver [`check`](check.md) para los criterios de detección.
 
-`apply` verifica que la query siga matcheando en `new_path`, luego actualiza `file` del capture.
+## No hay fork, porque no hay mutación
 
-Sin pathspec: filtrar por el path viejo puede impedir que git detecte el rename, porque el destino queda fuera del filtro. Es el mismo comando que usa `check`.
+Un capture es inmutable y su id es el hash de su ubicación, así que corregir una ubicación **siempre** produce un capture distinto. `apply` lo acuña y repunta un solo `link`: el del endpoint que está corrigiendo. Los demás referentes no se enteran, sin que haya que decidir nada.
 
-### DISPLACED
+Eso reemplaza el copy-on-write del formato anterior, donde `apply` mutaba el capture en el lugar salvo que estuviera compartido, y una tabla decidía por tipo de fix si forkear:
 
-`apply` re-ejecuta la query tree-sitter y busca `hash.N` en los offsets del nodo resultante. El offset donde el hash coincide es el fix: actualiza `offset` del capture. No lee el `range` cacheado — lo recalcula, porque refleja el último `check` y el archivo puede haber cambiado desde entonces.
+| Antes | Ahora |
+|---|---|
+| MOVED y EXPANDED mutaban en el lugar | todos acuñan |
+| DISPLACED y REANCHORED forkeaban si había más de un referente | no hay caso especial |
+| había que contar referentes antes de aplicar | no hace falta |
 
-**Siempre forkea si el capture tiene más de un referente**: el offset depende de `hash.N`, que es propio de cada bilink.
-
-### EXPANDED
-
-`apply` re-ejecuta la query tree-sitter y toma el byte range del nodo resultante, verificando que el fragmento de `hash.N` siga siendo subcadena de ese nodo y que el AST interno no haya cambiado. Actualiza `offset` del capture con el rango del nodo.
-
-El fragmento apuntado ahora es más grande que el que `hash.N` describe, así que el endpoint queda en EXPANDED hasta que `bilinker accept` fije el hash del fragmento ampliado. El segundo `apply` sobre ese endpoint es un no-op y se omite (paso 4 del flujo).
-
-### REANCHORED
-
-`apply` re-ejecuta la búsqueda AST: busca en el árbol sintáctico actual un nodo del mismo tipo que el anchor original pero con nombre diferente que contenga el hash del fragmento. Actualiza los predicados de `query` en el capture con el nuevo nombre encontrado.
-
-**Siempre forkea si el capture tiene más de un referente**: la inferencia de "qué nodo es el mismo" puede resolverse distinto para cada referente.
-
-Igual que EXPANDED, el endpoint queda no-OK hasta que `bilinker accept` fije el hash bajo el anchor nuevo.
-
-## Fork de captures compartidos
-
-Un capture puede estar referenciado por varios bilinks. Corregirlo en el lugar le impone la corrección a todos, lo cual es correcto para unos fixes y no para otros:
-
-| Fix | De qué depende la corrección | Acción |
-|---|---|---|
-| MOVED | El archivo se renombró — hecho objetivo. | muta en el lugar |
-| EXPANDED | El nodo creció — hecho objetivo sobre el nodo. | muta en el lugar |
-| DISPLACED | De `hash.N`, propio de cada bilink. | forkea |
-| REANCHORED | De una inferencia ambigua. | forkea |
-
-**Forkear** es: crear un capture nuevo con la corrección aplicada, repuntar únicamente el `link.N` del bilink que se está corrigiendo, y dejar el original intacto para los demás. Con un solo referente el fork es un no-op y no se crea nada.
-
-El referente que se queda con el capture original no obtiene una respuesta equivocada: ese capture pasa a `UNANCHORED` o `REANCHORED` y lo reporta en cada `check`. Ver [capture.md](../concepts/capture.md) § "Copy-on-write al aplicar un fix".
+El capture viejo queda: sigue vivo mientras algún `accepted.link` lo nombre —es la ubicación que alguien aprobó— y lo limpia [`capture prune`](capture.md) cuando ya no lo alcanza nadie.
 
 ## Validación de frescura
 
-`state.N` es un valor cacheado por el último `check`; el archivo fuente pudo cambiar después. Por eso `apply` nunca aplica un fix derivado de la cache: re-resuelve el endpoint (paso 2) y compara el estado re-derivado contra `state.N`.
+El estado cacheado lo escribió el último `check`, y el archivo pudo cambiar después. Por eso `apply` nunca aplica un fix derivado de la cache: re-resuelve el endpoint y compara.
 
 | Situación | Acción |
 |---|---|
-| Estado re-derivado == `state.N` | Aplicar el fix. |
+| Estado re-derivado == el cacheado | Aplicar el fix. |
 | Estado re-derivado == `OK` | Omitir en silencio — el fix ya no hace falta. |
-| Estado re-derivado != `state.N` y != `OK` | Descartar el fix, escribir el estado re-derivado en `state.N` y advertir. |
+| Estado re-derivado distinto y no `OK` | Descartar el fix, refrescar la cache y advertir. |
 
 ```
-warn: 3a4b5c6d… link.0: state.0 dice DISPLACED pero la resolución actual da ALTERED
-      — cache desactualizada, fix descartado. Correr `bilinker check`.
+warn: 3a4b5c6d… endpoint.0: la cache dice DISPLACED y la resolución actual da ALTERED
+      — fix descartado. Correr `bilinker check`.
 ```
 
-Un endpoint que pasó de auto-fixeable a no auto-fixeable (e.g. DISPLACED → ALTERED) nunca se toca: cae bajo la invariante general.
+Un endpoint que pasó de tener fix a no tenerlo —DISPLACED → ALTERED— nunca se toca.
 
-## Escritura de cache
+## Qué escribe
 
-Tras aplicar un fix, `apply` escribe en dos archivos.
+| Archivo | Qué |
+|---|---|
+| `capture/<id>.yaml` | El capture de la ubicación nueva, si no existía. |
+| el bilink | `link` del endpoint corregido, y nada más. |
+| `cache/state` | El estado re-derivado tras el fix: `RELOCATED`. |
 
-En el **capture** (o en el capture nuevo, si forkeó):
-
-- **`file`, `query`, `offset`** — el fix propiamente dicho.
-- **`range`** — byte range del fragmento tras el fix.
-- **`state`** — `RESOLVED`.
-- **`resolved_at`** — timestamp UTC de esta ejecución.
-
-En el **bilink**:
-
-- **`state.N`** — estado re-derivado *después* del fix: `OK` para MOVED y DISPLACED; `EXPANDED` / `REANCHORED` se mantienen, porque el contenido cambió y solo `accept` puede cerrarlos.
-- **`link.N`** — solo si forkeó, repuntado al capture nuevo.
-- **`resolved_at`** — timestamp UTC.
-- **`hash.N` / `hash_ast.N` / `commit.N`** — nunca se modifican.
+**`accepted` no se toca nunca.** Es la invariante que separa proponer de aprobar, y con el bloque aparte es casi imposible de violar por accidente.
 
 ## Salida
 
@@ -136,36 +102,35 @@ En el **bilink**:
 $ bilinker apply
 
 Pending fixes (3):
-  MOVED      7f3d8e9a…  link.1  capture c1a2b3c4… → specs/domain/voting.yaml
-  DISPLACED  3a4b5c6d…  link.0  capture d5e6f7a8… offset 5~42 → 8~45   [fork: 2 referentes]
-  EXPANDED   f1e2d3c4…  link.0  capture 9a8b7c6d… offset ampliado      → requiere accept
+  MOVED      7f3d8e9a…  endpoint.1  → specs/domain/voting.yaml
+  DISPLACED  3a4b5c6d…  endpoint.0  → offset 8~45
+  EXPANDED   f1e2d3c4…  endpoint.0  → offset ampliado
 
 Apply? [y/N] y
 
-Applied 3 fixes.
-  2 captures corregidos, 1 forkeado
-  1 requiere `bilinker accept` — el contenido del fragmento cambió:
-    f1e2d3c4… link.0  EXPANDED
-Committed: a4b5c6d "bilinker: auto-fix MOVED + DISPLACED + EXPANDED (2026-05-24)"
+Repuntados 3 endpoint(s). Los 3 quedan en RELOCATED.
+  Revisar con `bilinker get <uuid>.<N>` y aprobar con `bilinker accept --place`.
+Committed: a4b5c6d "bilinker: repuntar 3 endpoint(s) (2026-08-30)"
 ```
+
+Ningún fix cierra solo. La línea final dice qué falta, porque el trabajo no terminó cuando `apply` termina.
 
 ## Código de salida
 
 | Código | Condición |
 |---|---|
-| 0 | Todos los fixes aplicados exitosamente. |
+| 0 | Todos los fixes aplicados. |
 | 1 | Error al calcular o aplicar algún fix, o algún fix descartado por cache desactualizada. |
-| 2 | No hay bilinks en estado auto-fixeable. |
+| 2 | No hay endpoints con fix disponible. |
 
 ## Invariantes
 
-- `apply` nunca modifica un endpoint cuyo estado no sea auto-fixeable.
-- `apply` nunca escribe `hash.N`, `hash_ast.N` ni `commit.N`. Un fix corrige dónde está el fragmento, nunca qué contenido está aceptado.
-- El único efecto de `apply` sobre un bilink es `state.N`, `resolved_at`, y repuntar `link.N` al forkear.
-- Un fix que dependa de `hash.N` o de una inferencia ambigua forkea el capture si tiene más de un referente.
-- `apply` nunca aplica un fix derivado de la cache: cada fix se recalcula re-resolviendo el endpoint contra el árbol y el índice git actuales.
-- Si el estado re-derivado no coincide con `state.N`, `apply` descarta ese fix y alerta al usuario.
-- Si el fix calculado no puede verificarse (e.g., hash no coincide en el nuevo path para MOVED, o el anchor no se encuentra para REANCHORED), `apply` rechaza ese fix y alerta al usuario.
-- `apply` es idempotente: un fix ya aplicado se detecta como no-op y se omite.
-- Solo MOVED, DISPLACED, REANCHORED y EXPANDED tienen auto-fix. Los estados UNANCHORED, ALTERED, DELETED, BROKEN y CHAIN_DIRTY nunca son tocados por `apply`.
-- Tras `apply`, MOVED y DISPLACED quedan en `OK`; EXPANDED y REANCHORED quedan en su mismo estado y requieren `bilinker accept` para cerrarse.
+- `apply` nunca escribe `accepted`. Corrige dónde está el fragmento, nunca qué se aprobó.
+- `apply` nunca modifica un capture existente: acuña.
+- El único efecto de `apply` sobre un bilink es repuntar un `link`.
+- Tras `apply`, el endpoint queda en `RELOCATED`. Ningún fix lo devuelve a `OK`.
+- `apply` nunca aplica un fix derivado de la cache: cada uno se recalcula re-resolviendo contra el árbol y el índice git actuales.
+- Si el estado re-derivado no coincide con el cacheado, `apply` descarta el fix y avisa.
+- Si el fix calculado no se puede verificar —el hash no coincide en el path nuevo, el anchor no aparece— `apply` lo rechaza y avisa.
+- `apply` es idempotente: un fix ya aplicado se detecta como no-op.
+- `ALTERED`, `UNRESOLVED` y `CHAIN_DIRTY` no tienen fix y `apply` no los toca.

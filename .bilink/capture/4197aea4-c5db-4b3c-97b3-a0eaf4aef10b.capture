@@ -5,6 +5,6 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "Endpoint issue"))) @target)
 
 # Cache
-range:       3682~5278
+range:       2727~4048
 state:       RESOLVED
-resolved_at: 2026-08-30T01:55:57Z
+resolved_at: 2026-08-30T03:01:35Z

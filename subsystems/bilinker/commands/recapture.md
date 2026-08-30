@@ -2,9 +2,9 @@
 
 ## Propósito
 
-Repunta un endpoint estructural a otro fragmento: crea el [capture](../concepts/capture.md) nuevo, valida, y reescribe `link.N`.
+Repunta un endpoint estructural a otro fragmento: acuña el [capture](../concepts/capture.md) nuevo, valida, y reescribe su `link`.
 
-Existe porque hay estados que no tienen auto-fix y tampoco se resuelven aceptando. Una sección de spec renombrada o un test reescrito dejan el capture en `UNANCHORED`: el fragmento ya no está donde estaba, y `apply` no puede adivinar dónde quedó. Sin este comando la única salida es editar `link.N` a mano — un reemplazo de texto sobre el campo que define a qué apunta un vínculo, sin validar que el capture exista, que esté en la misma capa, ni que el endpoint sea estructural.
+Existe porque hay estados que no tienen auto-fix y tampoco se resuelven aceptando. Una sección de spec renombrada o un test reescrito dejan el capture en `UNANCHORED`: el fragmento ya no está donde estaba, y `apply` no puede adivinar dónde quedó. Sin este comando la única salida es editar el `link` a mano — un reemplazo de texto sobre el campo que define a qué apunta un vínculo, sin validar que el capture exista, que esté en la misma capa, ni que el endpoint sea estructural.
 
 ## Firma
 
@@ -21,9 +21,9 @@ bilinker recapture <uuid>.<N> <file> [<pos>] [<end>]
 
 ## Comportamiento
 
-1. Resolver el bilink y verificar que `link.N` sea un endpoint estructural. Un endpoint layer o task no tiene capture que repuntar.
+1. Resolver el bilink y verificar que el endpoint sea estructural. Un endpoint `path` o `issue` no tiene capture que repuntar.
 2. Crear el capture del fragmento nuevo — reusa uno existente si la referencia `(file, query, offset)` es idéntica, igual que `bilinker capture`.
-3. Escribir `link.N` apuntando al capture nuevo.
+3. Escribir el `link` apuntando al capture nuevo.
 4. **Limpiar `state.N`**: el estado anterior describía el capture viejo, y dejarlo mentiría hasta el próximo `check`.
 5. Reportar si el capture anterior quedó sin referentes.
 
@@ -64,4 +64,4 @@ Para lo que sí tiene auto-fix —MOVED, DISPLACED, EXPANDED, REANCHORED— corr
 | Código | Condición |
 |---|---|
 | 0 | Endpoint repuntado. |
-| 1 | UUID no encontrado, endpoint no estructural, `link.N` ya apuntaba a ese capture, o el fragmento nuevo no se pudo capturar. |
+| 1 | UUID no encontrado, endpoint no estructural, el `link` ya apuntaba a ese capture, o el fragmento nuevo no se pudo capturar. |

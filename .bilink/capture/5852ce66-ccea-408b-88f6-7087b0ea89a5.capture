@@ -5,6 +5,5 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "Aceptación — en el bilink"))) @target)
 
 # Cache
-range:       4110~4745
-state:       RESOLVED
-resolved_at: 2026-08-30T01:55:43Z
+state:       UNANCHORED
+resolved_at: 2026-08-30T02:58:10Z

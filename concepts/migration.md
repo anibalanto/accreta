@@ -23,7 +23,7 @@ Lo que queda después de tachar eso es el núcleo: **ids ordenados, un ledger de
 
 ## No hay centro
 
-Liquibase asume una base de datos con una tabla donde anotar. Accreta es distribuido por diseño, y un proyecto Stratum reparte sus metadatos entre varios repos: en este mismo proyecto hay cuatro capas con `.bilink/` repartidas en tres repos git.
+Liquibase asume una base de datos con una tabla donde anotar. Accreta es distribuido por diseño, y un proyecto Stratum reparte sus metadatos entre varios repos: en este mismo proyecto hay seis capas con `.bilink/` repartidas en cuatro repos git.
 
 Por eso **el ledger es por repo**, no global. Cada repo sabe qué formato tiene lo suyo, y un clone trae esa información con el resto del contenido.
 

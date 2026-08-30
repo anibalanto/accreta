@@ -11,7 +11,7 @@ issue:<id>                             ítem de worklist
 <uri>                                  recurso externo
 ```
 
-`<layer-root>` es la ruta de la capa relativa a la raíz del proyecto (`.` para la capa raíz, `.stratum/impl`, …). `<path>` es relativo a la raíz de esa capa. Los offsets son bytes absolutos dentro del archivo, con la misma semántica que `range.N` en bilinker.
+`<layer-root>` es la ruta de la capa relativa a la raíz del proyecto (`.` para la capa raíz, `.stratum/impl`, …). `<path>` es relativo a la raíz de esa capa. Los offsets son bytes absolutos dentro del archivo, con la misma semántica que el `range` de un capture de bilinker.
 
 La forma canónica la produce el proveedor. Un proveedor que emite una arista hacia otra capa entrega el nodo **ya resuelto**: bilinker resuelve `../<layer>/.bilink/<uuid>.bilink` antes de emitir, porque la topología de cadena es conocimiento de su formato.
 
@@ -50,7 +50,7 @@ Los dos tipos de fuente localizan las cosas de manera incompatible:
 
 | Fuente | Localiza por |
 |---|---|
-| bilinker | rango de bytes (`range.N`), derivado de una query tree-sitter |
+| bilinker | rango de bytes (el `range` del capture), derivado de una query tree-sitter |
 | LSP (`callHierarchy`) | línea + columna **del identificador** |
 
 Para preguntarle al LSP por los callers de un nodo que vino de un bilink, hay que encontrar la posición exacta del identificador dentro del rango.

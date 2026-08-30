@@ -5,6 +5,6 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "Lenguajes soportados"))) @target)
 
 # Cache
-range:       830~1689
+range:       821~1762
 state:       RESOLVED
-resolved_at: 2026-08-30T02:22:27Z
+resolved_at: 2026-08-30T03:10:35Z

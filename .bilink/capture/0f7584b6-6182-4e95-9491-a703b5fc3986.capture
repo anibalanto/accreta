@@ -3,6 +3,5 @@ query:  (section (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `
 offset: 0~1883
 
 # Cache
-range:       3226~5109
-state:       RESOLVED
-resolved_at: 2026-08-29T23:45:05Z
+state:       UNANCHORED
+resolved_at: 2026-08-30T03:06:45Z

@@ -2,7 +2,7 @@
 
 ## Propósito
 
-Crea un [capture](../concepts/capture.md) a partir de una selección de texto en un archivo, identificada por coordenadas de línea y columna. Escribe `.bilink/capture/<uuid>.capture` y devuelve su UUID, listo para referenciar desde un `link.N`.
+Crea un [capture](../concepts/capture.md) a partir de una selección de texto en un archivo, identificada por coordenadas de línea y columna. Escribe `.bilink/capture/<id>.yaml` y devuelve su id, listo para referenciar desde un `link`.
 
 ## Firma
 
@@ -22,11 +22,11 @@ bilinker capture prune [<path>]
 
 | Extensión | Lenguaje | Anclas estables |
 |-----------|----------|-----------------|
-| `.java` | Java | `class_declaration`, `method_declaration`, `interface_declaration`, `enum_declaration` |
+| `.java` | Java | `class_declaration`, `interface_declaration`, `enum_declaration`, `method_declaration`, `constructor_declaration`, `field_declaration` |
 | `.rs` | Rust | `function_item`, `struct_item`, `enum_item`, `trait_item`, `impl_item`, `const_item`, `static_item` |
 | `.yaml`, `.yml` | YAML | `block_sequence_item` (usa `id:` como predicado), `block_mapping_pair` (usa clave) |
 | `.md` | Markdown | `section` (usa texto del heading como predicado, captura el contenido completo) |
-| `.ts`, `.js` | TypeScript | `function_declaration`, `class_declaration`, `abstract_class_declaration`, `enum_declaration`, `interface_declaration`, `type_alias_declaration`, `method_definition`, `method_signature` |
+| `.ts`, `.js` | TypeScript | `class_declaration`, `abstract_class_declaration`, `function_declaration`, `generator_function_declaration`, `enum_declaration`, `interface_declaration`, `type_alias_declaration`, `method_definition`, `method_signature` |
 | `.tsx`, `.jsx` | TSX | igual que TypeScript, con parser TSX para archivos con JSX |
 
 ## Flujo interno
@@ -45,55 +45,53 @@ bilinker capture prune [<path>]
 7. Determinar si la selección coincide exactamente con los límites del nodo target:
    - **Exacta**: no escribir `offset`.
    - **Parcial**: calcular offsets en bytes relativos al inicio del nodo target y escribirlos en `offset`.
-8. Generar un UUID v4 y escribir `.bilink/capture/<uuid>.capture` con `state: RESOLVED`, `range` absoluto y `resolved_at`.
+8. Calcular `H(file, query, offset)` y escribir `.bilink/capture/<id>.yaml` si no existe. Nada de cache: ni `range`, ni `state`, ni timestamp.
 
 `capture` no calcula ni almacena hashes: un capture describe ubicación, no contenido aceptado. El hash lo establece `bilinker accept` en el bilink que lo referencie.
 
 ## Salida
 
-**stdout** — el UUID del capture creado, para referenciar desde un `link.N`:
+**stdout** — el id del capture, para referenciar desde un `link`:
 
 ```
-7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a
+67ba7217e0334051becd4921b55a7872
 ```
 
 **stderr** — metadata informativa:
 
 ```
-created: .bilink/capture/7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.capture
+created: .bilink/capture/67ba7217e0334051becd4921b55a7872.yaml
 file:    src/main/java/ar/example/demo/persona/Persona.java
 anchor:  class_declaration "Persona" → method_declaration "vote"
-range:   245~389
 ```
 
-El UUID va solo a stdout para poder usarlo en pipes:
+Si el capture ya existía, `stderr` dice `reused:` en vez de `created:` y no se escribe nada. Es el caso normal de capturar dos veces la misma ubicación, y no es una condición especial: el id sale del contenido, así que **el mismo fragmento produce el mismo archivo**.
+
+El id va solo a stdout para poder usarlo en pipes:
 
 ```bash
-uuid=$(bilinker capture src/lib.rs 10:1 24:2)
-echo "link.1: capture $uuid" >> .bilink/$chain.bilink
+id=$(bilinker capture src/lib.rs 10:1 24:2)
 ```
 
 ## Ejemplo
 
 ```bash
 $ bilinker capture src/main/java/ar/example/demo/persona/Persona.java 10:5 12:5
-7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a
+67ba7217e0334051becd4921b55a7872
 ```
 
+```yaml
+# .bilink/capture/67ba7217e0334051becd4921b55a7872.yaml
+file: src/main/java/ar/example/demo/persona/Persona.java
+query: |-
+  (class_declaration
+    name: (identifier) @n0 (#eq? @n0 "Persona")
+    body: (class_body
+      (method_declaration
+        name: (identifier) @n1 (#eq? @n1 "vote")) @target))
 ```
-# .bilink/capture/7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.capture
-file:   src/main/java/ar/example/demo/persona/Persona.java
-query:  (class_declaration
-  name: (identifier) @n0 (#eq? @n0 "Persona")
-  body: (class_body
-    (method_declaration
-      name: (identifier) @n1 (#eq? @n1 "vote")) @target))
 
-# Cache
-range:       245~389
-state:       RESOLVED
-resolved_at: 2026-08-24T10:00:00Z
-```
+Tres campos posibles y ninguno más: son los que entran en el id. `range`, `state` y `resolved_at` no se escriben — el primero es derivado y vive en [la cache](../concepts/cache.md), y los otros dos no existen.
 
 ### Selección parcial
 
@@ -101,21 +99,23 @@ Cuando la selección no coincide con los límites del nodo, se escribe `offset` 
 
 ```bash
 $ bilinker capture architecture.md 34:10 34:52
-3a4b5c6d-2e3f-4a5b-9c6d-7e8f9a0b1c2d
+3a4b5c6d2e3f4a5b9c6d7e8f9a0b1c2d
 ```
 
-```
-file:   architecture.md
-query:  (section
-  (atx_heading
-    (inline) @n0 (#eq? @n0 "Decisión"))
-  (paragraph) @target)
+```yaml
+file: architecture.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "Decisión"))
+    (paragraph) @target)
 offset: 42~87
 ```
 
 ## `bilinker capture prune`
 
-Elimina los captures de la capa que ningún `.bilink` referencia.
+Elimina los captures de la capa que no alcanza ningún bilink.
+
+**Es mark & sweep sobre dos clases de raíz.** Un capture está vivo si lo referencia un `link` —la ubicación vigente de un endpoint— **o** un `accepted.link` —la ubicación que alguien aprobó. Barrer sólo por la primera borraría el capture que dice dónde estaba lo aceptado, y con él la capacidad de decidir si una ubicación cambió.
 
 ```
 $ bilinker capture prune
@@ -128,7 +128,9 @@ $ bilinker capture prune
 Eliminar? [y/N]
 ```
 
-Un capture huérfano no rompe nada — se resuelve en cada `check` sin que nadie lea el resultado. `prune` es higiene, no reparación.
+Un capture huérfano no rompe nada: nadie lo lee. `prune` es higiene, no reparación.
+
+Y hay más huérfanos que antes: como los captures son inmutables, cada vez que `apply` corrige una ubicación acuña uno nuevo y el viejo queda —vivo mientras algún `accepted.link` lo nombre, huérfano cuando esa aceptación se reemplace.
 
 ## `bilinker capture remove`
 
@@ -158,6 +160,6 @@ Error: el capture 5fdff600 tiene referentes — usar `bilinker recapture` para r
 
 - **Unicidad de la referencia**: la `query` resuelve al nodo que se seleccionó, y a ninguno otro. Un ancla sin discriminante —un `impl` sin tipo, un comentario, un `use`— produce una query que matchea el **primer** nodo de ese tipo del archivo: un capture que apunta a otra cosa y no falla. `capture` verifica antes de escribir y falla si no puede identificar el fragmento unívocamente. Un capture mal anclado es peor que uno roto, porque reporta OK sobre una correspondencia que no existe.
 - **Determinismo de la referencia**: dos ejecuciones sobre el mismo archivo y selección sin modificaciones intermedias producen la misma `query` y el mismo `range`.
-- **Reuso**: capturar dos veces el mismo fragmento devuelve el **mismo** UUID. Antes de crear uno nuevo, `capture` busca un capture de la capa con la referencia exacta `(file, query, offset)` — el mismo criterio que usa la migración. Sin esto, cada cadena nueva volvería a duplicar lo que aquélla unificó.
-- **Independencia de git**: `capture` no requiere que el archivo esté bajo control de versiones.
-- **No toca bilinks**: `capture` crea el archivo del capture y nada más. Referenciarlo desde un `link.N` es un paso aparte, manual o vía `bilinker chain new`.
+- **Reuso**: capturar dos veces el mismo fragmento devuelve el **mismo** id, sin buscar nada. El id es `H(file, query, offset)`, así que dos referencias a la misma ubicación son literalmente el mismo archivo. Antes había que escanear la capa buscando un capture equivalente; ahora la deduplicación es por construcción.
+- **Independencia de git**: `capture` no requiere que el archivo esté bajo control de versiones. Sí lo requiere [`accept`](accept.md), que necesita el commit del contenido aprobado.
+- **No toca bilinks**: `capture` crea el archivo del capture y nada más. Referenciarlo desde un `link` es un paso aparte, vía `bilinker chain new` o `recapture`.

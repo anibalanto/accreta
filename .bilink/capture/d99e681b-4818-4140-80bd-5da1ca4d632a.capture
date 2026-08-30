@@ -5,6 +5,5 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "Copy-on-write al aplicar un fix"))) @target)
 
 # Cache
-range:       5643~7741
-state:       RESOLVED
-resolved_at: 2026-08-30T01:55:43Z
+state:       UNANCHORED
+resolved_at: 2026-08-30T02:58:10Z

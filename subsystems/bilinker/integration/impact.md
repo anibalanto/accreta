@@ -6,7 +6,7 @@ Bilinker detecta el drift; impact analiza su alcance.
 
 ```
 bilinker check .  →  ALTERED en specs/voting.yaml
-impact scan       →  calcula commits intercedidos desde commit.N
+impact scan       →  calcula commits intercedidos desde el commit aceptado
 impact thread     →  abre hilo de discusión
 ```
 
@@ -26,6 +26,6 @@ Bilinker sigue siendo el dueño de esos valores — lattice los transporta sin i
 Cuando el thread de impact concluye con un cambio aceptado:
 
 ```
-bilinker accept <uuid>.<N>   → hash.N y commit.N actualizados, state OK
+bilinker accept <uuid>.<N>   → accepted actualizado, state OK
 impact thread resolve        → thread cerrado
 ```

@@ -55,7 +55,7 @@ Lleva dos campos que ningún otro proveedor tiene y que impact necesita:
 | Campo | Uso |
 |---|---|
 | `state` | La tupla `(state.0, state.1)` de los tips. Filtrar por no-OK. |
-| `commit` | El `commit.N` de cada tip. Baseline de `git log <commit>..HEAD`. |
+| `commit` | El commit en que el contenido aceptado de cada tip quedó establecido. Baseline de `git log <commit>..HEAD`. |
 
 Sin `commit` en la arista, impact tendría que volver a abrir los `.bilink` para calcular su diff — que es exactamente la duplicación que este subsistema elimina.
 

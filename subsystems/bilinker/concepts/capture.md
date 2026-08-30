@@ -1,160 +1,120 @@
 # Especificación: Formato del archivo `.capture`
 
-Un **capture** es una referencia mantenida a un fragmento de un archivo: dónde está, y cómo volver a encontrarlo cuando el código se mueve. No contiene ningún estado aceptado — no sabe qué versión del fragmento alguien aprobó.
+Un **capture** es una ubicación: qué archivo, qué nodo del AST, y qué parte de ese nodo. Nada más. No sabe qué versión del fragmento alguien aprobó, ni dónde cayó la última vez que se lo resolvió.
 
 Un bilink no describe un fragmento: **referencia un capture**. Varios bilinks pueden referenciar el mismo.
 
-## Por qué existe
+## El id es el hash de la ubicación
 
-Antes, cada endpoint estructural de cada `.bilink` guardaba su propia copia de `file`, `query` y `range`. Cuando dos bilinks apuntaban al mismo fragmento, esa descripción estaba duplicada: dos resoluciones tree-sitter en cada `check`, dos rangos que `apply` podía dejar desincronizados.
+El nombre del archivo es `H(file, query, offset)` — el hash de lo único que contiene.
 
-No es hipotético. En la capa impl de bilinker, sobre 73 endpoints estructurales hay **56 distintos** — el 23% son duplicados. El enum `Command` está capturado cuatro veces; `capture()` y `main()`, tres cada uno.
+De ahí salen tres propiedades que antes había que sostener con reglas:
 
-Separar el capture del bilink hace que la ubicación de un fragmento se describa y se mantenga **una sola vez**, sin importar cuántas relaciones lo involucren.
+**Un capture es inmutable.** Cambiarle la ubicación le cambiaría el nombre, así que no se cambia: se acuña otro. Un capture, una vez escrito, dice lo mismo para siempre.
+
+**La deduplicación es por construcción.** Dos referencias a la misma ubicación producen el mismo id y por lo tanto el mismo archivo. No hay que buscar un capture equivalente antes de crear uno, que es lo que hoy hace `capture_to_file` escaneando la capa.
+
+**Mover un fragmento pasa a ser un cambio visible.** Antes `apply` reescribía el capture en el lugar y el bilink no se enteraba; ahora repunta el `link` a un capture nuevo, y ese repunte es un cambio en el bilink que alguien tiene que aprobar. Ver [aceptación](accept.md) § "Las dos dimensiones".
+
+### El hash del contenido no entra en el id
+
+El id sale de la ubicación y **sólo** de la ubicación. Si entrara el hash del fragmento, cada edición del código produciría un capture nuevo y el vínculo se rompería en cada commit — la referencia dejaría de sobrevivir a los cambios, que es su razón de ser.
+
+Por el mismo motivo tampoco entra `commit`: la procedencia de una decisión no es parte de dónde está un fragmento.
 
 ## Ubicación
 
 ```
 <layer-root>/
   .bilink/
-    <uuid>.bilink              ← relaciones
+    <uuid>.yaml              ← las relaciones
     capture/
-      <uuid>.capture           ← ubicaciones
+      <id>.yaml              ← las ubicaciones, inmutables
+    cache/
+      state                  ← lo derivable · no versionado
+    version                  ← la versión de formato
     index/
-      index
+      index                  ← lookup O(1) · no versionado
 ```
 
-Un capture vive en la capa cuyo archivo referencia; su `file` es relativo a la raíz de esa capa. Su UUID es propio e independiente de los UUID de cadena.
+Un capture vive en la capa cuyo archivo referencia; su `file` es relativo a la raíz de esa capa.
+
+**La extensión es `.yaml` y nada más.** El tipo lo dice la carpeta que lo contiene, así que repetirlo en el nombre sería redundante.
 
 ## Formato
 
-```
-file:   crates/bilinker/src/check.rs
-query:  (function_item
-  name: (identifier) @n0 (#eq? @n0 "check_structural")) @target
-offset: 42~118
-
-# Cache
-range:       5100~7300
-state:       RESOLVED
-resolved_at: 2026-08-24T10:00:00Z
+```yaml
+# .bilink/capture/<id>.yaml
+file: subsystems/bilinker/commands/check.md
+query: |-
+  (section (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker check`"))
+    (section (atx_heading (inline) @n1 (#eq? @n1 "Estados — endpoints layer"))) @target)
+offset: 3226~5109
 ```
 
 | Campo | Descripción |
 |---|---|
 | `file` | Path relativo a la raíz de la capa. |
 | `query` | Query tree-sitter con captura `@target`. Ausente = el archivo completo. |
-| `offset` | Sub-rango **relativo al inicio del nodo** matcheado. Opcional; ausente = el nodo entero. |
-| `range` | Byte range **absoluto** del fragmento en el archivo, de la última resolución. Cache. |
-| `state` | Estado de resolución. Cache. |
-| `resolved_at` | Timestamp UTC de la última resolución. Cache. |
+| `offset` | Sub-rango **relativo al inicio del nodo** matcheado. Ausente = el nodo entero. |
 
-`offset` y `range` son cosas distintas y conviene no confundirlas: `offset` es parte de la referencia — lo que el humano seleccionó dentro del nodo — y solo cambia con `apply`. `range` es dónde cayó eso la última vez que se resolvió.
+Tres campos, y los tres entran en el id. **No hay más**: ni `range`, ni `state`, ni `resolved_at`. Todo eso se puede reconstruir resolviendo la query, así que vive en [`cache/state`](cache.md) y no en git.
 
-Un capture **no guarda hashes**. El hash del fragmento se calcula leyendo el archivo en `range` cuando hace falta. Persistir un hash acá volvería a mezclar ubicación con aceptación, que es justo lo que este archivo separa.
+Que el archivo tenga exactamente los campos que lo nombran es lo que hace verificable el id: cualquiera puede recalcularlo leyendo el archivo.
 
 ## Referencia desde un bilink
 
+```yaml
+endpoint:
+  0:
+    link: capture 67ba7217e0334051becd4921b55a7872
+  1:
+    link: path >impl
 ```
-link.0: capture 7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a
-link.1: .stratum/impl
-```
 
-El prefijo `capture ` identifica el tipo de endpoint, igual que `issue `. El resto de los tipos de endpoint —layer, issue, bilink— no cambia.
+El prefijo `capture ` identifica el tipo de endpoint. Ver [tipos de endpoint](reference.md).
 
-Los campos de aceptación siguen en el bilink, por endpoint: `hash.N`, `hash_ast.N`, `commit.N`, `state.N`.
+**El capture no guarda nada de la aceptación.** Eso vive en el bloque `accepted` del bilink, por endpoint, porque dos bilinks pueden haber aceptado versiones distintas del mismo fragmento: si A aceptó la v1 y B la v2, y el código está en v2, `check` debe reportar drift para A y no para B. Con un solo valor compartido eso sería imposible de expresar.
 
-Esa es la razón de que el hash no baje al capture: **dos bilinks pueden haber aceptado versiones distintas del mismo fragmento.** Si A aceptó la v1 y B la v2, y el código está en v2, `check` debe reportar `ALTERED` para A y `OK` para B. Con un solo hash compartido eso sería imposible de expresar.
+## Un capture no cambia; los `link` cambian de capture
 
-## Estados
+Cuando un fragmento se mueve —el archivo se renombra, el anchor cambia de nombre— la ubicación nueva es **otro** capture. `apply` lo acuña y repunta el `link` del bilink que está corrigiendo. El capture anterior queda intacto para los demás referentes.
 
-La separación parte la tabla de estados por una línea que antes estaba mezclada: *¿puedo encontrar el fragmento?* es distinto de *¿lo que hay coincide con lo que acepté?*
+Eso reemplaza el copy-on-write que el formato anterior necesitaba:
 
-### Resolución — en el capture
+| Antes | Ahora |
+|---|---|
+| `apply` mutaba el capture en el lugar, salvo que estuviera compartido | `apply` nunca muta: acuña |
+| había que decidir por tipo de fix si forkear | no hay decisión que tomar |
+| un fix se le imponía a los demás referentes | ninguno se entera |
 
-Se evalúan sin ningún estado aceptado.
+La regla de fork por tipo de fix —MOVED y EXPANDED en el lugar, DISPLACED y REANCHORED forkeando— desaparece con ella. Existía porque mutar era el caso normal y forkear la excepción; con captures inmutables no hay caso normal que proteger.
 
-| Estado | Condición | Auto-fix |
-|---|---|---|
-| **RESOLVED** | La query matchea; `range` actualizado. | — |
-| **MOVED** | El archivo cambió de path (git rename ≥ 50%). | ✓ actualiza `file` |
-| **REANCHORED** | Anchor renombrado; nodo del mismo tipo con nombre distinto. | ✓ actualiza los predicados de `query` |
-| **UNANCHORED** | La query no matchea y no se localiza el anchor. | — |
-| **DELETED** | El archivo no existe; eliminación rastreable en git. | — |
-| **BROKEN** | El archivo no se puede leer o parsear. | — |
-
-### Aceptación — en el bilink
-
-Comparan el contenido actual contra `hash.N`.
-
-| Estado | Condición | Auto-fix |
-|---|---|---|
-| **PENDING** · **TODO** | Sin estado aceptado. | — |
-| **OK** | El hash coincide en `range`. | — |
-| **DISPLACED** | El hash coincide en otro offset del nodo. | ✓ actualiza `offset` del capture |
-| **EXPANDED** | El fragmento creció; AST interno sin cambio estructural. | ✓ actualiza `offset` del capture |
-| **RESTYLED** | `hash.N` difiere pero `hash_ast.N` coincide. | — |
-| **ALTERED** | El AST interno cambió. | — |
-| **CHAIN_DIRTY** | El nodo adyacente de la cadena cambió. | — |
-
-### La asimetría, dicha explícitamente
-
-`DISPLACED` y `EXPANDED` **se detectan con datos del bilink** — hace falta `hash.N` para saber que el fragmento se corrió o creció — pero **el fix se escribe en el capture**, porque lo que se corrige es la ubicación.
-
-O sea que la regla no es "apply escribe captures porque los estados son de capture", sino:
-
-> **`apply` corrige ubicación; `accept` fija contenido aceptado.**
->
-> `apply` escribe captures, y en el bilink solo puede repuntar un `link.N` cuando forkea. Nunca escribe `hash.N`, `hash_ast.N` ni `commit.N`.
-> `accept` escribe esos tres campos y nada más.
-
-Sin importar en cuál de las dos tablas se detectó el problema. Antes era una convención enunciada al pie de `apply.md`; ahora la separación de archivos la hace casi imposible de violar por accidente — el único cruce es el repunte del fork, que es deliberado y visible.
-
-## Copy-on-write al aplicar un fix
-
-Un capture compartido no puede corregirse siempre en el lugar: hay fixes cuya resolución **depende de datos que son propios de cada bilink**, y otros que son ambiguos y donde dos referentes podrían decidir distinto.
-
-| Fix | De qué depende la corrección | Acción de `apply` |
-|---|---|---|
-| **MOVED** | El archivo se renombró — hecho objetivo. | Muta el capture en el lugar. |
-| **EXPANDED** | El nodo creció — hecho objetivo sobre el nodo. | Muta el capture en el lugar. |
-| **DISPLACED** | De `hash.N`, que es propio de cada bilink. | Fork si hay más de un referente. |
-| **REANCHORED** | De una inferencia sobre qué nodo "es el mismo". | Fork si hay más de un referente. |
-
-**Fork** significa: crear un capture nuevo con la corrección aplicada, repuntar únicamente el `link.N` del bilink que se está corrigiendo, y dejar el capture original intacto para los demás.
-
-Con un solo referente el fork es un no-op — el caso común no paga nada. `apply` cuenta los referentes escaneando los bilinks de la capa, que ya escanea de todos modos.
-
-### Por qué `DISPLACED` obliga a forkear
-
-Se detecta buscando `hash.N` en otro offset del nodo. Si el bilink A aceptó la v1 del fragmento y el B la v2, **el hash de cada uno aparece en un offset distinto**. Un solo capture no puede tener dos `offset` a la vez.
-
-### Por qué `REANCHORED` obliga a forkear
-
-Si `vote()` se partió en `voteA()` y `voteB()`, el bilink de la spec de validación debería seguir a uno y el de la spec de registro al otro. `apply` no puede saber cuál corresponde a cada uno, y aplicar cualquiera de los dos es incorrecto para el otro.
-
-### El capture que no se forkeó no queda mintiendo
-
-Un referente que se queda con el capture original no obtiene una respuesta silenciosamente equivocada: ese capture pasa a `UNANCHORED` o `REANCHORED` y lo reporta en cada `check`. Ese bilink *tiene* una situación sin resolver, y que la reporte es el comportamiento correcto.
-
-Lo que el copy-on-write evita es que la corrección de un bilink se la resuelva por decreto a los otros.
+**Y repuntar ya no es gratis.** `apply` repunta el `link` pero **no** devuelve el endpoint a `OK`: la ubicación cambió, y aprobar una ubicación es una decisión humana como aprobar un contenido. El endpoint queda en `RELOCATED` hasta que alguien acepte. Ver [aceptación](accept.md).
 
 ## Quién escribe qué
 
 | Comando | Escribe |
 |---|---|
-| `bilinker capture` | Crea un `.capture`. Devuelve su UUID. |
-| `bilinker check` | `range`, `state`, `resolved_at` del capture · `state.N` del bilink |
-| `bilinker apply` | `file`, `query`, `offset` del capture — o crea uno nuevo y repunta un `link.N`, si forkea |
-| `bilinker accept` | `hash.N`, `hash_ast.N`, `commit.N` del bilink |
+| `bilinker capture` | Un `.capture` nuevo, si no existía. Devuelve su id. |
+| `bilinker check` | Nada en el capture. Escribe `range` y `state` en [`cache/state`](cache.md). |
+| `bilinker apply` | Acuña captures y repunta un `link`. Nunca modifica uno existente. |
+| `bilinker accept` | Nada en el capture. Escribe `accepted` en el bilink. |
 
-## Compartición y ciclo de vida
+Ningún comando modifica un `.capture` existente. La única operación sobre el conjunto es agregar, y `prune` sacar los que ya no referencia nadie.
+
+## Ciclo de vida
 
 Un capture no conoce a sus referentes. `bilinker remove` sobre un bilink no borra los captures que referenciaba: puede haber otros usándolos.
 
-Un capture sin referentes es basura inofensiva — ocupa un archivo y se resuelve en cada `check` sin que nadie lea el resultado. `bilinker capture prune` elimina los no referenciados en la capa.
+Un capture sin referentes es basura inofensiva — ocupa un archivo y nadie lo lee. `bilinker capture prune` los elimina.
 
-Dos captures pueden describir el mismo fragmento con queries distintas. No se deduplican: son baratos y su identidad es el UUID. La deduplicación es una consecuencia de reusarlos, no una regla que el formato imponga.
+**`prune` es mark & sweep sobre dos clases de raíz**, no una sola. Un capture está vivo si lo referencia:
+
+1. algún `link` — la ubicación vigente de un endpoint, o
+2. algún `accepted.link` — la ubicación que alguien aprobó.
+
+Barrer sólo por la primera borraría el capture que dice **dónde estaba lo que se aceptó**, y con él la capacidad de decidir si una ubicación cambió. Es la clase de raíz que el formato anterior no tenía porque no distinguía las dos cosas.
 
 ### El fan-out vive del lado del capture
 
@@ -166,44 +126,42 @@ capture(vote) ──────┼── bilink → ADR de auditoría
                     └── bilink → issue 3a
 ```
 
-Esto es deliberado y cierra la alternativa de darle aridad variable al `.bilink`. Un archivo llamado bilink con `link.0` … `link.4` sería una contradicción, y la aridad variable obligaría a redefinir la topología de cadena —hoy lineal, con exactamente dos tips— y el copiado de hash de los endpoints layer, que asume un único endpoint estructural adyacente.
-
-Con el fan-out en el capture no hace falta tocar nada de eso.
+Esto cierra la alternativa de darle aridad variable al bilink. Un archivo llamado bilink con `link.0` … `link.4` sería una contradicción, y la aridad variable obligaría a redefinir la topología de cadena —hoy lineal, con exactamente dos tips— y el copiado de valores aceptados de los endpoints layer, que asume un único endpoint estructural adyacente.
 
 **Lo que esta forma no expresa** es una relación conjunta entre tres cosas. Una estrella dice *"D se relaciona con A"* y *"D se relaciona con B"* por separado; no dice *"D gobierna el vínculo entre A y B"*. Para eso hace falta que un bilink apunte a otro bilink — el endpoint de tipo bilink, que está especificado y no implementado, en [`proposals/bilink-endpoint.md`](../proposals/bilink-endpoint.md).
 
 ## Relación con las cadenas
 
-Las cadenas no cambian. Un bilink sigue viviendo en su capa, con endpoints layer hacia las capas vecinas y la misma propagación por copia de hash. Lo único que cambia es que sus **endpoints estructurales pasan a ser referencias a captures locales**.
+Las cadenas no cambian. Un bilink sigue viviendo en su capa, con endpoints layer hacia las capas vecinas y la misma propagación por copia. Lo único que cambia es que sus **endpoints estructurales referencian captures locales**.
 
 Un bilink nunca referencia un capture de otra capa: eso rompería la propiedad de que aceptar en una capa nunca escribe en el repo de otra, que es lo que evita la cascada circular. Las conexiones entre capas siguen siendo endpoints layer.
+
+La excepción aparente es `accepted.link` de un endpoint layer o repo, que **copia** el id del capture ajeno. Es una copia opaca: se compara, no se resuelve. Nadie va a buscar ese archivo en la capa local.
 
 ## Relación con lattice
 
 Un capture es, casi literalmente, un nodo del grafo de [lattice](../../lattice/concepts/node.md): su forma canónica es `<layer-root>::<file>#<range>`. Un bilink es una arista sobre captures.
 
-Con esta separación, `bilinker graph --format json` deja de ser una transformación y pasa a ser casi un volcado: captures → nodos, bilinks → aristas.
+El `range` sale de la cache, no del capture. Un clon fresco no lo tiene hasta que corra un `check`.
 
 ## Invariantes
 
-1. Un capture describe ubicación, nunca aceptación. No contiene hashes ni commits.
-2. `file` es relativo a la raíz de la capa donde vive el capture.
-3. `offset` es relativo al nodo matcheado; `range` es absoluto en el archivo.
-4. Un bilink solo referencia captures de su propia capa.
-5. Un capture puede ser referenciado por cualquier cantidad de bilinks, incluido cero.
-6. `apply` nunca escribe `hash.N`, `hash_ast.N` ni `commit.N`. Su único efecto sobre un bilink es repuntar un `link.N` al forkear.
-7. `accept` escribe únicamente `hash.N`, `hash_ast.N` y `commit.N`. Nunca toca un capture.
-8. Un fix que dependa de `hash.N` o de una inferencia ambigua forkea el capture si tiene más de un referente.
-9. Borrar un bilink nunca borra un capture.
-10. El estado de resolución de un capture es idéntico para todos sus referentes; el estado de aceptación es propio de cada bilink.
+1. El nombre de un capture es `H(file, query, offset)`, y el archivo contiene exactamente esos tres campos.
+2. Un capture es inmutable. Ningún comando modifica uno existente.
+3. Un capture describe ubicación, nunca aceptación. No contiene hashes ni commits.
+4. `file` es relativo a la raíz de la capa donde vive el capture.
+5. `offset` es relativo al nodo matcheado. El rango absoluto en el archivo es derivado y vive en la cache.
+6. Un `link` sólo referencia captures de su propia capa. Un `accepted.link` de endpoint layer o repo puede contener una copia opaca de un id ajeno, que no se resuelve localmente.
+7. Un capture puede ser referenciado por cualquier cantidad de bilinks, incluido cero.
+8. `apply` acuña captures y repunta un `link`; nunca escribe `accepted`.
+9. `accept` escribe `accepted`; nunca toca un capture.
+10. Borrar un bilink nunca borra un capture.
+11. `prune` conserva todo capture alcanzable desde un `link` **o** un `accepted.link`.
 
 ## Migración desde el formato anterior
 
-Cada endpoint estructural de un `.bilink` existente se convierte en un `.capture`:
+Dos migraciones, y el orden no es el obvio. Ver [`bilinker migrate`](../commands/migrate.md).
 
-- `file`, `query` y el `start~end` de la referencia → `file`, `query`, `offset` del capture.
-- `range.N` → `range` del capture.
-- `hash.N`, `hash_ast.N`, `commit.N`, `state.N` → se quedan en el bilink.
-- `link.N` pasa a `capture <uuid>`.
+`bilinker-002-file-partition` va primera: mientras `range`, `state` y `resolved_at` sigan dentro del capture, no se le puede calcular un id estable.
 
-Los endpoints idénticos pueden colapsarse a un capture compartido, pero no es obligatorio: la conversión uno-a-uno es correcta y el `prune` puede venir después.
+`bilinker-003-immutable-captures` reescribe cada capture como `capture/<H(file, query, offset)>.yaml` y repunta cada `link` y cada `accepted.link`. Dos captures con la misma ubicación colapsan en uno — la dedup por construcción, aplicada de una vez a lo que ya existía.
