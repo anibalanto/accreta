@@ -59,8 +59,8 @@ endpoint:
   0:
     link: repo hsi
     accepted:
-      link: 8f2a4c6e…      # id del capture del proveedor — ubicación publicada
-      hash: c4e1770b…      # hash del fragmento del proveedor — contenido publicado
+      link: capture 8f2a4c6e…   # el capture del proveedor — ubicación publicada
+      hash: c4e1770b…           # hash del fragmento del proveedor — contenido publicado
   1:
     link: capture 3d9b7e152a4c4b6d8e0f1a2b3c4d5e6f
     accepted:
