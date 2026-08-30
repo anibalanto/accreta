@@ -139,21 +139,17 @@ verificar sha256 == accepted.hash   →  o descartar
 
 Si la verificación falla —no hay `commit`, el archivo no existía en ese commit, la query no resuelve ahí— el texto se descarta y esas detecciones no corren: el estado cae en ALTERED, que pide revisión. Es preferible no distinguir que razonar sobre el texto equivocado.
 
-## Optimización por diff de git
+## No hay optimización por diff de git
 
-Antes de parsear o hashear un archivo, `check` determina si tiene cambios desde la última aceptación:
+Hubo una: antes de hashear, `check` preguntaba `git diff --name-only <commit> -- <file>` y, si el archivo no había cambiado desde el commit del contenido aceptado, conservaba un `state.N` de `OK` sin volver a mirar el fragmento.
 
-```
-git diff --name-only <commit> -- <file>
-```
+**Su premisa es un proxy, y el proxy se despega.** La pregunta que hay que contestar es *"¿el fragmento sigue hasheando a `accepted.hash`?"*; la que se contestaba es *"¿cambió el archivo?"*. Las dos coinciden mientras el fragmento se derive del archivo de la misma manera — y dejan de coincidir apenas cambia **cómo se resuelve el rango**. Ahí el mismo archivo produce otro fragmento, el archivo no se tocó, y el atajo devuelve `OK` para siempre.
 
-Sin `..HEAD`: la comparación es contra el **árbol de trabajo**, no contra HEAD. Con `..HEAD` se comparan dos commits y los cambios sin commitear quedan invisibles — que es el caso más común mientras alguien trabaja, y el fast-path devolvería un estado cacheado obsoleto.
+No es hipotético: pasó al cambiar los bordes del rango en una migración. Veintidós endpoints de accreta quedaron con un `accepted.hash` que ya no describía lo que había, y `check` los reportó `OK` — con [`accept`](accept.md) creyéndole y no aceptando nada, que es lo que [la cache](../concepts/cache.md) llama *"una decisión perdida"*. Quedaron invisibles hasta que alguien borró la cache.
 
-Si el output está vacío → el archivo no cambió desde `commit`. Eso alcanza para conservar un `state.N` de **OK**, y nada más.
+**Y no compraba nada.** Lo que ahorraba es leer un archivo y hashearlo; lo que gastaba es un subproceso de git. Medido sobre accreta, las dos cosas cuestan lo mismo.
 
-Cualquier `state.N` no-OK cacheado se recalcula. La cache la escribe `check` leyendo el **árbol de trabajo**, no el commit, así que un estado no-OK pudo haberse calculado sobre una edición que después se revirtió: el archivo vuelve a coincidir con `commit`, el diff sale vacío, y el fast-path conservaría un estado que describe un contenido que ya no está. Recalcular lo no-OK cuesta proporcionalmente a lo que está roto, que siempre es poco.
-
-Si git falla —commit inexistente, repo sin historial— se asume **cambiado**. No poder comparar no es evidencia de que nada cambió.
+La lección general, que vale más allá de este atajo: **un estado se conserva verificándolo, no infiriéndolo de que su entrada no cambió** — porque "su entrada" incluye a la herramienta, y la herramienta también cambia.
 
 ## Algoritmo de detección por tipo de endpoint
 
