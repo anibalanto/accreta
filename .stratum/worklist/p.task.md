@@ -1,36 +1,57 @@
 ---
 title: Ejecutar el corte de formato (`004`) en los 4 repos
-status: open
+status: done
 created_at: 2026-08-29T00:00:00Z
-updated_at: 2026-08-29T00:00:00Z
+updated_at: 2026-08-30T05:06:19Z
 parent: 9
 ---
 
 # Ejecutar el corte de formato (`004`) en los 4 repos
 
-El primero de los dos cortes. Deja vivo el formato nuevo **sin tocar dónde viven los bilinks**: siguen en las ramas, con `git status` y `git diff` funcionando normal.
+El formato nuevo vivo en las ramas, con git normal. Nada de la ref todavía.
 
-```
-1. Generar (o regenerar) .bilink-migrate-003…/ en todas las capas   [sin git]
-2. Reemplazar .bilink/ por esa carpeta en el árbol
-3. UN commit en la rama del proyecto con el .bilink/ nuevo
-4. Ledger: 002, 003, 004
-```
+## El corte es un comando, no una secuencia a mano
 
-Cuatro veces: raíz `accreta` y los tres `.stratum/impl`. `--recursive` desde la raíz no alcanza para los otros tres — están gitignoreados por sus padres y son repos independientes.
+`bilinker migrate --cut`. Verifica, regenera, mueve y registra —en ese orden— sobre las capas que se le den. Hacerlo a mano habría sido reproducir seis veces una secuencia que se puede equivocar una vez.
 
-Escribe también `.bilink/version` con la versión de formato, que es lo que impide que un binario viejo lea estos archivos y los vacíe en silencio.
+**Regenera siempre antes de mover.** La carpeta transitoria es un derivado, y regenerar es lo que recupera un `accept` hecho con el binario viejo entre la generación y el corte. La regla operativa del ADR —regenerar justo antes de cortar— está incorporada al comando, para que no dependa de que alguien se acuerde.
 
-## La verificación, que son tres cosas y no una
+**Se planifican todas las capas antes de mover ninguna.** Si una no verifica, no se corta nada: un corte a medias deja el repo con dos formatos y ningún binario que entienda los dos.
 
-No alcanza con que la migración corra. Antes de cortar:
+**El ledger va al final.** Estaba escribiéndose al generar, que es lo que ADR-0003 prohíbe: el repo quedaría marcado como migrado mientras sigue corriendo el formato viejo. Se partió `accreta_migrate::run` en `generate` —sin ledger— y `record`, que es la mitad del corte.
 
-1. **Todo parsea** bajo los tipos de la versión destino — los 158 bilinks y 129 captures de los cuatro repos, sin campo desconocido y sin aridad distinta de dos.
-2. **No se perdió nada** — y lo verifica **la migración**, no `check`: es el único componente que depende de los dos crates de formato, porque el binario linkea un solo parser y no lee el formato viejo. La afirmación es acotada por definición — `resolved_at` se descarta y `commit.N`/`state.N` se mudan a la cache—, así que lo que se asegura es que todo endpoint aceptado antes siga aceptado con los valores equivalentes. Parsear bien no alcanza: una migración que omite un campo produce un archivo válido.
-3. **La serialización es estable** — `parse → serialize → parse` byte-idéntico. Es lo que garantiza que ningún id de capture se mueva, porque es `H(file, query, offset)`.
+## Y tiene vuelta
 
-Escenarios: `migrated-corpus-parses`, `migration-loses-nothing`, `serialization-is-stable`.
+`bilinker migrate --rollback` restaura `.bilink/` desde el backup y quita la entrada del ledger. Un paso irreversible sin camino de vuelta obliga a deshacerlo a mano, que es justo lo que la migración evita en todos los demás pasos.
 
-**Y no es un `cargo test`.** El corpus vive en cuatro repos, tres gitignoreados por sus padres; la suite de bilinker corre en el de impl y no los alcanza. Es un comando que toma un path y corre sobre el árbol real, como paso del corte.
+Se usó de verdad: el primer corte destapó un defecto, se deshizo, se arregló y se rehízo. Sin eso habría habido que revertir cuatro repos a mano.
 
-**Es la puerta de la US siguiente.** Hasta que acá no pasen esas tres, más la suite y las aceptaciones, no se toca la ref.
+## El defecto que el corte destapó
+
+**118 de 118 bilinks en `CHAIN_DIRTY`** después del primer corte.
+
+Un endpoint `path` aprueba **dos** valores de su vecino: su contenido y su ubicación. En el formato 1 esa segunda copia no existía —sólo se copiaba el hash— así que la migración la dejaba ausente, y cada endpoint `path` nacía desalineado contra su propio vecino.
+
+La migración ahora resuelve el vecino y acuña su id de capture con la misma función que acuña el propio. Sigue sin consultar git ni resolver queries: es leer dos archivos más.
+
+Los tests unitarios no lo habían atrapado porque ninguno tenía una cadena de dos capas. Ahora hay dos que sí.
+
+## Resultado
+
+| | |
+|---|---|
+| Capas migradas | 6, en 4 repos |
+| Bilinks | 286 |
+| Captures | 250 (36 colapsados por dedup) |
+| `resolved_at` eliminados | 286 |
+| Aceptaciones perdidas | **0** |
+
+**El inventario de trabajo sobrevivió exacto**: 70 endpoints no-OK en la capa raíz y 4 en lattice, los mismos que antes del corte. Es lo que la Decisión 6 del ADR pide y lo que hace que la task `3` siga teniendo su lista.
+
+Las capas de stratum quedaron en `all clean`, con las cadenas cruzando bien: cada endpoint `path` con los dos valores de su vecino.
+
+## Lo que queda del formato 1
+
+`.bilink-formato-1/` en cada capa, y `.git/info/exclude` con `.bilink-migrate-*` y `.bilink-formato-1`. Borrarlo es una decisión aparte, que se toma con el resultado a la vista — no en el mismo paso que lo reemplaza.
+
+El crate `bilink-format-v1` se queda para siempre: el conjunto de formatos es de sólo-agregar, y es lo que permite que alguien parado en el formato 1 llegue al 2.
