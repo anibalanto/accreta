@@ -63,3 +63,17 @@ scenarios:
     notes:
       - commit es un derivado y la cache no está en git — un clon fresco no la tiene
     impl: get_diff_works_with_a_cold_cache
+
+  - id: get-diff-from-a-nested-layer
+    description: el diff aproximado funciona desde una capa que no es la raíz del repo
+    given:
+      - una capa con .bilink/ propio y sin .git/ propio
+      - un endpoint cuyo hash aceptado ya no verifica en el commit cacheado
+    when:
+      - bilinker get <uuid>.<N> --diff
+    expect:
+      - el diff sale, recuperando de git el fragmento de antes
+    notes:
+      - git show resuelve el path contra la raíz del repo, no contra el -C
+      - la capa guarda paths relativos a sí misma
+    impl: the_approximate_diff_works_from_a_nested_layer

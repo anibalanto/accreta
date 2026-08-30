@@ -18,15 +18,11 @@ Cuando el fragmento al que apunta un ítem cambia, `bilinker check` detecta `ALT
 
 ## Trabajo pendiente sobre un endpoint
 
-Un bilink puede tener múltiples tasks asociadas. El worklist mantiene un archivo `<bilink-uuid>.tasks` con un ID de task por línea:
+**Se declara con otro bilink, no con un archivo índice.** Un bilink de tarea conecta el bilink estructural con el ítem del worklist; su forma y su ciclo de vida están en [worklist — asociación tarea ↔ bilink](../../worklist/concepts/bilink-tasks.md), que es la fuente.
 
-```
-# accreta/.stratum/worklist/7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.tasks
-3
-1a
-```
+Este documento describió un `<bilink-uuid>.tasks` con un id por línea, que nunca existió y que `bilink-tasks.md` invariante 3 descarta explícitamente. Un archivo así sería un índice: derivable de los bilinks de tarea, y por lo tanto una segunda copia de la misma verdad que alguien tendría que mantener sincronizada.
 
-Verificar si un bilink tiene trabajo pendiente = comprobar existencia de `<bilink-uuid>.tasks` (O(1)). El bilink no almacena ninguna referencia al worklist.
+Que la asociación sea un bilink y no un campo es lo que la hace verificable: los dos extremos se chequean, y si el ítem cambia o el fragmento cambia, `check` lo dice. Un índice no chequea nada.
 
 ## Ver también
 
