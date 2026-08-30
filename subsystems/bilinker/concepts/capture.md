@@ -59,6 +59,14 @@ offset: 3226~5109
 | `query` | Query tree-sitter con captura `@target`. Ausente = el archivo completo. |
 | `offset` | Sub-rango **relativo al inicio del nodo** matcheado. Ausente = el nodo entero. |
 
+### El rango excluye el espacio que rodea al nodo
+
+Dónde empieza un nodo depende de qué hay alrededor. En YAML el mismo item de secuencia empieza en el `-` cuando es el último y en la indentación de su línea cuando lo sigue otro: agregar un item más abajo le cambiaba los bytes —y con ellos el hash— a un item que nadie tocó.
+
+Eso contradice la propiedad central, así que **el rango resuelto se recorta en los dos bordes**. El fragmento es su contenido; el espacio que lo separa de sus vecinos es de los dos y no de él.
+
+Va en el único lugar donde un nodo se convierte en rango, así que no hay forma de obtener uno sin recortar. Y no toca al `offset`, que sigue siendo relativo al inicio —ahora recortado— del nodo.
+
 Tres campos, y los tres entran en el id. **No hay más**: ni `range`, ni `state`, ni `resolved_at`. Todo eso se puede reconstruir resolviendo la query, así que vive en [`cache/state`](cache.md) y no en git.
 
 Que el archivo tenga exactamente los campos que lo nombran es lo que hace verificable el id: cualquiera puede recalcularlo leyendo el archivo.

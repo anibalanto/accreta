@@ -200,3 +200,17 @@ scenarios:
       - sin el texto aceptado, EXPANDED, DISPLACED y REANCHORED degradan a ALTERED
       - el commit se deriva sólo después de que el hash dijo que hay drift
     impl: check_still_tells_expanded_from_altered_with_a_cold_cache
+
+  - id: append-does-not-move-the-item-above
+    description: agregar un item de secuencia no toca al que ya estaba
+    given:
+      - un bilink aceptado sobre el último item de una secuencia YAML
+    when:
+      - se agrega otro item más abajo
+      - bilinker check .
+    expect:
+      - "OK"
+    notes:
+      - block_sequence_item empieza en el `-` o en la indentación según qué venga abajo
+      - el rango resuelto recorta los dos bordes, así que no depende del contexto
+    impl: appending_a_yaml_item_does_not_move_the_one_above
