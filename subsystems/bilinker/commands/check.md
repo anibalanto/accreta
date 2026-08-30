@@ -102,6 +102,12 @@ Sin solapamiento y sin heurística: EXPANDED es *"creció alrededor de lo acepta
 
 Que `F` contenga a `T` verbatim implica que nada dentro de lo aceptado cambió, así que la condición de "AST interno sin cambio estructural" se satisface sola.
 
+#### Cuando git no entrega el texto aceptado
+
+La tabla necesita `T`, y `T` sale de git: `accepted.commit` más el path del capture. Eso puede no estar —un endpoint sin commit cacheado, un archivo que en ese commit no existía, una query que ahí no resuelve—, y entonces la comparación por subcadena no se puede hacer.
+
+El respaldo es buscar el **hash** aceptado en cada offset del nodo, del tamaño del fragmento aceptado. Encuentra el mismo caso que la tabla llama DISPLACED, sin necesitar el texto: si el fragmento sigue ahí íntegro pero corrido, su hash aparece en algún offset. Lo que el respaldo no puede distinguir es EXPANDED, que exige comparar contenidos y no hashes; ese caso cae en ALTERED, que pide revisión.
+
 ### Estados propios de un endpoint `path`
 
 | Estado | Condición | Fix |
