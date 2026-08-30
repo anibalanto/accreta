@@ -1,8 +1,8 @@
 ---
 title: El trabajo diario sobre la ref no requiere pensar en ella
-status: open
+status: done
 created_at: 2026-08-29T00:00:00Z
-updated_at: 2026-08-29T00:00:00Z
+updated_at: 2026-08-30T22:35:03Z
 parent: 1
 ---
 
