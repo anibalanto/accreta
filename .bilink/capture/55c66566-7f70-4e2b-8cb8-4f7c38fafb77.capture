@@ -1,9 +1,0 @@
-file:   subsystems/bilinker/commands/check.md
-query:  (section
-  (atx_heading (inline) @n0 (#eq? @n0 "Estados — aceptación (en el bilink, endpoints estructurales)"))
-  (section
-  (atx_heading (inline) @n1 (#eq? @n1 "La frontera entre EXPANDED y DISPLACED"))) @target)
-
-# Cache
-state:       REANCHORED
-resolved_at: 2026-08-30T03:05:42Z

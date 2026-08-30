@@ -1,7 +1,0 @@
-file:   subsystems/bilinker/commands/check.md
-query:  (section (atx_heading (inline) @n0 (#eq? @n0 "Algoritmo de detección por tipo de endpoint")) (section (atx_heading (inline) @n1 (#eq? @n1 "Endpoint estructural"))) @target)
-
-# Cache
-range:       8471~10390
-state:       RESOLVED
-resolved_at: 2026-08-30T03:07:54Z

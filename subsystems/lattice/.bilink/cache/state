@@ -1,0 +1,111 @@
+captures:
+  00b92eb86e67b1610bc5310cbd44aae1:
+    range: 708~981
+    state: RESOLVED
+  03d48d268ebba7d98fcf7e0dc3321b28:
+    range: 0~5385
+    state: RESOLVED
+  0cfd1b5f44a6cf69c3dff38861c121eb:
+    range: 0~4581
+    state: RESOLVED
+  2e8999ad126e2e137cfda2c3ff696608:
+    range: 153~695
+    state: RESOLVED
+  2f38126ed5790d8556fa270427718e69:
+    range: 5937~6749
+    state: RESOLVED
+  3703ccdefa61e142f303db89be86a5d4:
+    range: 5130~5937
+    state: RESOLVED
+  601a9f24b591ec293eac5a4bd6a1cdca:
+    range: 4679~4937
+    state: RESOLVED
+  6deceeb80b53ea891e18a15167f6a4ac:
+    range: 695~2069
+    state: RESOLVED
+  849898fdc6f4fce49afcd691b16f8c86:
+    range: 1372~2306
+    state: RESOLVED
+  a4d88f0f13864ccd1aea390bf170a56f:
+    range: 1522~2955
+    state: RESOLVED
+  ab6ef36b9c406c3ef41c4a02bfd8d17a:
+    range: 6749~7109
+    state: RESOLVED
+  b704f8179f966ef7145cf501bac10e54:
+    range: 1064~1522
+    state: RESOLVED
+  bf456f06b3caaebcdee3dc8f86a59932:
+    range: 2306~2473
+    state: RESOLVED
+  c75407862992cad0d1cc735eec515e5e:
+    range: 260~1064
+    state: RESOLVED
+  d0c7a15686525efed8243988a71a188e:
+    range: 7109~8069
+    state: RESOLVED
+endpoints:
+  0bd6fbdc-2b06-44c5-82db-5df78e4ea3c3.0:
+    state: RESTYLED
+  0bd6fbdc-2b06-44c5-82db-5df78e4ea3c3.1:
+    state: OK
+  0d77e2a6-c0cf-4198-921d-a907f8942a79.0:
+    state: OK
+  0d77e2a6-c0cf-4198-921d-a907f8942a79.1:
+    state: OK
+  0dd71c2d-e884-4ba9-99da-2ebd476bbcbe.0:
+    state: OK
+  0dd71c2d-e884-4ba9-99da-2ebd476bbcbe.1:
+    state: OK
+  1b56d22d-ec89-41e1-9273-c158565c7cfa.0:
+    state: OK
+  1b56d22d-ec89-41e1-9273-c158565c7cfa.1:
+    state: OK
+  309fb2bf-b5e3-44ff-bd6a-89df4a9dfc9a.0:
+    state: OK
+  309fb2bf-b5e3-44ff-bd6a-89df4a9dfc9a.1:
+    state: OK
+  657197a6-49a5-4dcb-a5d1-3c068d281ec1.0:
+    state: OK
+  657197a6-49a5-4dcb-a5d1-3c068d281ec1.1:
+    state: OK
+  8afad6a4-490f-46c0-a375-8734fafddde1.0:
+    state: ALTERED
+  8afad6a4-490f-46c0-a375-8734fafddde1.1:
+    state: OK
+  b4f56a45-ba2d-45b3-a9be-12b5af6ba277.0:
+    state: OK
+  b4f56a45-ba2d-45b3-a9be-12b5af6ba277.1:
+    state: OK
+  bcd9cf7a-bcf4-4bda-a7d8-d56d30242df3.0:
+    state: OK
+  bcd9cf7a-bcf4-4bda-a7d8-d56d30242df3.1:
+    state: OK
+  d634881e-177b-4e13-a36b-bf86c400de93.0:
+    state: OK
+  d634881e-177b-4e13-a36b-bf86c400de93.1:
+    state: OK
+  dad0d72d-1c5a-4efc-a4b9-d8dee4704bbd.0:
+    state: RESTYLED
+  dad0d72d-1c5a-4efc-a4b9-d8dee4704bbd.1:
+    state: OK
+  de125d52-16d4-4167-acfc-468e970cce0c.0:
+    state: OK
+  de125d52-16d4-4167-acfc-468e970cce0c.1:
+    state: OK
+  ebd4c8e6-4147-4046-9750-1133ae85c66b.0:
+    state: OK
+  ebd4c8e6-4147-4046-9750-1133ae85c66b.1:
+    state: OK
+  eee6b443-811f-43a3-a74b-15d2abfaa81c.0:
+    state: OK
+  eee6b443-811f-43a3-a74b-15d2abfaa81c.1:
+    state: OK
+  f715e695-dd5c-4124-918b-924f40c634f4.0:
+    state: OK
+  f715e695-dd5c-4124-918b-924f40c634f4.1:
+    state: OK
+  faa7ac9c-2930-4d3c-9db3-1a85b56067db.0:
+    state: ALTERED
+  faa7ac9c-2930-4d3c-9db3-1a85b56067db.1:
+    state: OK

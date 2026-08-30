@@ -1,7 +1,0 @@
-file:   subsystems/bilinker/commands/check.md
-query:  (section (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker check`")) (section (atx_heading (inline) @n1 (#eq? @n1 "Firma"))) @target)
-
-# Cache
-range:       533~1411
-state:       RESOLVED
-resolved_at: 2026-08-30T03:05:41Z

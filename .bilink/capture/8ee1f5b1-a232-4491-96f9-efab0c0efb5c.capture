@@ -1,7 +1,0 @@
-file:   subsystems/bilinker/commands/graph.md
-query:  (section (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker graph`")) (section (atx_heading (inline) @n1 (#eq? @n1 "Algoritmo de traversal"))) @target)
-
-# Cache
-range:       1323~1961
-state:       RESOLVED
-resolved_at: 2026-08-26T15:07:30Z

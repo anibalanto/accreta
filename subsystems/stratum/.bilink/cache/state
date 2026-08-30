@@ -1,0 +1,62 @@
+captures:
+  0888bd20cb9a60c4f19bc3c79019cf9a:
+    range: 0~1406
+    state: RESOLVED
+  1a922e56fc80b621125d15f37284a78c:
+    range: 0~1335
+    state: RESOLVED
+  a90b090f66354b8db81edef96f2b5ee8:
+    range: 0~1763
+    state: RESOLVED
+  c02164a6c8161ee25bc9608a28fba2ac:
+    range: 0~2984
+    state: RESOLVED
+  c6a0f542ab9fc97e99fd2f692da574fe:
+    range: 0~3137
+    state: RESOLVED
+  df6ea39c3e7892aa5a402c8906e09b2d:
+    range: 0~3609
+    state: RESOLVED
+  dfbebf047d8469a043e02e1b2df4691f:
+    range: 0~4470
+    state: RESOLVED
+  e2e66a729e080c86fd2c6227dbe8d131:
+    range: 0~1553
+    state: RESOLVED
+endpoints:
+  125971da-5034-4915-b9df-20cf91aa02ce.0:
+    state: OK
+  125971da-5034-4915-b9df-20cf91aa02ce.1:
+    state: OK
+  35cbef68-e251-4433-89ba-0fc2297a9beb.0:
+    state: OK
+  35cbef68-e251-4433-89ba-0fc2297a9beb.1:
+    state: OK
+  38962614-a28d-4e13-9e0f-4055e05b7e57.0:
+    state: OK
+  38962614-a28d-4e13-9e0f-4055e05b7e57.1:
+    state: OK
+  53a18bbf-a16b-4fa5-89ee-eda58f406b11.0:
+    state: OK
+  53a18bbf-a16b-4fa5-89ee-eda58f406b11.1:
+    state: OK
+  6d8b8502-4386-4412-8a2d-979f0c65833d.0:
+    state: OK
+  6d8b8502-4386-4412-8a2d-979f0c65833d.1:
+    state: OK
+  8e2e749a-fbb9-44aa-9b7f-a57972498371.0:
+    state: OK
+  8e2e749a-fbb9-44aa-9b7f-a57972498371.1:
+    state: OK
+  9cfe0db7-65d3-4b26-bb08-ba661dcb071d.0:
+    state: OK
+  9cfe0db7-65d3-4b26-bb08-ba661dcb071d.1:
+    state: OK
+  b95021d2-413f-4afd-9e95-8359ee5aebff.0:
+    state: OK
+  b95021d2-413f-4afd-9e95-8359ee5aebff.1:
+    state: OK
+  c0feab23-f726-4964-a3c4-9111f46b67df.0:
+    state: OK
+  c0feab23-f726-4964-a3c4-9111f46b67df.1:
+    state: OK

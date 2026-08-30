@@ -1,0 +1,6 @@
+file: subsystems/bilinker/concepts/reference.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "Endpoint estructural"))
+    (section
+    (atx_heading (inline) @n1 (#eq? @n1 "`query`"))) @target)

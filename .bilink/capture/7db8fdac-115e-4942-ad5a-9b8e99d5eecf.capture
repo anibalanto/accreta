@@ -1,7 +1,0 @@
-file:   subsystems/bilinker/scenarios/chain.yaml
-query:  (block_sequence_item (block_node (block_mapping (block_mapping_pair key: (flow_node) @_ (#eq? @_ "id") value: (flow_node) @n0 (#eq? @n0 "chain-new-file-endpoint-no-pos"))))) @target
-
-# Cache
-range:       511~919
-state:       RESOLVED
-resolved_at: 2026-08-24T17:35:01Z

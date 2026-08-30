@@ -1,0 +1,4 @@
+file: subsystems/bilinker/concepts/format-version.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "Versión del formato"))) @target

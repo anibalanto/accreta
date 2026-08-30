@@ -1,0 +1,6 @@
+file: concepts/node.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "Concepto: nodo"))
+    (section
+    (atx_heading (inline) @n1 (#eq? @n1 "Identidad"))) @target)

@@ -1,0 +1,12 @@
+endpoint:
+  '0':
+    link: capture ba38d77dc6853109ce31825aea968e74
+    accepted:
+      link: capture ba38d77dc6853109ce31825aea968e74
+      hash: 2aab10f82f8dc10222e3edb94e08a4ea8f83bb558892ea6a686212e11bbbc991
+      hash_ast: 9946d489a7df05954659dc66ab51ce261d67d6143ce23f7af34dd3ecf0c0b3b1
+  '1':
+    link: path subsystems/bilinker>impl
+    accepted:
+      link: capture 9ed408df49447990061f150dc8479b64
+      hash: 02a7499f637b9ba0328a6b31a755b612d03a3b1c6c41eef1a43945078609bb3a

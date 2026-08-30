@@ -1,0 +1,5 @@
+file: subsystems/bilinker/scenarios/check.yaml
+query: |-
+  (block_sequence_item (block_node (block_mapping (block_mapping_pair
+    key: (flow_node) @_ (#eq? @_ "id")
+    value: (flow_node) @n0 (#eq? @n0 "check-unresolved-file-missing"))))) @target

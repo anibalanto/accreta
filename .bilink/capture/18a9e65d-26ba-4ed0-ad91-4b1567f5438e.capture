@@ -1,9 +1,0 @@
-file:   subsystems/bilinker/commands/apply.md
-query:  (section
-  (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker apply`"))
-  (section
-  (atx_heading (inline) @n1 (#eq? @n1 "Escritura de cache"))) @target)
-
-# Cache
-state:       UNANCHORED
-resolved_at: 2026-08-30T03:04:00Z
