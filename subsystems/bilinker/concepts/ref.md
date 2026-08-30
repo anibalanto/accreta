@@ -133,6 +133,16 @@ Ignorados a secas, los cambios que escribe `accept` no aparecerían en ningún `
 
 El índice vive en `.git/bilink/index` — dentro de `.git/`, porque es por clon y no se versiona, y con nombre propio porque no es el índice del proyecto.
 
+### La ref es por repo, y el recorrido se para en su frontera
+
+Un solo `refs/bilink/<branch>` cubre **todas las capas de un repo**, estén donde estén: el commit lleva el árbol del proyecto entero, así que los `.bilink/` de todas sus capas entran en el mismo snapshot. Es la misma razón por la que la exclusión de [`init`](../commands/init.md) es un patrón y no una lista.
+
+Pero un subdirectorio con su propio `.git` **es otro repositorio**, y sus bilinks son suyos. El recorrido se para ahí.
+
+No es hipotético: en accreta cada subsistema tiene su capa de implementación en un repo propio, gitignoreado por el padre. Sin ese freno, el corte del padre se traga los bilinks de los hijos — y quedan en un snapshot cuyo árbol de código **no los contiene**, así que ni la disyunción ni la fidelidad hablan de ellos. Los dos chequeos pasarían, y estarían mirando otra cosa.
+
+Es [`configuration.md`](configuration.md) § "Uso con múltiples capas y repositorios" dicho desde la ref: *"cada capa puede ser un repositorio git independiente, y bilinker siempre opera en el contexto de una sola"*. La frontera del repo es la de la ref.
+
 **`check` corre en caliente.** Bilinks y código vivo en el mismo directorio, con los cambios sin commitear a la vista, que es lo que [`check`](../commands/check.md) ya exige al comparar contra el árbol de trabajo y no contra HEAD. Si se comparara contra la copia de código de la ref, quien rompe un vínculo no se enteraría hasta que alguien sincronice.
 
 **La asimetría local/remoto.** Localmente el código sale del árbol de trabajo, así que la foto de la ref puede estar atrasada sin afectar un `check`. Remotamente el consumidor sólo tiene la ref, así que esa foto **es** el código con el que verifica. Por eso la absorción no es un requisito para observar, sino para que el snapshot sea cierto para quien no tiene otra cosa.
@@ -222,5 +232,6 @@ Para auditar y revertir alcanza con la atribución; ante alguien que no confía,
 3. Ningún commit sobre la ref se escribe sin que el commit del proyecto contra el cual se calculó esté absorbido.
 4. La ref no se rebasea ni se cherry-pickea nunca. Es append-only, y todo fetch es fast-forward.
 5. El árbol del commit de un commit sobre la ref se construye con `read-tree` del absorbido más `update-index` de `.bilink/`. Nada del árbol de trabajo fuera de `.bilink/` entra.
-6. `.bilink/head` dice a qué rama y a qué commit de la ref corresponde el `.bilink/` del árbol, lo escriben tanto la materialización como todo commit sobre la ref, y ningún comando opera sobre un `.bilink/` que no corresponde a la rama actual.
-7. La puesta a punto de un clon —exclusión, refspec y materialización— es [`init`](../commands/init.md), es explícita, y sin ella ningún comando corre.
+6. La ref es por repo: cubre todas las capas de ese repo y ninguna de un repo anidado.
+7. `.bilink/head` dice a qué rama y a qué commit de la ref corresponde el `.bilink/` del árbol, lo escriben tanto la materialización como todo commit sobre la ref, y ningún comando opera sobre un `.bilink/` que no corresponde a la rama actual.
+8. La puesta a punto de un clon —exclusión, refspec y materialización— es [`init`](../commands/init.md), es explícita, y sin ella ningún comando corre.
