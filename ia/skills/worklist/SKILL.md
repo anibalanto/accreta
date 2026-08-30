@@ -7,26 +7,27 @@ El trabajo vive en `<project-root>/.stratum/worklist/`. Spec completa en [`subsy
 
 ## Qué hay
 
+Todos los ítems son **archivos sueltos en la raíz**. No hay carpetas por ítem.
+
 ```
-1.epic.md                 épica
-1/                        contenido de la épica 1 — contención
-  n.user-story.md
-  n/
-    8.task.md
+1.epic.md                 épica 1
+n.user-story.md           parent: 1
+o.task.md                 parent: n
+q.task.md                 sin parent — suelta
 _sprints/                 el otro eje; el `_` garantiza que nunca sea un id
   1.sprint.md … 7.sprint.md
 ```
 
-| Tipo | Sufijo | Vive en |
+| Tipo | Sufijo | Puede tener de padre |
 |---|---|---|
-| Epic | `.epic.md` | raíz |
-| User Story | `.user-story.md` | raíz o carpeta de épica |
-| Task | `.task.md` | raíz, carpeta de épica o de user story |
-| Sprint | `.sprint.md` | `_sprints/` |
+| Epic | `.epic.md` | nada |
+| User Story | `.user-story.md` | nada, epic |
+| Task | `.task.md` | nada, epic, user story |
+| Sprint | `.sprint.md` | nada — vive en `_sprints/` |
 
 Ids **base-36** (`1…9, a…z, 10…`), de orden de creación, no de prioridad. Los sprints llevan **contador aparte**: `_sprints/1.sprint.md` es el sprint 1. Por eso `1` solo es ambiguo — desambiguar con el sufijo: `show 1` es el ítem, `show 1.sprint` es el sprint.
 
-Frontmatter, exactamente cuatro campos:
+Frontmatter, cuatro campos obligatorios y uno opcional:
 
 ```yaml
 ---
@@ -34,17 +35,22 @@ title: <string>
 status: open | in-progress | done
 created_at: <iso8601-utc>
 updated_at: <iso8601-utc>
+parent: <id>              # opcional — ausente en un ítem de raíz
 ---
 ```
 
-Nada más. El tipo lo dice la extensión, la pertenencia la dice la carpeta, y la asociación con bilinks **se declara desde el bilink, no desde el ítem**.
+Nada más. El tipo lo dice la extensión, la pertenencia la dice `parent`, y la asociación con bilinks **se declara desde el bilink, no desde el ítem**.
+
+**Los hijos se calculan**: los hijos de `n` son los ítems cuyo `parent` es `n`. No hay lista que mantener, igual que el backlog.
 
 ## Dos formas de agrupar, y no se mezclan
 
-- **Épica → US → task** es *contención*: carpetas.
-- **Sprint → ítems** es *referencia*: links en el cuerpo del sprint. Los ítems siguen viviendo donde estaban.
+- **Épica → US → task** es *descomposición*: el campo `parent`.
+- **Sprint → ítems** es *planificación*: links en el cuerpo del sprint.
 
-**La regla del ancestro:** un ítem entra a un sprint sólo si ninguno de sus ancestros entra. Si va la US, sus tasks van con ella y no se enumeran. Una task se nombra sola cuando no tiene US arriba.
+Las dos son referencias y las dos se editan en un solo lugar. La diferencia es qué preguntan: `parent` dice de qué es parte un ítem, el sprint dice cuándo se hace.
+
+**La regla del ancestro:** un ítem entra a un sprint sólo si ninguno de sus ancestros entra. Si va la US, sus tasks van con ella y no se enumeran. Una task se nombra sola cuando no tiene US arriba. La cadena de ancestros se lee siguiendo `parent` hasta que se acaba.
 
 De ahí sale que **una US no puede atravesar sprints**: si no cabe en una iteración, está mal dimensionada — y eso es un problema de descomposición, no de planificación.
 
@@ -58,6 +64,9 @@ De ahí sale que **una US no puede atravesar sprints**: si no cabe en una iterac
 
 ## Al crear o mover
 
-Los ítems **se escriben a mano hoy**: `worklist new` está especificado pero no implementado, y además delega la asignación de ids a un servidor que no existe. Al crear uno, tomar el siguiente id base-36 libre del contador que corresponda.
+Los ítems **se escriben a mano hoy**: `worklist new` está especificado pero no implementado, y además delega la asignación de ids a un servidor que no existe. Al crear uno, tomar el siguiente id base-36 libre del contador que corresponda, y escribirlo en la raíz de `worklist/` con su `parent`.
 
-Mover un ítem entre sprints es editar **un solo lugar**: el link sale de un `.sprint.md` y entra en otro. No hay campo `sprint:` en el ítem que mantener en sincronía.
+Mover un ítem es editar **un solo campo o un solo link**, nunca un archivo:
+
+- de sprint: el link sale de un `.sprint.md` y entra en otro.
+- de padre: cambia `parent`. El archivo no se mueve, así que su path no cambia y ningún bilink que lo apunte se entera.

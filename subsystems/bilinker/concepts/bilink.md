@@ -24,7 +24,7 @@ El tipo de un endpoint se infiere del valor de `link.N` — no hay prefijo de ti
 |---|---|---|
 | **Estructural** | `capture <uuid>` | Referencia a un [capture](capture.md) de la misma capa, que describe dónde está el fragmento. |
 | **Layer** | path Stratum | Apunta a un nodo adyacente en otra capa. |
-| **Task** | `task <id>` | Apunta a un ítem del worklist en `<project-root>/.stratum/worklist/<id>.task.md`. Se hashea y verifica como un endpoint estructural. |
+| **Task** | `task <id>` | Apunta a un ítem del worklist en `<project-root>/.stratum/worklist/<id>.<tipo>.md`. Se hashea y verifica como un endpoint estructural. |
 
 Existió un cuarto tipo, el **endpoint bilink**, que apuntaba a otro bilink por UUID. Está especificado y no implementado, así que vive en [`proposals/bilink-endpoint.md`](../proposals/bilink-endpoint.md) con sus dos casos de uso — la gobernanza y el bilink de tarea — hasta que alguien lo implemente.
 

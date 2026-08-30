@@ -9,29 +9,28 @@ accreta/
   .stratum/
     worklist/
       1.epic.md
-      1/
-        2.user-story.md
-        2/
-          3.task.md
-        4.task.md
-      5.user-story.md
-      5/
-        6.task.md
-      7.task.md
-      <bilink-uuid>.tasks   ← índice de tasks por bilink
+      2.user-story.md       ← parent: 1
+      3.task.md             ← parent: 2
+      4.task.md             ← parent: 2
+      5.user-story.md       ← parent: 1
+      6.task.md             ← parent: 5
+      7.task.md             ← sin parent
+      _sprints/
+        1.sprint.md
 ```
 
-La carpeta homónima al ítem solo existe si ese ítem tiene hijos.
+Todos los ítems son archivos sueltos en la raíz. La jerarquía la declara el campo `parent`; ver [ítem](concepts/item.md) § "Jerarquía". El único directorio es `_sprints/`, y lleva `_` porque ningún directorio de `worklist/` puede ser un ítem.
 
 ## Tipos de ítem
 
-| Tipo | Extensión | Descripción |
-|------|-----------|-------------|
-| **Epic** | `.epic` | Objetivo de alto nivel. Agrupa user stories o tasks. |
-| **User Story** | `.user-story` | Funcionalidad desde la perspectiva del usuario. Agrupa tasks. |
-| **Task** | `.task` | Unidad de trabajo concreta y ejecutable. No tiene hijos. |
+| Tipo | Sufijo | Descripción |
+|------|--------|-------------|
+| **Epic** | `.epic.md` | Objetivo de alto nivel. Agrupa user stories o tasks. |
+| **User Story** | `.user-story.md` | Funcionalidad desde la perspectiva del usuario. Agrupa tasks. |
+| **Task** | `.task.md` | Unidad de trabajo concreta y ejecutable. No tiene hijos. |
+| **Sprint** | `.sprint.md` | Iteración. Vive en `_sprints/` y agrupa por referencia. |
 
-Cualquier tipo puede existir en el nivel raíz. Un task puede ser hijo directo de un epic sin story intermedia.
+Cualquier tipo puede estar en la raíz del árbol. Un task puede ser hijo directo de un epic sin story intermedia.
 
 ## Identificación
 
@@ -52,28 +51,13 @@ sequenceDiagram
     participant S as servidor worklist (git)
     C->>S: push solicitud a .pending/
     S->>S: asigna next ID base-36
-    S->>S: crea &lt;id&gt;.task
-    S->>S: actualiza &lt;bilink-uuid&gt;.tasks
+    S->>S: crea &lt;id&gt;.task.md
     S->>S: commit "task &lt;id&gt;: título"
     C->>S: git fetch worklist
-    S-->>C: &lt;id&gt;.task
-    S-->>C: &lt;bilink-uuid&gt;.tasks
+    S-->>C: &lt;id&gt;.task.md
 ```
 
 El historial de git del servidor es el log canónico de todos los ítems creados, en orden, con IDs legibles.
-
-## Archivo `.tasks` por bilink
-
-Cuando un ítem se crea con `--bilink <uuid>` o con un selector que produce un bilink, el servidor actualiza (o crea) `<bilink-uuid>.tasks` en la raíz del worklist. El archivo contiene un ID por línea:
-
-```
-# 7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.tasks
-3
-1a
-2f
-```
-
-Verificar si un bilink tiene trabajo pendiente es una comprobación de existencia de archivo — O(1). Leer los IDs de las tasks es O(1).
 
 ## Relación con bilinker
 
@@ -81,7 +65,7 @@ Cada ítem nace linkedeado al fragmento que lo origina, en cualquier capa o repo
 
 ```mermaid
 flowchart LR
-    T["worklist/&lt;id&gt;.task"] <-->|bilink| F["fragmento\ncualquier repo · capa"]
+    T["worklist/&lt;id&gt;.task.md"] <-->|bilink| F["fragmento\ncualquier repo · capa"]
 ```
 
 El selector se resuelve desde el directorio actual en la terminal — no hace falta especificar el repo o la capa.
@@ -94,13 +78,13 @@ title: <string>
 status: open | in-progress | done
 created_at: <iso8601-utc>
 updated_at: <iso8601-utc>
-source_bilink: <uuid>
+parent: <id>
 ---
 
 Descripción opcional.
 ```
 
-`source_bilink` es el UUID del bilink que conecta este ítem con el fragmento que lo origina. Puede apuntar a un fragmento en cualquier capa o repo.
+`parent` es opcional y lleva el id del ítem padre. La asociación con el bilink que originó el ítem **no** vive acá: se declara desde el bilink. Ver [asociación tarea ↔ bilink](concepts/bilink-tasks.md).
 
 ## Ciclo de vida
 

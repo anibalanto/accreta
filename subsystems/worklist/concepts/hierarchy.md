@@ -1,32 +1,35 @@
 # Jerarquía
 
-La jerarquía de worklist es flexible. Cualquier tipo puede existir en el nivel raíz y los niveles intermedios son opcionales.
+La jerarquía de worklist es flexible. Cualquier tipo puede estar en la raíz del árbol y los niveles intermedios son opcionales.
+
+**La relación padre-hijo se declara con el campo `parent`**, no con la ubicación del archivo. Todos los ítems viven juntos en `worklist/`; lo que los ordena es el campo. Ver [ítem](item.md) § "Jerarquía" para el porqué.
 
 ## Niveles permitidos
 
-| Item | Puede vivir en | Puede contener |
-|------|----------------|----------------|
-| Epic | raíz | user-stories, tasks |
-| User Story | raíz, carpeta de epic | tasks |
-| Task | raíz, carpeta de epic, carpeta de user-story | nada |
-| Sprint | `_sprints/` | nada en carpetas — **referencia** user stories y tasks |
+| Item | Puede tener de padre | Puede tener de hijo |
+|------|----------------------|---------------------|
+| Epic | nada | user-stories, tasks |
+| User Story | nada, epic | tasks |
+| Task | nada, epic, user-story | nada |
+| Sprint | nada — vive en `_sprints/` | nada; **referencia** user stories y tasks |
 
 ## Estructura de ejemplo
 
 ```
 accreta/.stratum/worklist/
-  1.epic.md                        ← epic en raíz
-  1/
-    2.user-story.md
-    2/
-      3.task.md
-      4.task.md
-    5.task.md                      ← task directo bajo epic
-  6.user-story.md                  ← story en raíz, sin epic
-  6/
-    7.task.md
-  8.task.md                        ← task en raíz, sin padre
+  1.epic.md                        ← sin parent: raíz del árbol
+  2.user-story.md                  ← parent: 1
+  3.task.md                        ← parent: 2
+  4.task.md                        ← parent: 2
+  5.task.md                        ← parent: 1   · task directa bajo la épica
+  6.user-story.md                  ← sin parent: story suelta
+  7.task.md                        ← parent: 6
+  8.task.md                        ← sin parent: task suelta
+  _sprints/
+    1.sprint.md
 ```
+
+El árbol no se ve en el `ls`: se deriva leyendo los `parent`. Es el precio de que la dirección de un ítem sea componible y estable, y se paga una vez —lo rinde un comando que lo dibuje— mientras que buscar un ítem por id se paga en cada uso.
 
 ## Referencia por ID
 
@@ -52,38 +55,36 @@ Use the full ID.
 
 ## IDs secuenciales y jerarquía
 
-Los IDs no codifican la jerarquía — un ítem hijo puede tener un ID posterior o anterior al de su padre. La estructura es la carpeta, no el número.
+Los IDs no codifican la jerarquía — un ítem hijo puede tener un ID posterior o anterior al de su padre. La estructura es el campo `parent`, no el número.
 
 ## Sprints
 
-Un sprint no contiene: referencia. Y **vive en `_sprints/`, fuera del árbol de descomposición**, porque no participa de él: puede llevarse ítems de épicas distintas, y los que nombra siguen viviendo donde estaban.
+Un sprint no contiene: referencia. Y **vive en `_sprints/`, fuera del árbol de descomposición**, porque no participa de él: puede llevarse ítems de épicas distintas, y tiene su propio contador.
 
-Eso mantiene limpia la lectura de las carpetas. Una carpeta con nombre de id —`1/`— es contención: lo que hay adentro pertenece al ítem `1`. `_sprints/` no es eso: es un espacio de nombres para el otro eje.
+### Los directorios llevan `_`
 
-### Los directorios que no son ids llevan `_`
+> **Todo directorio dentro de `worklist/` empieza con `_`.**
 
-> **Un directorio cuyo nombre no es un id de ítem empieza con `_`.**
+Los ítems son archivos sueltos en la raíz, así que un directorio nunca es un ítem — es un espacio de nombres para otra cosa, como `_sprints/`. El `_` lo dice desde el nombre: los ids son base-36, `[0-9a-z]`, y un nombre que empieza con `_` **nunca puede ser uno**.
 
-Los ids son base-36, `[0-9a-z]`, así que un nombre con `_` adelante **nunca puede ser uno**. Sin la regla, `sprints/` es un nombre libre que el contador alcanzaría en el ítem 62.507.780.128 — nunca, pero "nunca" por improbable y no por imposible, y entonces la lectura de una carpeta pasaría a depender de que ese número no llegue.
-
-Vale para cualquier directorio que se agregue después con otro propósito.
+Sin la regla, `sprints/` sería un nombre libre que el contador alcanzaría en el ítem 62.507.780.128 — nunca, pero "nunca" por improbable y no por imposible, y entonces distinguir un directorio de un ítem pasaría a depender de que ese número no llegue.
 
 ```
 1.epic.md                     ← épica 1
-1/
-  n.user-story.md
-  n/
-    8.task.md
-    o.task.md
+n.user-story.md               ← parent: 1
+8.task.md                     ← parent: n
+o.task.md                     ← parent: n
 _sprints/
-  1.sprint.md                 ← sprint 1; referencia a ../1/n.user-story.md
+  1.sprint.md                 ← sprint 1; referencia a ../n.user-story.md
 ```
 
 ### La regla del ancestro
 
 > **Un ítem entra a un sprint sólo si ninguno de sus ancestros entra.**
 
-Si va una user story, sus tasks van por contención y no se enumeran. Una task se nombra sola cuando no tiene user story arriba — o cuando cuelga directamente de una épica.
+Si va una user story, sus tasks van con ella y no se enumeran. Una task se nombra sola cuando no tiene user story arriba — o cuando cuelga directamente de una épica.
+
+La cadena de ancestros se lee siguiendo `parent` hasta que se acaba.
 
 Dos consecuencias, y las dos son deliberadas:
 

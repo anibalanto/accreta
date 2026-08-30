@@ -5,6 +5,6 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "Resolución"))) @target)
 
 # Cache
-range:       2318~2529
+range:       3297~3508
 state:       RESOLVED
-resolved_at: 2026-08-29T23:41:11Z
+resolved_at: 2026-08-30T01:35:36Z

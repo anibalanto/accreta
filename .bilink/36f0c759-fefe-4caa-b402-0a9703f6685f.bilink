@@ -2,6 +2,11 @@ link.0: capture 7dbf085c-183c-4acb-a006-22b134f6abad
 link.1: subsystems/bilinker>impl
 
 # Cache
-state.0: PENDING
-state.1: PENDING
-resolved_at: 2026-08-30T00:37:06Z
+hash.0: e24a3ec0cca8781e4f2dcb630368cf49dc7687c4e8002620667cae24ec097698
+hash_ast.0: dfe80d26b75e7637397392966e2e4125242cf6a6b9432d2d7db9720dcc073c59
+commit.0: 20c5c63e795651278dd615bb2144aa0c102cfab6
+hash.1: afb17f38832e380d8fa34d88abbf90fdea63497baa6d7bfe15c88b91a8cff88f
+commit.1: bd3856134d9d838fc1f477063d3d5f9b76339564
+state.0: OK
+state.1: OK
+resolved_at: 2026-08-30T01:36:40Z

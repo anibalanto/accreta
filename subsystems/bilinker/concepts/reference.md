@@ -1,21 +1,36 @@
 # Referencia: tipos de endpoint
 
-Un `link.N` en un archivo `.bilink` puede ser de cuatro tipos. El tipo se infiere del valor — no hay prefijo explícito de tipo.
+Un `link.N` en un archivo `.bilink` puede ser de cuatro tipos. Dos se reconocen por un prefijo explícito; los otros dos, por la forma del valor.
 
 ## Discriminación de tipos
 
-| Condición | Tipo |
-|---|---|
-| Comienza con `task ` | **Task** |
-| Contiene `::` | **Estructural** |
-| Último componente tiene extensión (contiene `.`) | **Estructural** (archivo completo) |
-| Ninguna de las anteriores | **Layer** |
+Se evalúa en este orden, y el primero que matchea gana:
+
+| # | Condición | Tipo |
+|---|---|---|
+| 1 | Comienza con `capture ` | **Estructural** — referencia a un capture de esta capa |
+| 2 | Comienza con `task ` | **Task** |
+| 3 | Contiene `::` | **Estructural embebido** — formato anterior al split |
+| 4 | Último componente tiene extensión (contiene `.`) | **Estructural embebido**, archivo completo — formato anterior |
+| 5 | Ninguna de las anteriores | **Layer** |
+
+Las filas 3 y 4 son el formato **anterior al split capture/bilink**: la ubicación viajaba dentro del `.bilink` en vez de vivir en un `.capture` aparte. El parser las sigue aceptando para que [`bilinker migrate`](../commands/migrate.md) pueda convertirlas; un endpoint estructural nuevo es siempre la fila 1. Ver [capture](capture.md).
 
 ---
 
 ## Endpoint estructural
 
 Identifica un archivo o fragmento dentro de un archivo.
+
+### Forma vigente
+
+```
+capture <uuid>
+```
+
+El fragmento no se describe acá: se describe una sola vez en el [capture](capture.md), que guarda `file`, `query` y `offset`. Varios bilinks pueden referenciar el mismo.
+
+Lo que sigue es el **formato anterior**, con la ubicación embebida. Se documenta porque el parser todavía lo lee y `bilinker migrate` lo convierte; no se escribe más.
 
 ### Forma completa
 
@@ -132,14 +147,18 @@ task <id>
 ### Resolución
 
 ```
-<project-root>/.stratum/worklist/<id>.task.md
+<project-root>/.stratum/worklist/<id>.<tipo>.md
 ```
 
 El project root se encuentra subiendo `depth * 2` componentes desde la layer actual (donde `depth = stratum::depth(layer_root)`).
 
+**El tipo no está en el endpoint y no hace falta que esté.** Los ítems del worklist son archivos sueltos en un solo directorio y sus ids son únicos, así que el archivo se encuentra por prefijo: `<id>.` seguido de cualquier tipo. Si el prefijo no matchea nada el endpoint no resuelve; si matchea más de uno, el worklist tiene dos ítems con el mismo id y eso es un error suyo, no una ambigüedad del formato.
+
+Que el tipo quede afuera es lo que hace que el endpoint sobreviva a la planificación: recolgar un ítem de otra user story cambia un campo del ítem, no el nombre de su archivo. Ver [worklist — ítem](../../worklist/concepts/item.md) § "Jerarquía".
+
 ### `hash.N` y `commit.N`
 
-SHA-256 del contenido del archivo de tarea y commit del repo raíz.
+SHA-256 del contenido del archivo del ítem y commit del repo raíz.
 
 ---
 
