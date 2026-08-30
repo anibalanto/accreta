@@ -51,12 +51,14 @@ No existe campo `id`: el UUID del nombre es el identificador. No existe `range`:
 | `capture <id>` | un id de [capture](capture.md) de esta capa |
 | `path <stratum-path>` | un [path Stratum](../../stratum/concepts/paths.md) hacia una capa vecina |
 | `issue <id>` | un id de ítem del worklist |
+| `repo <alias>` | un alias de repo ajeno, declarado en `.bilink/.{alias}.toml` |
+| `abstract` | nada — la punta abierta de un bilink que otro proyecto consume |
 
 `path` y no `layer` porque un stratum-path también cruza a sub-proyectos —`*/subsystems/lattice`— que el [modelo de capas](../../stratum/concepts/layer-model.md) distingue de las capas internas: `layer` afirmaría de más.
 
 Sin fallback no hay desempate. Antes el endpoint layer era lo que quedaba cuando ninguna otra forma matcheaba, y eso obligaba a una regla de precedencia entre prefijos, palabras reservadas y paths. Con el tipo adelante, esa regla no hace falta.
 
-Dos prefijos más llegan con la frontera —`repo <alias>` y `abstract`, en [ADR-0005](../.stratum/impl/docs/adr/0005-frontera-entre-proyectos.md)— y son aditivos: ningún archivo existente los usa. El endpoint de tipo **bilink** está especificado y no implementado, en [`proposals/bilink-endpoint.md`](../proposals/bilink-endpoint.md), con sus dos casos de uso: la gobernanza y el bilink de tarea.
+Los dos últimos son [la frontera entre proyectos](frontier.md), y son aditivos: ningún archivo existente los usa, y todos siguen siendo válidos. El endpoint de tipo **bilink** está especificado y no implementado, en [`proposals/bilink-endpoint.md`](../proposals/bilink-endpoint.md), con sus dos casos de uso: la gobernanza y el bilink de tarea.
 
 Un endpoint estructural **no describe el fragmento**: referencia un capture. Lo que sí es propio de cada endpoint es **qué se aceptó**: dos bilinks sobre el mismo capture pueden haber aprobado contenidos distintos y reportar estados distintos.
 
@@ -162,11 +164,36 @@ Un endpoint puede desalinearse en dos dimensiones —dónde está y qué dice—
 | `PENDING` | `accepted` ausente y la capa existe | `bilinker accept` |
 | `OK` | Los dos valores copiados coinciden con los del vecino | — |
 | `CHAIN_DIRTY` | El endpoint estructural adyacente fue re-aceptado | `bilinker accept` |
-| `BROKEN` | La capa ya no existe, o el bilink adyacente no tiene endpoint estructural aceptado | Restaurar + `accept` · o · `remove` |
+| `LAYER_UNREACHABLE` | La capa está declarada y no clonada | `stratum pull` |
+| `LAYER_UNCONFIGURED` | Ni declarada ni presente, con aceptación previa | Declarar la capa · o · `remove` |
+| `BROKEN` | La capa existe y el `.bilink` del UUID no está, o el bilink adyacente no tiene endpoint estructural aceptado | Restaurar + `accept` · o · `remove` |
 
 Los endpoints `path` no tienen capture: apuntan a una capa, no a un fragmento.
 
 `bilinker remove` elimina el bilink de la capa actual. Los vecinos detectan `BROKEN` en el próximo `check` y deciden: reparar o remover. La remoción se propaga hop a hop.
+
+**Las tres ausencias son cosas distintas y se arreglan distinto**, que es por qué no comparten nombre: a una capa declarada le falta traerla, a una sin declarar le falta declararla, y un `.bilink` que desapareció bajo una capa presente es una regresión. Un solo `UNREACHABLE` no distinguía *"me falta traer algo"* de *"algo se rompió"*, que es la diferencia que decide si alguien tiene que mirar. Ver [la frontera](frontier.md) § "Taxonomía de ausencia".
+
+### Endpoint `abstract`
+
+| Estado | Significado | Cómo se sale |
+|--------|-------------|--------------|
+| `OPEN` | La punta está abierta a quien la consuma | — |
+
+Constante: no hay contra qué compararla. Nunca pide acción y `accept .` nunca la toca.
+
+### Endpoint repo
+
+| Estado | Significado | Cómo se sale |
+|--------|-------------|--------------|
+| `PENDING` | `accepted` ausente y el clon está | `bilinker accept` |
+| `OK` | Los dos valores copiados coinciden con los del proveedor | — |
+| `CHAIN_DIRTY` | El proveedor re-aceptó su fragmento | revisar + `bilinker accept` |
+| `REJECTED` | La otra punta dejó de ser `abstract` | investigar — el vínculo no se sostiene |
+| `REMOTE_UNREACHABLE` | El repo del proveedor no está clonado | lo clona bilinker |
+| `BROKEN` | El clon está y el `.bilink` del UUID no | investigar — es regresión |
+
+`CHAIN_DIRTY` no distingue si el proveedor movió el fragmento o cambió su contenido: eso sale de **cuál de los dos valores** difiere, y lo dice `check`. Ver [la frontera](frontier.md) § "La comparación, sin abrir el clon".
 
 ## Propagación
 

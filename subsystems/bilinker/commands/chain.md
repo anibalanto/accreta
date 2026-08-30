@@ -19,12 +19,39 @@ bilinker chain new --tip <STRATUM_PATH[:LINE:COL]> \
 
 | Argumento | Descripción |
 |---|---|
-| `--tip <ref>` | Extremo de la cadena: path Stratum al archivo, con posición opcional. Exactamente dos veces. |
+| `--tip <ref>` | Extremo de la cadena: path Stratum al archivo con posición opcional, `abstract`, o `repo <alias>`. Exactamente dos veces. |
 | `--mid <layer>` | Capa intermedia. Cero o más veces. |
 | `--kind <valor>` | El [`kind`](../concepts/bilink.md) del bilink. |
 | `--name.N <etiqueta>` | El `name` del endpoint N. |
 
 Cada `--tip` captura el fragmento —sin posición, el archivo completo— y el endpoint queda apuntando a ese capture. Los mids llevan dos endpoints `path`. Ningún `accepted` se escribe: la cadena nace en `PENDING`.
+
+#### Los dos tips de la frontera
+
+Una cadena que cruza a otro proyecto se crea desde **cada lado por separado**, y no podría ser de otra manera: son dos repos y ninguno escribe en el otro.
+
+**El proveedor publica** una punta abierta:
+
+```bash
+bilinker chain new \
+  --tip 'src/main/java/…/UserPermissions.java:42:1' \
+  --tip abstract
+```
+
+Un solo archivo, en su repo, con `link: abstract` del lado 1. Nadie más aparece — el proveedor no sabe quién va a consumirlo.
+
+**El consumidor referencia** ese bilink por su UUID, que es el mismo:
+
+```bash
+bilinker chain new --from-repo hsi:8a3f0d21 \
+  --tip 'src/permissions.ts:17:1'
+```
+
+`--from-repo <alias>:<uuid>` toma el UUID del bilink remoto en vez de generar uno nuevo, y arma el endpoint repo del otro lado. Es la única forma de `chain new` que no genera UUID: **la convención de UUID compartido es lo que hace el rendezvous**, y generar uno propio rompería el vínculo antes de crearlo.
+
+El alias tiene que estar declarado —`.bilink/.hsi.toml`— y el clon tiene que estar. `chain new` sí puede clonar, a diferencia de `check`: es un acto explícito de una persona que está creando un vínculo.
+
+Ver [la frontera](../concepts/frontier.md).
 
 #### El path de un tip atraviesa directorios, no sólo capas
 

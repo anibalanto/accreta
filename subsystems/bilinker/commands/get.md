@@ -105,6 +105,25 @@ $ bilinker get 7f3d8e9a.1 --diff
 
 Si el fragmento no cambió (estado OK), muestra el contenido sin diff.
 
+### Cruzando la frontera, el clon se profundiza a pedido
+
+Un endpoint [repo](../concepts/frontier.md#el-endpoint-repo) apunta a un fragmento de otro proyecto, y su clon **arranca superficial**: el árbol actual de la rama declarada, sin historia. Alcanza para [`check`](check.md), que no puede andar profundizando clones como efecto colateral.
+
+`get --diff` es el que sí necesita historia, y la trae **sólo para ese bilink**:
+
+```
+1. Recorrer el .bilink remoto hacia atrás por la ref del proveedor,
+   hasta la versión cuyo `accepted` coincide con lo que este repo aceptó.
+2. Leer el capture de entonces y el archivo de entonces.
+3. Comparar contra lo que el proveedor publica ahora.
+```
+
+El paso 1 es lo que hace que **ningún commit del proveedor se copie**: se descubre, no se guarda. Y el fetch es incremental —`--deepen`, o los blobs de un clon parcial— así que el costo se paga únicamente donde hay un humano mirando.
+
+**Ése es el reparto: `check` es masivo y barato; ver el diff es puntual y caro.** El conocimiento mínimo queda como default, no como límite.
+
+Si el clon no está, `--diff` no lo crea: dice que falta y sale, igual que `check` reporta `REMOTE_UNREACHABLE`. Traer un repo ajeno por primera vez es un acto explícito.
+
 `--diff` opera solo sobre el endpoint pedido. Para ver además el diff de todo lo que ese fragmento llama, el traversal del call graph vive en [lattice](../../lattice/overview.md) — bilinker no consulta language servers.
 
 ## Forma 3: archivo → todos los endpoints que lo referencian

@@ -51,3 +51,17 @@ git push && git push origin 'refs/bilink/main:refs/bilink/main'
 ```
 
 Hasta que eso pase, revertir es `git revert` del commit del corte más `git update-ref -d refs/bilink/main`. Después ya no.
+
+## Lo que el corte destapó
+
+Verificar el corte con la cache borrada —que es la única lectura honesta— sacó a la luz **17 endpoints con deriva real que `check` venía reportando `OK`**. No los causó el corte: el árbol de `●0` los tiene idénticos. Los tapaba un fast-path.
+
+`check` preguntaba `git diff --name-only <commit> -- <file>` y, si el archivo no había cambiado desde el commit del contenido aceptado, conservaba el `OK` sin volver a hashear. **Su premisa es un proxy** —"¿cambió el archivo?"— de la pregunta real —"¿el fragmento sigue hasheando a lo aceptado?"—, y las dos se despegan apenas cambia **cómo se resuelve el rango**: el mismo archivo produce otro fragmento y el proxy no se entera nunca.
+
+Pasó en la migración `18`, que cambió los bordes del rango. La confirmación es que el texto aceptado de esos 17 es **irrecuperable**: ningún commit contiene un fragmento que hashee a eso, porque nunca existió con ese recorte.
+
+Y el atajo no compraba nada: medido sobre accreta, el subproceso de git cuesta lo mismo que leer el archivo y hashearlo. Se pagaba un proceso para ahorrarse un `read`.
+
+**Los 17 se aceptaron con evidencia, no a ciegas**: los archivos son byte-idénticos a como estaban cuando se aprobaron, así que el texto no cambió — cambió el recorte. Reaceptar es fijar el mismo contenido bajo la regla nueva.
+
+La lección quedó en [`commands/check.md`](../subsystems/bilinker/commands/check.md) § "No hay optimización por diff de git": **un estado se conserva verificándolo, no infiriéndolo de que su entrada no cambió** — porque "su entrada" incluye a la herramienta, y la herramienta también cambia.
