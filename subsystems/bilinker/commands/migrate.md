@@ -28,9 +28,7 @@ Invocar `migrate` capa por capa registra la migración al terminar la primera, y
 |---|---|
 | `bilinker-001-capture-split` | Extrae la ubicación de cada endpoint estructural a un `.capture`, y reemplaza `link.N` por `capture <uuid>`. |
 | `bilinker-002-file-partition` | Reescribe cada bilink a YAML, con los endpoints bajo `endpoint.0`/`endpoint.1` y el tipo de cada `link` explícito. Lo derivable sale a la cache. |
-| `bilinker-003-immutable-captures` | Renombra cada capture a `capture/<H(file, query, offset)>.yaml` y repunta cada `link` y cada `accepted.link`. |
 
-**El orden importa y no es el obvio.** La partición va primera: mientras `range`, `state` y `resolved_at` sigan adentro del `.capture`, no se le puede calcular un id estable.
 
 ### `bilinker-001-capture-split`
 
@@ -54,11 +52,13 @@ De `clave: valor` plano a YAML. `hash.N` → `accepted.hash`, `hash_ast.N` → `
 
 **`accepted.link` se siembra copiando `link.N`** donde había `hash.N`. Es exacto donde el endpoint estaba `OK`: en el formato viejo un endpoint `OK` es uno cuyo contenido actual coincide con el aceptado en la ubicación que `link.N` describe, así que esa ubicación *es* la bendecida. Donde estaba no-OK es la única lectura disponible —el formato viejo no distingue drift de ubicación de drift de contenido— y es la que preserva la invariante de aceptación sin poner todos los bilinks en `RELOCATED` de golpe ni degradarlos a `PENDING`, que borraría el inventario de trabajo. En un endpoint `PENDING`, `accepted` queda ausente y sólo sobrevive `link`.
 
-### `bilinker-003-immutable-captures`
+#### Los captures, en la misma pasada
 
-Renombra cada capture a su id de contenido y repunta las dos clases de referencia: `link` y `accepted.link`.
+Cada capture se acuña bajo `H(file, query, offset)` y se repuntan las dos clases de referencia: `link` y `accepted.link`.
 
-**No tiene fan-out.** Como el id no depende del hash, dos bilinks que aceptaron contenidos distintos del mismo fragmento siguen compartiendo capture, y la divergencia queda en sus `accepted`. Dos captures con la misma ubicación colapsan en uno: es la dedup por construcción, aplicada de una vez a lo que ya existía.
+**No tiene fan-out.** Como el id no depende del hash del contenido, dos bilinks que aceptaron contenidos distintos del mismo fragmento siguen compartiendo capture, y la divergencia queda en sus `accepted`. Dos captures con la misma ubicación colapsan en uno: es la dedup por construcción, aplicada de una vez a lo que ya existía.
+
+> Esto llegó a estar planeado como una migración aparte, `003`. No lo es: el id sale de los tres campos y no de hashear el archivo, así que no hay que sacarle nada antes para poder calcularlo. Separarlas habría creado un formato intermedio —captures en YAML con su uuid viejo— que exige un crate propio para siempre y en el que nadie iba a estar. Ver la enmienda en [ADR-0003](../.stratum/impl/docs/adr/0003-formato-captures-y-aceptacion.md).
 
 ## El problema de bootstrap
 
@@ -67,12 +67,12 @@ La herramienta que cambia de formato es la que se usa para cambiarlo, y las spec
 **Coexistencia por path.** Los dos formatos no pueden ocupar `.bilink/` a la vez, así que la migración escribe en un path transitorio y deja `.bilink/` intacto:
 
 ```
-.bilink/  →  .bilink-migrate-002-file-partition/  →  .bilink-migrate-003-immutable-captures/
+.bilink/  →  .bilink-migrate-002-file-partition/
 ```
 
 El binario viejo sigue trabajando contra `.bilink/` sin enterarse; el nuevo se ejerce contra el path nuevo con datos reales antes de que nada sea irreversible. Los dos corriendo en el mismo instante sobre el mismo repo, cada uno contra la carpeta que entiende.
 
-**El path lleva el id de la migración.** Sin él, dos migraciones en vuelo colisionan y una carpeta abandonada es indistinguible de una en curso. El prefijo `bilinker-` se omite: dentro del directorio de bilinker es redundante.
+**El path lleva el id de la migración.** Con una sola el nombre parece de más, y no lo es: distingue una carpeta en curso de una abandonada de un intento anterior, y deja la puerta abierta a encadenar si alguna vez hay dos. El prefijo `bilinker-` se omite: dentro del directorio de bilinker es redundante.
 
 **Es un derivado, no un espacio de trabajo.** No se edita a mano: si se lo edita, deja de poder regenerarse, que es lo único que lo vuelve seguro. Y tiene que poder regenerarse, porque si entre la generación y el corte alguien acepta algo con el binario viejo, la copia migrada queda vieja y el corte se comería esa aceptación.
 

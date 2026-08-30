@@ -160,8 +160,6 @@ El `range` sale de la cache, no del capture. Un clon fresco no lo tiene hasta qu
 
 ## Migración desde el formato anterior
 
-Dos migraciones, y el orden no es el obvio. Ver [`bilinker migrate`](../commands/migrate.md).
+Una migración, `bilinker-002-file-partition`. Ver [`bilinker migrate`](../commands/migrate.md).
 
-`bilinker-002-file-partition` va primera: mientras `range`, `state` y `resolved_at` sigan dentro del capture, no se le puede calcular un id estable.
-
-`bilinker-003-immutable-captures` reescribe cada capture como `capture/<H(file, query, offset)>.yaml` y repunta cada `link` y cada `accepted.link`. Dos captures con la misma ubicación colapsan en uno — la dedup por construcción, aplicada de una vez a lo que ya existía.
+Acuña cada capture bajo `H(file, query, offset)` —los tres campos que sobreviven, no el archivo— y repunta cada `link` y cada `accepted.link`. Dos captures con la misma ubicación colapsan en uno: la dedup por construcción, aplicada de una vez a lo que ya existía.

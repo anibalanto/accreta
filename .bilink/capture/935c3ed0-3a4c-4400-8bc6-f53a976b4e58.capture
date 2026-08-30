@@ -5,6 +5,6 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "Salida"))) @target)
 
 # Cache
-range:       7207~8188
+range:       7394~8375
 state:       RESOLVED
-resolved_at: 2026-08-30T03:10:34Z
+resolved_at: 2026-08-30T04:31:30Z

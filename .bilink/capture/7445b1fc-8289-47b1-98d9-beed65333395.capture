@@ -5,6 +5,6 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "Migraciones"))) @target)
 
 # Cache
-range:       1020~4277
+range:       1020~4431
 state:       RESOLVED
-resolved_at: 2026-08-30T03:10:34Z
+resolved_at: 2026-08-30T04:31:30Z

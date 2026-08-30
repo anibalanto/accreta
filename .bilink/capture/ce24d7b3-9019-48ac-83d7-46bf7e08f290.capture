@@ -5,6 +5,6 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "`bilinker-001-capture-split`"))) @target)
 
 # Cache
-range:       1720~2626
+range:       1394~2300
 state:       RESOLVED
-resolved_at: 2026-08-30T03:10:34Z
+resolved_at: 2026-08-30T04:31:30Z
