@@ -67,6 +67,23 @@ flowchart TD
 
 Ningún nodo puede cambiar su estado aceptado sin que los nodos adyacentes lo detecten.
 
+## El formato vive aparte
+
+El formato de los archivos es un crate propio, `bilink-format`, del que depende todo lo demás:
+
+```
+bilink-format     los tipos y su serialización. No resuelve nada.
+  └── bilinker    los interpreta: tree-sitter, git, estados
+        ├── bilinker-cli
+        └── bilinker-lsp
+```
+
+La línea que los separa es **qué hace falta para leer un archivo y qué hace falta para juzgarlo**. Un `.capture` dice dónde está un fragmento; saber si el fragmento sigue ahí exige tree-sitter y git, y eso ya no es el formato.
+
+Se ve en `capture.rs`, que era un archivo y ahora son dos: la mitad que describe el `.capture` está en el crate de formato, y el algoritmo que lo produce —el walk-up por el AST, la construcción de la query— se quedó en `bilinker`, porque depende de las gramáticas.
+
+**La versión del crate es la versión del formato**, y se verifica sola. Ver [versión del formato](concepts/format-version.md).
+
 ## Componentes internos
 
 ```
