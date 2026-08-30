@@ -145,7 +145,7 @@ Hubo una: antes de hashear, `check` preguntaba `git diff --name-only <commit> --
 
 **Su premisa es un proxy, y el proxy se despega.** La pregunta que hay que contestar es *"¿el fragmento sigue hasheando a `accepted.hash`?"*; la que se contestaba es *"¿cambió el archivo?"*. Las dos coinciden mientras el fragmento se derive del archivo de la misma manera — y dejan de coincidir apenas cambia **cómo se resuelve el rango**. Ahí el mismo archivo produce otro fragmento, el archivo no se tocó, y el atajo devuelve `OK` para siempre.
 
-No es hipotético: pasó al cambiar los bordes del rango en una migración. Veintidós endpoints de accreta quedaron con un `accepted.hash` que ya no describía lo que había, y `check` los reportó `OK` — con [`accept`](accept.md) creyéndole y no aceptando nada, que es lo que [la cache](../concepts/cache.md) llama *"una decisión perdida"*. Quedaron invisibles hasta que alguien borró la cache.
+No es hipotético: pasó al cambiar los bordes del rango en una migración. Diecisiete endpoints de accreta quedaron con un `accepted.hash` que ya no describía lo que había, y `check` los reportó `OK` — con [`accept`](accept.md) creyéndole y no aceptando nada, que es lo que [la cache](../concepts/cache.md) llama *"una decisión perdida"*. Quedaron invisibles hasta que alguien borró la cache.
 
 **Y no compraba nada.** Lo que ahorraba es leer un archivo y hashearlo; lo que gastaba es un subproceso de git. Medido sobre accreta, las dos cosas cuestan lo mismo.
 
