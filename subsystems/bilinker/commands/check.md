@@ -108,7 +108,9 @@ git diff --name-only <commit.N> -- <file>
 
 Sin `..HEAD`: la comparación es contra el **árbol de trabajo**, no contra HEAD. Con `..HEAD` se comparan dos commits y los cambios sin commitear quedan invisibles — que es el caso más común mientras alguien trabaja, y el fast-path devolvería un estado cacheado obsoleto.
 
-Si el output está vacío → el archivo no cambió desde `commit.N` → el `state.N` cacheado sigue siendo válido; se omite el resto del algoritmo para ese endpoint.
+Si el output está vacío → el archivo no cambió desde `commit.N`. Eso alcanza para conservar un `state.N` de **OK**, y nada más.
+
+Cualquier `state.N` no-OK cacheado se recalcula. La cache la escribe `check` leyendo el **árbol de trabajo**, no el commit, así que un estado no-OK pudo haberse calculado sobre una edición que después se revirtió: el archivo vuelve a coincidir con `commit.N`, el diff sale vacío, y el fast-path conservaría un estado que describe un contenido que ya no está. Recalcular lo no-OK cuesta proporcionalmente a lo que está roto, que siempre es poco.
 
 Si git falla —commit inexistente, repo sin historial— se asume **cambiado**. No poder comparar no es evidencia de que nada cambió.
 
@@ -216,6 +218,8 @@ Los estados con auto-fix (MOVED, DISPLACED, REANCHORED, EXPANDED) se resuelven c
 ## Salida
 
 Bilinks OK se omiten por defecto. Con `--verbose` se muestran todos. Para cadenas, se recomienda usar `bilinker chain status <uuid>`.
+
+**Qué se imprime y qué código de salida se devuelve son dos preguntas distintas.** Un endpoint con auto-fix —MOVED, DISPLACED, EXPANDED, RESTYLED, REANCHORED— **se imprime**, porque no está OK y hay trabajo que hacer, y **no cambia el código de salida**, porque `apply` lo resuelve sin decisión humana. Confundir las dos deja estados que existen en disco y no aparecen en ninguna parte. Ver § "Código de salida".
 
 ```
 $ bilinker check .
