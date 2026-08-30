@@ -1,0 +1,6 @@
+file: integration/bilinker.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "Integración con bilinker"))
+    (section
+    (atx_heading (inline) @n1 (#eq? @n1 "El contrato"))) @target)

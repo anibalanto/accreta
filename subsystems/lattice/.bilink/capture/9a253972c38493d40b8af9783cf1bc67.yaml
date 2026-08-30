@@ -1,0 +1,6 @@
+file: overview.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "Lattice"))
+    (section
+    (atx_heading (inline) @n1 (#eq? @n1 "Consulta"))) @target)
