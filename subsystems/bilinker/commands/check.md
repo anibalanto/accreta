@@ -62,11 +62,29 @@ Comparan lo hallado contra `accepted`.
 | **RELOCATED** | `link` ≠ `accepted.link`. | `accept --place` |
 | **DISPLACED** | El texto aceptado está en otro offset del nodo. | `apply` + `accept` |
 | **EXPANDED** | El fragmento contiene lo aceptado verbatim y algo más. | `apply` + `accept` |
-| **RESTYLED** | El texto difiere pero el AST coincide — sólo formato. | `accept` |
+| **RESTYLED** | El texto difiere pero el AST coincide — sólo formato. Sólo donde el AST discrimina contenido. | `accept` |
 | **ALTERED** | El fragmento cambió estructuralmente. | revisar + `accept` |
 | **UNRESOLVED** | El capture referenciado no resolvió. | se resuelve en el capture |
 
 `DISPLACED` y `EXPANDED` se detectan acá porque necesitan el texto aceptado, pero lo que producen es una **ubicación nueva**, y eso lo escribe `apply` acuñando un capture.
+
+### `RESTYLED` sólo existe donde el AST discrimina contenido
+
+En prosa el AST no lleva el texto: el s-expression de una sección markdown es el mismo con cualquier párrafo adentro. Comparar ahí diría "sólo formato" de una reescritura entera, que es exactamente el estado que invita a aceptar sin leer.
+
+Así que la pregunta la decide **la gramática, no el archivo**: en markdown y texto plano `accept` no escribe `hash_ast` y `check` no lo compara. Los dos consultan la gramática antes que `accepted`, así que un `hash_ast` guardado por una versión anterior queda inerte en vez de mentir — y `accept` tampoco lo arrastra hacia adelante.
+
+La lista de lenguajes donde el AST discrimina es la de [`capture`](capture.md) § "Lenguajes soportados", menos markdown.
+
+### Y `hash_ast` cubre los tokens, no sólo la forma del árbol
+
+El s-expression de tree-sitter es la forma del árbol: dice `(identifier)`, no *qué* identificador. Hashear eso solo hace invisible todo renombre y todo literal — `("0.1.0", "21e2…")` y `("2.0.0", "3939…")` tienen el mismo árbol, y el estado saldría RESTYLED de un cambio de versión.
+
+`hash_ast` es entonces **la forma del árbol más el texto de cada token hoja**. Dos fragmentos coinciden cuando tienen los mismos tokens en el mismo orden y la misma estructura; lo único que puede diferir es el espacio entre ellos, que es lo que "sólo formato" quiere decir.
+
+Un comentario es un token, así que cambiarlo no es RESTYLED. Es lo correcto: un comentario dice algo, y cambiar lo que dice es un cambio de contenido.
+
+**Un `hash_ast` calculado con la definición anterior simplemente no coincide**, y el endpoint sale ALTERED — que pide revisión, que es la respuesta segura. No hace falta migrar nada.
 
 ### La frontera entre EXPANDED y DISPLACED
 
