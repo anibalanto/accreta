@@ -39,7 +39,7 @@ Las aristas no dirigidas (`bilink`, `governs`, `issue`) se recorren en ambos sen
 | `<archivo>` | Nodos que referencian ese archivo. |
 | `<archivo>:<línea>:<col>` | Nodos que cubren esa posición, del más específico al más general. |
 | `<uuid>.<N>` | El nodo del endpoint N de ese vínculo — un fragmento. |
-| `<uuid>` | **El vínculo**, no un nodo: la arista con ese `ref`, más el nodo del archivo `.bilink` que la identifica. |
+| `<uuid>` | **El vínculo**, no un nodo: la arista con ese `ref`, más el nodo del archivo de bilink que la identifica. |
 | `.` | Todos los nodos de la capa actual (con `--recursive`, de todas las capas). |
 
 ### `<uuid>` vs `<uuid>.<N>`
@@ -54,7 +54,7 @@ lattice graph fac79bf8.1
 lattice graph fac79bf8 --via governs
 ```
 
-El segundo ejemplo no devuelve nada todavía, porque `governs` no se emite; la distinción importa igual, y es la razón de que `<uuid>` exista como selector. Una arista `governs` no apunta a un fragmento: apunta al vínculo entre dos fragmentos. Su nodo destino es el archivo `.bilink`, que comparte `ref` con la arista `bilink` de esa cadena — ver [integration/bilinker.md](../integration/bilinker.md) § "El endpoint bilink y las aristas `governs`".
+El segundo ejemplo no devuelve nada todavía, porque `governs` no se emite; la distinción importa igual, y es la razón de que `<uuid>` exista como selector. Una arista `governs` no apunta a un fragmento: apunta al vínculo entre dos fragmentos. Su nodo destino es el archivo del bilink, que comparte `ref` con la arista `bilink` de esa cadena — ver [integration/bilinker.md](../integration/bilinker.md) § "El endpoint bilink y las aristas `governs`".
 
 Con `<uuid>` el traversal arranca desde ese nodo *y* desde los dos tips, de modo que una consulta sin `--via` devuelve el vínculo completo con lo que lo gobierna.
 

@@ -55,11 +55,13 @@ Los dos tipos de fuente localizan las cosas de manera incompatible:
 
 Para preguntarle al LSP por los callers de un nodo que vino de un bilink, hay que encontrar la posición exacta del identificador dentro del rango.
 
-El dato ya existe. Un endpoint estructural no guarda solo un rango: guarda la **query tree-sitter** con la que `capture` lo localizó, y esa query incluye un predicado sobre el nombre del anchor:
+El dato ya existe. Un endpoint estructural no guarda un rango: referencia un [capture](../../bilinker/concepts/capture.md), que guarda la **query tree-sitter** con la que se lo localizó — y esa query incluye un predicado sobre el nombre del anchor:
 
-```
-link.1: src/check.rs :: (function_item
-  name: (identifier) @n0 (#eq? @n0 "check_structural")) @target
+```yaml
+# .bilink/capture/<id>.yaml
+file: src/check.rs
+query: |-
+  (function_item name: (identifier) @n0 (#eq? @n0 "check_structural")) @target
 ```
 
 La captura `@n0` **es** el nodo del identificador. Resolver la query da su posición sin ningún parsing adicional, y tree-sitter la entrega como `Point { row, column }` — el mismo formato que consume el LSP, sin conversión de bytes a líneas.

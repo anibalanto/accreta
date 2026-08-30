@@ -1,6 +1,6 @@
 # Integración con impact
 
-Impact es consumidor de lattice. No lee `.bilink` ni habla con language servers: consulta el grafo y evalúa.
+Impact es consumidor de lattice. No lee bilinks ni habla con language servers: consulta el grafo y evalúa.
 
 ## Reparto
 
@@ -18,7 +18,7 @@ De los siete componentes de [su arquitectura](../../impact/architecture.md), dos
 
 | Componente | Antes | Ahora |
 |---|---|---|
-| **Chain Resolver** | Escanea los `.bilink` de la capa buscando los que referencian un archivo. | `lattice graph <archivo> --via bilink` |
+| **Chain Resolver** | Escanea los bilinks de la capa buscando los que referencian un archivo. | `lattice graph <archivo> --via bilink` |
 | **Impact Element Finder** | Consulta un índice de backlinks en `.bilink/.index`. | `lattice graph <uuid> --via governs` |
 
 El resto —Event Collector, Git Analyzer, Skill Runner, Report Builder, Thread Manager— es trabajo propio de impact y no cambia.

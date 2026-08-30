@@ -13,7 +13,7 @@ Bilinker es un proveedor de lattice. Produce y verifica un tipo de conexión; la
 | Recorrer el grafo del proyecto | no | sí |
 | Consultar el call graph | no | sí, vía proveedor LSP |
 
-La línea divisoria: bilinker sabe qué significa un `.bilink` y cómo resolverlo; lattice sabe cómo componer aristas heterogéneas. Ninguno de los dos hace el trabajo del otro.
+La línea divisoria: bilinker sabe qué significa un bilink y cómo resolverlo; lattice sabe cómo componer aristas heterogéneas. Ninguno de los dos hace el trabajo del otro.
 
 ## El contrato
 
@@ -41,7 +41,7 @@ Bilinker emite sus aristas con los nodos ya en forma canónica y la topología d
 
 ### Qué resuelve bilinker antes de emitir
 
-- **La cadena entera.** Una cadena de N nodos produce **una** arista, entre sus dos tips estructurales. Los mids son mecanismo interno del formato — si lattice los viera, el grafo se llenaría de nodos `.bilink` que no son contenido del proyecto.
+- **La cadena entera.** Una cadena de N nodos produce **una** arista, entre sus dos tips estructurales. Los mids son mecanismo interno del formato — si lattice los viera, el grafo se llenaría de nodos que no son contenido del proyecto.
 - **Los paths Stratum.** `link.N: .stratum/impl` se resuelve a la raíz de capa concreta antes de emitir.
 - **El rango vigente.** El `range` que el último `check` dejó en la cache del capture.
 
@@ -51,16 +51,16 @@ Nada de eso es conocimiento que lattice pueda tener sin duplicar el formato de b
 
 Dos campos que ningún otro proveedor emite y que existen porque impact los necesita:
 
-- `state` — la tupla `(state.0, state.1)`. Permite filtrar por no-OK sin abrir archivos.
+- `state` — el estado de cada tip. Permite filtrar por no-OK sin abrir archivos.
 - `commit` — el commit en que el contenido aceptado de cada tip quedó establecido. Es el baseline de `git log <commit>..HEAD`.
 
-Sin ellos en la arista, un consumidor tendría que reabrir los `.bilink` para completarlos — exactamente la duplicación que lattice elimina.
+Sin ellos en la arista, un consumidor tendría que reabrir los bilinks para completarlos — exactamente la duplicación que lattice elimina.
 
 Lattice no los interpreta: los transporta. La semántica de un `ALTERED` es de bilinker.
 
 ## Frescura
 
-Lattice refleja lo que los `.bilink` dicen en el momento de la consulta. No corre `check` ni lo dispara.
+Lattice refleja lo que los bilinks dicen en el momento de la consulta. No corre `check` ni lo dispara.
 
 Un `state` desactualizado es un `check` que no se corrió, no un error de lattice. Un consumidor que necesite estados frescos corre `bilinker check` antes de consultar.
 
@@ -70,7 +70,7 @@ Esto mantiene la propiedad de que lattice es solo lectura y no tiene efectos sob
 
 > **Pendiente del proveedor.** Todo lo de esta sección depende del endpoint de tipo bilink, que bilinker tiene especificado y no implementado — ver [`proposals/bilink-endpoint.md`](../../bilinker/proposals/bilink-endpoint.md). El diseño de lattice queda escrito acá porque no cambia: cuando el endpoint vuelva, estas aristas se emiten sin tocar nada de este lado.
 
-Un bilink con `kind: governs` apunta en su `link.1` a otro archivo `.bilink`, no a un fragmento. Su nodo canónico es el archivo:
+Un bilink con `kind: governs` apunta en uno de sus `link` a otro bilink, no a un fragmento. Su nodo canónico es el archivo del bilink:
 
 ```
 .::.bilink/fac79bf8-1b2c-4d5e-8f6a-7b8c9d0e1f2a.bilink
@@ -78,7 +78,7 @@ Un bilink con `kind: governs` apunta en su `link.1` a otro archivo `.bilink`, no
 
 Ese nodo comparte `ref` con la arista `bilink` de esa misma cadena, y por ahí se hace el join: *"el documento D gobierna el vínculo `fac79bf8`"*.
 
-Es una relación sobre una arista, no sobre un nodo — la relación ternaria que describe [impact-element.md](../../impact/concepts/impact-element.md). Lattice no modela hiperaristas: expone el nodo del archivo `.bilink` y deja que el consumidor una por `ref`. Es la representación mínima que preserva la semántica sin inventar un tipo nuevo.
+Es una relación sobre una arista, no sobre un nodo — la relación ternaria que describe [impact-element.md](../../impact/concepts/impact-element.md). Lattice no modela hiperaristas: expone el nodo del archivo de bilink y deja que el consumidor una por `ref`. Es la representación mínima que preserva la semántica sin inventar un tipo nuevo.
 
 ## Lo que se movió de bilinker a lattice
 

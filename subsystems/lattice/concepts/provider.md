@@ -46,7 +46,7 @@ Un proveedor `Degraded` cuenta como grafo incompleto a los efectos del código d
 
 ### `bilink`
 
-Lee los `.bilink` de la capa y de las capas alcanzables. Emite una arista por cadena, entre los dos tips estructurales — nunca entre nodos `.bilink` intermedios.
+Lee los bilinks de la capa y de las capas alcanzables. Emite una arista por cadena, entre los dos tips estructurales — nunca entre los nodos intermedios de la cadena.
 
 Se alimenta de `bilinker graph --format json`, que ya entrega los nodos en forma canónica con la topología de cadena resuelta.
 
@@ -54,10 +54,12 @@ Lleva dos campos que ningún otro proveedor tiene y que impact necesita:
 
 | Campo | Uso |
 |---|---|
-| `state` | La tupla `(state.0, state.1)` de los tips. Filtrar por no-OK. |
+| `state` | El estado de cada tip, como lo reporta `bilinker graph`. Filtrar por no-OK. |
 | `commit` | El commit en que el contenido aceptado de cada tip quedó establecido. Baseline de `git log <commit>..HEAD`. |
 
-Sin `commit` en la arista, impact tendría que volver a abrir los `.bilink` para calcular su diff — que es exactamente la duplicación que este subsistema elimina.
+Sin `commit` en la arista, impact tendría que volver a abrir los bilinks para calcular su diff — que es exactamente la duplicación que este subsistema elimina.
+
+Los dos son **derivados** del lado de bilinker: `state` vive en su cache y `commit` se re-deriva de git si falta. Que lattice los reciba en la arista y no los calcule es la misma línea divisoria de siempre — bilinker sabe qué significan, lattice sabe componer.
 
 ### `lsp`
 

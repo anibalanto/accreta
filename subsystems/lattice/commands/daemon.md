@@ -64,7 +64,7 @@ Socket Unix en `~/.lattice/daemon.sock`. JSON-RPC 2.0 con framing newline-delimi
 
 `symbol_at` es el **fallback** de la resolución de anclaje (ver [concepts/node.md](../concepts/node.md) § "Anclaje"): dado un nodo localizado por rango de bytes, encontrar la posición del identificador que el LSP necesita para `prepareCallHierarchy`.
 
-El camino principal no lo necesita: la query almacenada en el `.bilink` ya captura el identificador en su predicado de nombre. `symbol_at` cubre los endpoints sin ese predicado — nodos sin campo `name`, o archivos capturados enteros sin query.
+El camino principal no lo necesita: la query del capture que el endpoint referencia ya captura el identificador en su predicado de nombre. `symbol_at` cubre los endpoints sin ese predicado — nodos sin campo `name`, o archivos capturados enteros sin query.
 
 En bilinker el método estaba implementado pero sin ningún uso: su único consumidor documentado era `bilinker scip retrofit`, un comando que se eliminó.
 

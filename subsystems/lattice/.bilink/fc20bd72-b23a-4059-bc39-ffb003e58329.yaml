@@ -1,0 +1,5 @@
+endpoint:
+  0:
+    link: capture f1200f365c263594bcd7b57e4e51829f
+  1:
+    link: path >impl

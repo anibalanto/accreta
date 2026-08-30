@@ -6,7 +6,7 @@ El nombre viene de la metáfora raíz del ecosistema: la acreción produce redes
 
 ## Problema que resuelve
 
-Las conexiones de un proyecto ya existen, pero viven dispersas y cada herramienta las recorre por su cuenta. Bilinker sabe de bilinks; el LSP sabe de llamadas; los documentos tienen links markdown que nadie mira. Hoy `impact` recalcula el alcance de un cambio escaneando los `.bilink` y recorriendo cadenas él mismo — conocimiento del formato de bilinker filtrado a otro subsistema, que habrá que arreglar dos veces el día que ese formato cambie.
+Las conexiones de un proyecto ya existen, pero viven dispersas y cada herramienta las recorre por su cuenta. Bilinker sabe de bilinks; el LSP sabe de llamadas; los documentos tienen links markdown que nadie mira. Hoy `impact` recalcula el alcance de un cambio escaneando los bilinks y recorriendo cadenas él mismo — conocimiento del formato de bilinker filtrado a otro subsistema, que habrá que arreglar dos veces el día que ese formato cambie.
 
 El problema más profundo es que esas conexiones **no valen lo mismo**. Un bilink es una referencia que un humano escribió y aceptó, verificada por hash. Una arista de llamada del LSP es una inferencia de una herramienta externa que falla con dispatch dinámico, macros y callbacks. Un link markdown es una afirmación sin ninguna verificación. Una herramienta que las aplane todas a "links" pierde exactamente la propiedad que hace valioso a un bilink.
 
