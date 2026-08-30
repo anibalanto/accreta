@@ -1,7 +1,0 @@
-file: subsystems/bilinker/commands/check.md
-query: |-
-  (section
-    (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker check`"))
-    (section
-    (atx_heading (inline) @n1 (#eq? @n1 "Estados — resolución del capture"))) @target)
-offset: 0~596

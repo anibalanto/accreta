@@ -1,7 +1,0 @@
-file: subsystems/bilinker/commands/apply.md
-query: |-
-  (section
-    (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker apply`"))
-    (section
-    (atx_heading (inline) @n1 (#eq? @n1 "Cálculo del fix por estado"))) @target)
-offset: 94~215

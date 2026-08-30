@@ -1,7 +1,0 @@
-file: subsystems/bilinker/concepts/capture.md
-query: |-
-  (section
-    (atx_heading (inline) @n0 (#eq? @n0 "Especificación: Formato del archivo `.capture`"))
-    (section
-    (atx_heading (inline) @n1 (#eq? @n1 "Formato"))) @target)
-offset: 0~18
