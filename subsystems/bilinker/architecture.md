@@ -20,6 +20,8 @@ proyecto/
 
 El mismo UUID aparece en todas las layers que participan de una cadena.
 
+**Esas carpetas están en el árbol de trabajo y no en ninguna rama del proyecto.** Viven en `refs/bilink/<branch>`, una ref por rama, y el árbol las lleva materializadas y excluidas del índice del proyecto. Ver [la ref de bilinks](concepts/ref.md), que es donde están la invariante de fidelidad, el índice propio y `.bilink/head`.
+
 ## Topología de cadena
 
 ```mermaid
@@ -92,8 +94,14 @@ bilinker check     → resuelve captures → compara contra accepted → cache/s
 bilinker accept    → escribe accepted en el bilink
 bilinker apply     → recalcula fix desde git/AST → acuña capture y repunta link
 bilinker chain     → crea / inspecciona / lista cadenas
+bilinker init      → exclude, refspec y materialización del clon
+bilinker sync      → absorbe la rama del proyecto en la ref
+bilinker track     → crea la ref de una rama nueva
+bilinker adopt     → trae las decisiones de la ref de otra rama
 bilinker-lsp       → hover y codeLens sobre find_by_file y get
 ```
+
+Los cuatro últimos administran [la ref](concepts/ref.md); los demás la usan sin saberlo, porque absorber y commitear son precondiciones que corren adentro de `accept` y `apply`.
 
 `bilinker-lsp` no agrega lógica: expone por LSP las mismas dos llamadas que usa el CLI. Ver [`commands/lsp.md`](commands/lsp.md).
 
@@ -125,6 +133,21 @@ specs/feature/X     impl/feature/X
 Solo `A1.bilink` cambia en la branch de specs — el resto del repo de specs es idéntico a `main`. Mergear `feature/X` en `main` en impl implica mergear la branch correspondiente en specs.
 
 El formato de bilink no cambia — git maneja la variación entre branches.
+
+### Dos ejes que comparten mecanismo
+
+El pareo de ramas de arriba y [la ref de bilinks](concepts/ref.md) usan los dos el nombre de la rama, y no son lo mismo:
+
+| | Qué separa | Cuántas refs hay |
+|---|---|---|
+| Implementaciones alternativas | una variante de otra: `Voting` contra `OptimizedVoting` | una por rama, en cada repo |
+| La ref de bilinks | los bilinks del contenido que describen | una por rama, `refs/bilink/<branch>` |
+
+**Componen, y la composición es literal**: la variante `feature/X` de las specs tiene sus bilinks en `refs/bilink/feature/X`, y ése es exactamente el argumento de [`track`](commands/track.md). Un repo con dos alternativas tiene dos ramas del proyecto y dos refs de bilinks, y cada par se corresponde por nombre.
+
+De ahí sale la respuesta a una pregunta que el pareo dejaba abierta: **qué se hereda al abrir la variante.** `bilinker track feature/X` la contesta — la ref nueva hereda del commit de `refs/bilink/main` cuyo commit absorbido sigue siendo ancestro de `feature/X`, así que la variante arranca con los bilinks que describen el código que efectivamente tiene, y el único `A1.bilink` que cambia es el que alguien repunta a mano.
+
+Y mergear `feature/X` en `main` del lado del contenido no arrastra la ref: eso es [`adopt`](commands/adopt.md), y va en la dirección contraria — las decisiones de `main` entran a la variante, ninguna de la variante sale sola.
 
 ## Detección de raíz
 

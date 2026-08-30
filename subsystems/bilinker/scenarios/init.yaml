@@ -1,0 +1,143 @@
+spec: commands/init.md
+
+scenarios:
+
+  - id: init-is-required-and-explicit
+    description: Sin bilinker init, los comandos no corren
+    given:
+      - un clon fresco, sin exclude ni refspec ni .bilink/ materializado
+    when:
+      - bilinker check .
+    expect:
+      exit_code_non_zero: true
+      git_config_modified: false
+    notes:
+      - bilinker arregla solo lo que es suyo y pide lo que es del repo del usuario
+      - que un comando de lectura configurara el repo de callado sería peor que fallar
+      - la detección es por la ausencia del refspec: es la pieza que no puede estar por accidente
+
+  - id: init-is-idempotent
+    description: Correr init dos veces no hace nada la segunda
+    given:
+      - init ya corrido
+    when:
+      - bilinker init
+    expect:
+      exclude_lines_added: 0
+      config_lines_added: 0
+      rematerialized: false
+      exit_code: 0
+
+  - id: init-does-not-touch-gitignore
+    description: La exclusión va a info/exclude y ninguna rama del proyecto cambia
+    given:
+      - un clon con refs/bilink/main
+    when:
+      - bilinker init
+      - git status --porcelain
+    expect:
+      gitignore_modified: false
+      excluded_via: .git/info/exclude
+      project_worktree_dirty: false
+    notes:
+      - .gitignore está versionado y modificarlo tocaría la rama del proyecto
+
+  - id: init-excludes-migrate-folders
+    description: El exclude cubre también las carpetas temporales de migración
+    given:
+      - un clon sin inicializar
+    when:
+      - bilinker init
+      - cat .git/info/exclude
+    expect:
+      contains: [".bilink/", ".bilink-migrate-*"]
+
+  - id: fetch-brings-both-after-init
+    description: Con el refspec puesto, git fetch trae las refs de bilinks junto con las ramas
+    given:
+      - bilinker init corrido
+    when:
+      - git fetch
+    expect:
+      bilink_refs_updated: true
+      listed_in_git_branch_a: false
+    notes:
+      - una rama al día con bilinks viejos es el desajuste silencioso que esto elimina
+      - no compromete la invisibilidad: refs/bilink/* no está bajo refs/heads/ ni refs/remotes/
+
+  - id: bilink-ref-not-listed-as-branch
+    description: La ref no aparece en los listados de ramas
+    given:
+      - refs/bilink/rc-2.35 existente
+    when:
+      - git branch -a
+      - git log --branches
+    expect:
+      listed: false
+    notes:
+      - vive fuera de refs/heads/, como refs/notes/* y refs/changes/*
+
+  - id: project-branch-has-no-bilinks
+    description: Ninguna rama del proyecto contiene .bilink/
+    given:
+      - un repo con bilinks en refs/bilink/rc-2.35
+    when:
+      - git checkout rc-2.35
+    expect:
+      bilink_dir_in_worktree: false
+      git_log_rc_unchanged: true
+    notes:
+      - es la propiedad que hace adoptable el rol de proveedor sin negociar con todo el equipo
+      - el .bilink/ aparece en el árbol recién cuando init o el comando siguiente lo materializa
+
+  - id: bilinks-present-but-excluded
+    description: Los .bilink/ están en el árbol de trabajo y el proyecto no los ve
+    given:
+      - rc-2.35 checkouteada, con .bilink/ materializado
+    when:
+      - git status
+      - git check-ignore .bilink/
+    expect:
+      shown_by_project_status: false
+      excluded_via: .git/info/exclude
+      gitignore_modified: false
+
+  - id: init-does-not-overwrite-bilinks-without-head
+    description: Con .bilink/ en el árbol y sin head, init no materializa nada
+    given:
+      - un árbol con .bilink/ presente
+      - sin .bilink/head
+    when:
+      - bilinker init
+    expect:
+      rematerialized: false
+      exclude_written: true
+      refspec_written: true
+      exit_code: 0
+      reports_skipped_materialization: true
+    notes:
+      - es lo que hace que el paso 3 del corte 005 pueda ser un init a secas
+      - materializar ahí borraría el .bilink/ que todavía no está en la ref
+
+  - id: init-reports-branch-without-ref
+    description: Una rama sin ref no es un error de init
+    given:
+      - feature/x checkouteada, sin refs/bilink/feature/x
+    when:
+      - bilinker init
+    expect:
+      exit_code: 0
+      suggests: bilinker track feature/x
+    notes:
+      - de quién hereda los bilinks una rama nueva es una decisión de track, no de init
+
+  - id: init-writes-head-and-version
+    description: La materialización deja head y version escritos
+    given:
+      - un clon fresco con refs/bilink/main @ b1e3f55
+    when:
+      - bilinker init
+    expect:
+      head_branch: main
+      head_commit: b1e3f55
+      version_written: true

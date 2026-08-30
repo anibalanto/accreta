@@ -9,7 +9,20 @@ bilinker determina la raíz del proyecto buscando desde el directorio de trabajo
 
 Si ninguno se encuentra, se usa el directorio de trabajo actual como raíz. Esto permite usar bilinker en proyectos nuevos sin ningún paso de inicialización.
 
-No existe ningún archivo de configuración de bilinker. Dentro de `.bilink/` sí hay dos archivos que el propio bilinker escribe y lee —[`version`](format-version.md), que dice qué formato son estos archivos, y [`cache/state`](cache.md)— pero no son configuración: nadie los edita a mano y salen de un comando.
+No existe ningún archivo de configuración de bilinker. Dentro de `.bilink/` sí hay tres archivos que el propio bilinker escribe y lee —[`version`](format-version.md), que dice qué formato son estos archivos; [`cache/state`](cache.md); y [`head`](ref.md#bilinkhead--de-dónde-salió-el-árbol), que dice de qué commit de la ref salió este árbol— pero no son configuración: nadie los edita a mano y todos salen de un comando.
+
+## Lo que sí es por clon
+
+Dos líneas en `.git/`, y las pone [`init`](../commands/init.md):
+
+| Dónde | Qué | Por qué ahí |
+|---|---|---|
+| `.git/info/exclude` | `.bilink/` y `.bilink-migrate-*` | `.gitignore` está versionado, y agregarlo modificaría la rama del proyecto |
+| `.git/config` | el refspec de `refs/bilink/*` | sin él, `git fetch` trae la rama al día y deja los bilinks viejos |
+
+No son configuración de bilinker sino del repo del usuario, y por eso se piden en vez de escribirse solas: **bilinker arregla solo lo que es suyo, y pide lo que es del repo del usuario.** Sin `init` ningún comando corre.
+
+Que sean por clon y no por repo es lo que las obliga a estar acá: no viajan con un `git clone`, así que la primera cosa que hace quien clona es correr `init`.
 
 ## Uso con múltiples capas y repositorios
 
@@ -34,3 +47,4 @@ El lenguaje (gramática tree-sitter) se determina automáticamente por la extens
 - No se requiere configuración explícita del lenguaje: la extensión es suficiente.
 - No existe `.bilinker.toml` ni ningún otro archivo de configuración.
 - Ningún archivo de bilinker se escribe a mano: todos salen de un comando.
+- Lo único que bilinker escribe fuera de `.bilink/` son las dos líneas por clon de `init`, en `.git/`. Ninguna rama del proyecto cambia.

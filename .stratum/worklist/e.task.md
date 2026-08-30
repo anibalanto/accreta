@@ -12,13 +12,16 @@ El segundo corte, y sólo después de que el `004` esté validado entero.
 
 ```
 1. UN commit que saca .bilink/ del índice de la rama   → X   (pushear antes de seguir)
-2. git update-ref refs/bilink/<branch> X
-3. bilinker init  (exclude + refspec)
-4. Commit sobre refs/bilink/<branch>: agrega .bilink/   → ●0, padre X
-5. Ledger: 005
+2. bilinker init                                      (exclude + refspec)
+3. bilinker track <branch>                            → ●0, padre X
+4. Ledger: 005
 ```
 
 El paso 1 es `git rm --cached -r .bilink/` más commit: **los archivos se quedan en disco**, así que no hay que restaurarlos para commitearlos a la ref.
+
+> Son tres pasos y no cinco. El ADR escribía un `git update-ref refs/bilink/<branch> X` y un commit aparte; al implementar la ref quedó claro que los dos son un solo `bilinker track`, que es exactamente el caso "ningún candidato califica". Y el `update-ref` estorbaba: dejaría la ref apuntando a un commit del proyecto, y `track` tendría que tratarlo como propio. Ver la enmienda en [ADR-0004](../subsystems/bilinker/.stratum/impl/docs/adr/0004-bilinks-en-ref-paralela.md) § `005`.
+
+**El paso 2 no materializa nada**, y es lo que hace que el corte no necesite setup propio: con `.bilink/` en el árbol y sin `head`, `init` no sabe de dónde salió, así que lo deja intacto y se limita al exclude y al refspec.
 
 La regla que no se puede saltear: la ref nace de un commit donde `.bilink/` **no está en el árbol**. Es lo que hace disjuntos los dos lados de ahí en adelante; sin ese orden, el primer merge produce un modify/delete masivo — o peor, borra en silencio los bilinks que no cambiaron.
 

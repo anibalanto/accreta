@@ -1,0 +1,93 @@
+spec: commands/track.md
+
+scenarios:
+
+  - id: track-picks-newest-reachable
+    description: Con la ref adelantada respecto del fork, track hereda lo que corresponde al fork
+    given:
+      - refs/bilink/main con segundos padres C, D y E
+      - feature/x sale de D
+    when:
+      - bilinker track feature/x
+    expect:
+      first_parent_second_parent: D
+    notes:
+      - heredar del tip traería bilinks que describen código que la rama no tiene: UNRESOLVED y ALTERED falsos desde el minuto cero
+
+  - id: track-refuses-when-ambiguous
+    description: Si el fork es ancestro de dos refs trackeadas, track exige --from
+    given:
+      - el punto de fork es ancestro de main y de rc-2.35
+    when:
+      - bilinker track feature/x
+    expect:
+      exit_code_non_zero: true
+      requires_flag: --from
+
+  - id: track-commit-records-no-decision
+    description: El diff de track contra su primer padre es vacío
+    given:
+      - feature/x sin ref, saliendo de una rama trackeada
+    when:
+      - bilinker track feature/x
+      - git diff refs/bilink/feature/x^1 refs/bilink/feature/x -- .bilink/
+    expect:
+      diff_empty: true
+      parents: 2
+    notes:
+      - hereda los bilinks del primer padre y el código del segundo; no decide nada
+
+  - id: track-chain-stops-at-the-cut
+    description: Los candidatos son los commits propios de la ref, no la historia del proyecto
+    given:
+      - refs/bilink/main creada en el corte, con X como padre único
+      - una rama que sale de antes del corte
+    when:
+      - bilinker track esa-rama
+    expect:
+      inherits: none
+      creates_from_scratch: true
+    notes:
+      - sin el freno, rev-list --first-parent sigue por la historia del proyecto tras el corte
+      - y el commit más viejo del proyecto es ancestro de cualquier rama, así que siempre califica y siempre gana
+
+  - id: track-from-scratch-is-the-cutover
+    description: Sin candidato, track crea la ref con el .bilink/ del árbol — que es el paso 4 del corte
+    given:
+      - X, el commit del proyecto que saca .bilink/ del índice
+      - .bilink/ en el árbol de trabajo, sin head
+    when:
+      - bilinker track main
+    expect:
+      parents: 1
+      first_parent: X
+      tree_contains_bilink: true
+      code_tree_equals: X
+    notes:
+      - el corte no necesita comando propio: es el caso "no hay de quién heredar"
+      - es el único commit de la ref sin ningún commit del proyecto absorbido por debajo
+
+  - id: track-refuses-on-an-existing-ref
+    description: Una rama que ya tiene ref es un error, no un no-op
+    given:
+      - refs/bilink/main existente
+    when:
+      - bilinker track main
+    expect:
+      exit_code_non_zero: true
+      suggests: bilinker sync
+    notes:
+      - quien tipea track sobre una rama trackeada o se equivocó de rama, o quería sync
+
+  - id: ref-may-carry-drift
+    description: Un commit de la ref puede contener bilinks no-OK sin que eso sea corrupción
+    given:
+      - una ref recién creada con bilinker track sobre una rama nueva
+    when:
+      - se verifica la fidelidad de la ref
+    expect:
+      fidelity_ok: true
+      bilinks_all_ok: false
+    notes:
+      - la invariante NO dice que los bilinks estén en OK: el drift es el estado normal que la herramienta existe para reportar
+      - una versión más fuerte haría imposible track, que casi siempre arranca con drift

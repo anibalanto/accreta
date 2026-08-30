@@ -1,0 +1,164 @@
+spec: commands/sync.md
+
+scenarios:
+
+  - id: sync-does-not-verify
+    description: sync alinea la ref y no verifica nada
+    given:
+      - proyecto avanzado sin que se aceptara nada
+    when:
+      - bilinker sync
+    expect:
+      merge_created: true
+      states_recomputed: false
+      cache_written: false
+
+  - id: sync-diff-against-first-parent-is-empty
+    description: El commit de sync no registra ninguna decisión
+    given:
+      - refs/bilink/main al día con C
+      - commits D y E en main
+    when:
+      - bilinker sync
+      - git diff refs/bilink/main~1 refs/bilink/main -- .bilink/
+    expect:
+      diff_empty: true
+      second_parent: E
+    notes:
+      - es el único commit de la ref cuyo diff contra su primer padre es vacío
+      - alinea la foto y nada más
+
+  - id: sync-is-noop-when-already-absorbed
+    description: Con el tip ya absorbido, sync no escribe ningún commit
+    given:
+      - refs/bilink/main con segundo padre igual al tip de main
+    when:
+      - bilinker sync
+    expect:
+      commits_written: 0
+      exit_code: 0
+    notes:
+      - un merge con el mismo segundo padre y el mismo .bilink/ no dice nada nuevo
+
+  - id: merge-absorbs-project-without-conflict
+    description: Absorber avances del proyecto nunca conflictúa
+    given:
+      - refs/bilink/rc-2.35 al día con el commit C
+      - commits D y E en rc-2.35, sin tocar .bilink/
+    when:
+      - bilinker sync
+    expect:
+      conflicts: 0
+      second_parent: E
+    notes:
+      - los dos lados escriben conjuntos disjuntos: la ref sólo agrega .bilink/, el proyecto nunca lo toca
+
+  - id: merge-back-is-detected
+    description: Si .bilink/ aparece en un commit del proyecto, la absorción se aborta
+    given:
+      - alguien mergeó refs/bilink/rc-2.35 en rc-2.35
+    when:
+      - bilinker sync
+    expect:
+      aborted: true
+      failed_check: disyuncion
+      commits_written: 0
+    notes:
+      - no es exigible como invariante — nadie puede impedir que alguien mergee — pero sí detectable antes de que contamine nada
+      - la verificación va sobre el ÁRBOL del commit, no sobre su diff: el commit que borra .bilink/ tiene un diff que lo toca y un árbol que no
+      - la reparación está diferida en proposals/verificar-ref-ajena.md
+
+  - id: cutover-first-absorb-is-clean
+    description: El primer sync después del corte no conflictúa
+    given:
+      - la ref creada desde X, el commit del proyecto que borra .bilink/
+    when:
+      - el proyecto avanza y bilinker sincroniza
+    expect:
+      conflicts: 0
+      modify_delete: 0
+    notes:
+      - sin ese orden el primer merge produce un modify/delete masivo, o peor, borra en silencio los bilinks que no cambiaron
+
+  - id: ref-snapshot-is-faithful
+    description: El árbol de código de cada commit de la ref es el del commit absorbido
+    given:
+      - una ref con commits de accept, apply y sync
+    when:
+      - se comparan los tree oids de cada commit contra el del proyecto absorbido más reciente
+    expect:
+      all_identical: true
+    notes:
+      - comparación de tree oids: exacta, sin tree-sitter y sin abrir un blob
+      - es lo que garantiza que el consumidor remoto vea lo que el proveedor tenía, ni una foto vieja ni una incoherente
+
+  - id: ref-carries-only-bilink-from-worktree
+    description: Nada del árbol de trabajo fuera de .bilink/ entra al commit de la ref
+    given:
+      - archivos del proyecto modificados y sin commitear
+      - .bilink/cache/, .bilink/index/, .bilink/head y una .bilink-migrate-003/ presentes
+    when:
+      - bilinker sync
+    expect:
+      code_tree_equals_absorbed_commit: true
+      committed_paths_outside_bilink: 0
+      committed: ["!cache/", "!index/", "!head", "!.bilink-migrate-*"]
+    notes:
+      - el árbol se construye con read-tree del absorbido más update-index de .bilink/, no se toma del árbol de trabajo
+
+  - id: history-is-append-only
+    description: La historia de la ref nunca se reescribe
+    given:
+      - un consumidor que ya fetcheó refs/bilink/rc-2.32 del proveedor
+      - el proveedor absorbe commits nuevos y acepta cambios
+    when:
+      - el consumidor vuelve a fetchear
+    expect:
+      fast_forward: true
+      force_push_required: false
+    notes:
+      - es lo que permite que get --diff recorra hacia atrás hasta el token aceptado
+
+  - id: previous-state-is-one-commit-back
+    description: El estado anterior de los bilinks es ~1, sin buscar nada
+    given:
+      - varios cambios de estado sobre refs/bilink/rc-2.35
+    when:
+      - se pide el estado previo
+    expect:
+      resolves_to: refs/bilink/rc-2.35~1
+    notes:
+      - no hace falta identificador propio: el hash del commit ya lo es
+
+  - id: first-parent-shows-only-bilinks
+    description: --first-parent oculta la historia del proyecto absorbida
+    given:
+      - una ref con tres merges del proyecto y dos cambios de bilinks
+    when:
+      - git log --first-parent refs/bilink/rc-2.35
+    expect:
+      shows_project_commits: false
+
+  - id: sync-refuses-on-detached-head
+    description: Sin rama actual no se commitea sobre la ref
+    given:
+      - HEAD desacoplado a mitad de un rebase
+    when:
+      - bilinker sync
+    expect:
+      exit_code_non_zero: true
+      commits_written: 0
+    notes:
+      - adivinar una rama sería peor que no hacer nada
+      - los comandos de lectura sí corren, contra lo que head dice, avisando
+
+  - id: sync-dry-run-is-inert
+    description: --dry-run no escribe ni habla con la red
+    given:
+      - el proyecto avanzado
+    when:
+      - bilinker sync --dry-run
+    expect:
+      files_written: 0
+      commits_written: 0
+      network_calls: 0
