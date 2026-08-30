@@ -1,8 +1,8 @@
 ---
 title: Crear un bilink entre subsistemas exige escribir los archivos a mano
-status: open
+status: done
 created_at: 2026-08-29T23:53:30Z
-updated_at: 2026-08-30T00:22:05Z
+updated_at: 2026-08-30T06:15:25Z
 parent: 2
 ---
 

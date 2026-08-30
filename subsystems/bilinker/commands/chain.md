@@ -26,6 +26,20 @@ bilinker chain new --tip <STRATUM_PATH[:LINE:COL]> \
 
 Cada `--tip` captura el fragmento —sin posición, el archivo completo— y el endpoint queda apuntando a ese capture. Los mids llevan dos endpoints `path`. Ningún `accepted` se escribe: la cadena nace en `PENDING`.
 
+#### El path de un tip atraviesa directorios, no sólo capas
+
+Un tip se escribe con [tokens Stratum](../../stratum/concepts/paths.md), y los tokens de navegación entre capas —`>name`, `<`— se mezclan con componentes de path corrientes:
+
+```bash
+bilinker chain new \
+  --tip 'subsystems/bilinker/concepts/capture.md:29:1' \
+  --tip 'subsystems/bilinker>impl/crates/bilinker/src/capture.rs:523:1'
+```
+
+`subsystems/bilinker>impl` es un directorio común y después una capa. **Esa forma es la de este proyecto**, donde la capa raíz contiene las specs de cinco subsistemas y cada uno tiene su impl abajo: sin ella no se puede crear una sola cadena de accreta desde la raíz.
+
+Es lo mismo que el formato acepta desde siempre en un endpoint `path` —`path subsystems/bilinker>impl`—, así que el comando no está agregando una forma nueva sino alcanzando la que ya existe.
+
 **`--kind` existe para no depender de una edición a mano.** `kind` y `name` son campos de declaración, y todo archivo de bilinker sale de un comando: sin el flag, la única forma de poblarlos sería abrir el YAML, que es justamente lo que el formato no pide de nadie.
 
 **Ejemplo:**

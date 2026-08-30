@@ -7,16 +7,20 @@ Crea un [capture](../concepts/capture.md) a partir de una selección de texto en
 ## Firma
 
 ```
-bilinker capture <file> <start_line>:<start_col> <end_line>:<end_col> [--dry-run]
+bilinker capture <file> [<start_line>:<start_col> <end_line>:<end_col>] [--dry-run]
 bilinker capture prune [<path>]
 ```
 
 | Argumento | Tipo | Descripción |
 |---|---|---|
 | `file` | path | Ruta del archivo, relativa a la raíz de la capa actual. |
-| `start_line:start_col` | int:int | Línea y columna de inicio de la selección (1-based). |
+| `start_line:start_col` | int:int | Línea y columna de inicio de la selección (1-based). Omitir para capturar el archivo entero. |
 | `end_line:end_col` | int:int | Línea y columna de fin de la selección (1-based). |
 | `--dry-run` | flag | Imprime el capture que se crearía sin escribir nada. |
+
+**Sin selección, el capture es el archivo entero** y sale sin `query`, que es lo que [`concepts/capture.md`](../concepts/capture.md) § "Formato" define como el archivo completo. No hay nodo AST que encontrar, así que tampoco hay ancla que verificar ni lenguaje que soportar: un archivo entero se captura aunque no haya gramática para él.
+
+Es la forma más usada del lado de las specs, donde el fragmento suele ser el documento.
 
 ## Lenguajes soportados
 

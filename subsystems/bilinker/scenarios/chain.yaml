@@ -55,3 +55,17 @@ scenarios:
     expect:
       - una sección por nodo con link.0, link.1 y estados
     impl: chain_status_shows_nodes
+
+  - id: chain-new-crosses-plain-directories
+    description: un tip atraviesa directorios comunes antes de bajar a una capa
+    given:
+      - una capa raíz con subsystems/thing/ y su capa subsystems/thing>impl
+    when:
+      - bilinker chain new --tip 'subsystems/thing/concepts/spec.md' --tip 'subsystems/thing>impl/src/lib.rs:1:1'
+    expect:
+      - la cadena se crea
+      - el bilink del otro extremo queda en subsystems/thing/.stratum/impl/.bilink/
+    notes:
+      - es la forma de accreta, donde la capa raíz tiene las specs de cinco subsistemas
+      - el formato lo acepta desde siempre en un endpoint path
+    impl: a_tip_can_cross_plain_directories_before_a_layer

@@ -1,0 +1,5 @@
+file: subsystems/bilinker/scenarios/index.yaml
+query: |-
+  (block_mapping_pair
+    key: (flow_node) @n0 (#eq? @n0 "scenarios")) @target
+offset: 360~1075

@@ -99,3 +99,17 @@ scenarios:
     notes:
       - la misma separación que entre apply y accept, y por el mismo motivo
       - el capture anterior no se borra, se informa si quedó sin referentes
+
+  - id: capture-whole-file-without-selection
+    description: capture sin selección captura el archivo entero
+    given:
+      - un archivo cualquiera de la capa
+    when:
+      - bilinker capture <file>
+    expect:
+      - el capture sale sin query y sin offset
+      - no hace falta gramática para el lenguaje del archivo
+    notes:
+      - query ausente = el archivo completo, según concepts/capture.md § Formato
+      - es la forma más usada del lado de las specs
+    impl: capture_without_a_selection_takes_the_whole_file
