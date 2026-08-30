@@ -57,6 +57,12 @@ No sirve `git log -L <inicio>,<fin>:<archivo>`: eso encuentra cuándo esas líne
 
 **Acotado por dos lados.** Sólo se pregunta por endpoints ya no-OK, así que el costo lo fija lo que está roto y no el total; y el walk tiene un techo de commits, porque un `accepted.hash` de un fragmento que nunca existió en esta rama haría recorrer la historia entera para contestar que no. Al llegar al techo la respuesta es "no lo encontré", y quien preguntó degrada — no falla.
 
+**Y se camina [la ref](ref.md), no la rama.** Es lo que vuelve cierto que la ref protege también a la derivación, y no sólo al `commit` guardado: la ref alcanza todo commit del proyecto alguna vez absorbido, así que su historia es un superconjunto de la de la rama. Y como cada commit de la ref lleva el árbol del proyecto adentro, los paths son los mismos.
+
+Lo que hace falta cubrir no es un rebase. Un rebase a secas **preserva el contenido**: el fragmento aceptado aparece igual en el commit reescrito, y el walk lo reencuentra ahí sin ayuda de nadie. Lo que rompe es un **squash** o un `filter-branch`, donde el contenido intermedio deja de existir en ningún commit de la rama — y ahí el único lugar donde sigue estando es la ref.
+
+En un repo que todavía no cortó se camina `HEAD`, que es lo único que hay.
+
 ### `commit` lo escribe `accept`, y sigue siendo derivado
 
 Es raro que un derivado lo escriba `accept` y no `check`, y es deliberado: se calcula una vez, en el momento en que hay todo el contexto a mano. Lo que define un derivado es que se pueda reconstruir, no quién lo escribió.
