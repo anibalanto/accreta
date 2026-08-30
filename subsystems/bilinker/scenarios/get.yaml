@@ -50,3 +50,16 @@ scenarios:
       - bilinker get <file>:<line>:<col> fuera del range
     expect:
       - UUID no listado
+
+  - id: get-diff-with-cold-cache
+    description: get --diff funciona con la cache borrada
+    given:
+      - un endpoint aceptado y con drift
+      - .bilink/cache/state borrado
+    when:
+      - bilinker get <uuid>.<N> --diff
+    expect:
+      - el diff sale, recuperando el texto aceptado
+    notes:
+      - commit es un derivado y la cache no está en git — un clon fresco no la tiene
+    impl: get_diff_works_with_a_cold_cache

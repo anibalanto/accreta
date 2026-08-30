@@ -49,6 +49,14 @@ Adentro conviven **dos clases de derivado con garantías distintas**, y conviene
 
 Por eso que `commit` viva acá no bloquea a nadie. Donde hace falta —recuperar el texto aceptado, atribuir un cambio a un commit— sólo corre sobre endpoints **ya no-OK**, así que el costo está acotado por lo que está roto y no por el total.
 
+### Cómo se re-deriva
+
+Un **walk acotado hacia atrás por la historia del archivo**: desde HEAD, commit por commit, resolver la query contra esa versión del archivo y hashear el fragmento. El primero cuyo hash coincida con `accepted.hash` es el commit buscado.
+
+No sirve `git log -L <inicio>,<fin>:<archivo>`: eso encuentra cuándo esas líneas quedaron como están **ahora**, y lo que se busca es dónde el fragmento tenía el contenido **aceptado** — que en un endpoint con drift es otro commit, y probablemente otras líneas.
+
+**Acotado por dos lados.** Sólo se pregunta por endpoints ya no-OK, así que el costo lo fija lo que está roto y no el total; y el walk tiene un techo de commits, porque un `accepted.hash` de un fragmento que nunca existió en esta rama haría recorrer la historia entera para contestar que no. Al llegar al techo la respuesta es "no lo encontré", y quien preguntó degrada — no falla.
+
 ### `commit` lo escribe `accept`, y sigue siendo derivado
 
 Es raro que un derivado lo escriba `accept` y no `check`, y es deliberado: se calcula una vez, en el momento en que hay todo el contexto a mano. Lo que define un derivado es que se pueda reconstruir, no quién lo escribió.

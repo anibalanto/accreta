@@ -1,0 +1,5 @@
+endpoint:
+  0:
+    link: capture ec5cebb1fc911a646ea14eae370e02a9
+  1:
+    link: path subsystems/bilinker>impl

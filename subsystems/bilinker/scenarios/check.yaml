@@ -186,3 +186,17 @@ scenarios:
       - bilinker check .
     expect:
       exit_code: 1
+
+  - id: check-expanded-with-cold-cache
+    description: check distingue EXPANDED de ALTERED sin cache previa
+    given:
+      - un fragmento que creció alrededor de lo aceptado
+      - .bilink/cache/state borrado
+    when:
+      - bilinker check .
+    expect:
+      - "EXPANDED"
+    notes:
+      - sin el texto aceptado, EXPANDED, DISPLACED y REANCHORED degradan a ALTERED
+      - el commit se deriva sólo después de que el hash dijo que hay drift
+    impl: check_still_tells_expanded_from_altered_with_a_cold_cache
