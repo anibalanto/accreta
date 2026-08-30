@@ -5,6 +5,6 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "Detección de raíz"))) @target)
 
 # Cache
-range:       4520~4732
+range:       5487~5699
 state:       RESOLVED
-resolved_at: 2026-08-30T00:36:45Z
+resolved_at: 2026-08-30T02:19:32Z

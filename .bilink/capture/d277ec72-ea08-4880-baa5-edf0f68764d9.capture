@@ -5,6 +5,6 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "Ledger por repo, migraciones por capa"))) @target)
 
 # Cache
-range:       4743~5510
+range:       6047~6814
 state:       RESOLVED
-resolved_at: 2026-08-29T23:39:41Z
+resolved_at: 2026-08-30T02:19:32Z

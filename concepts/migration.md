@@ -75,6 +75,20 @@ Correrla dos veces sobre la misma capa no hace nada la segunda vez. Es lo que pe
 
 Con `--dry-run` una migración calcula y reporta exactamente lo mismo, **sin escribir un solo archivo**. Es parte del contrato de la migración, no del runner: el runner no puede impedir que una migración escriba.
 
+### El conjunto de migraciones es de sólo-agregar
+
+> **Nunca se borra una migración**, ni siquiera cuando parece que ya nadie está en ese formato.
+
+Es lo único que permite que alguien parado en una versión vieja llegue a la actual corriendo la cadena entera. "Ya nadie está en ese formato" no es verificable: un clon dormido, una rama vieja, un fork. Borrar la migración convierte eso en un archivo que no se puede leer y del que no queda registro de cómo se leía.
+
+Lo que se acumula es el **build**, no la lectura. Si una migración depende de dos versiones del crate de formato, esas dos quedan en el repo para siempre; pero el binario del día a día linkea sólo la última. Es la distinción que hace que esto no sea lo que § "Por qué no alcanza con que la herramienta lo tolere" descarta.
+
+### Una migración conoce los dos formatos que puentea
+
+Una migración lleva archivos de lo que entiende el formato N a lo que entiende el N+1, así que **declara ese par y depende de las dos versiones**. No hay otra forma de que un componente lea los dos.
+
+De ahí sale algo que no es evidente: **la verificación de que la migración no perdió nada la hace la migración**, no un comando que compare dos árboles. Un comando así linkea un solo parser y sólo puede leer uno de los dos lados.
+
 ## El runner
 
 ```

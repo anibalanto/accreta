@@ -1,0 +1,8 @@
+file:   subsystems/bilinker/concepts/format-version.md
+query:  (section
+  (atx_heading (inline) @n0 (#eq? @n0 "Versión del formato"))) @target
+
+# Cache
+range:       0~4471
+state:       RESOLVED
+resolved_at: 2026-08-30T02:21:20Z

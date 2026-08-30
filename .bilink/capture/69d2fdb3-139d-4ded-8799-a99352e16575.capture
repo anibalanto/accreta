@@ -5,6 +5,6 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "Propiedades garantizadas"))) @target)
 
 # Cache
-range:       6335~7598
+range:       6364~7627
 state:       RESOLVED
-resolved_at: 2026-08-30T00:33:48Z
+resolved_at: 2026-08-30T02:21:33Z

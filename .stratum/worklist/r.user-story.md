@@ -1,8 +1,8 @@
 ---
 title: El formato vive en un crate y su versión se verifica sola
-status: open
+status: done
 created_at: 2026-08-29T00:00:00Z
-updated_at: 2026-08-29T00:00:00Z
+updated_at: 2026-08-30T02:23:45Z
 parent: 1
 ---
 
@@ -28,3 +28,11 @@ Cambiar los tipos sin subir la versión **falla un test**. El esquema JSON se ge
 
 - `s` — extraer el crate de formato (parte `capture.rs`, que hoy mezcla formato y captura)
 - `t` — el test de hash del esquema contra la versión registrada
+
+## Cómo se verificó
+
+Cambiar los tipos sin subir la versión **falla un test**, probado de dos formas: renombrando un valor serializado y agregando un tipo de endpoint. La segunda es la que importa, porque es el cambio aditivo que ADR-0006 pone como su motivo, y la primera versión del guard **no la detectaba** — ver la task `t`.
+
+El esquema se genera con `cargo run -p bilink-format --bin schema`. Publicarlo como artefacto de release es trabajo de CI, que todavía no existe.
+
+Queda una parte del enunciado sin hacer, y está dicho en la task `s`: **una migración todavía no depende de los dos formatos que puentea**, porque hoy hay un solo crate de formato. Se resuelve en el sprint 3, con el primer bump real.
