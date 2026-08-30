@@ -27,7 +27,7 @@ Ver [concepts/node.md](concepts/node.md) y [concepts/edge.md](concepts/edge.md).
 Lattice no produce aristas. No parsea código, no habla LSP y no lee markdown. Define un contrato y cada fuente registra el suyo:
 
 ```
-bilinker            → aristas bilink, impact y task    (accepted)
+bilinker            → aristas bilink, impact e issue   (accepted)
 proveedor LSP       → aristas de llamada               (derived)
 proveedor markdown  → links entre documentos           (asserted)
 ```

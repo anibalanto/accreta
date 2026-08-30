@@ -5,6 +5,6 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "Migración desde el formato anterior"))) @target)
 
 # Cache
-range:       11747~12281
+range:       11750~12284
 state:       RESOLVED
-resolved_at: 2026-08-30T00:36:46Z
+resolved_at: 2026-08-30T01:55:43Z

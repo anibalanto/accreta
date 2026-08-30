@@ -5,6 +5,6 @@ query:  (section
   (atx_heading (inline) @n1 (#eq? @n1 "El contrato"))) @target)
 
 # Cache
-range:       695~2037
+range:       695~2038
 state:       RESOLVED
-resolved_at: 2026-08-29T23:48:28Z
+resolved_at: 2026-08-30T02:01:14Z

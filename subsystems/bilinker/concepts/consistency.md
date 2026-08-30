@@ -8,7 +8,7 @@ Los estados disponibles dependen del tipo de endpoint:
 - **Endpoint estructural**: 10 estados (PENDING, OK, MOVED, DISPLACED, REANCHORED,
   EXPANDED, UNANCHORED, ALTERED, DELETED, BROKEN).
 - **Endpoint layer**: 5 estados (TODO, PENDING, OK, CHAIN_DIRTY, BROKEN).
-- **Endpoint task**: mismos estados que estructural (es un archivo en worklist).
+- **Endpoint issue**: mismos estados que estructural (es un archivo en worklist).
 
 Un bilink es "saludable" si ambos extremos están en {OK, MOVED, DISPLACED, REANCHORED, EXPANDED, TODO}. Requiere acción si alguno está en {PENDING, UNANCHORED, ALTERED, DELETED, BROKEN, CHAIN_DIRTY}.
 

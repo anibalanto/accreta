@@ -9,7 +9,7 @@ Se evalúa en este orden, y el primero que matchea gana:
 | # | Condición | Tipo |
 |---|---|---|
 | 1 | Comienza con `capture ` | **Estructural** — referencia a un capture de esta capa |
-| 2 | Comienza con `task ` | **Task** |
+| 2 | Comienza con `issue ` | **Issue** |
 | 3 | Contiene `::` | **Estructural embebido** — formato anterior al split |
 | 4 | Último componente tiene extensión (contiene `.`) | **Estructural embebido**, archivo completo — formato anterior |
 | 5 | Ninguna de las anteriores | **Layer** |
@@ -134,15 +134,17 @@ Copia del `hash.N` y `commit.N` del endpoint **estructural** del bilink adyacent
 
 ---
 
-## Endpoint task
+## Endpoint issue
 
-Identifica un ítem del worklist.
+Identifica un ítem del worklist — una épica, una user story o una task.
 
 ### Forma
 
 ```
-task <id>
+issue <id>
 ```
+
+**Se llama `issue` y no `task`** porque apunta a cualquiera de los tres tipos, y `task` es además el nombre del tipo hoja del worklist: el mismo término significaría "cualquier ítem" acá y "el ítem sin hijos" allá. El nombre sale de qué es la cosa del otro extremo, no de quién la provee — por eso tampoco es `worklist <id>`, que nombraría al proveedor. Es la misma regla con que [ADR-0005](../.stratum/impl/docs/adr/0005-frontera-entre-proyectos.md) nombró el endpoint `repo`.
 
 ### Resolución
 

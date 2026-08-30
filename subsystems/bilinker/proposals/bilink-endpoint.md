@@ -51,12 +51,12 @@ Un bilink que conecta un bilink estructural con un ítem del worklist. Vive en l
 ```
 # .bilink/a3f9c821-4e5b-4c3d-9f2a-1b2c3d4e5f6a.bilink
 link.0: .bilink/7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.bilink   ← bilink estructural como archivo
-link.1: task 3a                                                ← ítem en worklist
+link.1: issue 3a                                               ← ítem en worklist
 ```
 
 `bilinker check` hashea el archivo de tarea (`<project-root>/.stratum/worklist/3a.task.md`) como cualquier endpoint estructural — detecta si el contenido de la tarea cambia. Si el fragmento cambia, `state.0` reporta el cambio del bilink estructural referenciado.
 
-**El endpoint `task <id>` sí está implementado**; lo que falta es el otro extremo. La motivación de colgar la tarea de *la relación* y no de uno de sus extremos: una tarea que nace de "esta spec no coincide con esta implementación" no es sobre la spec ni sobre el código, es sobre el desacuerdo entre los dos.
+**El endpoint `issue <id>` sí está implementado**; lo que falta es el otro extremo. La motivación de colgar la tarea de *la relación* y no de uno de sus extremos: una tarea que nace de "esta spec no coincide con esta implementación" no es sobre la spec ni sobre el código, es sobre el desacuerdo entre los dos.
 
 ## Estados
 
@@ -72,7 +72,7 @@ La última fila tenía el nombre `UNREACHABLE`, que ADR-0003 elimina del vocabul
 ## Invariantes propias
 
 1. El hash aceptado de un endpoint bilink es el SHA-256 del archivo `.bilink` referenciado completo. **Ojo:** ADR-0003 descarta esa lectura para los endpoints layer y repo, que copian el valor estructural del vecino. Al volver, hay que decidir si el endpoint bilink es la excepción o se alinea.
-2. Un bilink de tarea conecta un endpoint bilink con un endpoint `task <id>`.
+2. Un bilink de tarea conecta un endpoint bilink con un endpoint `issue <id>`.
 
 ## Qué depende de esto
 

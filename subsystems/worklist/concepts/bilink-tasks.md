@@ -7,12 +7,12 @@ La relación entre una tarea del worklist y un bilink estructural se declara med
 ```
 # .bilink/<uuid>.bilink   (vive en la capa donde se ejecuta la tarea)
 link.0: .bilink/<uuid-estructural>.bilink   ← bilink estructural como archivo
-link.1: task 3a                             ← ítem del worklist
+link.1: issue 3a                            ← ítem del worklist
 ```
 
 `link.0` apunta al archivo `.bilink` del bilink estructural (tratado como endpoint estructural — se hashea su contenido). `link.1` apunta al ítem `3a`, que vive en `<project-root>/.stratum/worklist/3a.<tipo>.md`.
 
-El tipo no se escribe en el endpoint: los ids son únicos, así que `3a` alcanza y el archivo se encuentra por prefijo en un solo directorio. Es lo que permite que `task 3a` siga resolviendo cuando `3a` se recuelga de otra user story — recolgar cambia un campo, no el nombre del archivo.
+El tipo no se escribe en el endpoint: los ids son únicos, así que `3a` alcanza y el archivo se encuentra por prefijo en un solo directorio. Es lo que permite que `issue 3a` siga resolviendo cuando `3a` se recuelga de otra user story — recolgar cambia un campo, no el nombre del archivo.
 
 > **`link.0` todavía no se puede expresar.** Un endpoint que apunta a otro `.bilink` es el endpoint de tipo bilink, que está especificado y no implementado — vive en [`proposals/bilink-endpoint.md`](../../bilinker/proposals/bilink-endpoint.md). Todo lo de este documento espera a que vuelva.
 
@@ -29,7 +29,7 @@ worklist new task "implementar vote en Persona" capture specs/voting.yaml:104:1
 ```
 
 Crea:
-- `.bilink/<uuid-task-bilink>.bilink` con `link.0: .bilink/<uuid-struct>.bilink` y `link.1: task <id>`
+- `.bilink/<uuid-task-bilink>.bilink` con `link.0: .bilink/<uuid-struct>.bilink` y `link.1: issue <id>`
 - `worklist/<id>.task.md`
 
 ### Completar
@@ -47,15 +47,15 @@ Una tarea puede vivir en una capa y sus subtareas en subcapas. Cada nivel tiene 
 ```
 # spec layer — tarea padre
 link.0: .bilink/<uuid-spec>.bilink
-link.1: task 3a
+link.1: issue 3a
 
 # impl layer — subtarea
 link.0: .bilink/<uuid-impl>.bilink
-link.1: task 3b    ← subtarea en worklist
+link.1: issue 3b   ← subtarea en worklist
 ```
 
 ## Invariantes
 
-1. El ID en `task <id>` es un ID base-36 que corresponde a un ítem en `<project-root>/.stratum/worklist/<id>.<tipo>.md`, cualquiera sea su tipo.
+1. El ID en `issue <id>` es un ID base-36 que corresponde a un ítem en `<project-root>/.stratum/worklist/<id>.<tipo>.md`, cualquiera sea su tipo.
 2. El bilink de tarea vive en la capa donde se debe ejecutar la tarea.
 3. No existe archivo `source_bilink` en el ítem ni archivo `<uuid>.tasks` separado — la asociación vive en el bilink de tarea.

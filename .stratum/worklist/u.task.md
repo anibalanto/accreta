@@ -2,7 +2,7 @@
 title: El endpoint task no resuelve a ningún archivo
 status: done
 created_at: 2026-08-29T23:50:00Z
-updated_at: 2026-08-30T01:36:34Z
+updated_at: 2026-08-30T01:59:27Z
 parent: 5
 ---
 
@@ -50,17 +50,21 @@ Y los hijos **se calculan** —los ítems cuyo `parent` es `n`—, que es la mis
 
 ## Cuándo estuvo hecha
 
-`bilinker check` limpio en las seis capas. Y un `task <id>` resuelve por primera vez:
+`bilinker check` limpio en las seis capas. Y el endpoint resuelve por primera vez —el prefijo era `task` cuando se verificó, y es `issue` desde la task `z`:
 
 ```
-$ bilinker check .          # bilink con link.1: task u
+$ bilinker check .          # bilink con link.1: issue u
 6e1cc357  (PENDING, PENDING)
-$ bilinker check .          # bilink con link.1: task zz9
+$ bilinker check .          # bilink con link.1: issue zz9
 10ec5b2f  (PENDING, TODO)
 ```
 
-Tests: `a_task_endpoint_resolves_by_id_whatever_the_item_type` y `an_unknown_task_id_is_todo`, en `crates/bilinker-cli/tests/integration.rs`. Los dos fallan contra el código viejo.
+Tests: `an_issue_endpoint_resolves_by_id_whatever_the_item_type` y `an_unknown_issue_id_is_todo`, en `crates/bilinker-cli/tests/integration.rs`. Los dos fallan contra el código viejo.
 
 ## Lo que se llevó puesto de paso
 
 `concepts/reference.md` § "Discriminación de tipos" no listaba `capture <uuid>`: presentaba como *la* forma estructural lo que el código trata como formato anterior al split, pendiente de `migrate`. Era el segundo bloqueo de estos cinco endpoints y se corrigió acá, con las cinco condiciones en el orden real de `link.rs::from_str` y las dos filas legacy marcadas como tales. La reescritura completa que ADR-0003 pide sigue siendo la task `7`.
+
+## El nombre del prefijo
+
+Ampliar el endpoint a cualquier tipo de ítem dejó `task <id>` nombrando mal lo que apunta. Se renombró a `issue <id>` en la task `z`, que es donde está el porqué.

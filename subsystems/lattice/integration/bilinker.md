@@ -37,7 +37,7 @@ Bilinker emite sus aristas con los nodos ya en forma canónica y la topología d
 }
 ```
 
-`kinds()` del proveedor: `bilink` y `task`, los dos con garantía `accepted`. `governs` está definido pero bilinker no lo emite todavía: ver la sección de más abajo.
+`kinds()` del proveedor: `bilink` e `issue`, los dos con garantía `accepted`. `governs` está definido pero bilinker no lo emite todavía: ver la sección de más abajo.
 
 ### Qué resuelve bilinker antes de emitir
 

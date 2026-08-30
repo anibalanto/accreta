@@ -6,9 +6,9 @@ description: "Crea, verifica y mantiene bilinks — referencias bidireccionales 
 > [!WARNING]
 > **Este skill describe el formato anterior.** ADR-0003, ADR-0004, ADR-0005 y ADR-0006 —en `subsystems/bilinker/.stratum/impl/docs/adr/`— lo cambian: los archivos pasan a YAML, el bloque `accepted` reemplaza a `hash.N`/`commit.N`, `resolved_at` desaparece, los endpoints llevan prefijo de tipo (`path >impl`, `repo hsi`) y los bilinks se mudan a `refs/bilink/<branch>`.
 >
-> Como este skill se carga solo, no es documentación desactualizada sino **una instrucción activa de escribir el formato anterior**. Hasta que se reescriba —es la primera task del sprint 1—, leerlo contra los ADRs y no al revés.
+> Como este skill se carga solo, no es documentación desactualizada sino **una instrucción activa de escribir el formato anterior**. Hasta que se reescriba —es la task `7`, en el sprint 3, junto con el corte de formato—, leerlo contra los ADRs y no al revés.
 >
-> **Y son dos copias**, `.claude/skills/bilinker/SKILL.md` e `ia/skills/bilinker/SKILL.md`. La que se carga es la primera; reescribir sólo la segunda no arregla nada.
+> Vive en `ia/skills/bilinker/SKILL.md`. `.claude/skills` es un symlink a `ia/skills`, así que hay un solo archivo y se edita ahí.
 
 
 Bilinker mantiene referencias bidireccionales entre fragmentos de texto a través de capas Stratum. La referencia apunta a un nodo AST (via tree-sitter), no a un número de línea, por lo que sobrevive reformateos y movimientos.
@@ -81,7 +81,7 @@ resolved_at: 2026-06-04T10:00:00Z
 |------|-------|---------|
 | Estructural | `capture <uuid>` | `capture c1a2b3c4-2e3f-4a5b-9c6d-7e8f9a0b1c2d` |
 | Layer | path Stratum | `.stratum/impl` · `../..` |
-| Task | `task <id>` | `task 3a` |
+| Issue | `issue <id>` | `issue 3a` |
 | Bilink | `.bilink/<uuid>.bilink` | `.bilink/7f3d8e9a-….bilink` |
 
 ## Workflow: crear un nuevo bilink

@@ -24,13 +24,13 @@ lattice graph <selector>
 | `--up` | Sigue aristas dirigidas en sentido inverso (callers). Default en presencia de `--state`. |
 | `--down` | Sigue aristas dirigidas en sentido directo (callees). |
 | `--both` | Ambos sentidos. Default cuando no se especifica ninguno. |
-| `--via <kinds>` | Lista de `kind` habilitados: `bilink,governs,task,call,doclink,external`. Default: todos los disponibles — y `governs` todavía no lo emite ningún proveedor, ver [edge.md](../concepts/edge.md) § "Tipos de arista". |
+| `--via <kinds>` | Lista de `kind` habilitados: `bilink,governs,issue,call,doclink,external`. Default: todos los disponibles — y `governs` todavía no lo emite ningún proveedor, ver [edge.md](../concepts/edge.md) § "Tipos de arista". |
 | `--guarantee <nivel>` | Garantía mínima: `accepted`, `derived`, `asserted`. Default: `asserted` (todas). |
 | `--state <filtro>` | Solo nodos alcanzados por aristas con ese estado. `non-ok` selecciona todo lo distinto de OK. |
 | `--depth <n>` | Profundidad máxima. Default: sin límite. |
 | `--recursive` | Recolecta también desde las capas descendientes. Se delega en el proveedor: dónde vive una capa es conocimiento de Stratum y del formato bilink, no del grafo agregado. |
 
-Las aristas no dirigidas (`bilink`, `governs`, `task`) se recorren en ambos sentidos siempre; `--up` / `--down` solo afectan a las dirigidas.
+Las aristas no dirigidas (`bilink`, `governs`, `issue`) se recorren en ambos sentidos siempre; `--up` / `--down` solo afectan a las dirigidas.
 
 ## Selectores
 

@@ -61,7 +61,7 @@ Descripción opcional en Markdown.
 
 `parent` es el único campo opcional, y es el que expresa la jerarquía. Los otros cuatro están siempre.
 
-La asociación con bilinks se declara desde el bilink (endpoint `task <id>`), no desde el ítem. Ver [asociación tarea ↔ bilink](bilink-tasks.md).
+La asociación con bilinks se declara desde el bilink (endpoint `issue <id>`), no desde el ítem. Ver [asociación ítem ↔ bilink](bilink-tasks.md).
 
 ## Estados y transiciones
 

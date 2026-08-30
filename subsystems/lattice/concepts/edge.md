@@ -9,7 +9,7 @@ Un nodo es un fragmento direccionable. Su identidad es su forma canónica:
 ```
 <layer-root>::<path>#<start>~<end>    fragmento (rango de bytes en un archivo de una capa)
 <layer-root>::<path>                   archivo completo
-task:<id>                              ítem de worklist
+issue:<id>                             ítem de worklist
 <uri>                                  recurso externo (http, https)
 ```
 
@@ -51,7 +51,7 @@ Un consumidor puede filtrar por garantía, pero nunca recibe una arista sin ella
 |---|---|---|---|---|
 | `bilink` | bilinker | `accepted` | no | `<uuid>.<N>` |
 | `governs` | bilinker | `accepted` | no | `<uuid>` |
-| `task` | bilinker · worklist | `accepted` | no | `<uuid>` + id de tarea |
+| `issue` | bilinker · worklist | `accepted` | no | `<uuid>` + id del ítem |
 | `call` | proveedor LSP | `derived` | sí (caller → callee) | símbolo LSP |
 | `doclink` | proveedor markdown | `asserted` | sí | path + anchor |
 | `external` | proveedor markdown | `asserted` | sí | URI |

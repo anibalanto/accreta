@@ -24,7 +24,7 @@ El tipo de un endpoint se infiere del valor de `link.N` — no hay prefijo de ti
 |---|---|---|
 | **Estructural** | `capture <uuid>` | Referencia a un [capture](capture.md) de la misma capa, que describe dónde está el fragmento. |
 | **Layer** | path Stratum | Apunta a un nodo adyacente en otra capa. |
-| **Task** | `task <id>` | Apunta a un ítem del worklist en `<project-root>/.stratum/worklist/<id>.<tipo>.md`. Se hashea y verifica como un endpoint estructural. |
+| **Issue** | `issue <id>` | Apunta a un ítem del worklist —épica, user story o task— en `<project-root>/.stratum/worklist/<id>.<tipo>.md`. Se hashea y verifica como un endpoint estructural. |
 
 Existió un cuarto tipo, el **endpoint bilink**, que apuntaba a otro bilink por UUID. Está especificado y no implementado, así que vive en [`proposals/bilink-endpoint.md`](../proposals/bilink-endpoint.md) con sus dos casos de uso — la gobernanza y el bilink de tarea — hasta que alguien lo implemente.
 
@@ -233,7 +233,7 @@ Esta propagación garantiza que **ningún cambio de contenido puede ser aprobado
   al valor anterior con un espacio. Solo aplica a `link.N`.
 - Claves reconocidas: `link.0:`, `link.1:`, `kind:`, `name.0:`, `name.1:`,
   `hash.0:`, `hash_ast.0:`, `commit.0:`, `hash.1:`, `hash_ast.1:`, `commit.1:`, `state.0:`, `state.1:`, `resolved_at:`.
-- Los prefijos `capture ` y `task ` en el valor de `link.N` indican endpoint estructural y task respectivamente. El prefijo sin espacio seguido es inválido.
+- Los prefijos `capture ` y `issue ` en el valor de `link.N` indican endpoint estructural e issue respectivamente. El prefijo sin espacio seguido es inválido.
 - Líneas que comienzan con `#` son comentarios y se ignoran.
 - El archivo usa codificación UTF-8 sin BOM.
 
@@ -307,7 +307,7 @@ Notar dos cosas: `spec.hash.1 == impl.hash.1` y `impl.hash.0 == spec.hash.0` —
 4. `hash.N` y `commit.N` están siempre presentes juntos o ausentes juntos.
 5. `hash.N` de un endpoint estructural: SHA-256 del fragmento referenciado.
 6. `hash.N` de un endpoint layer: idéntico al `hash.N` del endpoint estructural del bilink adyacente. Nunca es el hash del archivo `.bilink` adyacente.
-7. Un endpoint `task <id>` se hashea como el contenido del archivo de tarea. No tiene capture asociado.
+7. Un endpoint `issue <id>` se hashea como el contenido del archivo del ítem. No tiene capture asociado.
 8. `state.N = OK` si y solo si el hash actual de lo apuntado == `hash.N`.
 9. Un endpoint estructural referencia exactamente un capture, de su misma capa.
 10. Un bilink no contiene `file`, `query`, `offset` ni `range` — esos campos viven en el capture.

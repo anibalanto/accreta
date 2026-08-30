@@ -60,7 +60,7 @@ link.0: capture 7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a
 link.1: .stratum/impl
 ```
 
-El prefijo `capture ` identifica el tipo de endpoint, igual que `task `. El resto de los tipos de endpoint —layer, task, bilink— no cambia.
+El prefijo `capture ` identifica el tipo de endpoint, igual que `issue `. El resto de los tipos de endpoint —layer, issue, bilink— no cambia.
 
 Los campos de aceptación siguen en el bilink, por endpoint: `hash.N`, `hash_ast.N`, `commit.N`, `state.N`.
 
@@ -163,7 +163,7 @@ Un bilink tiene **siempre exactamente dos endpoints**. La multiplicidad la aport
 ```
                     ┌── bilink → spec de validación
 capture(vote) ──────┼── bilink → ADR de auditoría
-                    └── bilink → task 3a
+                    └── bilink → issue 3a
 ```
 
 Esto es deliberado y cierra la alternativa de darle aridad variable al `.bilink`. Un archivo llamado bilink con `link.0` … `link.4` sería una contradicción, y la aridad variable obligaría a redefinir la topología de cadena —hoy lineal, con exactamente dos tips— y el copiado de hash de los endpoints layer, que asume un único endpoint estructural adyacente.

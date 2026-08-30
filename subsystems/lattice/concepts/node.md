@@ -7,7 +7,7 @@ Un nodo es un fragmento direccionable del proyecto. Todos los proveedores emiten
 ```
 <layer-root>::<path>#<start>~<end>    fragmento (rango de bytes)
 <layer-root>::<path>                   archivo completo
-task:<id>                              ítem de worklist
+issue:<id>                             ítem de worklist
 <uri>                                  recurso externo
 ```
 
@@ -82,7 +82,7 @@ Tres casos no tienen rango de bytes:
 | Nodo | Contención |
 |---|---|
 | Archivo completo | Contiene a todos los fragmentos de ese archivo. |
-| `task:<id>` | No participa de contención. |
+| `issue:<id>` | No participa de contención. |
 | URI externo | No participa de contención. |
 
 ## Invariantes
