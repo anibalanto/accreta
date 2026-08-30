@@ -31,6 +31,7 @@ Sin flags, aprueba las dos dimensiones.
 4. Calcular el hash del fragmento actual y su `hash_ast` si hay gramática.
 5. Escribir `accepted` en el endpoint: `link` con el id del capture vigente, `hash` y `hash_ast`.
 6. Calcular el `commit` del contenido y escribirlo en [la cache](../concepts/cache.md).
+7. Cerrar el acto con **un commit sobre [`refs/bilink/<branch>`](../concepts/ref.md)**, absorbiendo en él el commit del proyecto contra el que se aceptó si no lo estaba ya.
 
 El bilink cambia, y eso dispara `CHAIN_DIRTY` en el nodo adyacente en el próximo `check`. Es la única forma de mover una cadena: `check` no propaga nada porque no escribe ninguna decisión.
 
@@ -45,6 +46,16 @@ error: crates/bilinker/src/check.rs tiene cambios sin commitear.
 ```
 
 No es una recomendación. `commit` es el commit en que el fragmento quedó con el contenido aprobado, y ese commit **no existe** si el fragmento no está commiteado. Sin él no hay `git show <commit>:<file>`, y sin eso `check` no puede recuperar el texto aceptado — que es lo que distingue `EXPANDED` y `REANCHORED` de un `ALTERED` genérico.
+
+## Un commit por invocación, no por aceptación
+
+**La granularidad sigue al acto, no al objeto.** `accept <uuid>.0` da un commit; `accept .` da un commit, con el mensaje enumerando los endpoints — porque es una persona mirando y decidiendo **una vez**, y partirlo en N commits firmados no agrega verdad: sugiere N decisiones donde hubo una.
+
+Ese commit es el registro de la decisión, y el artefacto que se puede firmar. Ver [la ref](../concepts/ref.md#autoría-atestación-y-autorización): la superficie de revisión es la de bilinker, no la de la forja.
+
+**Absorber no es un paso de `accept`, es una precondición de escribir sobre la ref.** Cuando el proyecto no se movió desde la última absorción el commit tiene un solo padre; cuando sí, el mismo commit lo absorbe. No hay un `sync` implícito adentro: hay una condición que se verifica.
+
+Y en un repo que todavía no cortó a la ref no hay commit: los bilinks viven en la rama del proyecto, y commitearlos es de quien trabaja. Ver [la ref](../concepts/ref.md#antes-del-corte-no-hay-ref-y-el-commit-no-ocurre).
 
 ## `commit` es del contenido, no de quien acepta
 

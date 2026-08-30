@@ -115,6 +115,14 @@ b1e3f55  Kim     sync: rc-2.35 hasta E
 
 **Deshacer una aceptación** no necesita `git revert`: es reescribir su `accepted` con los valores anteriores, un commit nuevo, leídos de `refs/bilink/<branch>~n`.
 
+### Antes del corte no hay ref, y el commit no ocurre
+
+Un repo que todavía no corrió el corte `005` tiene sus bilinks en la rama del proyecto y ninguna `refs/bilink/*`. Ahí `accept` y `apply` no escriben ningún commit sobre la ref — no hay ninguna— y los cambios quedan en el árbol, visibles con `git status`, para que los commitee quien trabaja. Es como funcionaba antes y sigue siendo correcto para ese repo.
+
+**La existencia de la ref de la rama es lo que enciende el commit del acto.** No hace falta un flag ni una versión de formato: el corte *es* el interruptor, y lo que lo vuelve honesto es que crear la ref sea un acto explícito de [`track`](../commands/track.md).
+
+Eso es lo que permite que el binario nuevo corra sobre repos que todavía no cortaron — que es exactamente lo que la transición necesita, y lo que [ADR-0003](../.stratum/impl/docs/adr/0003-formato-captures-y-aceptacion.md) § "El problema real es de bootstrap" pide: si la herramienta se rompe, tiene que quedar con qué diagnosticarla.
+
 ## El índice propio
 
 Los `.bilink/` están en el árbol de trabajo, no en un worktree aparte: quien usa bilinker o lattice quiere esos archivos a mano. El proyecto los ignora vía `.git/info/exclude` — **no vía `.gitignore`**, que está versionado y modificarlo tocaría la rama del proyecto.

@@ -1,0 +1,91 @@
+spec: commands/adopt.md
+
+scenarios:
+
+  - id: adopt-brings-neighbour-decisions
+    description: Tras un rebase, adopt trae las aceptaciones de la rama base
+    given:
+      - feature/x rebaseada sobre main
+      - refs/bilink/main con aceptaciones que feature/x no tiene
+    when:
+      - bilinker adopt origin/main
+    expect:
+      commits_written: 2
+      absorbed_new_tip: true
+      merge_base: el M heredado por track
+    notes:
+      - son dos actos: absorber el tip rebaseado, y traer las decisiones del vecino
+      - la base del merge a tres puntas sale gratis porque track dejó ese commit como primer padre
+
+  - id: adopt-dry-run-is-inert-and-exact
+    description: --dry-run reporta lo mismo que el comando real, sin escribir ni hacer red
+    given:
+      - una ref de vecino ya traída
+    when:
+      - bilinker adopt origin/main --dry-run
+    expect:
+      files_written: 0
+      network_calls: 0
+      rows: [entra limpio, ya coincidía, conflicto]
+    notes:
+      - por eso el fetch queda afuera: si adopt fetcheara, el dry-run reportaría sobre otros datos que el comando real
+
+  - id: adopt-converges-without-conflict
+    description: Lo que las dos ramas aceptaron igual no conflictúa
+    given:
+      - las dos ramas aceptaron el mismo contenido del mismo fragmento
+    when:
+      - bilinker adopt origin/main --dry-run
+    expect:
+      conflicts: 0
+      row: ya coincidía
+    notes:
+      - los accepted son campos con nombre por endpoint, así que el merge a tres puntas los compara de a uno
+      - dos personas que aceptan el mismo contenido en HEADs distintos escriben los mismos valores
+
+  - id: adopt-is-asymmetric
+    description: Una decisión que sólo tomó esta rama no se pisa ni viaja al vecino
+    given:
+      - feature/x aceptó un contenido que main no tocó desde la base
+    when:
+      - bilinker adopt origin/main
+    expect:
+      local_accepted_unchanged: true
+      rows_for_that_endpoint: 0
+    notes:
+      - es la fila que no existe, y es lo que hace a adopt asimétrico
+      - las decisiones del vecino entran acá, y ninguna de las mías va para allá
+
+  - id: adopt-conflict-writes-nothing
+    description: Con un conflicto no se escribe ningún commit, ni siquiera el de absorción
+    given:
+      - las dos ramas aceptaron contenidos distintos del mismo fragmento
+    when:
+      - bilinker adopt origin/main
+    expect:
+      exit_code_non_zero: true
+      commits_written: 0
+      files_written: 0
+    notes:
+      - un accepted en conflicto son dos decisiones humanas incompatibles, y resolverlo es accept, con una persona mirando
+      - no se escribe un YAML con marcadores de conflicto adentro
+      - para ponerse al día sin traer nada, sync
+
+  - id: adopt-noop-when-neighbour-did-not-advance
+    description: Si la ref del vecino no avanzó desde la base, no hay nada que adoptar
+    given:
+      - refs/bilink/main sin commits nuevos desde la base de merge
+    when:
+      - bilinker adopt origin/main
+    expect:
+      commits_written: 0
+      exit_code: 0
+
+  - id: adopt-refuses-the-current-branch
+    description: Adoptar de uno mismo no tiene sentido y se dice
+    given:
+      - main checkouteada
+    when:
+      - bilinker adopt main
+    expect:
+      exit_code_non_zero: true

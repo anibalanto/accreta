@@ -32,7 +32,9 @@ bilinker apply [--dry-run] [--filter <estado>] [-y]
 4. Calcular la ubicación nueva. Si coincide con la que el `link` ya tiene, es un no-op y se omite.
 5. Mostrar el resumen y pedir confirmación (o `-y`).
 6. Para cada fix: acuñar el capture de la ubicación nueva —si no existía— y repuntar el `link`.
-7. Commitear los archivos escritos.
+7. Cerrar el acto con **un commit sobre [`refs/bilink/<branch>`](../concepts/ref.md)**, absorbiendo el commit del proyecto contra el que se calcularon los fixes si no lo estaba ya. En un repo que todavía no cortó a la ref, commitear los archivos escritos en la rama del proyecto.
+
+**`apply` y `accept` son dos commits porque son dos actos**, con dos autores posibles: `apply` describe —repunta los `link` y deja los endpoints en `RELOCATED`— y `accept` bendice. El commit de `apply` no toca ningún `accepted`.
 
 **Mensaje de commit:**
 

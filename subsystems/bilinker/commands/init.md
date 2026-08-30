@@ -53,7 +53,9 @@ Si hay más de un remoto, el refspec va en todos. Si ya está, no se duplica.
 
 Se traen las refs, se materializa el `.bilink/` de la rama actual desde `refs/bilink/<branch>`, y se escribe [`.bilink/head`](../concepts/ref.md#bilinkhead--de-dónde-salió-el-árbol) con la rama y el commit.
 
-También se escribe [`.bilink/version`](../concepts/format-version.md): sale del commit materializado, y tenerla es lo que permite que el próximo comando sepa si el formato de esos archivos es el que este binario entiende.
+[`.bilink/version`](../concepts/format-version.md) **llega sola**: está versionada, así que viaja en el árbol de la ref como cualquier otro archivo de `.bilink/`, y la materialización la escribe con los demás. `init` no la calcula ni la elige — sería la única cosa del directorio que no saliera del commit, y entonces podría discrepar de los archivos que describe.
+
+Es la distinción que [`cache.md`](../concepts/cache.md) ya hace por otro lado: `cache/`, `index/` y `head` quedan fuera del índice de bilinker porque son derivados o estado del árbol; `version` entra porque describe archivos versionados y viaja con ellos.
 
 ## El paso 3 no pisa nada
 
