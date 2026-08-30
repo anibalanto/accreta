@@ -1,6 +1,0 @@
-file: concepts/migration.md
-query: |-
-  (section
-    (atx_heading (inline) @n0 (#eq? @n0 "El conjunto de migraciones es de sólo-agregar"))
-    (section
-    (atx_heading (inline) @n1 (#eq? @n1 "Lo que no se puede romper es el camino, no la lista"))) @target)

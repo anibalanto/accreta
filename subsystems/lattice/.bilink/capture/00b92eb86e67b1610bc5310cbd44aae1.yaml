@@ -1,6 +1,0 @@
-file: editors/vscode.md
-query: |-
-  (section
-    (atx_heading (inline) @n0 (#eq? @n0 "Editor VS Code"))
-    (section
-    (atx_heading (inline) @n1 (#eq? @n1 "Activación"))) @target)
