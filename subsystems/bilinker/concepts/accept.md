@@ -102,7 +102,14 @@ La diferencia con un campo que no puede estar acá —`commit`, que el mismo con
 
 `pablo` es texto, y **cualquiera puede escribir `agree: [ana]` sin que Ana se entere**. Un campo que parece atestación y es la afirmación de un tercero es peor que no tenerlo.
 
-Vale lo que [`ref.md`](ref.md#autoría-atestación-y-autorización) ya dice: *"el autor de git es auto-declarado; lo que constituye atestación es la firma, no el campo."* Lo que convierte la lista en algo en que apoyarse es verificar que el commit que agregó `- ana` esté firmado por la clave de Ana — una allowlist en el `pre-receive`. Hasta entonces, `agree` se lee como lo que es: **una declaración local, sin más peso que quien la escribió.**
+Vale lo que [`ref.md`](ref.md#autoría-atestación-y-autorización) ya dice: *"el autor de git es auto-declarado; lo que constituye atestación es la firma, no el campo."*
+
+Lo que la convierte en algo en que apoyarse son **dos reglas que se verifican del lado que puede rechazar**, y ninguna necesita traducir un nombre a una clave:
+
+1. El commit está **firmado** por una clave de la allowlist, lo que lo ata al autor que declara.
+2. Los nombres que ese commit **agregó** a algún `agree` son exactamente su autor.
+
+Con las dos, `- ana` sólo puede haberlo escrito un commit firmado cuya autora es Ana. Las verifica [`verify-ref`](../commands/verify-ref.md). Sin ellas —en un clon, o contra un remoto sin hook— `agree` se lee como lo que es: **una declaración local, sin más peso que quien la escribió.**
 
 ## Los valores son deterministas; la lista se une
 
@@ -147,3 +154,4 @@ Un `accept .` sobre una capa recién cambiada fabrica aprobaciones que nadie mir
 7. `accepted.agree` es un set, incluye a quien escribió el `accepted`, y es local: nunca se copia de un vecino.
 8. `agree` no participa de ninguna comparación de estado ni de ningún hash. `OK` no depende de cuántos aprobaron.
 9. Un `accept` que cambia algún valor deja `agree` con quien aceptó y nadie más; uno que no los cambia lo agrega al set que había.
+10. Un commit sobre la ref sólo agrega a **su propio autor** a un `agree`. Sacar no está restringido: agregar es lo único que afirma algo sobre otra persona.

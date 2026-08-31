@@ -313,6 +313,8 @@ Tres niveles, y sólo el último es exigible:
 
 `denyDeletes` no es un extra: sin él, *"sólo avanza"* se esquiva borrando la ref y empujándola de nuevo.
 
+El nivel del servidor es [`verify-ref`](../commands/verify-ref.md), y el `pre-receive` que lo llama son dos líneas.
+
 ### El servidor puede verificarlo sin ejecutar bilinker
 
 Es la parte que el diseño ya pagó y no había dicho: **las invariantes de forma de la ref son comparaciones de tree oids**, no análisis de contenido. Un `pre-receive` las chequea con git a secas, sin instalar nada:
@@ -325,6 +327,26 @@ Es la parte que el diseño ya pagó y no había dicho: **las invariantes de form
 | [un commit hace una cosa](#un-commit-hace-una-cosa) | cae en uno de los tres tipos y no en dos: los padres y cuál de los dos árboles se movió lo deciden |
 
 Ninguna necesita tree-sitter ni abrir un bilink, que es exactamente lo que la invariante de fidelidad dice de sí misma al enunciarse *"verificable sin tree-sitter"*. Lo que el servidor **no** puede verificar es si lo aceptado es correcto — eso es una decisión humana y no una propiedad del árbol.
+
+### La autorización es la firma, más una regla de una línea
+
+El mismo hook llena la fila que [más abajo](#autoría-atestación-y-autorización) queda sin dueño: **todo commit sobre la ref tiene que estar firmado por una clave de una allowlist**, que `git verify-commit` chequea offline y sin infraestructura.
+
+Y con eso alcanza para que [`agree`](accept.md#quiénes-aprobaron) deje de ser auto-declarado, **sin traducir ningún nombre a ninguna clave**:
+
+> **Un commit sólo puede agregar a su propio autor a un `agree`.**
+
+La firma ata el commit a una clave, y con ella al autor que declara; la regla ata los nombres agregados a ese mismo autor. Las dos juntas cierran la cadena: `- ana` sólo puede haberlo escrito un commit firmado cuya autora es Ana. **Nadie aprueba en nombre de otro.**
+
+Sacar un nombre no está restringido, y no puede estarlo: es lo que hace `adopt` al traer valores distintos, y lo que hace un `accept` cuando los valores cambian y la lista se vacía. Lo que se protege es **agregar**, que es lo único que afirma algo sobre otra persona.
+
+### Y el prefijo anterior a la gramática pasa una vez
+
+La ref es append-only, así que exigirle la forma a lo que ya está rechazaría el primer push de todo repo que cortó antes de que la gramática existiera. El discriminador es el mismo que para [el mensaje](#la-gramática-no-es-retroactiva) —la ausencia de `Bilinker-Version`— y la puerta que eso abre se cierra con una regla de orden:
+
+> **Una vez que un commit de la ref lleva el trailer, ninguno de sus descendientes puede no llevarlo.**
+
+Un commit sin trailer empujado encima de uno que lo tiene no es historia vieja: es alguien esquivando la verificación.
 
 ### La protección de ramas de la forja no alcanza
 

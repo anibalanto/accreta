@@ -1,8 +1,10 @@
 # Propuesta: verificar una ref ajena, y reparar la disyunción rota
 
-**Estado:** especificado, no implementado. Vive acá hasta que alguien lo implemente.
+**Estado:** las capas 1 y 2 se implementaron como [`verify-ref`](../commands/verify-ref.md). Lo que queda acá es **el replay en CI** —la capa 3, la única que necesita resolver una query— y la reparación de la disyunción rota.
 
 Diferido por [ADR-0004](../.stratum/impl/docs/adr/0004-bilinks-en-ref-paralela.md), que decide **dónde viven los bilinks** y deja fuera de esa decisión la superficie de operación que se resuelve mejor con la ref ya andando.
+
+> Lo de abajo es el diseño con el que se escribió `verify-ref`, y se deja como el argumento del que salió. Para qué verifica hoy y cómo se corre, la spec del comando.
 
 ## `verify-ref` — la ref que construyó otro
 
