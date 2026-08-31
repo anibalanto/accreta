@@ -62,6 +62,10 @@ Y es lo que garantiza que lo aprobado sea recuperable. Sin commit no hay `git sh
 
 **Es un set: ordenado y único al serializar.** Un duplicado o un reordenamiento producirían un diff que no dice nada.
 
+**Y si los valores cambian, la lista se vacía.** Es lo que *"estos valores"* significa: quien aprobó el hash anterior no aprobó el nuevo, y arrastrar su nombre sería atribuirle una decisión que no tomó. Un `accept` que cambia `hash` o `link` deja `agree` con una sola persona — la que acabó de aceptar — y los aprobadores anteriores quedan donde siempre estuvieron, en los commits que escribieron los valores anteriores.
+
+Vale también para `--place` y `--content`: lo que se compara es el par, no cada dimensión por su lado. Aprobar una ubicación nueva sobre un contenido que nadie volvió a mirar produce un par que nadie más aprobó.
+
 ### Un nombre por línea, y por eso no guarda su commit
 
 Se escribe en bloque, nunca en flow:
@@ -140,3 +144,4 @@ Un `accept .` sobre una capa recién cambiada fabrica aprobaciones que nadie mir
 6. Aprobar una ubicación y aprobar un contenido son actos separables.
 7. `accepted.agree` es un set, incluye a quien escribió el `accepted`, y es local: nunca se copia de un vecino.
 8. `agree` no participa de ninguna comparación de estado ni de ningún hash. `OK` no depende de cuántos aprobaron.
+9. Un `accept` que cambia algún valor deja `agree` con quien aceptó y nadie más; uno que no los cambia lo agrega al set que había.

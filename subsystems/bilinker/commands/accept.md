@@ -46,6 +46,8 @@ Es lo que vuelve expresable el endoso de un segundo revisor, y **no cambia el es
 
 Si quien acepta ya está en el set, no hay nada que agregar y no se escribe ningún commit — publicar dos veces la misma aprobación no dice nada nuevo.
 
+**Quién es "quien acepta" lo dice `user.name` de git**, el mismo que va a firmar el commit y el mismo que `git blame` va a mostrar sobre la línea del nombre. Que sean el mismo es lo que permite cruzarlos: un `agree` que dijera una cosa y el autor del commit otra no se podría verificar contra ninguna firma. Sin `user.name` configurado, `accept` falla — igual que fallaría el commit que viene después.
+
 **En bulk no entra.** `accept .` toma *"todo lo que necesita atención"*, y un endpoint en `OK` no la necesita: sumar el nombre en veinte endpoints que nadie miró es la aprobación a ciegas que la sección de abajo desaconseja. El endoso es por endpoint, nombrándolo.
 
 ## Exige el fragmento commiteado
