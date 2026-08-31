@@ -137,6 +137,50 @@ Sigue siendo un artefacto generado que alguien tiene que mantener al día. La di
 >
 > **Y tiene solución fuera de bilinker:** generar el spec *dereferenciado*, con los `$ref` resueltos inline. Ahí el objeto de la ruta contiene su esquema literalmente, y **una sola captura cubre ruta y forma**. El cierre lo resuelve el generador, que es quien sabe hacerlo.
 
+### C bis — Que lattice **proponga** el conjunto de fragmentos
+
+Una variante de C que llega a lo mismo por otro lado, y que en un punto es mejor.
+
+En vez de plegar el cierre en **un hash opaco**, que el recorrido de lattice produzca **N capturas** —una por fragmento alcanzado— y que cada una tenga su bilink, su `accepted` y su estado.
+
+**No es un campo del capture.** Un capture es `{file, query}` y su id es el hash de esos dos campos: agregarle algo le cambia la identidad y se cae la inmutabilidad por construcción y la deduplicación. Lo que lattice aporta es **un modo del comando** —de dónde sale la lista de fragmentos a capturar— y no un dato adentro del artefacto.
+
+Y encaja con lo que el formato ya dice: *"la multiplicidad la aporta el capture"*. Que un recorrido produzca varias no rompe nada; lo que hay que cuidar es quién decide.
+
+#### La ventaja sobre C: se ve qué se movió
+
+| | C — un hash del cierre | C bis — N capturas |
+|---|---|---|
+| Cuando el contrato cambia | *"el hash del contrato cambió"* | **`PublicAuthorityDto` quedó `ALTERED`** |
+| Para saber qué pasó | hay que ir a buscarlo | ya está dicho |
+| Estados | uno | uno por fragmento |
+
+Un hash de cierre dice *que* algo se movió; N capturas dicen **cuál**. Para alguien que tiene que decidir si su código sigue andando, la segunda es la útil.
+
+#### El riesgo, y cómo se evita
+
+Si un recorrido acuña 20 capturas y una aceptación las bendice a todas, alguien acaba de aprobar 20 fragmentos que no leyó. Eso es exactamente lo que vuelve inaceptable guardar el cuerpo entero.
+
+**La salida es la que el proyecto ya usa en otro lado: `apply` propone, `accept` dispone.** El recorrido produce una *propuesta* —*«tu firma alcanza estos 6 fragmentos, ¿cuáles capturo?»*— y la persona elige. El conjunto es derivado; la decisión sigue siendo humana, fragmento por fragmento.
+
+**Y el conjunto no se persiste nunca.** Se recalcula cuando alguien lo pide. Si mañana la firma alcanza un tipo más, eso aparece como una propuesta nueva —*«hay un fragmento más que antes no estaba»*— y no como un índice que creció solo. Es la única forma de no repetir `subgraph.N`: lo que persiste son las capturas individuales y sus aceptaciones, que es lo que ya persiste hoy.
+
+#### Lo que le falta al modelo
+
+**Las N capturas no tienen dónde agruparse.** Un bilink tiene exactamente dos endpoints, y ésa es la invariante más defendida del formato. Seis fragmentos son seis bilinks, y hoy nada dice que los seis son *un* contrato.
+
+Expresarlo pide el endpoint de tipo bilink de [`bilink-endpoint.md`](bilink-endpoint.md) —*"D gobierna el vínculo entre A y B"*— que está especificado y no implementado. Sin eso, el conjunto existe sólo en la cabeza de quien lo creó, y el consumidor ve seis vínculos sueltos en vez de un contrato.
+
+**Es la dependencia real de esta variante**, y conviene saberlo antes de empezar: sin agrupación, C bis da más información y menos sentido.
+
+#### Y es la ergonomía de A
+
+Vale notar que esto no compite con [A](#a--publicar-el-dto-funciona-hoy-sin-nada-nuevo): **es lo que la vuelve practicable.**
+
+A dice *«publicá el DTO, anda hoy»*. Lo que A no resuelve es **cuáles** DTOs — hoy hay que salir a buscarlos a mano, que es exactamente lo que esta sesión hizo a fuerza de `grep` y se equivocó una vez. Un `capture --propose` contesta eso.
+
+O sea: A es qué se captura, C bis es cómo se encuentra. **Se pueden hacer en ese orden**, y la primera no necesita a la segunda para empezar.
+
 ### C — El cierre de firma vía lattice
 
 Lo de arriba. Es la única que sirve donde **no hay un spec generado** — código que no expone una API HTTP, contratos entre módulos, cualquier cosa que no tenga un OpenAPI detrás.
@@ -147,9 +191,12 @@ Lo de arriba. Es la única que sirve donde **no hay un spec generado** — códi
 |---|---|---|---|
 | **A** publicar el DTO | sí | **no** | nada — anda hoy |
 | **B** publicar el openapi | sí | **sí** | gramática JSON + commitear un generado |
-| **C** cierre de firma | sí | no aplica | lattice + resolver compatibilidad |
+| **C** cierre de firma | sí, opaco | no aplica | lattice + resolver compatibilidad |
+| **C bis** lattice propone N capturas | sí, **y dice cuál se movió** | no aplica | lattice + agrupación (endpoint bilink) |
 
-**A para empezar mañana; B cuando la ruta importe; C parked.** Y B no reemplaza a C: sirve donde hay un spec generado, que es una parte del problema y no todo.
+**A para empezar mañana; B cuando la ruta importe; C bis como la ergonomía de A; C parked.**
+
+Y una observación sobre C contra C bis: **C bis no necesita resolver la compatibilidad.** Como cada fragmento conserva su propio estado, un campo agregado a un DTO aparece como ese DTO `ALTERED` y quien mira decide en un segundo si le afecta — en vez de un hash de cierre que dispara sin decir por qué. El problema difícil de C se disuelve al no plegar todo en un valor. Y B no reemplaza a C: sirve donde hay un spec generado, que es una parte del problema y no todo.
 
 ## Qué haría falta antes de decidir
 
