@@ -166,9 +166,38 @@ branch = "rc-2.32"
 
 **Éste es el único lugar de tu repo que sabe algo del otro repo.** Ningún bilink va a contener una URL: si el proveedor cambia de host, editás este archivo y nada más.
 
-## B2. Vincular
+## B2. Ver de qué colgarte
 
-Necesitás el UUID que el proveedor publicó (paso A2):
+Antes de vincular nada, mirá qué publica:
+
+```bash
+bilinker fetch hsi
+bilinker abstracts hsi
+```
+
+```
+hsi · 3 abstracción(es)
+
+  ca4dbbd9  src/main/java/ar/hsi/Permisos.java
+            public boolean puede(String usuario, String operacion) {
+                return consultar(usuario, operacion);
+            }
+
+  d290a546  src/main/java/ar/hsi/Turnos.java   ← ya lo consumís
+
+  5ed1d14e  src/main/java/ar/hsi/Padron.java
+            public int contar(String institucion) {
+```
+
+**Muestra el código**, que es lo que decide de cuál colgarse — una lista de UUIDs no alcanza para elegir. Y lo que ya consumís queda marcado, para no colgarte dos veces de lo mismo.
+
+Mirar el catálogo **no trae nada**: el clon recorta el árbol de trabajo, no el object store, así que los fragmentos se leen aunque sus archivos no estén en disco. Podés mirar diez para elegir una sin que te queden nueve archivos ajenos en el working tree.
+
+Del otro lado, el proveedor contesta la misma pregunta con `bilinker abstracts` a secas: *¿qué estoy publicando?*
+
+## B3. Vincular
+
+Con el UUID de la que elegiste:
 
 ```bash
 bilinker chain new \
@@ -184,7 +213,9 @@ Created chain: 2e9efd68-2b7a-438e-96b8-4ff917f0529c
 
 El mismo UUID de los dos lados: **eso es lo que los hace encontrarse**, sin que ninguno escriba en el repo del otro.
 
-## B3. Traer al proveedor
+## B4. Traer el archivo del fragmento
+
+Sí, `fetch` otra vez — y la segunda corrida dice algo:
 
 ```bash
 bilinker fetch hsi
@@ -194,11 +225,13 @@ bilinker fetch hsi
 hsi: refs/bilink/main · 1 archivo(s) en el sparse
 ```
 
+La primera vez decía **0 archivos**: no consumías nada todavía. Ahora dice 1, porque te colgaste de uno.
+
+**Ese número se calcula, no se declara**: sale de qué fragmentos referenciás. Si mañana te colgás de otro, el próximo `fetch` lo trae solo; si dejás de consumir uno, deja de traerlo. Un conjunto escrito a mano en el `.toml` habría quedado viejo con el primer vínculo nuevo.
+
 Trae **una sola ref**, que lleva los bilinks del proveedor y el código al que apuntan, coherentes por construcción. El clon queda en `.bilink/hsi/`, no se commitea, y es superficial: sólo lo que hace falta.
 
-Ese "1 archivo en el sparse" **se calculó**, no se declaró: sale de qué fragmentos referenciás. Si mañana referenciás otro, el próximo `fetch` lo trae solo.
-
-## B4. Verificar y aceptar
+## B5. Verificar y aceptar
 
 ```bash
 bilinker check .
@@ -391,8 +424,12 @@ remote = "git@gitlab…:minsal/hsi.git"
 branch = "rc-2.32"
 EOF
 
+# Ver qué publica, y elegir:
+bilinker fetch hsi
+bilinker abstracts hsi
+
 bilinker chain new \
-  --from-repo 'hsi:<el uuid que pasó hsi>' \
+  --from-repo 'hsi:<el uuid elegido>' \
   --tip 'src/…/permissions.ts:<línea>:<col>'
 
 bilinker fetch hsi
