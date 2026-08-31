@@ -25,7 +25,7 @@ endpoint:
     link: capture 67ba7217e0334051becd4921b55a7872
     accepted:
       agree:
-        - pablo
+      - pablo
       link: capture 67ba7217e0334051becd4921b55a7872
       hash: c00e07602bd560755096b57df1ddb9ed49d816fb8af58a4ec9cde82f21f38db3
       hash_ast: 1b9e44a2f0c8d3e7a5b1c9d4e2f6a8b0c3d5e7f9a1b3c5d7e9f1a3b5c7d9e1f3
@@ -62,15 +62,21 @@ Y es lo que garantiza que lo aprobado sea recuperable. Sin commit no hay `git sh
 
 **Es un set: ordenado y único al serializar.** Un duplicado o un reordenamiento producirían un diff que no dice nada.
 
+**Y si los valores cambian, la lista se vacía.** Es lo que *"estos valores"* significa: quien aprobó el hash anterior no aprobó el nuevo, y arrastrar su nombre sería atribuirle una decisión que no tomó. Un `accept` que cambia `hash` o `link` deja `agree` con una sola persona — la que acabó de aceptar — y los aprobadores anteriores quedan donde siempre estuvieron, en los commits que escribieron los valores anteriores.
+
+Vale también para `--place` y `--content`: lo que se compara es el par, no cada dimensión por su lado. Aprobar una ubicación nueva sobre un contenido que nadie volvió a mirar produce un par que nadie más aprobó.
+
 ### Un nombre por línea, y por eso no guarda su commit
 
 Se escribe en bloque, nunca en flow:
 
 ```yaml
 agree:
-  - ana
-  - pablo
+- ana
+- pablo
 ```
+
+La secuencia va sin sangría extra bajo la clave — es lo que el serializador emite, y las dos formas son el mismo YAML. Lo que importa es que sea **bloque y no flow**: una línea por nombre.
 
 **Porque `git blame` sólo puede atribuir una línea a un commit.** En una sola línea, `- ana, - pablo` colapsa N actos distintos en un lugar, y blame devuelve el commit del último que la tocó: el primer aprobador se pierde. Con un nombre por línea, cada endoso queda atribuible por separado — autor, fecha y firma — y de ahí sale que **el campo no necesite guardar el commit de nadie**: git ya lo sabe, y con `blame` se llega en un salto.
 
@@ -140,3 +146,4 @@ Un `accept .` sobre una capa recién cambiada fabrica aprobaciones que nadie mir
 6. Aprobar una ubicación y aprobar un contenido son actos separables.
 7. `accepted.agree` es un set, incluye a quien escribió el `accepted`, y es local: nunca se copia de un vecino.
 8. `agree` no participa de ninguna comparación de estado ni de ningún hash. `OK` no depende de cuántos aprobaron.
+9. Un `accept` que cambia algún valor deja `agree` con quien aceptó y nadie más; uno que no los cambia lo agrega al set que había.

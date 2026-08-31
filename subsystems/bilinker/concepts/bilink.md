@@ -28,7 +28,7 @@ endpoint:
     link: capture 67ba7217e0334051becd4921b55a7872
     accepted:
       agree:
-        - pablo
+      - pablo
       link: capture 67ba7217e0334051becd4921b55a7872
       hash: c00e07602bd560755096b57df1ddb9ed49d816fb8af58a4ec9cde82f21f38db3
       hash_ast: 1b9e44a2f0c8d3e7a5b1c9d4e2f6a8b0c3d5e7f9a1b3c5d7e9f1a3b5c7d9e1f3
