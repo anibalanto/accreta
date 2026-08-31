@@ -9,7 +9,7 @@ bilinker determina la raíz del proyecto buscando desde el directorio de trabajo
 
 Si ninguno se encuentra, se usa el directorio de trabajo actual como raíz. Esto permite usar bilinker en proyectos nuevos sin ningún paso de inicialización.
 
-No existe ningún archivo de configuración **de la herramienta**. Dentro de `.bilink/` sí hay tres archivos que el propio bilinker escribe y lee —[`version`](format-version.md), que dice qué formato son estos archivos; [`cache/state`](cache.md); y [`head`](ref.md#bilinkhead--de-dónde-salió-el-árbol), que dice de qué commit de la ref salió este árbol— pero no son configuración: nadie los edita a mano y todos salen de un comando.
+No existe ningún archivo de configuración **de la herramienta**. Dentro de `.bilink/` sí hay tres archivos que el propio bilinker escribe y lee —[`version`](format-version.md), que dice qué formato son estos archivos; [`cache/state`](cache.md); y [`head`](ref.md#bilinkhead-de-dónde-salió-el-árbol), que dice de qué commit de la ref salió este árbol— pero no son configuración: nadie los edita a mano y todos salen de un comando.
 
 ## Lo que sí es por clon
 

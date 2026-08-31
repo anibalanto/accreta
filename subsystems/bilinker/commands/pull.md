@@ -57,7 +57,7 @@ Y como la fusión queda confinada a `.bilink/`, el commit no toca ningún archiv
 
 ## Qué es conflicto y qué no
 
-El merge es **a tres puntas y campo por campo**, el mismo de [`adopt`](adopt.md#el-merge-es-a-tres-puntas-y-campo-por-campo):
+El merge es **a tres puntas y campo por campo**, el mismo de [`adopt`](adopt.md#qué-se-compara):
 
 | | Qué pasa |
 |---|---|

@@ -19,7 +19,7 @@ El segundo corte, y sólo después de que el `004` esté validado entero **y de 
 
 El paso 1 es `git rm --cached -r .bilink/` más commit: **los archivos se quedan en disco**, así que no hay que restaurarlos para commitearlos a la ref.
 
-> Son tres pasos y no cinco. El ADR escribía un `git update-ref refs/bilink/<branch> X` y un commit aparte; al implementar la ref quedó claro que los dos son un solo `bilinker track`, que es exactamente el caso "ningún candidato califica". Y el `update-ref` estorbaba: dejaría la ref apuntando a un commit del proyecto, y `track` tendría que tratarlo como propio. Ver la enmienda en [ADR-0004](../subsystems/bilinker/.stratum/impl/docs/adr/0004-bilinks-en-ref-paralela.md) § `005`.
+> Son tres pasos y no cinco. El ADR escribía un `git update-ref refs/bilink/<branch> X` y un commit aparte; al implementar la ref quedó claro que los dos son un solo `bilinker track`, que es exactamente el caso "ningún candidato califica". Y el `update-ref` estorbaba: dejaría la ref apuntando a un commit del proyecto, y `track` tendría que tratarlo como propio. Ver la enmienda en [ADR-0004](../../subsystems/bilinker/.stratum/impl/docs/adr/0004-bilinks-en-ref-paralela.md) § `005`.
 
 **El paso 2 no materializa nada**, y es lo que hace que el corte no necesite setup propio: con `.bilink/` en el árbol y sin `head`, `init` no sabe de dónde salió, así que lo deja intacto y se limita al exclude y al refspec.
 
@@ -29,7 +29,7 @@ Cuatro veces, una por repo, y quedan cuatro `refs/bilink/main`.
 
 ## Corrido
 
-Los cuatro, con [`scripts/corte-005.sh`](../subsystems/bilinker/.stratum/impl/scripts/corte-005.sh) de la task [`1a`](1a.task.md), en orden de menor a mayor riesgo:
+Los cuatro, con [`scripts/corte-005.sh`](../../subsystems/bilinker/.stratum/impl/scripts/corte-005.sh) de la task [`1a`](1a.task.md), en orden de menor a mayor riesgo:
 
 | Repo | X | ●0 | bilinks en la ref |
 |---|---|---|---|
@@ -64,4 +64,4 @@ Y el atajo no compraba nada: medido sobre accreta, el subproceso de git cuesta l
 
 **Los 17 se aceptaron con evidencia, no a ciegas**: los archivos son byte-idénticos a como estaban cuando se aprobaron, así que el texto no cambió — cambió el recorte. Reaceptar es fijar el mismo contenido bajo la regla nueva.
 
-La lección quedó en [`commands/check.md`](../subsystems/bilinker/commands/check.md) § "No hay optimización por diff de git": **un estado se conserva verificándolo, no infiriéndolo de que su entrada no cambió** — porque "su entrada" incluye a la herramienta, y la herramienta también cambia.
+La lección quedó en [`commands/check.md`](../../subsystems/bilinker/commands/check.md) § "No hay optimización por diff de git": **un estado se conserva verificándolo, no infiriéndolo de que su entrada no cambió** — porque "su entrada" incluye a la herramienta, y la herramienta también cambia.

@@ -73,7 +73,7 @@ Es raro que un derivado lo escriba `accept` y no `check`, y es deliberado: se ca
 
 Sin eso, una cache por capa devolvería estados de otra rama en silencio cuando el árbol de trabajo cambia de rama. Con el commit anotado **la cache se invalida sola**: si no coincide, no sirve, y hay que correr `check`.
 
-Es la mitad derivada de un par. La otra es [`.bilink/head`](ref.md#bilinkhead--de-dónde-salió-el-árbol), que dice a qué rama y a qué commit corresponde el `.bilink/` del árbol. La cache protege al derivado; `head` protege a la fuente, y por eso `head` no puede vivir acá adentro.
+Es la mitad derivada de un par. La otra es [`.bilink/head`](ref.md#bilinkhead-de-dónde-salió-el-árbol), que dice a qué rama y a qué commit corresponde el `.bilink/` del árbol. La cache protege al derivado; `head` protege a la fuente, y por eso `head` no puede vivir acá adentro.
 
 **Y el commit lo lee de `head`, no de git.** `head` es un hecho sobre el árbol, y es exactamente la pregunta que la cache necesita contestar: *"¿de qué commit salieron los bilinks sobre los que calculé?"*. Preguntárselo a git daría el tip de la ref, que es otra cosa — el árbol puede corresponder a un commit anterior. En una capa sin `head` no hay nada contra qué comparar y la cache se usa como está.
 
