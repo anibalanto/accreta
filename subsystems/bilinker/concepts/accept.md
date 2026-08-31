@@ -25,7 +25,7 @@ endpoint:
     link: capture 67ba7217e0334051becd4921b55a7872
     accepted:
       agree:
-        - pablo
+      - pablo
       link: capture 67ba7217e0334051becd4921b55a7872
       hash: c00e07602bd560755096b57df1ddb9ed49d816fb8af58a4ec9cde82f21f38db3
       hash_ast: 1b9e44a2f0c8d3e7a5b1c9d4e2f6a8b0c3d5e7f9a1b3c5d7e9f1a3b5c7d9e1f3
@@ -72,9 +72,11 @@ Se escribe en bloque, nunca en flow:
 
 ```yaml
 agree:
-  - ana
-  - pablo
+- ana
+- pablo
 ```
+
+La secuencia va sin sangría extra bajo la clave — es lo que el serializador emite, y las dos formas son el mismo YAML. Lo que importa es que sea **bloque y no flow**: una línea por nombre.
 
 **Porque `git blame` sólo puede atribuir una línea a un commit.** En una sola línea, `- ana, - pablo` colapsa N actos distintos en un lugar, y blame devuelve el commit del último que la tocó: el primer aprobador se pierde. Con un nombre por línea, cada endoso queda atribuible por separado — autor, fecha y firma — y de ahí sale que **el campo no necesite guardar el commit de nadie**: git ya lo sabe, y con `blame` se llega en un salto.
 
