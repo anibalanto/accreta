@@ -31,3 +31,7 @@ Después el código, por los bilinks que se rompan. No requiere ningún repo aje
 **`accepted.link` sí lleva el prefijo cruzando la frontera.** Lo escribí al revés en `reference.md`: es una copia opaca de un id ajeno, pero eso ya valía para un endpoint `path`, y la forma es la misma en los dos casos.
 
 **El guard del esquema disparó, que es exactamente lo que tenía que pasar.** Agregar dos tipos de endpoint es aditivo y sube la versión igual — `3.1.0` — porque un parser de `3.0.0` leería `abstract` como un path de capa, en silencio. Y el hash cambió **dos veces**: la segunda al bumpear, porque el esquema lleva su versión adentro y certifica las dos cosas a la vez.
+
+**Y el clon del proveedor no se excluye con un `.gitignore`.** Lo había escrito así —`fetch` agregaba `<alias>/` a `.bilink/.gitignore`— y es la palanca equivocada dos veces: es una escritura versionada para resolver algo que es del índice, y una regla por proveedor donde ya hay una que los cubre a todos. Del lado del proyecto lo cubre el patrón `.bilink/` que `init` puso en `info/exclude`; del lado de la ref, la enumeración que construye el árbol.
+
+Siguiendo eso apareció que **nada en el código impedía que el clon entrara al commit de la ref**: `collect_tracked` recorría `.bilink/` entero. No se filtró en la prueba, pero por cómo git trata un repo anidado, no por diseño — y depender de eso es depender de que el clon esté sano. Ahora la frontera del repo está dicha también ahí, que es la misma regla que frena el recorrido de capas.
