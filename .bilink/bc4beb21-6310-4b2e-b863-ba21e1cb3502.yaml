@@ -1,0 +1,12 @@
+kind: governs
+endpoint:
+  0:
+    link: capture 9101efae04835c2d6d114a7c59564908
+    accepted:
+      agree:
+      - Anibal
+      link: capture 9101efae04835c2d6d114a7c59564908
+      hash: f7d3a5acb2d84104311c6f8e2e82bc640505f4a11ee82b6c431c8180d76262b4
+    name: la-spec
+  1:
+    link: path subsystems/stratum>impl
