@@ -110,6 +110,8 @@ pablo@example.com ssh-ed25519 AAAAC3Nza...
 
 **Vive en el servidor, no en la ref.** Una allowlist versionada la edita quien pushea, que es exactamente quien no debería poder ampliarla.
 
+**Y bilinker firma lo que escribe, si el repo está configurado para firmar.** No con una opción propia: con `commit.gpgsign`, la misma con la que se firma cualquier otro commit. Hizo falta decirlo porque `git commit-tree` —con el que se arma todo commit de la ref— **no la mira**, a diferencia de `git commit`: sin pasarle `-S` los commits salen sin firmar, y la allowlist se quedaría sin nada que verificar.
+
 Sin `--signers`, la verificación de firma no corre y la salida lo dice: *"sin allowlist: la firma no se verificó"*. Es la diferencia entre "verifiqué y está bien" y "no verifiqué", y confundirlas sería el peor resultado posible.
 
 ## Salida

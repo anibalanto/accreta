@@ -332,6 +332,8 @@ Ninguna necesita tree-sitter ni abrir un bilink, que es exactamente lo que la in
 
 El mismo hook llena la fila que [más abajo](#autoría-atestación-y-autorización) queda sin dueño: **todo commit sobre la ref tiene que estar firmado por una clave de una allowlist**, que `git verify-commit` chequea offline y sin infraestructura.
 
+Del lado de quien escribe, la condición la pone git y no bilinker: se firma si `commit.gpgsign` está puesto, igual que cualquier otro commit del repo.
+
 Y con eso alcanza para que [`agree`](accept.md#quiénes-aprobaron) deje de ser auto-declarado, **sin traducir ningún nombre a ninguna clave**:
 
 > **Un commit sólo puede agregar a su propio autor a un `agree`.**
