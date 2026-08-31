@@ -178,6 +178,19 @@ Error: el anchor `compute_fix` no está en el archivo.
 
 Es la misma regla que gobierna [`apply`](apply.md#cuando-el-fix-no-se-puede-calcular) al no poder calcular un fix: **la salida es fiel a lo que la herramienta sabe.** El capture está ahí, se leyó para intentar resolverlo, y lo que se imprime lo incluye.
 
+### La causa se re-deriva, no se supone
+
+*"La query no matcheó"* es cierto y no sirve: es la observación, no la causa. Así que el estado del capture se vuelve a resolver, y de ahí sale qué comando corresponde:
+
+| Estado | Qué pasó | Qué hay que hacer |
+|---|---|---|
+| `MOVED` | el archivo se movió | `bilinker apply` |
+| `REANCHORED` | el anchor se renombró y se localizó por similitud | `bilinker apply` |
+| sin fix, y el anchor aparece en un archivo **sin trackear** | git no puede ver el rename | `git add` ese archivo |
+| sin fix, y el anchor no aparece en ninguna parte | el fragmento ya no existe | `recapture` o `remove` |
+
+La tercera fila es la que [`apply`](apply.md#y-las-otras-dos-causas-no-son-de-apply) no puede explicar: sin rename detectado el capture queda en un estado sin fix, y `apply` no lo mira. Se decide buscando el anchor entre los archivos sin trackear — un hecho, no una sugerencia genérica.
+
 ## Flujo típico
 
 ```bash

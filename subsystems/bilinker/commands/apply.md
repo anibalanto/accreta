@@ -91,29 +91,33 @@ Un capture en `MOVED` o `REANCHORED` no siempre produce una ubicación nueva: gi
 
 **Cuando no puede, lo dice y sigue.** Abortar dejaría sin revisar a todos los demás endpoints por culpa de uno.
 
-### Y dice cuál de las tres cosas pasó
+### El caso que sí ve: MOVED y REANCHORED a la vez
 
-Un solo mensaje cubría tres causas que mandan a mirar lugares distintos, y la más común —el anchor renombrado— salía culpando al índice de renames de git, que estaba bien:
-
-| Lo que pasó | Cómo se distingue | Qué hay que hacer |
-|---|---|---|
-| git no detectó el rename: **el destino no está trackeado** | el anchor aparece en un archivo sin trackear | `git add` ese archivo |
-| **el destino está y el anchor se renombró también** | git reporta el rename, pero la query no resuelve ahí | `bilinker recapture` |
-| **el fragmento no está en ninguna parte** | ni rename, ni el anchor en ningún archivo sin trackear | `recapture` o `remove` |
+Un archivo que se renombra **y** el símbolo capturado adentro también. Ningún estado lo expresa —los dos son de resolución y el capture guarda uno solo— y el mensaje salía culpando al índice de renames de git, que estaba bien:
 
 ```
-warn: 09b88fe0… endpoint.0: MOVED: git no reporta un rename de 'docs/spec.md',
-      y el anchor `compute_fix` está en 'docs/renombrada.md', que no está trackeado.
-      `git add docs/renombrada.md` y volver a correr.
-
 warn: 36f0c759… endpoint.1: MOVED: el archivo se movió a 'crates/bilinker/src/issue.rs',
       pero el anchor `resolve_task_path` ya no está ahí (UNANCHORED).
       Repuntar con `bilinker recapture`.
 ```
 
-**El anchor se nombra**, no el estado: es el dato que dice qué buscar. Y la primera fila se decide buscando el anchor entre los archivos sin trackear — un hecho, no una sugerencia genérica.
+**El anchor se nombra, no el estado**: es el dato que dice qué buscar.
 
 **Que no haya auto-fix está bien**: dónde quedó el fragmento adentro del archivo destino es una inferencia que `apply` no debería hacer sola. Lo que sí puede es decir qué comando la hace.
+
+### Y las otras dos causas no son de `apply`
+
+Las tres se leían como un mismo mensaje, y sólo la de arriba pasa por acá:
+
+| Lo que pasó | Estado del capture | Quién lo explica |
+|---|---|---|
+| el destino está y el anchor se renombró | `MOVED` | **`apply`** |
+| git no detectó el rename: el destino no está trackeado | sin fix | [`get`](get.md#cuando-el-capture-no-resuelve-igual-dice-a-dónde-apuntaba) |
+| el fragmento no está en ninguna parte | sin fix | [`get`](get.md#cuando-el-capture-no-resuelve-igual-dice-a-dónde-apuntaba) |
+
+**`apply` sólo toca los estados con fix**, así que las dos últimas ni siquiera llegan a su código: dejan el capture sin fix, y `apply` las saltea. Que su mensaje pretendiera cubrirlas era parte del mismo error — describía condiciones que ese camino no puede observar.
+
+Quien las explica es `get`, que es donde se pregunta *"¿qué pasó con este endpoint?"*. Y la del destino sin trackear se decide **buscando el anchor entre los archivos sin trackear**: un hecho, no una sugerencia genérica.
 
 ## Qué escribe
 
