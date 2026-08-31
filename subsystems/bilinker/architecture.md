@@ -68,6 +68,12 @@ flowchart TD
 
 Ningún nodo puede cambiar su estado aceptado sin que los nodos adyacentes lo detecten.
 
+## El mensaje de la ref es un módulo, no un `format!`
+
+`refmsg` tiene la gramática de [el mensaje de un commit de la ref](concepts/ref.md#el-mensaje-es-el-comando): la arma y la parsea, en el mismo lugar. Que las dos direcciones vivan juntas es lo que hace verificable el round-trip — lo que bilinker escribe se lee de vuelta igual, y sin eso el replay no tiene de dónde salir.
+
+Está aparte de `bilink_ref` a propósito. `bilink_ref` sabe de árboles, padres y refs; `refmsg` no toca git y no conoce el repo: es texto contra una forma estructurada. **El parser es además la superficie que recibe texto de afuera** —un push viene de otra máquina— así que aislarlo es lo que permite decir, y testear, que de acá no sale nunca una línea de comando: sale un `enum` con el que se arma argv.
+
 ## El formato vive aparte
 
 El formato de los archivos es un crate propio, `bilink-format`, del que depende todo lo demás:
