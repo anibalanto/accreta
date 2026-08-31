@@ -9,13 +9,12 @@ Alinea `refs/bilink/<branch>` con la rama del proyecto, absorbiéndola. Cubre el
 ## Firma
 
 ```
-bilinker sync [--dry-run] [--push]
+bilinker sync [--dry-run]
 ```
 
 | Argumento | Descripción |
 |---|---|
 | `--dry-run` | Muestra qué haría sin escribir nada. |
-| `--push` | Empuja `refs/bilink/<branch>` al remoto después de commitear. |
 
 No toma rama: opera sobre la rama actual del proyecto y su ref. Cambiar de rama es un `git checkout`, y después de él [la materialización es automática](../concepts/ref.md#la-materialización-es-automática).
 
@@ -84,11 +83,11 @@ Va sobre el **árbol** del commit y no sobre su diff: el commit que *borra* `.bi
 
 La reparación está diferida, en [`proposals/verificar-ref-ajena.md`](../proposals/verificar-ref-ajena.md).
 
-## `--push`
+## No publica
 
-Empuja `refs/bilink/<branch>` con el refspec que [`init`](init.md) dejó puesto. Es siempre fast-forward: la ref es append-only.
+Publicar es [`push`](push.md), y es un comando y no una flag de éste.
 
-Separado del comando porque **sincronizar local y publicar son dos cosas**, y quien trabaja en una rama propia hace lo primero muchas veces antes de lo segundo. Un `sync` que empujara solo convertiría un comando local en uno que habla con la red.
+**Sincronizar local y publicar son dos actos**, y quien trabaja en una rama propia hace el primero muchas veces antes del segundo. Un `sync` que empujara —aunque fuera opcionalmente— convertiría un comando local en uno que a veces habla con la red, y "a veces" es lo peor que puede ser una operación de red: no se puede correr sin pensar.
 
 ## Salida
 
@@ -126,5 +125,6 @@ Si la rama no tiene ref, el arreglo es [`track`](track.md), no `sync`: crear la 
 - **No verifica**: no corre tree-sitter, no resuelve captures, no escribe la cache.
 - **No escribe ningún archivo del árbol de trabajo** salvo `.bilink/head`.
 - **Idempotente**: correrlo dos veces no escribe un segundo commit.
-- **`--dry-run` no escribe** y no habla con la red.
+- **No habla con la red**, ni con `--dry-run` ni sin él.
+- **`--dry-run` no escribe.**
 - El commit que escribe tiene **diff vacío** contra su primer padre.

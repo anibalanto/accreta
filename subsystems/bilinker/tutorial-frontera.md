@@ -137,12 +137,16 @@ git show-ref | grep bilink
 ## A6. Publicar la ref
 
 ```bash
-git push origin 'refs/bilink/main:refs/bilink/main'
+bilinker push
 ```
 
-`git push` a secas **no la empuja** — está fuera de `refs/heads/`. Hay que nombrarla.
+```
+publicado: refs/bilink/main @ e755f02 → origin
+```
 
-> Si tenés más de una rama con bilinks, `+refs/bilink/*:refs/bilink/*` las empuja todas.
+**Ninguna interacción con `refs/bilink/*` se hace tipeando git.** La ref está fuera de `refs/heads/`, así que `git push` a secas no la empuja y habría que nombrarla con un refspec — y el refspec lo arma bilinker, que es de quien es la ref.
+
+Publica **la ref y nada más**: qué commits de tu proyecto salen a la luz lo seguís decidiendo vos, con `git push`, cuando quieras.
 
 ---
 
@@ -325,7 +329,7 @@ Error: el proveedor 'hsi' publica formato 4.0.0 y este binario lee 3.1.0.
 
 ## Deshacer
 
-**Del lado del proveedor**, mientras no pusheaste la ref:
+**Del lado del proveedor**, mientras no publicaste la ref:
 
 ```bash
 git update-ref -d refs/bilink/main
@@ -369,7 +373,7 @@ git status --porcelain    # vacío
 git log --oneline -1      # el mismo commit que antes
 git branch -a             # ninguna rama nueva
 
-git push origin 'refs/bilink/rc-2.32:refs/bilink/rc-2.32'
+bilinker push
 ```
 
 Y pasan el UUID que imprimió `chain new`.
