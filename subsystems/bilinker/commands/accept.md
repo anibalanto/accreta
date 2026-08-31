@@ -46,7 +46,9 @@ Es lo que vuelve expresable el endoso de un segundo revisor, y **no cambia el es
 
 Si quien acepta ya está en el set, no hay nada que agregar y no se escribe ningún commit — publicar dos veces la misma aprobación no dice nada nuevo.
 
-**Quién es "quien acepta" lo dice `user.name` de git**, el mismo que va a firmar el commit y el mismo que `git blame` va a mostrar sobre la línea del nombre. Que sean el mismo es lo que permite cruzarlos: un `agree` que dijera una cosa y el autor del commit otra no se podría verificar contra ninguna firma. Sin `user.name` configurado, `accept` falla — igual que fallaría el commit que viene después.
+**Quién es "quien acepta" lo dice git, no bilinker:** el nombre que git usaría como autor, que es lo que `git var GIT_AUTHOR_IDENT` contesta. Que sea el mismo que el autor del commit y el mismo que `git blame` muestra sobre la línea del nombre es lo que permite cruzarlos — un `agree` que dijera una cosa y el autor del commit otra no se podría verificar contra ninguna firma.
+
+**Y por eso se pregunta así y no leyendo `user.name`.** El nombre del autor no siempre sale de ahí: puede venir de `GIT_AUTHOR_NAME`, de un `[includeIf]` por directorio, o del sistema cuando nadie lo configuró. Leer un solo lugar acierta a veces, y cuando falla escribe en `agree` un nombre distinto del que va a quedar en el commit — que es exactamente lo que rompe el cruce. Si git no puede contestar, `accept` falla, igual que fallaría el commit que viene después.
 
 **En bulk no entra.** `accept .` toma *"todo lo que necesita atención"*, y un endpoint en `OK` no la necesita: sumar el nombre en veinte endpoints que nadie miró es la aprobación a ciegas que la sección de abajo desaconseja. El endoso es por endpoint, nombrándolo.
 
