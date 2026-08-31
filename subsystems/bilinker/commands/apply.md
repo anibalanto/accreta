@@ -33,18 +33,24 @@ bilinker apply [--dry-run] [--filter <estado>] [-y]
 5. Mostrar el resumen y pedir confirmación (o `-y`).
 6. Para cada fix: acuñar el capture de la ubicación nueva —si no existía— y repuntar el `link`.
 7. Si el commit del proyecto contra el que se calcularon los fixes no está absorbido, **absorberlo en un commit propio** sobre [`refs/bilink/<branch>`](../concepts/ref.md) — un merge que sólo trae código.
-8. Cerrar el acto con un commit sobre la ref **de un solo padre**: [un commit sobre la ref hace una cosa](../concepts/ref.md#un-commit-hace-una-cosa), y absorber y repuntar son dos. En un repo que todavía no cortó a la ref, commitear los archivos escritos en la rama del proyecto.
+8. Cerrar **cada fix** con un commit sobre la ref de un solo padre: [un commit sobre la ref hace una cosa](../concepts/ref.md#un-commit-hace-una-cosa), y absorber y repuntar son dos. En un repo que todavía no cortó a la ref, commitear los archivos escritos en la rama del proyecto.
+
+**Un commit por `link` repuntado, no por invocación.** Un `apply -y` que corrige tres endpoints absorbe una vez —el paso 7— y escribe tres commits encadenados sobre ese merge. Es la misma [granularidad por objeto](../concepts/ref.md#la-correspondencia-con-el-proyecto-es-el-segundo-padre) que `accept`, y por el mismo motivo: repuntar un vínculo a otro fragmento es una decisión, se firma sola y se audita sola.
+
+Y lo fuerza [el mensaje](../concepts/ref.md#el-mensaje-es-el-comando): `apply <uuid>.<N> <capture-nuevo>` nombra **un** endpoint, y un mensaje que nombrara tres no sería reproducible contra el árbol de un solo padre.
 
 **`apply` y `accept` son dos commits porque son dos actos**, con dos autores posibles: `apply` describe —repunta los `link` y deja los endpoints en `RELOCATED`— y `accept` bendice. El commit de `apply` no toca ningún `accepted`.
 
-**Mensaje de commit:**
+**Mensaje de commit**, uno por fix, con [la gramática de la ref](../concepts/ref.md#el-mensaje-es-el-comando):
 
 ```
-bilinker: repuntar 3 endpoint(s) (2026-08-30)
+apply 7f3d8e9a-….1 3ca90f81…: MOVED → specs/domain/voting.yaml
 
-- 7f3d8e9a… endpoint.1  MOVED       → specs/domain/voting.yaml
-- 3a4b5c6d… endpoint.0  REANCHORED  → query: (function_item name: … "check_endpoint")
+Invocation: bilinker apply -y
+Bilinker-Version: 0.1.0
 ```
+
+El segundo argumento es el capture **nuevo**: es lo que el `link` pasa a nombrar, y lo que un replay compara. `Invocation:` guarda lo que la persona tipeó —`apply -y`, que produjo tres commits— y es dato de auditoría, no de verificación.
 
 ## Cálculo del fix por estado
 
@@ -113,10 +119,13 @@ Apply? [y/N] y
 
 Repuntados 3 endpoint(s). Los 3 quedan en RELOCATED.
   Revisar con `bilinker get <uuid>.<N>` y aprobar con `bilinker accept --place`.
-Committed: a4b5c6d "bilinker: repuntar 3 endpoint(s) (2026-08-30)"
+commit:  refs/bilink/… @ 9f7020e  (absorbe 24ae0f6)
+commit:  refs/bilink/… @ a4b5c6d
+commit:  refs/bilink/… @ 3e1f8b2
+commit:  refs/bilink/… @ c70d914
 ```
 
-Ningún fix cierra solo. La línea final dice qué falta, porque el trabajo no terminó cuando `apply` termina.
+Ningún fix cierra solo. Por eso el resumen dice qué falta antes de listar los commits: el trabajo no terminó cuando `apply` termina, y los tres endpoints quedaron esperando un `accept --place`.
 
 ## Código de salida
 
@@ -136,4 +145,5 @@ Ningún fix cierra solo. La línea final dice qué falta, porque el trabajo no t
 - Si el estado re-derivado no coincide con el cacheado, `apply` descarta el fix y avisa.
 - Si el fix calculado no se puede verificar —el hash no coincide en el path nuevo, el anchor no aparece— `apply` lo rechaza y avisa.
 - `apply` es idempotente: un fix ya aplicado se detecta como no-op.
+- `apply` escribe un commit de decisión por `link` repuntado, todos hijos de la misma absorción.
 - `ALTERED`, `UNRESOLVED` y `CHAIN_DIRTY` no tienen fix y `apply` no los toca.
