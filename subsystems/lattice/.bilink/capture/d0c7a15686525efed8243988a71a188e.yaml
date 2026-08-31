@@ -1,6 +1,0 @@
-file: commands/graph.md
-query: |-
-  (section
-    (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `lattice graph`"))
-    (section
-    (atx_heading (inline) @n1 (#eq? @n1 "Salida — `html`"))) @target)

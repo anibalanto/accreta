@@ -1,6 +1,0 @@
-file: architecture.md
-query: |-
-  (section
-    (atx_heading (inline) @n0 (#eq? @n0 "Arquitectura"))
-    (section
-    (atx_heading (inline) @n1 (#eq? @n1 "Componentes"))) @target)

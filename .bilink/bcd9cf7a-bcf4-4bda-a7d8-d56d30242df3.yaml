@@ -1,0 +1,12 @@
+endpoint:
+  0:
+    link: capture 1ebffb09d2116538a9bd8ab81d66adfd
+    accepted:
+      link: capture 1ebffb09d2116538a9bd8ab81d66adfd
+      hash: 6d087b3e5b373681c4d0a49ff0905e8f25269a6c1ce06d42b017cb5a984daf79
+  1:
+    link: path subsystems/lattice>impl
+    accepted:
+      link: capture ec7cd075272036016b3f9a01cd0a9feb
+      hash: 1295deb42eef72026bbc691874be693eafc0efd84bc19599d36263c955abaab3
+      hash_ast: 812ed802888362140fd84d7189d95b3e30d949cf0381e141e108191a6f7d22e7
