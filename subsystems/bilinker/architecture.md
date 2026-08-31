@@ -74,6 +74,18 @@ Ningún nodo puede cambiar su estado aceptado sin que los nodos adyacentes lo de
 
 Está aparte de `bilink_ref` a propósito. `bilink_ref` sabe de árboles, padres y refs; `refmsg` no toca git y no conoce el repo: es texto contra una forma estructurada. **El parser es además la superficie que recibe texto de afuera** —un push viene de otra máquina— así que aislarlo es lo que permite decir, y testear, que de acá no sale nunca una línea de comando: sale un `enum` con el que se arma argv.
 
+## Lo que sólo lee la ref, aparte de lo que la escribe
+
+Tres módulos no tocan el árbol de trabajo y no escriben nada de lo versionado, y por eso están separados de `bilink_ref`, que sí:
+
+| | Qué hace | Por qué aparte |
+|---|---|---|
+| `verify` | que una ref tenga la forma que promete | corre en un **repo desnudo**, del lado del servidor, donde no hay árbol de trabajo que mirar |
+| `history` | qué le pasó a un bilink | es una vista: todos los datos ya están en la ref |
+| `pull` | traer lo que otro aceptó en la misma rama | el único que **une** dos historias de la ref en vez de agregarle una |
+
+`verify` es además la superficie que recibe texto de afuera —un push viene de otra máquina— y esa es la segunda razón de aislarlo: lo que sale de ahí es una decisión, nunca un comando.
+
 ## El formato vive aparte
 
 El formato de los archivos es un crate propio, `bilink-format`, del que depende todo lo demás:

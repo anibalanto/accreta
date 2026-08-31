@@ -52,7 +52,7 @@ Sincronizar decisiones es traer lo que aceptó otro. De dónde viene cambia qué
 | | De dónde | Los dos lados vienen de… |
 |---|---|---|
 | **3.a** — otra rama, que puede haberse rebaseado sobre la trackeada | [`adopt <rama>`](../commands/adopt.md) | **dos absorciones distintas** |
-| **3.b** — la misma rama: alguien tenía una versión anterior y aceptó | el push concurrente | **la misma absorción** |
+| **3.b** — la misma rama: alguien tenía una versión anterior y aceptó | [`pull <remoto>`](../commands/pull.md) | **la misma absorción** |
 
 El discriminador es de git: se busca hacia atrás la absorción más cercana de cada lado y se comparan. Si es la misma, es 3.b; si son dos, es 3.a.
 
@@ -64,7 +64,7 @@ Es el caso que el formato ya resolvió sin proponérselo: dos personas que acept
 
 Eso vale **porque `commit` no está en `accepted`**. Es el único campo candidato que nunca converge —el mismo contenido aceptado en dos ramas vive en dos commits distintos—, y meterlo adentro habría hecho que 3.a y 3.b conflictuaran en cada endpoint aceptado de los dos lados, sobre algo que nadie decidió. Ver [ADR-0003](../.stratum/impl/docs/adr/0003-formato-captures-y-aceptacion.md) § "`commit` es el commit del contenido".
 
-> **3.b no está especificado.** El fetch fast-forward de la [invariante 6](#invariantes) lo deja afuera: el segundo que pushea es rechazado, correctamente, y hoy no tiene camino de vuelta. `adopt` cubre 3.a y no aplica acá, porque no hay otra rama que nombrar. Es el hueco abierto que esta taxonomía deja a la vista.
+**3.b es [`pull`](../commands/pull.md)**, y es el más simple de los dos: los dos lados cuelgan de la misma absorción, así que el árbol de código no se elige — sale del primer padre. `adopt` cubre 3.a, donde cada rama absorbió lo suyo y por eso hay dos códigos distintos descritos.
 
 ### Lo que la invariante no dice
 
@@ -182,6 +182,7 @@ track  <rama>                                   ← tipo 1: la ref nace
 accept [--place|--content] <uuid>.<N>           ← tipo 2
 apply  <uuid>.<N> <capture-nuevo>               ← tipo 2
 adopt  <rama>                                   ← tipo 3.a
+pull   <remoto>                                 ← tipo 3.b
 ```
 
 **Cinco verbos, y cada uno es un comando que existe.** No hay verbo para el corte: el comando que lo escribe es [`track`](../commands/track.md) en su caso *"no hay de quién heredar"*, y un verbo propio nombraría un comando que nadie puede correr. Los dos nacimientos se distinguen por los padres —el corte tiene uno solo, y no es de la ref— que es como se distingue [todo lo demás de un commit de la ref](#un-commit-hace-una-cosa).
@@ -190,7 +191,7 @@ adopt  <rama>                                   ← tipo 3.a
 
 `adopt` no lleva endpoint. Trae **todo** lo que el vecino decidió entre la base y su tip, en [un solo commit y no N](../commands/adopt.md#son-dos-commits-y-por-qué), y el conjunto sale del merge a tres puntas entre los dos padres — que ya están en el objeto. Un endpoint en el mensaje no agregaría nada que reproducir y sugeriría una granularidad que el acto no tiene: adoptar no es decidir, es traer decisiones ya firmadas por otro.
 
-**El tipo 3.b no tiene verbo**, y es la señal más limpia de que falta especificarlo: no hay comando que nombre *"traer lo que aceptó mi compañero en esta misma rama"*.
+`pull` y `adopt` son los dos casos del tipo 3, y llevan verbos distintos porque nombran fuentes distintas: `adopt` una rama vecina, `pull` la copia que el remoto tiene de esta misma ref.
 
 Después del comando puede ir `: ` y prosa libre para quien lee, y el cuerpo es libre. Al final, un trailer obligatorio:
 
@@ -308,10 +309,26 @@ Tres niveles, y sólo el último es exigible:
 | Nivel | Qué da | Con qué |
 |---|---|---|
 | el clon local | **detección** | la disyunción y la fidelidad, chequeadas antes de cada commit |
-| el refspec | que no se fuerce por accidente | el de [`init`](../commands/init.md), **sin `+`** |
-| el servidor | **rechazo** | `receive.denyNonFastForwards`, `receive.denyDeletes`, y un `pre-receive` |
+| el refspec | que no se pise por accidente al traer | el de [`init`](../commands/init.md), **sin `+`** |
+| el servidor | **rechazo** | un `pre-receive`, y sólo eso |
 
-`denyDeletes` no es un extra: sin él, *"sólo avanza"* se esquiva borrando la ref y empujándola de nuevo.
+### La config del servidor no alcanza, y no es una omisión: no aplica
+
+`receive.denyNonFastForwards` y `receive.denyDeletes` son las dos opciones que uno pondría, y **no cubren esta ref**: git las chequea únicamente sobre `refs/heads/`. Comprobado, con control:
+
+```
+$ git -C origin.git config receive.denyDeletes true
+$ git push origin ':refs/bilink/main'
+ - [deleted]         refs/bilink/main
+$ git push origin ':refs/heads/main'
+ ! [remote rejected] main (deletion prohibited)
+```
+
+Es el **mismo precio** que [estar fuera de `refs/heads/`](#fuera-de-refsheads) cobra en la UI de la forja, y hasta acá se había leído como un problema de GitHub y GitLab. No lo es: la restricción es de git.
+
+De ahí sale algo que cambia la forma de la protección: **el `pre-receive` no es la capa cara sobre dos baratas, es la única capa.** Que no se borre y que sólo avance dejan de ser config y pasan a ser dos filas más de lo que [`verify-ref`](../commands/verify-ref.md) chequea — donde, por otro lado, ya tenían que estar para el caso del que recibe una ref ajena.
+
+El nivel del servidor es [`verify-ref`](../commands/verify-ref.md), y el `pre-receive` que lo llama son dos líneas.
 
 ### El servidor puede verificarlo sin ejecutar bilinker
 
@@ -319,12 +336,34 @@ Es la parte que el diseño ya pagó y no había dicho: **las invariantes de form
 
 | Se verifica | Cómo |
 |---|---|
-| avanza y no se borra | `denyNonFastForwards` + `denyDeletes` |
+| avanza y no se borra | el tip viejo es antepasado del nuevo, y el nuevo no es nulo |
 | [disyunción](#las-dos-verificaciones-previas) | el árbol del commit absorbido no contiene `.bilink/` |
 | [fidelidad](#la-invariante-de-fidelidad) | el árbol de código del commit nuevo es el del absorbido |
 | [un commit hace una cosa](#un-commit-hace-una-cosa) | cae en uno de los tres tipos y no en dos: los padres y cuál de los dos árboles se movió lo deciden |
 
 Ninguna necesita tree-sitter ni abrir un bilink, que es exactamente lo que la invariante de fidelidad dice de sí misma al enunciarse *"verificable sin tree-sitter"*. Lo que el servidor **no** puede verificar es si lo aceptado es correcto — eso es una decisión humana y no una propiedad del árbol.
+
+### La autorización es la firma, más una regla de una línea
+
+El mismo hook llena la fila que [más abajo](#autoría-atestación-y-autorización) queda sin dueño: **todo commit sobre la ref tiene que estar firmado por una clave de una allowlist**, que `git verify-commit` chequea offline y sin infraestructura.
+
+Del lado de quien escribe, la condición la pone git y no bilinker: se firma si `commit.gpgsign` está puesto, igual que cualquier otro commit del repo.
+
+Y con eso alcanza para que [`agree`](accept.md#quiénes-aprobaron) deje de ser auto-declarado, **sin traducir ningún nombre a ninguna clave**:
+
+> **Un commit sólo puede agregar a su propio autor a un `agree`.**
+
+La firma ata el commit a una clave, y con ella al autor que declara; la regla ata los nombres agregados a ese mismo autor. Las dos juntas cierran la cadena: `- ana` sólo puede haberlo escrito un commit firmado cuya autora es Ana. **Nadie aprueba en nombre de otro.**
+
+Sacar un nombre no está restringido, y no puede estarlo: es lo que hace `adopt` al traer valores distintos, y lo que hace un `accept` cuando los valores cambian y la lista se vacía. Lo que se protege es **agregar**, que es lo único que afirma algo sobre otra persona.
+
+### Y el prefijo anterior a la gramática pasa una vez
+
+La ref es append-only, así que exigirle la forma a lo que ya está rechazaría el primer push de todo repo que cortó antes de que la gramática existiera. El discriminador es el mismo que para [el mensaje](#la-gramática-no-es-retroactiva) —la ausencia de `Bilinker-Version`— y la puerta que eso abre se cierra con una regla de orden:
+
+> **Una vez que un commit de la ref lleva el trailer, ninguno de sus descendientes puede no llevarlo.**
+
+Un commit sin trailer empujado encima de uno que lo tiene no es historia vieja: es alguien esquivando la verificación.
 
 ### La protección de ramas de la forja no alcanza
 
