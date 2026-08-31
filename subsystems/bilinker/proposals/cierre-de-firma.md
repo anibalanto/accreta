@@ -4,6 +4,8 @@
 
 Un fragmento no es sólo un árbol de sintaxis: devuelve un tipo, recibe parámetros, llama a otras funciones. **¿Tiene sentido que la aceptación cubra algo de eso, y hasta dónde?**
 
+El documento arranca por la respuesta general y cara. Si lo que se busca es sólo que **quien usa una API se entere de que cambió**, hay dos caminos mucho más baratos: ver [Tres formas de contestar la misma pregunta](#tres-formas-de-contestar-la-misma-pregunta).
+
 ## El antecedente: ya se intentó, y se revirtió
 
 `subgraph.N` y los sciplinks persistían el call graph en archivos versionados. Se sacaron del formato, y [`lattice/concepts/edge.md`](../../lattice/concepts/edge.md) § "Frescura" registra por qué:
@@ -100,6 +102,54 @@ Las preguntas abiertas, en orden de dificultad:
 4. **¿Y los lenguajes sin tipos?** El cierre de firma de una función TypeScript existe; el de una Python sin anotaciones, no. La degradación tiene que estar dicha, no descubrirse.
 
 **La 2 es la que decide si esto vale la pena.** Sin una noción de compatibilidad, esta propuesta agrega precisión donde no hace falta y ruido donde duele.
+
+## Tres formas de contestar la misma pregunta
+
+*«Que quien usa la API se entere de que cambió»* tiene tres respuestas de costo muy distinto, y la más cara es la de arriba.
+
+### A — Publicar el DTO. Funciona hoy, sin nada nuevo.
+
+**En un DTO el problema no existe**, y es el detalle que vuelve barata la opción: un DTO no tiene cuerpo. `PublicAuthorityDto` es tres campos y anotaciones de Lombok — capturarlo *es* capturar la forma, sin una sola línea de implementación que genere ruido.
+
+O sea que la tercera dimensión de esta propuesta **no hace falta donde el fragmento ya es sólo firma**. Interfaces, DTOs, records, declaraciones de tipo: ahí la aceptación de contenido que bilinker ya tiene alcanza y sobra.
+
+Lo que **no** cubre: la ruta. Si `hsi` mueve el endpoint sin tocar el DTO, el consumidor no se entera — y ése fue justamente el error de `retinar`.
+
+### B — Publicar el contrato ya generado
+
+El `openapi.json` de springdoc **es** el contrato: lo emite el mismo framework que sirve las rutas, así que no puede divergir de lo que se sirve — a diferencia de un DTO espejado a mano, que es exactamente lo que se desincronizó en `retinar`.
+
+Y tiene una ventaja que el código Java no puede dar: **ahí la ruta es una clave literal.** En el fuente, `/public-api/user/permissions/from-token` no existe como string — se compone de un `@RequestMapping` de clase y un `@GetMapping` de método, y por eso [`1d`](../../../.stratum/worklist/1d.task.md) lo dio por inexistente en la primera pasada. En el JSON generado es una clave de objeto, que es un ancla estable de las que [`reference.md`](../concepts/reference.md) ya recomienda.
+
+**El costo no es la gramática.** Agregar tree-sitter-json es barato. El costo es que el `openapi.json` **hay que commitearlo**, y hoy no lo está: springdoc lo genera en runtime.
+
+Y ahí reaparece el fantasma de `subgraph.N` — un derivado bajo control de versiones. Pero **no es el mismo caso**, y la diferencia importa:
+
+| | `subgraph.N` | `openapi.json` commiteado |
+|---|---|---|
+| Quién lo derivaba | bilinker, de callado, en sus propios archivos | el build del proveedor |
+| Quién nota que quedó viejo | nadie | el CI del proveedor, si lo chequea |
+| De quién es el problema | de la herramienta | de quien publica su contrato |
+
+Sigue siendo un artefacto generado que alguien tiene que mantener al día. La diferencia es que pasa a ser **trabajo declarado de alguien** en vez de un índice escondido, y eso es un patrón conocido y verificable en CI.
+
+> **La trampa: `$ref`.** En un OpenAPI normal el objeto de una ruta no *contiene* su esquema, lo referencia por string. Capturar la ruta no cubre la forma, y estamos en el mismo problema de cierre, ahora en JSON.
+>
+> **Y tiene solución fuera de bilinker:** generar el spec *dereferenciado*, con los `$ref` resueltos inline. Ahí el objeto de la ruta contiene su esquema literalmente, y **una sola captura cubre ruta y forma**. El cierre lo resuelve el generador, que es quien sabe hacerlo.
+
+### C — El cierre de firma vía lattice
+
+Lo de arriba. Es la única que sirve donde **no hay un spec generado** — código que no expone una API HTTP, contratos entre módulos, cualquier cosa que no tenga un OpenAPI detrás.
+
+### Cuál conviene
+
+| | Cubre la forma | Cubre la ruta | Cuesta |
+|---|---|---|---|
+| **A** publicar el DTO | sí | **no** | nada — anda hoy |
+| **B** publicar el openapi | sí | **sí** | gramática JSON + commitear un generado |
+| **C** cierre de firma | sí | no aplica | lattice + resolver compatibilidad |
+
+**A para empezar mañana; B cuando la ruta importe; C parked.** Y B no reemplaza a C: sirve donde hay un spec generado, que es una parte del problema y no todo.
 
 ## Qué haría falta antes de decidir
 
