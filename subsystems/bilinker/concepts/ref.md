@@ -38,7 +38,9 @@ read-tree     <commit del proyecto absorbido>       ← el nuevo, si hay que abs
 update-index  únicamente .bilink/                     el vigente, si ya está absorbido
 ```
 
-Nada del árbol de trabajo fuera de `.bilink/` entra jamás al commit de la ref. `cache/`, `index/`, `head` y `.bilink-migrate-*` quedan fuera del índice de bilinker, no sólo del índice del proyecto.
+Nada del árbol de trabajo fuera de `.bilink/` entra jamás al commit de la ref. `cache/`, `index/`, `head` y `.bilink-migrate-*` quedan fuera del índice de bilinker, no sólo del índice del proyecto. Y de adentro de `.bilink/` queda afuera **el clon de un proveedor** —`.bilink/<alias>/`— que es otro repo entero y no contenido de esta capa.
+
+**La lista es la regla, y no hay ningún `.gitignore` detrás.** El árbol se construye enumerando: lo que no está en la lista entra, y lo que no tiene que entrar se saca de la lista — no agregando una línea a un archivo versionado. La exclusión del lado del proyecto ya la puso [`init`](../commands/init.md) con un solo patrón, y `.bilink/.gitignore` gobierna otra cosa: los derivados, para el repo que **todavía no cortó** y tiene `.bilink/` en su rama.
 
 Y por eso la fusión de contenido de un [`adopt`](../commands/adopt.md) queda confinada a `.bilink/`: el árbol se **construye**, no se fusiona. Un `git merge` a secas entre dos refs fusionaría dos árboles de código enteros.
 

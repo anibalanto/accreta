@@ -1,8 +1,8 @@
 ---
 title: El endpoint `abstract` y el endpoint repo funcionan entre dos repos
-status: open
+status: done
 created_at: 2026-08-29T00:00:00Z
-updated_at: 2026-08-29T00:00:00Z
+updated_at: 2026-08-31T00:00:05Z
 parent: 1
 ---
 
