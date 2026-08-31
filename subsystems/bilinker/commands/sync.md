@@ -31,7 +31,9 @@ Un solo commit sobre la ref, con dos padres: el tip de la ref y el tip de la ram
 6. escribir .bilink/head
 ```
 
-El árbol de `.bilink/` no cambia: sale del índice propio, que ya lo tenía. Por eso **el diff de `sync` contra su primer padre es vacío** — es el único commit de la ref del que eso vale, y es lo que lo identifica como el acto que no registra ninguna decisión: alinea la foto y nada más.
+El árbol de `.bilink/` no cambia: sale del índice propio, que ya lo tenía. Por eso **el diff de `sync` contra su primer padre es vacío**, que es lo que lo identifica como el acto que no registra ninguna decisión: alinea la foto y nada más.
+
+**`sync` es la absorción invocada explícitamente**, y no un tipo de commit propio. Tiene exactamente la misma forma que la absorción que [`accept`](accept.md) y [`apply`](apply.md) escriben cuando les falta — [un commit sobre la ref hace una cosa](../concepts/ref.md#un-commit-hace-una-cosa), y ésta es la que mueve el código. Lo único que distingue a `sync` es que no viene seguido de ninguna decisión.
 
 Los pasos 1 a 3 son [la construcción del commit](../concepts/ref.md#cómo-se-arma-el-commit) que comparten todos los comandos que escriben sobre la ref. `sync` no agrega nada propio; lo que lo distingue es que no escribe ningún archivo antes.
 

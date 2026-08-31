@@ -6,6 +6,27 @@ Todos los comandos y salidas de acá están verificados contra un caso real de d
 
 ---
 
+## Por qué
+
+Esto salió de comparar `hsi` con sus dos consumidores, en los clones que ya tenemos. Es un caso real, no un ejemplo.
+
+`retinar` y `filasvirtuales` tienen **el mismo archivo forkeado** —`HSIPublicApiUsersRestImpl.java`, mismo path, misma clase, mismos métodos— y difiere en cinco líneas. Una de las dos copias llama a la ruta equivocada:
+
+| Proyecto | Ruta que llama | Tipo que espera | Qué devuelve `hsi` |
+|---|---|---|---|
+| `filasvirtuales` | `/user/permissions/from-token` | `PublicAuthorityDto[]` | `List<PublicAuthorityDto>` ✓ |
+| `retinar` | `/user/person/from-token` | `HSIRoleInfoDto[]` | `FetchUserPersonFromTokenDto` ✗ |
+
+El `HSIRoleInfoDto` de `retinar` es `{Short id, Integer institution, String description}` — **campo por campo el `PublicAuthorityDto` de `hsi`, renombrado**. Pero la ruta que llama devuelve un objeto único con nueve campos distintos.
+
+**`retinar` tiene el DTO correcto y la ruta equivocada**, y nadie se enteró — porque no hay nada que mire los dos repos a la vez.
+
+> **Y la documentación no lo iba a evitar.** Las páginas de Confluence apuntan al Swagger; el Swagger se genera en runtime y no hay ningún `openapi.json` commiteado. **El contrato es el código** — así que lo que hay que vincular es el código.
+
+Verificado contra los clones locales. `hsi` está en una rama de feature, así que el diagnóstico hay que confirmarlo contra lo desplegado — pero el desajuste de forma, objeto contra array, no depende de la rama.
+
+---
+
 ## El modelo, en un minuto
 
 Hay dos roles y son asimétricos:

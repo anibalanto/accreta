@@ -70,3 +70,19 @@ Mover un ítem es editar **un solo campo o un solo link**, nunca un archivo:
 
 - de sprint: el link sale de un `.sprint.md` y entra en otro.
 - de padre: cambia `parent`. El archivo no se mueve, así que su path no cambia y ningún bilink que lo apunte se entera.
+
+### El título
+
+> **Infinitivo cuando ya sabés qué hacer. Diagnóstico cuando lo que tenés es el síntoma.**
+
+No son dos gustos: un título en infinitivo **obliga a nombrar la solución**. Sobre un bug recién visto eso es inventarla antes de decidirla, y el título queda casado con una hipótesis. Sobre trabajo ya decidido es al revés — un título diagnóstico hace parecer que la tarea *causa* el problema en vez de resolverlo.
+
+**Infinitivo:** *"Especificar e implementar `bilinker history`"* · *"Proteger `refs/bilink/*`"* · *"Reescribir `concepts/migration.md`"*.
+
+**Diagnóstico**, con la forma `<Categoría>: <síntoma observable> <cuándo pasa>` — el síntoma en términos de lo que se ve, no de la causa sospechada:
+
+> **Error de reporte:** un endpoint no resuelto no informa qué query ni qué anchor buscaba
+
+El vocabulario de categorías **se deja crecer**, no se inventa por adelantado.
+
+En los dos casos el **cuerpo** abre con el diagnóstico. Lo que cambia es el título.

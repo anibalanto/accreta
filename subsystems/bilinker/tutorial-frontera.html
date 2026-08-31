@@ -1,0 +1,800 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Cómo un proyecto publica parte de su código para que otro lo referencie, con el caso hsi → retinar.">
+<title>Frontera entre proyectos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap">
+
+<style>
+/* Reset mínimo — el visor de artifacts lo inyecta; un archivo suelto no. */
+html { -webkit-text-size-adjust: 100%; }
+figure, blockquote { margin: 0; }
+
+:root {
+  --paper:      #f5f7f8;
+  --surface:    #ffffff;
+  --ink:        #15191e;
+  --muted:      #5b6672;
+  --faint:      #8c96a1;
+  --line:       #dde3e8;
+  --line-soft:  #eaeef1;
+
+  --provider:   #96601c;
+  --provider-bg:#f7efe2;
+  --consumer:   #1f6a64;
+  --consumer-bg:#e4f0ee;
+  --accent:     #1f6a64;
+
+  --console:    #171b21;
+  --console-ink:#d7dde4;
+  --console-dim:#7f8a97;
+  --console-add:#7fc08a;
+  --console-del:#e08585;
+
+  --measure: 68ch;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:      #10131a;
+    --surface:    #171b22;
+    --ink:        #e4e8ec;
+    --muted:      #9aa5b1;
+    --faint:      #6f7985;
+    --line:       #262d36;
+    --line-soft:  #1e242c;
+
+    --provider:   #d69f56;
+    --provider-bg:#251d10;
+    --consumer:   #5cb3ab;
+    --consumer-bg:#10251f;
+    --accent:     #5cb3ab;
+
+    --console:    #0c0f14;
+    --console-ink:#d7dde4;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper:      #10131a;
+  --surface:    #171b22;
+  --ink:        #e4e8ec;
+  --muted:      #9aa5b1;
+  --faint:      #6f7985;
+  --line:       #262d36;
+  --line-soft:  #1e242c;
+
+  --provider:   #d69f56;
+  --provider-bg:#251d10;
+  --consumer:   #5cb3ab;
+  --consumer-bg:#10251f;
+  --accent:     #5cb3ab;
+
+  --console:    #0c0f14;
+  --console-ink:#d7dde4;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  font-size: 16.5px;
+  line-height: 1.65;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px 96px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+@media (min-width: 1000px) {
+  .wrap {
+    grid-template-columns: 210px minmax(0, 1fr);
+    gap: 56px;
+    padding-right: 40px;
+  }
+}
+
+/* ── índice ───────────────────────────────────────────────── */
+
+.toc { display: none; }
+
+@media (min-width: 1000px) {
+  .toc {
+    display: block;
+    position: sticky;
+    top: 0;
+    align-self: start;
+    padding-top: 96px;
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+}
+
+.toc-title {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin: 0 0 14px;
+}
+
+.toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+.toc a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 13.5px;
+  line-height: 1.45;
+  display: block;
+  padding: 3px 0 3px 11px;
+  border-left: 2px solid var(--line-soft);
+}
+.toc a:hover, .toc a:focus-visible { color: var(--ink); border-left-color: var(--accent); }
+.toc .t-p a:hover { border-left-color: var(--provider); }
+.toc li.sub a { padding-left: 22px; font-size: 12.5px; color: var(--faint); }
+
+/* ── contenido ────────────────────────────────────────────── */
+
+main { padding-top: 72px; min-width: 0; }
+
+h1 {
+  font-family: "IBM Plex Serif", Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(34px, 5vw, 46px);
+  line-height: 1.12;
+  letter-spacing: -.02em;
+  margin: 0 0 18px;
+  text-wrap: balance;
+}
+
+.standfirst {
+  font-size: 19px;
+  line-height: 1.55;
+  color: var(--muted);
+  max-width: var(--measure);
+  margin: 0 0 10px;
+}
+
+.verified {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12.5px;
+  color: var(--faint);
+  margin: 0 0 44px;
+  max-width: var(--measure);
+}
+
+h2 {
+  font-family: "IBM Plex Serif", Georgia, serif;
+  font-weight: 600;
+  font-size: 27px;
+  line-height: 1.25;
+  letter-spacing: -.01em;
+  margin: 0 0 16px;
+  text-wrap: balance;
+}
+
+h3 {
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  margin: 34px 0 12px;
+  text-wrap: balance;
+}
+
+p, ul, ol { max-width: var(--measure); }
+p { margin: 0 0 16px; }
+ul, ol { margin: 0 0 16px; padding-left: 22px; }
+li { margin-bottom: 7px; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+strong { font-weight: 600; }
+em { color: var(--muted); }
+
+code {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: .875em;
+  background: var(--line-soft);
+  padding: .12em .34em;
+  border-radius: 3px;
+}
+
+/* ── secciones ────────────────────────────────────────────── */
+
+section { margin-bottom: 64px; scroll-margin-top: 24px; }
+
+.part {
+  border-top: 1px solid var(--line);
+  padding-top: 34px;
+  margin-top: 72px;
+}
+
+.role {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 9px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 3px;
+  margin-bottom: 14px;
+}
+.role-p { color: var(--provider); background: var(--provider-bg); }
+.role-c { color: var(--consumer); background: var(--consumer-bg); }
+.role-b { color: var(--muted); background: var(--line-soft); }
+
+.step { margin-top: 40px; }
+.step-n {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  color: var(--faint);
+  display: block;
+  margin-bottom: 4px;
+}
+.step h3 { margin-top: 0; }
+
+/* ── consola ──────────────────────────────────────────────── */
+
+pre {
+  background: var(--console);
+  color: var(--console-ink);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 13.5px;
+  line-height: 1.6;
+  padding: 16px 18px;
+  border-radius: 5px;
+  overflow-x: auto;
+  margin: 0 0 18px;
+  max-width: var(--measure);
+  border: 1px solid transparent;
+}
+pre code { background: none; padding: 0; font-size: inherit; color: inherit; }
+.cmt { color: var(--console-dim); }
+.out { color: var(--console-dim); }
+.add { color: var(--console-add); }
+.del { color: var(--console-del); }
+
+pre.yaml { max-width: var(--measure); }
+
+/* ── piezas ───────────────────────────────────────────────── */
+
+.callout {
+  border-left: 3px solid var(--accent);
+  padding: 2px 0 2px 18px;
+  margin: 0 0 20px;
+  max-width: var(--measure);
+  color: var(--muted);
+}
+.callout p:last-child { margin-bottom: 0; }
+.callout strong { color: var(--ink); }
+
+.tbl-wrap { overflow-x: auto; margin: 0 0 20px; max-width: var(--measure); }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th {
+  text-align: left;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  color: var(--faint);
+  font-weight: 500;
+  padding: 0 14px 8px 0;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+td { padding: 11px 14px 11px 0; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+td:last-child, th:last-child { padding-right: 0; }
+
+.state {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  background: none;
+  padding: 0;
+}
+.s-warn { color: var(--provider); }
+.s-ok   { color: var(--consumer); }
+.s-bad  { color: #b4483f; }
+:root[data-theme="dark"] .s-bad { color: #e08585; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .s-bad { color: #e08585; } }
+
+/* ── diagrama ─────────────────────────────────────────────── */
+
+.diagram {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 26px 22px 20px;
+  margin: 0 0 44px;
+  max-width: var(--measure);
+  overflow-x: auto;
+}
+.diagram svg { display: block; width: 100%; height: auto; min-width: 440px; }
+.d-label {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.d-name { font-family: "IBM Plex Sans", sans-serif; font-size: 14px; font-weight: 600; }
+.d-note { font-family: "IBM Plex Sans", sans-serif; font-size: 12px; }
+
+.legend {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 14px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-soft);
+  max-width: none;
+}
+
+footer {
+  border-top: 1px solid var(--line);
+  margin-top: 80px;
+  padding-top: 22px;
+  font-size: 13.5px;
+  color: var(--faint);
+  max-width: var(--measure);
+}
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+<nav class="toc" aria-label="Índice">
+  <p class="toc-title">Índice</p>
+  <ol>
+    <li><a href="#porque">Por qué</a></li>
+    <li><a href="#modelo">El modelo</a></li>
+    <li><a href="#antes">Antes de empezar</a></li>
+    <li class="t-p"><a href="#parte-a">A — El proveedor publica</a></li>
+    <li class="sub"><a href="#a5">La verificación que importa</a></li>
+    <li><a href="#parte-b">B — El consumidor referencia</a></li>
+    <li><a href="#parte-c">C — El día a día</a></li>
+    <li><a href="#estados">Qué puede salir mal</a></li>
+    <li><a href="#deshacer">Deshacer</a></li>
+    <li><a href="#caso">El caso hsi → retinar</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<h1>Vincular dos proyectos con bilinker</h1>
+
+<p class="standfirst">Cómo un proyecto publica una parte de su código para que otro lo referencie, y cómo el que lo referencia se entera cuando cambia — sin que la rama del que publica cambie ni un byte.</p>
+
+<p class="verified">Todos los comandos y salidas de esta página están verificados contra una corrida real de dos repos.</p>
+
+<section id="porque">
+  <h2>Por qué</h2>
+
+  <p>Esto salió de comparar <code>hsi</code> con sus dos consumidores, en los clones que ya tenemos. Es un caso real, no un ejemplo.</p>
+
+  <p><code>retinar</code> y <code>filasvirtuales</code> tienen <strong>el mismo archivo forkeado</strong> —<code>HSIPublicApiUsersRestImpl.java</code>, mismo path, misma clase, mismos métodos— y difiere en cinco líneas. Una de las dos copias llama a la ruta equivocada:</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Proyecto</th><th>Ruta que llama</th><th>Tipo que espera</th><th>Qué devuelve hsi</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>filasvirtuales</code></td>
+          <td><code class="state">/user/permissions/from-token</code></td>
+          <td><code class="state">PublicAuthorityDto[]</code></td>
+          <td><code class="state s-ok">List&lt;PublicAuthorityDto&gt;</code></td>
+        </tr>
+        <tr>
+          <td><code>retinar</code></td>
+          <td><code class="state">/user/person/from-token</code></td>
+          <td><code class="state">HSIRoleInfoDto[]</code></td>
+          <td><code class="state s-bad">FetchUserPersonFromTokenDto</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>El <code>HSIRoleInfoDto</code> de <code>retinar</code> es <code>{Short id, Integer institution, String description}</code> — <strong>campo por campo el <code>PublicAuthorityDto</code> de <code>hsi</code>, renombrado</strong>. Pero la ruta que llama devuelve un objeto único con nueve campos distintos.</p>
+
+  <p><strong><code>retinar</code> tiene el DTO correcto y la ruta equivocada</strong>, y nadie se enteró — porque no hay nada que mire los dos repos a la vez.</p>
+
+  <div class="callout">
+    <p><strong>Y la documentación no lo iba a evitar.</strong> Las páginas de Confluence apuntan al Swagger; el Swagger se genera en runtime y no hay ningún <code>openapi.json</code> commiteado. <strong>El contrato es el código</strong> — así que lo que hay que vincular es el código.</p>
+  </div>
+
+  <p class="verified" style="margin-bottom:0">Verificado contra los clones locales. <code>hsi</code> está en una rama de feature, así que el diagnóstico hay que confirmarlo contra lo desplegado — pero el desajuste de forma, objeto contra array, no depende de la rama.</p>
+</section>
+
+<section id="modelo">
+  <h2>El modelo, en un minuto</h2>
+
+  <div class="diagram">
+    <svg viewBox="0 0 620 200" role="img" aria-label="El proveedor publica un bilink con una punta abierta; dos consumidores la referencian por el mismo UUID a través de refs/bilink. El proveedor no guarda nada de ellos.">
+      <rect x="8" y="52" width="176" height="96" rx="5" fill="var(--provider-bg)" stroke="var(--provider)" stroke-width="1.5"/>
+      <text x="24" y="76" class="d-label" fill="var(--provider)">proveedor</text>
+      <text x="24" y="99" class="d-name" fill="var(--ink)">hsi</text>
+      <text x="24" y="120" class="d-note" fill="var(--muted)">1 archivo publicado</text>
+      <text x="24" y="136" class="d-note" fill="var(--muted)">0 bytes sobre consumidores</text>
+
+      <path d="M184 100 H 268" stroke="var(--line)" stroke-width="1.5"/>
+      <rect x="268" y="84" width="90" height="32" rx="4" fill="var(--surface)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="278" y="104" class="d-label" fill="var(--muted)">refs/bilink</text>
+
+      <path d="M358 100 H 400 V 62 H 436" stroke="var(--consumer)" stroke-width="1.5" fill="none"/>
+      <path d="M358 100 H 400 V 140 H 436" stroke="var(--consumer)" stroke-width="1.5" fill="none"/>
+
+      <rect x="436" y="38" width="176" height="48" rx="5" fill="var(--consumer-bg)" stroke="var(--consumer)" stroke-width="1.5"/>
+      <text x="452" y="58" class="d-label" fill="var(--consumer)">consumidor</text>
+      <text x="452" y="76" class="d-name" fill="var(--ink)">retinar</text>
+
+      <rect x="436" y="116" width="176" height="48" rx="5" fill="var(--consumer-bg)" stroke="var(--consumer)" stroke-width="1.5"/>
+      <text x="452" y="136" class="d-label" fill="var(--consumer)">consumidor</text>
+      <text x="452" y="154" class="d-name" fill="var(--ink)">filasvirtuales</text>
+
+      <text x="268" y="140" class="d-note" fill="var(--faint)">el mismo UUID</text>
+      <text x="268" y="156" class="d-note" fill="var(--faint)">de los dos lados</text>
+    </svg>
+    <p class="legend">La flecha va en una sola dirección. El consumidor nombra al proveedor porque hay que saber de qué se depende; el proveedor no sabe que existe nadie.</p>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Rol</th><th>Qué hace</th><th>Qué guarda del otro</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Proveedor</strong></td><td>publica un fragmento de su código</td><td><strong>nada</strong></td></tr>
+        <tr><td><strong>Consumidor</strong></td><td>lo referencia desde el suyo</td><td>dos hashes y un alias</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Su costo no crece con la cantidad de consumidores: un fragmento publicado es <strong>un</strong> archivo, lo consuman uno o veinte. Sumar un consumidor no toca el repo del proveedor.</p>
+
+  <p>Y lo que lo hace adoptable: <strong>la rama del proveedor no cambia ni un byte.</strong> Ni un commit, ni un archivo, ni una rama nueva en la lista. Publicar deja de ser una negociación con el equipo y pasa a ser una decisión de quien publica.</p>
+
+  <h3>Dónde viven los bilinks</h3>
+  <p>En <code>refs/bilink/&lt;rama&gt;</code>, una ref de git paralela. <strong>No es una rama</strong>: no aparece en <code>git branch -a</code>, ni en el listado de la forja, ni en <code>git log</code>. Es lo mismo que hace <code>git notes</code>.</p>
+  <p>En el árbol de trabajo sí están, en <code>.bilink/</code>, para tenerlos a mano — pero excluidos del índice del proyecto, así que <code>git status</code> no los muestra.</p>
+</section>
+
+<section id="antes">
+  <h2>Antes de empezar</h2>
+  <p>Un solo requisito, y es de cada persona en su clon:</p>
+<pre><code>bilinker init</code></pre>
+  <p>Escribe dos líneas en <code>.git/</code> —la exclusión y el refspec— y nada más. Es idempotente y <strong>no toca ninguna rama</strong>:</p>
+<pre><code class="out">exclude: + .bilink/  + .bilink-migrate-*
+refspec: + refs/bilink/*:refs/bilink/*  (origin)
+
+refs/bilink/main no existe.
+  Correr `bilinker track main` para crearla.</code></pre>
+  <p>Que diga que la ref no existe es correcto: todavía no publicaste nada.</p>
+  <div class="callout">
+    <p><strong>Por qué es explícito.</strong> Escribir en <code>.git/config</code> es tocar la configuración de tu repo, y eso merece un comando y no un efecto colateral. Bilinker arregla solo lo que es suyo, y pide lo que es tuyo.</p>
+  </div>
+</section>
+
+<section id="parte-a" class="part">
+  <span class="role role-p">Parte A · corre el proveedor</span>
+  <h2>El proveedor publica</h2>
+
+  <div class="step">
+    <span class="step-n">A1</span>
+    <h3>Elegir el fragmento</h3>
+    <p>Lo que se publica es <strong>un nodo del código</strong>: un método, una clase, una función. No un rango de líneas — la referencia sobrevive a que el archivo se reformatee o el fragmento se mueva.</p>
+    <p>Conviene que el nodo <strong>se nombre a sí mismo</strong>. Un método con nombre es un buen ancla; un comentario o un <code>import</code> no.</p>
+  </div>
+
+  <div class="step">
+    <span class="step-n">A2</span>
+    <h3>Publicar</h3>
+<pre><code>bilinker chain new \
+  --tip 'src/main/java/ar/hsi/Permisos.java:4:5' \
+  --tip abstract</code></pre>
+    <p>La posición <code>4:5</code> es línea y columna de cualquier punto adentro del fragmento — bilinker sube por el AST hasta el nodo con nombre que lo contiene.</p>
+<pre><code class="out">Created chain: 2e9efd68-2b7a-438e-96b8-4ff917f0529c</code></pre>
+    <p><strong>Ese UUID es la dirección pública</strong> de lo que publicás. Es lo que los consumidores van a nombrar, y sobrevive a que muevas o cambies el fragmento.</p>
+    <p>El archivo que quedó:</p>
+<pre class="yaml"><code><span class="cmt"># .bilink/2e9efd68-….yaml</span>
+endpoint:
+  0:
+    link: capture a8490a73c5bf5006397dcda13ce17079
+  1:
+    link: abstract        <span class="cmt"># lo aporta quien lo consuma</span></code></pre>
+    <p><code>abstract</code> es la punta abierta: no es responsabilidad tuya, la completa quien te consuma. Su estado es <code>OPEN</code> para siempre y nunca te va a pedir nada.</p>
+  </div>
+
+  <div class="step">
+    <span class="step-n">A3</span>
+    <h3>Aprobar lo que se publica</h3>
+<pre><code>bilinker check .
+bilinker accept .</code></pre>
+<pre><code class="out">2e9efd68  (PENDING, OPEN)
+  2e9efd68.0  08f907b84a57  e636c28d3908
+accepted 1 endpoint(s)</code></pre>
+    <p>Aceptar es decir <em>«revisé esto y lo apruebo»</em>. De ahí en adelante, si el fragmento cambia, <code>check</code> te lo dice — <strong>incluso sin ningún consumidor</strong>. Es una pregunta tuya sobre tu propio código: ¿lo que publiqué sigue coincidiendo con lo que aprobé?</p>
+    <p>Notá que <code>accept .</code> <strong>no tocó la punta <code>abstract</code></strong>: no hay nada que aprobar del lado abierto.</p>
+  </div>
+
+  <div class="step">
+    <span class="step-n">A4</span>
+    <h3>Crear la ref</h3>
+<pre><code>bilinker track main</code></pre>
+<pre><code class="out">ningún commit de refs/bilink/* califica: la ref nace desde cero.
+commit:  refs/bilink/main @ e755f02
+árbol:   4 archivo(s)</code></pre>
+  </div>
+
+  <div class="step" id="a5">
+    <span class="step-n">A5</span>
+    <h3>Verificar que tu rama no cambió</h3>
+    <p>Éste es el paso que conviene correr delante de quien haya que convencer:</p>
+<pre><code>git log --oneline | wc -l     <span class="cmt"># los mismos commits que antes</span>
+git status --porcelain        <span class="cmt"># vacío</span>
+git branch -a                 <span class="cmt"># ninguna rama nueva</span>
+git ls-files | wc -l          <span class="cmt"># los mismos archivos que antes</span></code></pre>
+    <p>Todo igual. Lo único que existe es una ref que hay que pedir por nombre para verla:</p>
+<pre><code>git show-ref | grep bilink</code></pre>
+  </div>
+
+  <div class="step">
+    <span class="step-n">A6</span>
+    <h3>Publicar la ref</h3>
+<pre><code>bilinker push</code></pre>
+<pre><code class="out">publicado: refs/bilink/main @ e755f02 → origin</code></pre>
+    <p><strong>Ninguna interacción con <code>refs/bilink/*</code> se hace tipeando git.</strong> La ref está fuera de <code>refs/heads/</code>, así que <code>git push</code> a secas no la empuja y habría que nombrarla con un refspec — y el refspec lo arma bilinker, que es de quien es la ref.</p>
+    <p>Publica <strong>la ref y nada más</strong>: qué commits de tu proyecto salen a la luz lo seguís decidiendo vos, con <code>git push</code>, cuando quieras.</p>
+  </div>
+</section>
+
+<section id="parte-b" class="part">
+  <span class="role role-c">Parte B · corre el consumidor</span>
+  <h2>El consumidor referencia</h2>
+
+  <div class="step">
+    <span class="step-n">B1</span>
+    <h3>Declarar al proveedor</h3>
+    <p>Un archivo, una vez:</p>
+<pre class="yaml"><code><span class="cmt"># .bilink/.hsi.toml</span>
+remote = "git@gitlab…:minsal/hsi.git"
+branch = "rc-2.32"</code></pre>
+    <p><code>branch</code> es la rama <strong>del proyecto</strong> del proveedor; bilinker traduce a su ref.</p>
+    <p><strong>Éste es el único lugar de tu repo que sabe algo del otro repo.</strong> Ningún bilink va a contener una URL: si el proveedor cambia de host, editás este archivo y nada más.</p>
+  </div>
+
+  <div class="step">
+    <span class="step-n">B2</span>
+    <h3>Ver de qué colgarte</h3>
+    <p>Antes de vincular nada, mirá qué publica:</p>
+<pre><code>bilinker fetch hsi
+bilinker abstracts hsi</code></pre>
+<pre><code class="out">hsi · 3 abstracción(es)
+
+  ca4dbbd9  src/main/java/ar/hsi/Permisos.java
+            public boolean puede(String usuario, String operacion) {
+                return consultar(usuario, operacion);
+            }
+
+  d290a546  src/main/java/ar/hsi/Turnos.java   ← ya lo consumís
+
+  5ed1d14e  src/main/java/ar/hsi/Padron.java
+            public int contar(String institucion) {</code></pre>
+    <p><strong>Muestra el código</strong>, que es lo que decide de cuál colgarse — una lista de UUIDs no alcanza para elegir. Y lo que ya consumís queda marcado, para no colgarte dos veces de lo mismo.</p>
+    <p>Mirar el catálogo <strong>no trae nada</strong>: el clon recorta el árbol de trabajo, no el object store, así que los fragmentos se leen aunque sus archivos no estén en disco. Podés mirar diez para elegir una sin que te queden nueve archivos ajenos en el working tree.</p>
+    <p>Del otro lado, el proveedor contesta la misma pregunta con <code>bilinker abstracts</code> a secas: <em>¿qué estoy publicando?</em></p>
+  </div>
+
+  <div class="step">
+    <span class="step-n">B3</span>
+    <h3>Vincular</h3>
+    <p>Con el UUID de la que elegiste:</p>
+<pre><code>bilinker chain new \
+  --from-repo 'hsi:2e9efd68-2b7a-438e-96b8-4ff917f0529c' \
+  --tip 'src/permisos.ts:1:1'</code></pre>
+    <p><strong>Un solo <code>--tip</code>, el tuyo.</strong> El otro lado es el proveedor, y lo aporta <code>--from-repo</code>.</p>
+<pre><code class="out">Created chain: 2e9efd68-2b7a-438e-96b8-4ff917f0529c</code></pre>
+    <p>El mismo UUID de los dos lados: <strong>eso es lo que los hace encontrarse</strong>, sin que ninguno escriba en el repo del otro.</p>
+  </div>
+
+  <div class="step">
+    <span class="step-n">B4</span>
+    <h3>Traer el archivo del fragmento</h3>
+    <p>Sí, <code>fetch</code> otra vez — y la segunda corrida dice algo:</p>
+<pre><code>bilinker fetch hsi</code></pre>
+<pre><code class="out">hsi: refs/bilink/main · 1 archivo(s) en el sparse</code></pre>
+    <p>La primera vez decía <strong>0 archivos</strong>: no consumías nada todavía. Ahora dice 1, porque te colgaste de uno.</p>
+    <p><strong>Ese número se calcula, no se declara</strong>: sale de qué fragmentos referenciás. Si mañana te colgás de otro, el próximo <code>fetch</code> lo trae solo; si dejás de consumir uno, deja de traerlo. Un conjunto escrito a mano en el <code>.toml</code> habría quedado viejo con el primer vínculo nuevo.</p>
+    <p>Trae <strong>una sola ref</strong>, que lleva los bilinks del proveedor y el código al que apuntan, coherentes por construcción. El clon queda en <code>.bilink/hsi/</code>, no se commitea, y es superficial: sólo lo que hace falta.</p>
+  </div>
+
+  <div class="step">
+    <span class="step-n">B5</span>
+    <h3>Verificar y aceptar</h3>
+<pre><code>bilinker check .
+bilinker accept .</code></pre>
+<pre><code class="out">2e9efd68  (PENDING, PENDING)
+accepted 2 endpoint(s)</code></pre>
+    <p>Lo que quedó guardado de tu lado:</p>
+<pre class="yaml"><code>endpoint:
+  0:
+    link: repo hsi
+    accepted:
+      link: capture a8490a73…    <span class="cmt"># ubicación publicada — opaca</span>
+      hash: 08f907b84a57…        <span class="cmt"># contenido publicado — opaco</span>
+  1:
+    link: capture d9e4574a…      <span class="cmt"># tu fragmento</span>
+    accepted:
+      link: capture d9e4574a…
+      hash: ff75a8aa4daf…</code></pre>
+    <p>Dos SHA-256 y un alias. <strong>De ahí no se reconstruye nada</strong> del proveedor: ni el path, ni el texto, ni el commit.</p>
+  </div>
+</section>
+
+<section id="parte-c" class="part">
+  <span class="role role-b">Parte C · los dos lados</span>
+  <h2>El día a día</h2>
+
+  <div class="step">
+    <span class="step-n">C1</span>
+    <h3>El proveedor cambia lo que publica</h3>
+    <p>Cambia el código y lo commitea, como siempre. Su <code>check</code> se lo dice:</p>
+<pre><code class="out">2e9efd68  (ALTERED, OPEN)</code></pre>
+    <p>Si el cambio es correcto, lo aprueba con <code>bilinker accept .</code>. Con eso la decisión queda registrada en la ref, con autor y fecha — <code>bilinker log</code> la muestra.</p>
+  </div>
+
+  <div class="step">
+    <span class="step-n">C2</span>
+    <h3>El consumidor se entera — cuando quiere</h3>
+    <p>Antes de traer nada, <code>check</code> no ve nada:</p>
+<pre><code class="out">all clean (1 bilink(s))</code></pre>
+    <p><strong><code>check</code> nunca hace red.</strong> Corre sobre todos tus bilinks y es barato; no puede andar hablando con servidores. Lo que no trajiste, no se ve.</p>
+<pre><code>bilinker fetch hsi
+bilinker check .</code></pre>
+<pre><code class="out">2e9efd68  (CHAIN_DIRTY, OK)</code></pre>
+    <p><code>CHAIN_DIRTY</code> significa: <em>el proveedor aprobó algo distinto de lo que vos aprobaste</em>.</p>
+  </div>
+
+  <div class="step">
+    <span class="step-n">C3</span>
+    <h3>Mirar qué cambió</h3>
+<pre><code>bilinker get 2e9efd68.0 --diff</code></pre>
+<pre><code><span class="cmt"># src/main/java/ar/hsi/Permisos.java  lines 4–6</span>
+<span class="del">--- aceptado (e755f026)</span>
+<span class="add">+++ actual</span>
+@@ -1,3 +1,3 @@
+<span class="del">-    public boolean puede(String usuario, String operacion) {</span>
+<span class="del">-        return consultar(usuario, operacion);</span>
+<span class="add">+    public boolean puede(String usuario, String operacion) {</span>
+<span class="add">+        return consultar(usuario, operacion) &amp;&amp; habilitado(usuario);</span>
+     }</code></pre>
+    <p>Recién acá el clon se profundiza, y sólo para este bilink: <strong><code>check</code> es masivo y barato; ver el diff es puntual y caro.</strong></p>
+  </div>
+
+  <div class="step">
+    <span class="step-n">C4</span>
+    <h3>Decidir</h3>
+    <p>Si tu código sigue estando bien con el cambio, <code>bilinker accept 2e9efd68.0</code>. Si no, arreglás tu código y aceptás los dos lados.</p>
+    <p>Nadie acepta por vos: <code>apply</code> propone, <code>accept</code> dispone.</p>
+  </div>
+</section>
+
+<section id="estados">
+  <h2>Qué puede salir mal, y qué significa</h2>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Estado</th><th>Qué pasó</th><th>Qué hacer</th></tr></thead>
+      <tbody>
+        <tr><td><code class="state s-warn">REMOTE_UNREACHABLE</code></td><td>el repo del proveedor no está clonado</td><td><code>bilinker fetch &lt;alias&gt;</code></td></tr>
+        <tr><td><code class="state s-warn">CHAIN_DIRTY</code></td><td>el proveedor aprobó algo distinto</td><td><code>get --diff</code>, revisar, <code>accept</code></td></tr>
+        <tr><td><code class="state s-bad">REJECTED</code></td><td>la punta del proveedor dejó de ser <code>abstract</code></td><td>hablarlo: dejó de publicar eso</td></tr>
+        <tr><td><code class="state s-bad">BROKEN</code></td><td>el clon está y el bilink no</td><td>el proveedor lo removió — investigar</td></tr>
+        <tr><td><code class="state s-ok">OPEN</code></td><td>la punta abierta del proveedor</td><td>nada, está sana</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Y uno que no es un estado sino un corte:</p>
+<pre><code class="out">Error: el proveedor 'hsi' publica formato 4.0.0 y este binario lee 3.1.0.</code></pre>
+  <div class="callout">
+    <p><strong>El consumidor se niega en vez de malinterpretar.</strong> No poder leer los archivos no es drift, y reportar cualquier estado sobre eso sería inventar. Entre proyectos con releases independientes, que las versiones diverjan es lo normal — se actualiza bilinker, o se fija el <code>.toml</code> a una rama compatible.</p>
+  </div>
+</section>
+
+<section id="deshacer">
+  <h2>Deshacer</h2>
+  <p><strong>Del lado del proveedor</strong>, mientras no publicaste la ref:</p>
+<pre><code>git update-ref -d refs/bilink/main
+rm -rf .bilink/</code></pre>
+  <p>Tu rama nunca cambió, así que no hay nada más que revertir. Ésa es la propiedad: <strong>no publicar es el estado por defecto, y volver a él es gratis.</strong></p>
+  <p><strong>Del lado del consumidor:</strong></p>
+<pre><code>bilinker remove &lt;uuid&gt;
+rm -rf .bilink/hsi .bilink/.hsi.toml</code></pre>
+</section>
+
+<section id="caso" class="part">
+  <span class="role role-b">El caso concreto</span>
+  <h2>hsi → retinar</h2>
+  <p>Lo de arriba, con los valores reales.</p>
+
+  <h3>Lo que corre el equipo de <code>hsi</code></h3>
+<pre><code>cd &lt;clon de hsi&gt;
+git checkout rc-2.32
+
+bilinker init
+
+<span class="cmt"># El fragmento a publicar: el método de USER_PERMISSIONS.</span>
+bilinker chain new \
+  --tip '&lt;path del fragmento&gt;:&lt;línea&gt;:&lt;col&gt;' \
+  --tip abstract
+
+bilinker check .
+bilinker accept .
+bilinker track rc-2.32
+
+<span class="cmt"># La verificación que importa:</span>
+git status --porcelain    <span class="cmt"># vacío</span>
+git log --oneline -1      <span class="cmt"># el mismo commit que antes</span>
+git branch -a             <span class="cmt"># ninguna rama nueva</span>
+
+bilinker push</code></pre>
+  <p>Y pasan el UUID que imprimió <code>chain new</code>.</p>
+  <div class="callout">
+    <p><strong>Lo que hay que decirles, en una línea:</strong> nada de esto toca <code>rc-2.32</code>. Un commit menos, un archivo menos, una rama menos que si no hicieran nada — porque no hay ninguno.</p>
+  </div>
+
+  <h3>Lo que corre <code>retinar</code></h3>
+<pre><code>cd &lt;clon de retinar&gt;
+bilinker init
+
+cat &gt; .bilink/.hsi.toml &lt;&lt;'EOF'
+remote = "git@gitlab…:minsal/hsi.git"
+branch = "rc-2.32"
+EOF
+
+<span class="cmt"># Ver qué publica, y elegir:</span>
+bilinker fetch hsi
+bilinker abstracts hsi
+
+bilinker chain new \
+  --from-repo 'hsi:&lt;el uuid elegido&gt;' \
+  --tip 'src/…/permissions.ts:&lt;línea&gt;:&lt;col&gt;'
+
+bilinker fetch hsi
+bilinker check .
+bilinker accept .</code></pre>
+  <p>Y de ahí en adelante, cada vez que quieras saber si <code>hsi</code> cambió lo que publica:</p>
+<pre><code>bilinker fetch hsi &amp;&amp; bilinker check .</code></pre>
+
+  <h3>Qué mirar para saber que salió bien</h3>
+  <ul>
+    <li>Del lado de <code>hsi</code>: su <code>rc-2.32</code> idéntica, y <code>git show-ref | grep bilink</code> mostrando la ref.</li>
+    <li>Del lado de <code>retinar</code>: <code>all clean</code>, y un <code>.bilink/&lt;uuid&gt;.yaml</code> que contiene el alias <code>hsi</code> y <strong>ninguna URL</strong>.</li>
+  </ul>
+  <p>Y la prueba real: que alguien en <code>hsi</code> cambie el fragmento, lo acepte y pushee la ref — y que en <code>retinar</code>, un <code>fetch</code> más un <code>check</code> reporten <code class="state s-warn">CHAIN_DIRTY</code>. Ése es el caso que motiva todo esto.</p>
+</section>
+
+<footer>
+  <p>La spec completa vive en <code>subsystems/bilinker/concepts/frontier.md</code>. La decisión y su motivación, en ADR-0005.</p>
+</footer>
+
+</main>
+</div>
+
+</body>
+</html>

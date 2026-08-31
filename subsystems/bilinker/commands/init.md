@@ -38,14 +38,16 @@ Un exclude que ya exista se respeta: se agregan las líneas que falten y no se t
 
 ```
 [remote "origin"]
-    fetch = +refs/bilink/*:refs/bilink/*
+    fetch = refs/bilink/*:refs/bilink/*
 ```
 
 **Con el refspec puesto, `git fetch` trae las refs de bilinks junto con las ramas.** Sin él, una rama al día puede convivir con bilinks viejos, que es la clase de desajuste silencioso que este diseño existe para eliminar.
 
 No compromete la invisibilidad: `refs/bilink/*` sigue sin aparecer en `git branch -a` ni en la forja, porque no está bajo `refs/heads/` ni bajo `refs/remotes/`. Es lo que [la ref](../concepts/ref.md#fuera-de-refsheads) ya anticipa al decir que los refspecs los pone bilinker.
 
-**Se mapea a sí mismo, no a `refs/remotes/`.** La ref del remoto y la local son la misma cosa: no hay un flujo de trabajo donde alguien tenga bilinks locales adelantados que quiera comparar contra los del remoto sin traerlos. Y como la ref es append-only, el fetch es siempre fast-forward.
+**Se mapea a sí mismo, no a `refs/remotes/`.** La ref del remoto y la local son la misma cosa: no hay un flujo de trabajo donde alguien tenga bilinks locales adelantados que quiera comparar contra los del remoto sin traerlos.
+
+**Y va sin `+`.** El `+` de un refspec significa *"actualizá incluso si no es fast-forward"*, y acá es exactamente lo que no se quiere. Como la ref es append-only, en operación normal el fetch es fast-forward y el `+` no aporta nada; lo único que agrega es que, si alguien la reescribió, el fetch **pisa la ref local en silencio** — y con ella los commits a los que apunta cada [`accepted.commit`](../concepts/ref.md#la-ref-es-protegida) del repo. Sin `+`, ese fetch falla y el problema se ve. Es la mitad del clon de una regla que del lado del servidor es un rechazo.
 
 Si hay más de un remoto, el refspec va en todos. Si ya está, no se duplica.
 

@@ -25,7 +25,46 @@ Son dos enunciados, los dos verificables sin tree-sitter:
 
 El primero es una comparación de tree oids: exacta, y barata porque el merge más cercano casi siempre es el commit mismo o el anterior. El segundo garantiza que el commit absorbido sea **el correcto**. Y la exigencia de [`accept`](accept.md) —falla sobre un archivo sucio— es lo que impide que el enunciado 2 se cumpla sobre un commit que no contiene lo que se aceptó.
 
-**Absorber no es un comportamiento por comando: es una precondición de todo commit sobre la ref.** No hay una tabla de quién absorbe y cuándo, ni un `sync` implícito adentro de cada comando: hay una condición que se verifica y, si no se cumple, se cumple absorbiendo **en el mismo commit**. Cuando ya se cumple —el proyecto no se movió desde la última absorción— el acto es un commit común de un solo padre, y el enunciado 1 sigue valiendo porque su árbol de código no cambió.
+**Absorber no es un comportamiento por comando: es una precondición de todo commit sobre la ref.** No hay una tabla de quién absorbe y cuándo: hay una condición que se verifica y, si no se cumple, se cumple absorbiendo **en un commit propio, inmediatamente antes**. Cuando ya se cumple —el proyecto no se movió desde la última absorción— no se absorbe nada, y el enunciado 1 sigue valiendo porque el árbol de código no cambió.
+
+### Un commit hace una cosa
+
+De ahí sale la regla que gobierna toda la forma de la ref:
+
+> **Un commit sobre la ref trae código, o decide, o sincroniza decisiones. Nunca dos de las tres.**
+
+Nunca hay un commit que absorba y decida a la vez, y por eso la historia se lee sin abrir un solo archivo:
+
+| Tipo | Padres | Árbol de código | `.bilink/` |
+|---|---|---|---|
+| **1 · absorción** — trae el código del proyecto | dos: la ref y el commit del proyecto | **cambia** | **sin tocar** |
+| **2 · decisión** — `accept`, `apply` | uno | sin cambios | **cambia** |
+| **3 · sincronización** — trae bilinks aceptados por otro | dos, los dos de la ref | sin cambios | **cambia** |
+
+Los tres se distinguen con git a secas, sin leer un bilink: **por la cantidad de padres, de dónde vienen, y cuál de los dos árboles se movió.**
+
+`sync` no es un tipo propio: **es la absorción invocada explícitamente**, con la misma forma que la que `accept` dispara cuando le falta.
+
+#### El tipo 3 tiene dos casos, y también se distinguen solos
+
+Sincronizar decisiones es traer lo que aceptó otro. De dónde viene cambia qué puede pasar:
+
+| | De dónde | Los dos lados vienen de… |
+|---|---|---|
+| **3.a** — otra rama, que puede haberse rebaseado sobre la trackeada | [`adopt <rama>`](../commands/adopt.md) | **dos absorciones distintas** |
+| **3.b** — la misma rama: alguien tenía una versión anterior y aceptó | el push concurrente | **la misma absorción** |
+
+El discriminador es de git: se busca hacia atrás la absorción más cercana de cada lado y se comparan. Si es la misma, es 3.b; si son dos, es 3.a.
+
+Y la diferencia importa porque en **3.a los dos lados describen código distinto** —cada rama absorbió lo suyo—, así que el árbol de código del resultado tiene que salir del primer padre y no fusionarse. Es lo que `adopt` ya hace: *"la fusión de contenido queda confinada a `.bilink/`: el árbol se **construye**, no se fusiona"*. En **3.b los dos lados describen el mismo código**, así que no hay nada que elegir.
+
+#### Y 3.b converge por construcción
+
+Es el caso que el formato ya resolvió sin proponérselo: dos personas que aceptan **el mismo contenido** escriben **los mismos bytes**, porque `link`, `hash` y `hash_ast` direccionan por contenido. El merge de 3.b no tiene qué conflictuar.
+
+Eso vale **porque `commit` no está en `accepted`**. Es el único campo candidato que nunca converge —el mismo contenido aceptado en dos ramas vive en dos commits distintos—, y meterlo adentro habría hecho que 3.a y 3.b conflictuaran en cada endpoint aceptado de los dos lados, sobre algo que nadie decidió. Ver [ADR-0003](../.stratum/impl/docs/adr/0003-formato-captures-y-aceptacion.md) § "`commit` es el commit del contenido".
+
+> **3.b no está especificado.** El fetch fast-forward de la [invariante 6](#invariantes) lo deja afuera: el segundo que pushea es rechazado, correctamente, y hoy no tiene camino de vuelta. `adopt` cubre 3.a y no aplica acá, porque no hay otra rama que nombrar. Es el hueco abierto que esta taxonomía deja a la vista.
 
 ### Lo que la invariante no dice
 
@@ -65,24 +104,28 @@ Cuando la rama del proyecto avanza, la ref la absorbe con un merge. Nunca rebase
 Los merges no conflictúan: la ref **no modifica archivos del proyecto** —su único diff es agregar `.bilink/`— y el proyecto no toca `.bilink/`. Los dos lados escriben conjuntos disjuntos, y eso se cumple **desde el corte**, porque la ref nace de un commit del proyecto en el que `.bilink/` ya no existe.
 
 ```
-rc-2.35:             X ─────── B ─────── C ─────────────────── D ─────── E
-                     │                   ╲                     ╲         ╲    ← 2º padre: lo que se absorbe
-refs/bilink/rc-2.35: ●0 ───────────────── ●1 ─────── ●2 ─────── ●3 ────── ●4
-                     corte                accept     apply      accept    sync
-                                          (merge C)  (1 padre)  (merge D) (merge E)
+rc-2.35:             X ─────── B ─────── C ───────────────────── D ─────── E
+                     │                   ╲                       ╲         ╲   ← 2º padre: lo que se absorbe
+refs/bilink/rc-2.35: ●0 ───────────────── ●1 ─ ●2 ─ ●3 ─ ●4 ────── ●5 ─ ●6 ─── ●7
+                     corte                └ absorción             └ absorción  └ sync
 ```
 
-| | Acto | 2º padre | Diff de `.bilink/` contra su 1er padre |
+| | Padres | Acto | Diff de `.bilink/` contra su 1er padre |
 |---|---|---|---|
-| `●0` | el corte | — | agrega `.bilink/` entero |
-| `●1` | `accept 7f3d8e9a.0` | `C` | `accepted` completo de un endpoint |
-| `●2` | `apply -y` (3 renames) | — | tres `link` repuntados; ningún `accepted` tocado → los tres quedan `RELOCATED` |
-| `●3` | `accept . --place` | `D` | los tres `accepted.link` → los tres vuelven a `OK` |
-| `●4` | `sync` | `E` | **vacío** — el proyecto avanzó y nadie aceptó nada |
+| `●0` | `X` | el corte | agrega `.bilink/` entero |
+| `●1` | `●0`, `C` | **absorción** de `C` | **vacío** |
+| `●2` | `●1` | `accept 7f3d8e9a.0` | el `accepted` de un endpoint |
+| `●3` | `●2` | `accept 7f3d8e9a.1` | el `accepted` del otro |
+| `●4` | `●3` | `apply -y` (3 renames) | tres `link` repuntados; ningún `accepted` tocado → los tres quedan `RELOCATED` |
+| `●5` | `●4`, `D` | **absorción** de `D` | **vacío** |
+| `●6` | `●5` | `accept . --place` (3 endpoints) | tres commits, uno por endpoint — acá abreviados |
+| `●7` | `●6`, `E` | `sync` = absorción de `E` | **vacío** |
 
-`●2` es el caso que hace la diferencia: nadie tocó el proyecto entre `●1` y él, así que no hay merge — y sin embargo su árbol de código sigue siendo el de `C`, que es lo que la invariante de fidelidad pide.
+Los tres merges —`●1`, `●5`, `●7`— tienen el diff de `.bilink/` **vacío**, y eso es lo que los identifica: traen código y no deciden nada. Sus hijos son al revés: tocan sólo `.bilink/` y su árbol de código no cambia.
 
-El corte (`●0`) es el único commit de la ref sin ningún commit del proyecto absorbido *por debajo*: nace de `X` como padre único, y ahí la fidelidad se lee contra `X` mismo.
+`●4` muestra por qué la fidelidad se enuncia con "el merge más cercano": nadie tocó el proyecto entre `●1` y él, así que no hay absorción nueva y su árbol de código sigue siendo el de `C`.
+
+El corte (`●0`) es el único commit de la ref sin ningún commit del proyecto absorbido *por debajo*: nace de `X` como padre único, y ahí la fidelidad se lee contra `X` mismo. Es también el único caso en que una decisión puede no tener una absorción arriba.
 
 ## La correspondencia con el proyecto es el segundo padre
 
@@ -104,18 +147,60 @@ Y se lee bien: **`git log --first-parent refs/bilink/rc-2.35` muestra sólo la e
 
 ```
 $ git log --first-parent --format='%h %an  %s' refs/bilink/rc-2.35
-b1e3f55  Kim     sync: rc-2.35 hasta E
-9c1f0ab  Ana     accept --place: 3 endpoints tras el rename de sciplink.rs
-4e77d20  Ana     apply: 3 renames — sciplink.rs → scip/link.rs
+b1e3f55  Kim     absorb e91f0c4: rc-2.35 al día
+9c1f0ab  Ana     accept --place a1b2c3d4.0: scip/link.rs
+5d20e81  Ana     accept --place 8e9f0a1b.0: scip/link.rs
+3f8b41c  Ana     accept --place 7f3d8e9a.1: scip/link.rs
+c7e0d92  Ana     absorb d0b7a12: el rename ya commiteado
+4e77d20  Ana     apply 7f3d8e9a.1 3ca90f81…: sciplink.rs → scip/link.rs
 77a0c94  Luis    accept 7f3d8e9a.0: spec de check ↔ check_structural
-0af3c12  Luis    corte: bilinker-003-immutable-captures
+2b1a5f0  Luis    absorb c4e1770: rc-2.35 hasta C
+0af3c12  Luis    corte bilinker-003-immutable-captures
 ```
 
 Ése es el registro de decisiones: quién aceptó qué y cuándo, sin una sola línea del historial del proyecto de por medio.
 
-**Granularidad: un commit por invocación de `accept`, no por aceptación.** La granularidad sigue al **acto**, no al objeto. `accept <uuid>.0` da un commit; `accept .` da un commit, con el mensaje enumerando los endpoints — porque es una persona mirando y decidiendo **una vez**, y partirlo en N commits firmados no agrega verdad.
+**Granularidad: un commit por aceptación, no por invocación.** `accept <uuid>.0` da un commit; `accept .` sobre veinte endpoints da **veinte**, encadenados, todos hijos del mismo merge.
 
-**Deshacer una aceptación** no necesita `git revert`: es reescribir su `accepted` con los valores anteriores, un commit nuevo, leídos de `refs/bilink/<branch>~n`.
+La granularidad sigue al **objeto** y no al acto, por tres razones:
+
+- **Atribución por decisión.** *"La responsabilidad vive en el commit que escribió el valor, no en el valor"*, y una firma sobre un commit que aprueba veinte fragmentos dice mucho menos que veinte firmas sobre uno cada una.
+- **Varias personas, varios caminos.** Un mismo capture puede tener N bilinks, y aceptarlos es trabajo de gente distinta en momentos distintos. Con el commit como unidad de decisión, cada aprobación es un objeto propio que se lee, se firma y se audita sola.
+- **Y hace caro esconder una aprobación masiva.** Un `accept .` sobre una capa recién cambiada *"fabrica aprobaciones que nadie miró"* — ver [aceptación](accept.md#lo-que-no-se-acepta-a-ciegas). Un commit disimula cien decisiones; cien commits firmados las denuncian.
+
+**Deshacer una aceptación** no necesita `git revert`: es reescribir su `accepted` con los valores anteriores, un commit nuevo, leídos de `refs/bilink/<branch>~n`. La unidad de movimiento es el contenido del archivo, no el commit — así que esto vale con cualquier granularidad, y no es lo que la decide.
+
+### El mensaje es el comando
+
+**La primera línea de todo commit sobre la ref empieza con el comando canónico que lo produjo**, de un vocabulario cerrado:
+
+```
+absorb <commit-del-proyecto>                    ← tipo 1
+accept [--place|--content] <uuid>.<N>           ← tipo 2
+apply <uuid>.<N> <capture-nuevo>                ← tipo 2
+adopt <rama> <uuid>.<N>                         ← tipo 3.a
+corte <nombre-de-migración>
+```
+
+**El tipo 3.b no tiene verbo**, y es la señal más limpia de que falta especificarlo: no hay comando que nombre *"traer lo que aceptó mi compañero en esta misma rama"*.
+
+Después del comando puede ir `: ` y prosa libre para quien lee, y el cuerpo es libre. Al final, un trailer obligatorio:
+
+```
+accept 7f3d8e9a.0: spec de check ↔ check_structural
+
+Bilinker-Version: 0.4.1
+```
+
+**Canónico quiere decir derivado del acto, no tipeado por la persona.** Un `accept .` de veinte endpoints escribe veinte commits, y cada uno lleva **su** comando —`accept <uuid>.<N>`—, no `accept .`. Lo que la persona tipeó puede ir como trailer `Invocation:`, que es dato de auditoría y no de verificación.
+
+De ahí sale la propiedad que hace útil el formato: **el comando más el árbol del primer padre determinan el árbol resultante.** Es la [invariante 4 de la aceptación](accept.md#invariantes) —*"aceptar el mismo fragmento en el mismo estado y sobre el mismo commit del proyecto produce siempre el mismo `accepted`"*— leída como contrato de reproducción. Quien quiera verificar un commit corre el comando contra el árbol del padre y compara tree oids.
+
+**`Bilinker-Version` es obligatorio, y no alcanza con la versión del formato.** [ADR-0006](../.stratum/impl/docs/adr/0006-formato-como-crate-versionado.md) ata la versión del formato a la del crate `bilink-format`, pero `hash`, `hash_ast` y [el recorte de bordes](capture.md) viven en `bilinker`: un cambio ahí movería los hashes sin bumpear el formato, y la reproducción de commits viejos empezaría a fallar sin que nada esté mal.
+
+**Un mensaje se parsea, nunca se ejecuta.** Es texto que escribe cualquiera, así que un verificador que se lo pase a una shell tiene ejecución remota. El vocabulario es cerrado justamente para eso: se parsea a una forma estructurada, se valida cada argumento contra su tipo —un UUID es un UUID, un índice de endpoint es `0` o `1`—, y el proceso se lanza con argv armado. Un verbo desconocido invalida el mensaje; no es texto libre que se pasa por alto.
+
+Y un comando por commit, que es la misma regla de [un commit hace una cosa](#un-commit-hace-una-cosa) dicha desde el mensaje.
 
 ### Antes del corte no hay ref, y el commit no ocurre
 
@@ -198,6 +283,41 @@ A mitad de un rebase con conflictos no hay rama actual contra la cual comparar, 
 
 Sólo el primero puede resolverse solo, y por eso es el único que se resuelve solo: los otros dos escriben un commit sobre la ref, y ninguno de los dos es una decisión que la herramienta pueda tomar por su cuenta.
 
+## La ref es protegida
+
+`refs/bilink/*` **sólo avanza**, y nadie la escribe a mano: sus únicos escritores son los comandos de bilinker. Eso no es higiene, es carga estructural: la ref es lo único que conserva los commits del proyecto contra los que se aceptó —los alcanza como segundos padres— y lo único que vuelve verificable una decisión, porque el commit firmado es el artefacto. Reescribirla deja sin baseline y sin atestación a toda aceptación del repo.
+
+Tres niveles, y sólo el último es exigible:
+
+| Nivel | Qué da | Con qué |
+|---|---|---|
+| el clon local | **detección** | la disyunción y la fidelidad, chequeadas antes de cada commit |
+| el refspec | que no se fuerce por accidente | el de [`init`](../commands/init.md), **sin `+`** |
+| el servidor | **rechazo** | `receive.denyNonFastForwards`, `receive.denyDeletes`, y un `pre-receive` |
+
+`denyDeletes` no es un extra: sin él, *"sólo avanza"* se esquiva borrando la ref y empujándola de nuevo.
+
+### El servidor puede verificarlo sin ejecutar bilinker
+
+Es la parte que el diseño ya pagó y no había dicho: **las invariantes de forma de la ref son comparaciones de tree oids**, no análisis de contenido. Un `pre-receive` las chequea con git a secas, sin instalar nada:
+
+| Se verifica | Cómo |
+|---|---|
+| avanza y no se borra | `denyNonFastForwards` + `denyDeletes` |
+| [disyunción](#las-dos-verificaciones-previas) | el árbol del commit absorbido no contiene `.bilink/` |
+| [fidelidad](#la-invariante-de-fidelidad) | el árbol de código del commit nuevo es el del absorbido |
+| [un commit hace una cosa](#un-commit-hace-una-cosa) | cae en uno de los tres tipos y no en dos: los padres y cuál de los dos árboles se movió lo deciden |
+
+Ninguna necesita tree-sitter ni abrir un bilink, que es exactamente lo que la invariante de fidelidad dice de sí misma al enunciarse *"verificable sin tree-sitter"*. Lo que el servidor **no** puede verificar es si lo aceptado es correcto — eso es una decisión humana y no una propiedad del árbol.
+
+### La protección de ramas de la forja no alcanza
+
+GitHub y GitLab protegen `refs/heads/*` y `refs/tags/*`; un namespace propio queda afuera de esa UI. Es el precio de estar [fuera de `refs/heads/`](#fuera-de-refsheads): se gana invisibilidad y se pierde la protección declarativa, así que hay que ponerla como config o hook del servidor. Conviene saberlo antes de asumir que "la rama está protegida" cubre algo de esto.
+
+### Localmente no se puede impedir, sólo detectar
+
+Un `git update-ref` en el clon de alguien no lo frena nadie: es su repo. Vale la misma distinción que ya hace la disyunción — *"no es exigible como invariante —nadie puede impedir que alguien mergee— pero sí detectable antes de que contamine nada"*. La frontera donde el rechazo es posible es la compartida, y por eso el enunciado fuerte vive en el servidor y no en el cliente.
+
 ## Auditoría: contra la ref, no contra la rama
 
 La rama del proyecto no está protegida: se rebasea, se force-pushea, se cambia. Pero la ref **absorbe los commits del proyecto como segundos padres**, así que todo commit alguna vez absorbido queda alcanzable desde la ref para siempre.
@@ -209,7 +329,9 @@ git log <commit>..refs/bilink/<branch> -- <file>              ← la ventana
 
 Si aun así no es ancestro —commit nunca absorbido, clon superficial del proveedor— degradar a *"fuente desconocida"* en vez de devolver un rango inflado.
 
-Y de ahí sale la propiedad que la task `16` verifica: **la ref es lo que vuelve inmutable el `commit` de una aceptación**. Un rebase de la rama del proyecto saca ese commit de `main`, pero no lo destruye, porque `refs/bilink/<branch>` lo alcanza como segundo padre de un merge. Protege al `commit` guardado en [la cache](cache.md) y protege también a su re-derivación, que camina la historia del archivo y necesita que esos commits sigan existiendo.
+Y de ahí sale la propiedad que la task `16` verifica: **la ref es lo que vuelve inmutable el `commit` de una aceptación**. Un rebase de la rama del proyecto saca ese commit de `main`, pero no lo destruye, porque `refs/bilink/<branch>` lo alcanza como segundo padre de una absorción. Protege al `commit` guardado en [la cache](cache.md) y protege también a su re-derivación, que camina la historia del archivo y necesita que esos commits sigan existiendo.
+
+**Y es lo que hace que `commit` no necesite estar en `accepted`.** La firma de un commit cubre el objeto commit, y el objeto incluye sus padres: el commit del proyecto contra el que se aceptó ya está atestado por la firma de la aceptación, vía el DAG, sin ningún campo en el archivo. Ver la resolución en [ADR-0003](../.stratum/impl/docs/adr/0003-formato-captures-y-aceptacion.md) § "`commit` es el commit del contenido" — donde el argumento decisivo es otro: `commit` es el único campo candidato que **nunca converge**, y meterlo en `accepted` haría que [`adopt`](../commands/adopt.md) reportara un conflicto por cada endpoint aceptado de los dos lados.
 
 ## Autoría, atestación y autorización
 
@@ -231,9 +353,12 @@ Para auditar y revertir alcanza con la atribución; ante alguien que no confía,
 
 1. Los bilinks viven en `refs/bilink/<branch>` y ninguna rama del proyecto los contiene.
 2. El árbol de código de todo commit de la ref es idéntico al del commit del proyecto absorbido más recientemente.
-3. Ningún commit sobre la ref se escribe sin que el commit del proyecto contra el cual se calculó esté absorbido.
-4. La ref no se rebasea ni se cherry-pickea nunca. Es append-only, y todo fetch es fast-forward.
-5. El árbol del commit de un commit sobre la ref se construye con `read-tree` del absorbido más `update-index` de `.bilink/`. Nada del árbol de trabajo fuera de `.bilink/` entra.
-6. La ref es por repo: cubre todas las capas de ese repo y ninguna de un repo anidado.
-7. `.bilink/head` dice a qué rama y a qué commit de la ref corresponde el `.bilink/` del árbol, lo escriben tanto la materialización como todo commit sobre la ref, y ningún comando opera sobre un `.bilink/` que no corresponde a la rama actual.
-8. La puesta a punto de un clon —exclusión, refspec y materialización— es [`init`](../commands/init.md), es explícita, y sin ella ningún comando corre.
+3. Ningún commit sobre la ref se escribe sin que el commit del proyecto contra el cual se calculó esté absorbido, y la absorción ocurre en un commit propio, nunca en el mismo.
+4. **Un commit sobre la ref hace una cosa**, y es una de tres: **absorción** —dos padres, uno del proyecto, diff de `.bilink/` vacío—, **decisión** —un padre, árbol de código sin cambios—, o **sincronización** —dos padres, los dos de la ref, árbol de código sin cambios. Ninguno hace dos.
+5. Una aceptación es un commit de tipo decisión por endpoint aceptado, y las de una misma invocación son hijas de la misma absorción.
+6. La ref no se rebasea ni se cherry-pickea nunca. Es append-only, todo fetch es fast-forward, y sus únicos escritores son los comandos de bilinker.
+7. La ref es **protegida**: en el servidor, todo push que no sea fast-forward y todo delete se rechazan. Localmente la violación no se impide, se detecta.
+8. El árbol del commit de un commit sobre la ref se construye con `read-tree` del absorbido más `update-index` de `.bilink/`. Nada del árbol de trabajo fuera de `.bilink/` entra.
+9. La ref es por repo: cubre todas las capas de ese repo y ninguna de un repo anidado.
+10. `.bilink/head` dice a qué rama y a qué commit de la ref corresponde el `.bilink/` del árbol, lo escriben tanto la materialización como todo commit sobre la ref, y ningún comando opera sobre un `.bilink/` que no corresponde a la rama actual.
+11. La puesta a punto de un clon —exclusión, refspec y materialización— es [`init`](../commands/init.md), es explícita, y sin ella ningún comando corre.
