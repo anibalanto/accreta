@@ -1,0 +1,12 @@
+kind: governs
+endpoint:
+  0:
+    link: capture f3f18bcf3aed5273adf534aede8991f7
+    accepted:
+      agree:
+      - Anibal
+      link: capture f3f18bcf3aed5273adf534aede8991f7
+      hash: f7d3a5acb2d84104311c6f8e2e82bc640505f4a11ee82b6c431c8180d76262b4
+    name: la-spec
+  1:
+    link: path >impl
