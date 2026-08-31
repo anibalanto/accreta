@@ -1,0 +1,6 @@
+file: subsystems/bilinker/concepts/ref.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "La correspondencia con el proyecto es el segundo padre"))
+    (section
+    (atx_heading (inline) @n1 (#eq? @n1 "El mensaje es el comando"))) @target)
