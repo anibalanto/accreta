@@ -12,10 +12,17 @@ Las decisiones que ese trabajo ejecuta viven en `docs/adr/` de la capa impl del 
 
 ## Cómo se trabaja acá
 
+0. **Primero hay una tarea.** Ninguna modificación al repo empieza sin un ítem en `.stratum/worklist/`.
 1. Se toca **la spec**, nunca el código primero.
 2. `bilinker check .` reporta los endpoints que quedaron no-OK.
 3. Cada no-OK es un puntero al fragmento de código que implementaba esa spec. Se sigue con `bilinker get`.
 4. Se cambia el código y se acepta.
+
+**El paso 0 no es burocracia: es lo que hace que el paso 2 signifique algo.** El inventario de no-OK contesta *"qué código hay que tocar"*, y no contesta *"para qué"* — eso lo dice el ítem, y sin él un cambio queda sin criterio de cierre y sin nada contra lo cual auditarlo después.
+
+Aplica a specs, a código, a ADRs y a propuestas. **La única excepción es crear o mover un ítem del worklist**, porque exigirle tarea a eso sería recursivo.
+
+Conversar, leer, explorar y proponer no modifican nada y no necesitan ítem. Pero cuando una conversación de diseño produce algo que vale escribir, **lo primero que se escribe es la tarea.**
 
 **El inventario de trabajo de un cambio *es* la lista de no-OK.** Buscar el código a mano produce una lista que envejece el mismo día que se escribe; los bilinks están vivos.
 
