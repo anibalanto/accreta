@@ -151,6 +151,33 @@ $ bilinker get src/main/java/ar/example/demo/persona/Persona.java
 
 Si no hay bilinks que referencien ese archivo, retorna lista vacía (código 0).
 
+## Cuando el capture no resuelve, igual dice a dónde apuntaba
+
+Un endpoint que no resuelve no tiene contenido que mostrar, y hasta acá `get` fallaba nombrando el archivo y nada más:
+
+```
+$ bilinker get be2e3fd6.1
+Error: query matched nothing in crates/bilinker/src/apply.rs
+```
+
+**Falta justamente el dato que hace falta para arreglarlo.** El estado ya dijo que el fragmento no está; lo que no se sabe es **cuál era**, para decidir a dónde repuntarlo. Y `UNRESOLVED` es el estado que *obliga* a intervenir a mano: no tiene fix automático y no se resuelve aceptando.
+
+Así que la referencia se imprime igual, y el error va después:
+
+```
+$ bilinker get be2e3fd6.1
+# crates/bilinker/src/apply.rs
+# capture 1a2b3c4d…  (UNANCHORED)
+query: (function_item name: (identifier) @n0 (#eq? @n0 "compute_fix")) @target
+
+Error: el anchor `compute_fix` no está en el archivo.
+  Repuntar con `bilinker recapture be2e3fd6.1 <archivo> <línea>:<col>`.
+```
+
+**Sigue fallando** —el código de salida es 1— porque no hay fragmento que devolver. Lo que cambia es que la salida ya no obliga a abrir el `.yaml` del capture para leer la query, que es exactamente lo que el formato evita pedirle a nadie: ningún archivo de bilinker se escribe ni se lee a mano, y además el capture se referencia por un id de 32 hex que hay que sacar del bilink primero.
+
+Es la misma regla que gobierna [`apply`](apply.md#cuando-el-fix-no-se-puede-calcular) al no poder calcular un fix: **la salida es fiel a lo que la herramienta sabe.** El capture está ahí, se leyó para intentar resolverlo, y lo que se imprime lo incluye.
+
 ## Flujo típico
 
 ```bash
@@ -174,3 +201,4 @@ bilinker get 7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.1
 
 - **Independencia de git**: `get` sin `--diff` no requiere control de versiones.
 - **Sin efectos secundarios**: `get` no escribe ningún archivo.
+- **Un endpoint que no resuelve imprime su referencia igual**: archivo, id del capture, y query. Falla después.
