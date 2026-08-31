@@ -1,0 +1,7 @@
+kind: governs
+endpoint:
+  0:
+    link: capture 15c8922fb0c899848c9552367a586596
+    name: la-spec
+  1:
+    link: path subsystems/bilinker>impl
