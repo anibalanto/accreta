@@ -53,7 +53,7 @@ Si hay más de un remoto, el refspec va en todos. Si ya está, no se duplica.
 
 ### 3 — Fetch, materializar y escribir `head`
 
-Se traen las refs, se materializa el `.bilink/` de la rama actual desde `refs/bilink/<branch>`, y se escribe [`.bilink/head`](../concepts/ref.md#bilinkhead--de-dónde-salió-el-árbol) con la rama y el commit.
+Se traen las refs, se materializa el `.bilink/` de la rama actual desde `refs/bilink/<branch>`, y se escribe [`.bilink/head`](../concepts/ref.md#bilinkhead-de-dónde-salió-el-árbol) con la rama y el commit.
 
 [`.bilink/version`](../concepts/format-version.md) **llega sola**: está versionada, así que viaja en el árbol de la ref como cualquier otro archivo de `.bilink/`, y la materialización la escribe con los demás. `init` no la calcula ni la elige — sería la única cosa del directorio que no saliera del commit, y entonces podría discrepar de los archivos que describe.
 

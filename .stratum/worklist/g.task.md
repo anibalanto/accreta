@@ -14,7 +14,7 @@ Los cuatro comandos no tienen spec: `commands/init.md`, `sync.md`, `track.md` y 
 
 ## Lo que quedó hecho
 
-Los cuatro comandos, con spec y escenarios: [`init`](../subsystems/bilinker/commands/init.md), [`sync`](../subsystems/bilinker/commands/sync.md), [`track`](../subsystems/bilinker/commands/track.md) y [`adopt`](../subsystems/bilinker/commands/adopt.md). Más `log`, `diff` y `status --porcelain` sobre el índice y la ref propios —la superficie de revisión, que pasa a ser parte del producto porque la forja no muestra la ref—, `.bilink/head` con su guarda, y el preludio que corre antes de todo comando y materializa el `.bilink/` de la rama actual sin ceremonia.
+Los cuatro comandos, con spec y escenarios: [`init`](../../subsystems/bilinker/commands/init.md), [`sync`](../../subsystems/bilinker/commands/sync.md), [`track`](../../subsystems/bilinker/commands/track.md) y [`adopt`](../../subsystems/bilinker/commands/adopt.md). Más `log`, `diff` y `status --porcelain` sobre el índice y la ref propios —la superficie de revisión, que pasa a ser parte del producto porque la forja no muestra la ref—, `.bilink/head` con su guarda, y el preludio que corre antes de todo comando y materializa el `.bilink/` de la rama actual sin ceremonia.
 
 `accept` y `apply` cierran su acto con un commit sobre la ref, absorbiendo en el mismo commit el commit del proyecto contra el que se calcularon.
 
@@ -22,7 +22,7 @@ Los cuatro comandos, con spec y escenarios: [`init`](../subsystems/bilinker/comm
 
 **`.bilink/version` no la escribe `init`.** Está versionada, así que viaja en el árbol de la ref y la materialización la trae con todo lo demás. Que `init` la calculara la volvería lo único del directorio que no sale del commit, y por lo tanto lo único que puede discrepar de los archivos que describe.
 
-**La cache no se estaba invalidando al cambiar de rama**, y lo que eso cuesta no es un reporte equivocado: `accept` le cree a la cache, así que una cache de otra rama contestando `OK` deja el `accepted` viejo en su lugar sin error y sin línea en ningún reporte. El commit que la cache anota sale de `head`, que es un hecho sobre el árbol. Ver [`concepts/cache.md`](../subsystems/bilinker/concepts/cache.md) § "Sabe a qué rama corresponde".
+**La cache no se estaba invalidando al cambiar de rama**, y lo que eso cuesta no es un reporte equivocado: `accept` le cree a la cache, así que una cache de otra rama contestando `OK` deja el `accepted` viejo en su lugar sin error y sin línea en ningún reporte. El commit que la cache anota sale de `head`, que es un hecho sobre el árbol. Ver [`concepts/cache.md`](../../subsystems/bilinker/concepts/cache.md) § "Sabe a qué rama corresponde".
 
 **El interruptor del commit sobre la ref es la ref misma.** En un repo que todavía no cortó, `accept` y `apply` no commitean nada y los bilinks se ven con git como siempre. No hace falta un flag ni una versión de formato — y es lo que permite que el binario nuevo corra sobre los repos que todavía no cortaron, que es exactamente lo que la transición necesita.
 

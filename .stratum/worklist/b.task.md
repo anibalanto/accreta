@@ -12,7 +12,7 @@ Esta task existía para escribir `bilinker-003-immutable-captures`, la segunda d
 
 ## Por qué el ADR pedía dos
 
-[ADR-0003](../subsystems/bilinker/.stratum/impl/docs/adr/0003-formato-captures-y-aceptacion.md) daba el motivo del orden:
+[ADR-0003](../../subsystems/bilinker/.stratum/impl/docs/adr/0003-formato-captures-y-aceptacion.md) daba el motivo del orden:
 
 > La partición va primera: mientras `range`, `state` y `resolved_at` sigan dentro del `.capture`, no se le puede calcular un id estable.
 
@@ -20,9 +20,9 @@ Eso es cierto **si el id sale de hashear el archivo**. Sale de `H(file, query, o
 
 ## Lo que costaba separarlas
 
-`002` iría de formato 1 a un intermedio: captures ya en YAML, todavía nombrados por su uuid viejo. Eso viola la invariante 1 de [`capture.md`](../subsystems/bilinker/concepts/capture.md) —"el nombre de un capture es `H(file, query, offset)`"— así que **no es formato 2: es un formato propio**.
+`002` iría de formato 1 a un intermedio: captures ya en YAML, todavía nombrados por su uuid viejo. Eso viola la invariante 1 de [`capture.md`](../../subsystems/bilinker/concepts/capture.md) —"el nombre de un capture es `H(file, query, offset)`"— así que **no es formato 2: es un formato propio**.
 
-Y por la Decisión 2 de [ADR-0006](../subsystems/bilinker/.stratum/impl/docs/adr/0006-formato-como-crate-versionado.md), un formato propio pide su crate, su versión registrada y su hash de esquema **para siempre**, porque el conjunto de migraciones es de sólo-agregar. Todo para un estado en el que nadie iba a estar: las dos correrían en la misma pasada, antes del corte.
+Y por la Decisión 2 de [ADR-0006](../../subsystems/bilinker/.stratum/impl/docs/adr/0006-formato-como-crate-versionado.md), un formato propio pide su crate, su versión registrada y su hash de esquema **para siempre**, porque el conjunto de migraciones es de sólo-agregar. Todo para un estado en el que nadie iba a estar: las dos correrían en la misma pasada, antes del corte.
 
 ## Lo que se conserva
 
