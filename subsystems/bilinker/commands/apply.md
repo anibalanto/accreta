@@ -89,12 +89,31 @@ Es más simple que la validación que había antes —re-derivar y comparar cont
 
 Un capture en `MOVED` o `REANCHORED` no siempre produce una ubicación nueva: git puede no reportar el rename, el anchor puede no localizarse, la query puede no tener predicado de nombre que reescribir.
 
-**Cuando no puede, lo dice y sigue.** Abortar dejaría sin revisar a todos los demás endpoints por culpa de uno:
+**Cuando no puede, lo dice y sigue.** Abortar dejaría sin revisar a todos los demás endpoints por culpa de uno.
+
+### Y dice cuál de las tres cosas pasó
+
+Un solo mensaje cubría tres causas que mandan a mirar lugares distintos, y la más común —el anchor renombrado— salía culpando al índice de renames de git, que estaba bien:
+
+| Lo que pasó | Cómo se distingue | Qué hay que hacer |
+|---|---|---|
+| git no detectó el rename: **el destino no está trackeado** | el anchor aparece en un archivo sin trackear | `git add` ese archivo |
+| **el destino está y el anchor se renombró también** | git reporta el rename, pero la query no resuelve ahí | `bilinker recapture` |
+| **el fragmento no está en ninguna parte** | ni rename, ni el anchor en ningún archivo sin trackear | `recapture` o `remove` |
 
 ```
-warn: 09b88fe0… endpoint.0: MOVED: git no reporta un rename de 'docs/spec.md'.
-      Si el archivo nuevo no está trackeado, `git add` y volver a correr.
+warn: 09b88fe0… endpoint.0: MOVED: git no reporta un rename de 'docs/spec.md',
+      y el anchor `compute_fix` está en 'docs/renombrada.md', que no está trackeado.
+      `git add docs/renombrada.md` y volver a correr.
+
+warn: 36f0c759… endpoint.1: MOVED: el archivo se movió a 'crates/bilinker/src/issue.rs',
+      pero el anchor `resolve_task_path` ya no está ahí (UNANCHORED).
+      Repuntar con `bilinker recapture`.
 ```
+
+**El anchor se nombra**, no el estado: es el dato que dice qué buscar. Y la primera fila se decide buscando el anchor entre los archivos sin trackear — un hecho, no una sugerencia genérica.
+
+**Que no haya auto-fix está bien**: dónde quedó el fragmento adentro del archivo destino es una inferencia que `apply` no debería hacer sola. Lo que sí puede es decir qué comando la hace.
 
 ## Qué escribe
 
