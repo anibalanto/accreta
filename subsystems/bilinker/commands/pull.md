@@ -78,7 +78,9 @@ refs/bilink-remote/<remoto>/<branch>
 
 No a `refs/bilink/<branch>`, que es la ref local y es justo la que no se quiere pisar — el [refspec sin `+`](init.md) existe para que ese fetch falle en vez de pisarla.
 
-Ahí sí se trae forzando, y no hay nada que proteger: es una copia de lectura del remoto, se descarta y se vuelve a traer. **Es la misma distinción que git hace con `refs/remotes/`**, y la razón por la que la ref propia *no* se mapea ahí sigue valiendo: no hay flujo donde alguien quiera comparar sin traer. Acá se trae **para** unir, que es otra cosa.
+Ahí sí se trae forzando, y no hay nada que proteger: es una copia de lectura del remoto, se descarta y se vuelve a traer.
+
+**Y el fetch va con `--refmap=`**, que no es un detalle: sin él, `git fetch <remoto> <refspec>` aplica *además* los refspecs configurados, y el de [`init`](init.md) va sin `+` justo para fallar cuando el remoto divergió. O sea que el fetch de `pull` fallaría exactamente en el único caso en que `pull` existe. El refmap vacío apaga esa parte y deja sólo el refspec que se pidió. **Es la misma distinción que git hace con `refs/remotes/`**, y la razón por la que la ref propia *no* se mapea ahí sigue valiendo: no hay flujo donde alguien quiera comparar sin traer. Acá se trae **para** unir, que es otra cosa.
 
 ## Salida
 
