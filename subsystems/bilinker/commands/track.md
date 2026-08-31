@@ -104,14 +104,14 @@ error: refs/bilink/main ya existe.
 
 ## El mensaje
 
-Los dos casos tienen verbo propio en [la gramática de la ref](../concepts/ref.md#el-mensaje-es-el-comando), y los dos nombran la rama que nace:
+**Un solo verbo para los dos casos**, en [la gramática de la ref](../concepts/ref.md#el-mensaje-es-el-comando), porque los dos son el mismo comando:
 
 ```
 track feature/x: hereda de 9c1f0ab sobre 4e77d20
-corte main: los bilinks pasan a refs/bilink/main
+track main: corte 005, los bilinks pasan a refs/bilink/main
 ```
 
-Que el corte sea un verbo aparte y no `track` sin candidato es lo mismo que la [tabla de tipos](../concepts/ref.md#un-commit-hace-una-cosa) ya dice: `track` con herencia es un commit de dos padres que trae código, y el corte es de padre único. Distinguirlos en el mensaje evita que un verificador tenga que mirar los padres para saber cuál esperaba.
+**El corte no tiene verbo propio y no le hace falta.** Lo que lo distingue son los padres —`track` con herencia tiene dos, el corte uno solo y no es de la ref— y eso es lo que la [tabla de tipos](../concepts/ref.md#un-commit-hace-una-cosa) ya usa para decidir de qué tipo es cualquier commit de la ref. Un verificador los mira igual, así que repetirlo en el mensaje no le ahorra nada, y un verbo `corte` nombraría un comando que no existe.
 
 ## Salida
 

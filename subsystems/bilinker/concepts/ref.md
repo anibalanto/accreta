@@ -157,7 +157,7 @@ c7e0d92  Ana     absorb d0b7a12: el rename ya commiteado
 4e77d20  Ana     apply 7f3d8e9a.1 3ca90f81…: sciplink.rs → scip/link.rs
 77a0c94  Luis    accept 7f3d8e9a.0: spec de check ↔ check_structural
 2b1a5f0  Luis    absorb c4e1770: rc-2.35 hasta C
-0af3c12  Luis    corte rc-2.35: bilinker-003-immutable-captures
+0af3c12  Luis    track rc-2.35: corte 005, los bilinks salen de la rama
 ```
 
 Ése es el registro de decisiones: quién aceptó qué y cuándo, sin una sola línea del historial del proyecto de por medio.
@@ -178,14 +178,15 @@ La granularidad sigue al **objeto** y no al acto, por tres razones:
 
 ```
 absorb <commit-del-proyecto>                    ← tipo 1
-track  <rama>                                   ← tipo 1: la ref nace heredando
+track  <rama>                                   ← tipo 1: la ref nace
 accept [--place|--content] <uuid>.<N>           ← tipo 2
 apply  <uuid>.<N> <capture-nuevo>               ← tipo 2
 adopt  <rama>                                   ← tipo 3.a
-corte  <rama>                                   ← la ref nace desde cero
 ```
 
-**Cada comando nombra el objeto sobre el que actuó**, y nada más: el endpoint para una decisión, la rama de origen para una sincronización, el commit traído para una absorción, la rama que nace para un corte. Lo que los padres ya dicen no se repite salvo donde hace legible el log — `absorb` nombra el commit que además es su segundo padre, y eso es deliberado: el registro se lee sin abrir el DAG.
+**Cinco verbos, y cada uno es un comando que existe.** No hay verbo para el corte: el comando que lo escribe es [`track`](../commands/track.md) en su caso *"no hay de quién heredar"*, y un verbo propio nombraría un comando que nadie puede correr. Los dos nacimientos se distinguen por los padres —el corte tiene uno solo, y no es de la ref— que es como se distingue [todo lo demás de un commit de la ref](#un-commit-hace-una-cosa).
+
+**Cada comando nombra el objeto sobre el que actuó**, y nada más: el endpoint para una decisión, la rama de origen para una sincronización, el commit traído para una absorción, la rama que nace para un `track`. Lo que los padres ya dicen no se repite salvo donde hace legible el log — `absorb` nombra el commit que además es su segundo padre, y eso es deliberado: el registro se lee sin abrir el DAG.
 
 `adopt` no lleva endpoint. Trae **todo** lo que el vecino decidió entre la base y su tip, en [un solo commit y no N](../commands/adopt.md#son-dos-commits-y-por-qué), y el conjunto sale del merge a tres puntas entre los dos padres — que ya están en el objeto. Un endpoint en el mensaje no agregaría nada que reproducir y sugeriría una granularidad que el acto no tiene: adoptar no es decidir, es traer decisiones ya firmadas por otro.
 
