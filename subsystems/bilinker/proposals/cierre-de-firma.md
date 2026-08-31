@@ -1,10 +1,12 @@
-# Propuesta: el cierre de firma como tercera dimensión aceptada
+# Propuesta: el cierre de firma como dimensión aceptada
 
 **Estado:** en discusión. No especificado, no implementado. Vive acá para que el razonamiento no se pierda.
 
+La forma quedó cerrada: **dos campos plegados**, `hash_n1` y `hash_ast_n1`. La variante que guardaba los vecinos uno por uno se descartó por complejidad y queda registrada acá abajo, porque sigue siendo el upgrade aditivo si la atribución llega a doler.
+
 Un fragmento no es sólo un árbol de sintaxis: devuelve un tipo, recibe parámetros, llama a otras funciones. **¿Tiene sentido que la aceptación cubra algo de eso, y hasta dónde?**
 
-El documento arranca por la respuesta general y cara. Si lo que se busca es sólo que **quien usa una API se entere de que cambió**, hay dos caminos mucho más baratos: ver [Tres formas de contestar la misma pregunta](#tres-formas-de-contestar-la-misma-pregunta).
+El documento arranca por la respuesta general. Si lo que se busca es sólo que **quien usa una API se entere de que cambió**, hay dos caminos que no necesitan nada nuevo: ver [Tres formas de contestar la misma pregunta](#tres-formas-de-contestar-la-misma-pregunta).
 
 ## El antecedente: ya se intentó, y se revirtió
 
@@ -38,6 +40,8 @@ Desde un fragmento salen tres vecindarios, y conviene no tratarlos como uno:
 
 Sólo el primero es finito, y es el único que un consumidor necesita. *Al que lo usa le interesa la forma que devuelve, no la semántica interna* — y eso, dicho con precisión, es **el cierre de la firma**.
 
+> El "transitivamente" de esa primera fila es lo que [la forma concreta](#la-forma-concreta) termina cortando en un salto. Que el cierre sea finito no quiere decir que convenga recorrerlo entero: la profundidad 1 cubre el caso que motivó el documento y evita tener que decidir dónde para.
+
 Guardar el cuerpo tiene tres problemas encadenados: no termina, obliga a decidir sobre código que nadie leyó, y dispara `CHAIN_DIRTY` en refactors que no cambiaron nada observable. Ese ruido es exactamente lo que mató a `subgraph.N`.
 
 ## Por qué el revert no lo prohíbe
@@ -50,33 +54,162 @@ La diferencia no es de grado: un índice que envejece miente; un hash que enveje
 
 ## La forma concreta
 
-Una tercera dimensión en `accepted`, al lado de las dos que ya hay:
+**Dos campos** en `accepted`, al lado de los dos que ya hay:
 
 ```yaml
 accepted:
   link: capture 8f2a4c6e…
-  hash: c4e1770b…          # el texto
-  hash_ast: 1b9e44a2…      # los tokens
-  hash_contract: 7d3e0f91…  # el cierre de la firma      ← nuevo
+  hash: c4e1770b…          # el texto del fragmento
+  hash_ast: 1b9e44a2…      # sus tokens
+  hash_n1: 96c765b9…       # el texto de sus vecinos directos      ← nuevo
+  hash_ast_n1: 88e834c4…   # los tokens de sus vecinos directos    ← nuevo
 ```
 
-Y los estados componen solos:
+### Nivel 1: no hay cierre, hay vecindario
 
-| Cambió | No cambió | Estado | Qué significa |
-|---|---|---|---|
-| texto | tokens | `RESTYLED` | sólo espaciado |
-| tokens | **contrato** | *(nuevo)* | **el proveedor refactorizó por dentro y no rompió a nadie** |
-| contrato | — | *(nuevo)* | alguien se rompe |
+El `_1` es la decisión más importante de esta forma: **no recursa.** Los vecinos son los tipos que la firma menciona, un salto, y nada más. Los campos de esos tipos son nivel 2 y no entran.
 
-La fila del medio es la que hace adoptable la frontera: **el proveedor puede reescribir el cuerpo con libertad y el consumidor no se entera.** Hoy cualquier cambio en el cuerpo llega al consumidor como `CHAIN_DIRTY` y lo obliga a mirar algo que no le incumbe.
+Cubre menos, y es a propósito, porque con eso tres problemas dejan de existir:
 
-## Por qué lo tiene que aportar lattice
+- **Dónde para el cierre** — para en 1, y está escrito en el nombre del campo.
+- **La terminación con tipos recursivos** — no hay recursión que terminar.
+- **El recorrido** — no hay BFS ni visited-set: se resuelven los tipos que la firma menciona y listo.
+
+Y la profundidad queda **explícita y opt-in por bilink**, en vez de ser una política global escondida. Si alguna vez hace falta, un `hash_n2` es aditivo y no invalida nada.
+
+Qué ve y qué no:
+
+| Cambio | ¿Lo ve? |
+|---|---|
+| a `PublicAuthorityDto` le agregan un campo | **sí** — cambió su texto |
+| `String name` → `AuthorityKind name` en el DTO | **sí** — cambió su texto |
+| el DTO se muda de archivo | **sí** — cambió el conjunto |
+| el método devuelve otro tipo | **sí** — cambió el conjunto |
+| a `AuthorityKind` le cambian los valores | **no** — es nivel 2 |
+
+La primera fila es [`1d`](../../../.stratum/worklist/1d.task.md). **El nivel 1 detecta el caso que motivó todo esto**, que es lo que hay que pedirle a la forma más barata.
+
+### Los vecinos no son captures
+
+No se acuñan. Nadie los referencia con un `link` ni con un `accepted.link`, así que un capture acuñado para un vecino sería basura que `prune` borra en la pasada siguiente.
+
+Son ubicaciones que lattice resuelve y que bilinker hashea al pasar. Con eso desaparecen cuatro cosas: la conversión rango → query, un modo nuevo de `bilinker capture`, cualquier raíz nueva para `prune`, y —la que más importa— **el modo de falla del anclaje**: `capture` falla cuando no encuentra un ancla única, y con vecinos resueltos por LSP eso iba a pasar seguido (clases anónimas, código generado).
+
+Lo único que hay que respetar es el recorte de bordes de [`capture.md`](../concepts/capture.md) § "El rango excluye el espacio que rodea al nodo". Un vecino hasheado sin recortar mueve su hash cuando le agregan algo abajo, que es exactamente el falso drift que esa regla existe para evitar.
+
+### El fold
+
+Un solo orden, y dos folds sobre ese orden:
+
+```
+orden = los vecinos ordenados por su identidad — <layer-root>::<path> + nombre del símbolo,
+        byte-wise sobre el UTF-8. Esa clave ordena y no entra en ningún hash.
+
+hash_n1     = H( hash(v)     de cada vecino, en ese orden )
+hash_ast_n1 = H( hash_ast(v) de cada vecino, en ese orden )
+```
+
+**La clave de orden tiene que ser identidad, nunca contenido.** Si se ordenara por el texto del vecino, un reformateo podría cambiarle el puesto a uno, la lista de `hash_ast` se reordenaría, y `hash_ast_n1` se movería sin que ningún AST cambiara: un falso *"cambió de verdad"* producido por el orden y no por el código. Ordenando por identidad nadie se mueve de puesto salvo que un vecino entre, salga o se renombre — y esas tres cosas **son** cambios de contrato.
+
+Tampoco puede ordenar el rango: lleva offsets de bytes, que se corren con cualquier edición más arriba del archivo.
+
+### `hash_ast_n1` es todo-o-nada
+
+Si un vecino no tiene gramática no tiene `hash_ast`, y **no puede simplemente quedar afuera del fold**: un cambio real en ese vecino movería `hash_n1` y no `hash_ast_n1`, y eso se leería como *"sólo formateo"* cuando no lo fue. Un falso `RESTYLED` es peor que ningún estado.
+
+Así que el campo está presente sólo si **todos** los vecinos tienen gramática. Si a alguno le falta, está ausente, y cualquier cambio en `hash_n1` es un cambio real. Es el mismo espíritu que la regla que ya existe —*"donde `hash_ast` no está, `RESTYLED` no existe y todo cambio de texto es `ALTERED`"*— y falla hacia reportar, no hacia callarse.
+
+`hash_n1` también es opcional: ausente donde el fragmento no tiene firma resoluble, que es prosa, un DTO, o un lenguaje sin anotaciones.
+
+### Los cuatro cuadrantes
+
+Dos ejes independientes, y las cuatro combinaciones dicen cosas distintas:
+
+| Difiere | Qué significa |
+|---|---|
+| `hash` | el fragmento se reformateó |
+| `hash` + `hash_ast` | **el proveedor refactorizó por dentro y no rompió a nadie** |
+| `hash_n1` | el vecindario se reformateó |
+| `hash_n1` + `hash_ast_n1` | **un vecino cambió: el contrato se movió** |
+
+La segunda fila es la que hace adoptable la frontera: el cuerpo cambió, el vecindario no, y el consumidor no se entera de un refactor que no le incumbe. Hoy eso le llega como `CHAIN_DIRTY` y lo obliga a mirar algo que no le incumbe.
+
+La cuarta es `1d`: el método intacto, el DTO movido.
+
+Y en los endpoints layer y repo los dos campos se copian como los otros dos: **dos escalares más** en el valor opaco que se toma del vecino. No hay regla nueva de propagación.
+
+### Lo que se descartó en el camino: el mapa de vecinos
+
+Antes de llegar a los dos hashes, esta propuesta pasó por una forma que guardaba **los vecinos uno por uno** en el bilink: un conjunto declarado al lado de `link`, y un mapa de aceptación adentro de `accepted`, con `hash` y `hash_ast` por vecino.
+
+```yaml
+endpoint:
+  0:
+    link: capture bed60efb…
+    vecinos:                       # el conjunto declarado · lo escribe apply
+      50e81a05…:
+      b86a579f…:
+    accepted:
+      link: capture bed60efb…
+      hash: 96c765b9…
+      vecinos:                     # la aceptación, por vecino · la escribe accept
+        50e81a05…: { hash: 311285da… }
+        b86a579f…: { hash: 1d44d20e…, hash_ast: 975b8302… }
+```
+
+Funcionaba, y daba algo que los dos hashes no dan: **atribución**. `check` puede decir *"`PublicAuthorityDto` quedó `ALTERED`"* en vez de *"el vecindario se movió"*.
+
+**Se descartó por complejidad**, y no por una razón sino por seis que se acumulan:
+
+- **La clave no puede ser posicional.** `0, 1, 2` sobre un conjunto dinámico hace que la posición 1 pase a nombrar otra cosa cuando el conjunto cambia, y la aceptación queda comparando el hash de un fragmento contra el contenido de otro. No es un falso positivo: es una **atribución equivocada** — `check` reporta drift en el vecino que no cambió y calla el que sí.
+- **Lo cual obliga a keyear por capture id, y eso obliga a acuñar un capture por vecino**, con su query, su verificación de unicidad y su modo de falla cuando no hay ancla estable.
+- **`prune` gana una clase de raíz.**
+- **YAML no tiene set usable.** El `!!set` de YAML 1.1 no lo soporta `serde_yaml_ng`, así que la unicidad tiene que salir de las claves de un mapa: el conjunto declarado queda como un mapa de valores vacíos, o como una lista que **puede representar un duplicado** y hay que validar al leer.
+- **La regla de copiado de los endpoints layer se reescribe entera**: el valor opaco que se copia del vecino pasa de tres escalares a tres escalares más N sub-bloques que nunca se resuelven localmente.
+- **El bilink pasa de doce líneas a ochenta**, y cada aceptación produce un diff grande. El archivo deja de leerse de un vistazo, que hoy es una propiedad real del formato.
+
+Los dos hashes cuestan **dos filas en una tabla de campos**, y cubren exactamente los mismos cambios: se hashea lo mismo, sólo que plegado.
+
+**Y el mapa queda disponible como upgrade aditivo.** Como el fold se define sobre los *valores* y no sobre las claves, `hash_n1` es el mismo valor calculado desde el mapa: un bilink que sólo tiene los dos hashes sigue siendo válido, y lo único que no tiene es atribución hasta que alguien lo re-acepte. **El barato es un prefijo válido del caro**, así que no hay ninguna razón para no empezar por el barato.
+
+Lo que se pierde mientras tanto, dicho sin maquillaje: cuando `hash_n1` difiere sabés que el vecindario se movió, no cuál vecino. Corrés lattice y ves los vecinos de hoy con sus hashes, pero no tenés los aceptados de cada uno para diffear. En teoría se re-derivan desde `accepted.commit`; en la práctica eso pide **un LSP indexando un checkout histórico**, que no es la misma clase de costo que re-derivar `commit` con tree-sitter sobre un blob de `git show`. Con tres vecinos es cómodo; con quince, incómodo.
+
+## Quién calcula, quién decide, quién guarda
 
 Resolver un tipo hasta su declaración es trabajo de language server, no de tree-sitter. Y la frontera de bilinker es explícita: *sólo git y tree-sitter; el call graph vive en lattice, el alcance de un cambio en impact.*
 
-Así que bilinker **no puede calcular** este hash. Tiene que pedirlo.
+**Bilinker no le pregunta a nadie.** La tentación es que `bilinker check` llame a lattice, y hay que resistirla: bilinker hoy funciona con git y tree-sitter, siempre, offline, en cualquier repo. Un `check` que necesita un language server indexando queda condicionalmente degradado, y eso contamina el subsistema entero por un campo. Además invierte las capas — lattice consume bilinker vía `bilinker graph`, no al revés.
 
-Lattice ya tiene el proveedor `lsp` y sabe expandir un nodo. Lo que falta es un `kind` que **no** es `call`: algo que exprese *"este fragmento expone esta forma"*. Y lattice sigue sin persistir nada — el grafo se calcula en el momento; lo único que se guarda es el hash, del lado de bilinker, como parte de una decisión.
+El reparto que sí cierra:
+
+| | Quién | Qué hace |
+|---|---|---|
+| encontrar los vecinos | **lattice** | `textDocument/definition` sobre los tipos de la firma. Un salto. No persiste nada. |
+| componer y decidir | **impact** | es el único que ya consume los dos; recorre, evalúa, e invoca |
+| hashear y escribir | **bilinker**, invocado | recibe ubicaciones, aplica el recorte de bordes, foldea, escribe `accepted` |
+| comparar en `check` | **bilinker** | compara el valor guardado contra el que le traen. Nunca resuelve un tipo. |
+
+Bilinker recibe las ubicaciones; no sale a buscarlas. El hasheo queda de su lado porque el recorte de bordes es su regla y vive *"en el único lugar donde un nodo se convierte en rango"*.
+
+### Para bilinker es un valor opaco
+
+`hash_n1` es un campo que bilinker **guarda y compara sin poder calcularlo por su cuenta**. No es una excepción nueva: es el patrón que el formato ya tiene en [`capture.md`](../concepts/capture.md) invariante 6, donde un `accepted.link` de endpoint layer o repo contiene *"una copia opaca de un id ajeno, que no se resuelve localmente"*. Se compara, no se resuelve.
+
+De ahí sale el estado que hay que nombrar: cuando nadie le pasa el valor de hoy, `check` **no dice OK ni dice drift — dice no verificado.** Es la familia de `LAYER_UNREACHABLE` y `REMOTE_UNREACHABLE`: no pude ver el otro lado. Y es la distinción que impact ya defiende para sí mismo — *"un reporte que no distingue 'no encontré impacto' de 'no pude buscarlo' es peor que no tener reporte"*.
+
+### Y por eso va en `accepted`, no en la cache
+
+Se podría pensar en dejar el vecindario del lado de impact y que bilinker no se enterara. Dos razones para no hacerlo:
+
+**La frontera.** `retinar` consume `hsi` cruzando una frontera de repos, y lo que atraviesa esa frontera es la copia opaca de `accepted` del endpoint `repo`. Si `hash_n1` no está ahí, no cruza — y el caso que motivó este documento se queda sin el mecanismo que lo entrega al consumidor.
+
+**No es re-derivable en la clase de costo de la cache.** `commit` vive en la cache y se re-deriva con tree-sitter sobre un blob de `git show`: *"más lento, nunca no disponible"*. Recuperar el `hash_n1` aceptado pediría **un LSP indexando un checkout histórico**, que puede ni buildear. No es un derivado recuperable: es una decisión, y va versionada.
+
+### Lo que le falta a lattice
+
+El proveedor `lsp` y la forma canónica de nodo ya están. Falta un `kind` que **no** es `call`: algo que exprese *"este fragmento menciona este tipo en su firma"*.
+
+Y el recorrido es un salto, no un grafo. Las tres menciones de `Persona` en `Persona hijoMenor(Persona padre, Persona madre)` resuelven a la misma declaración, así que **la dedup la hace el LSP** y no una regla del formato — el vecindario tiene un `Persona` y no tres.
 
 **Ésa es la composición que el modelo ya permite y nadie usó todavía:** un proveedor derivado alimentando una aceptación. Hoy `accepted` sólo se nutre de lo que bilinker mismo puede ver.
 
@@ -92,16 +225,20 @@ Dicho corto: **el contrato se acepta; el alcance se consulta.** Meter los dos en
 
 Agregarle un campo a un DTO **no rompe** a un consumidor que deserializa JSON: es aditivo, y el consumidor viejo lo ignora. Pero un hash de igualdad dispara igual, y el consumidor tiene que ir a mirar un cambio que no le hace nada.
 
-Si eso no se resuelve, `hash_contract` reproduce el ruido que mató a `subgraph.N`, sólo que un nivel más arriba — y peor, porque ahora el ruido cruza la frontera y llega a gente de otro equipo.
+Si eso no se resuelve, `hash_n1` reproduce el ruido que mató a `subgraph.N`, sólo que un nivel más arriba — y peor, porque ahora el ruido cruza la frontera y llega a gente de otro equipo.
 
-Las preguntas abiertas, en orden de dificultad:
+**Es la única pregunta que decide si esto vale la pena, y no la resuelve ninguna variante.** Los dos hashes y el mapa de vecinos disparan con la misma frecuencia ante un cambio aditivo: lo que el mapa agrega es atribución, no una noción de compatibilidad. La diferencia entre ellos es cuántos pasos hay entre el estado y entender qué pasó, no si el estado aparece.
 
-1. **¿Dónde para el cierre?** Un campo de tipo DTO recursa; uno de tipo `Instant` no. La línea es *"tipos declarados en este repo"*, pero un tipo de una librería compartida entre proveedor y consumidor es un caso real y no obvio.
-2. **¿El hash es de igualdad o de compatibilidad?** Lo segundo es semver de formas, y es difícil de verdad. Lo primero es fácil y ruidoso.
-3. **¿Un cierre o dos?** Lo que se devuelve y lo que se recibe se rompen distinto: agregar un campo al retorno es seguro, agregar un parámetro requerido no. Tal vez son dos hashes y no uno.
-4. **¿Y los lenguajes sin tipos?** El cierre de firma de una función TypeScript existe; el de una Python sin anotaciones, no. La degradación tiene que estar dicha, no descubrirse.
+Lo demás que queda por decidir es chico:
 
-**La 2 es la que decide si esto vale la pena.** Sin una noción de compatibilidad, esta propuesta agrega precisión donde no hace falta y ruido donde duele.
+1. **El vocabulario de los dos estados nuevos.** `RESTYLED` y `ALTERED` ya nombran las dos filas del fragmento; hacen falta dos nombres para las del vecindario que digan que el eje es otro.
+2. **Qué cuenta como vecino directo donde el fragmento no es una función** — un DTO, una interfaz, prosa. La respuesta por defecto es que el campo está ausente, pero conviene decirlo antes de que alguien lo descubra.
+
+### Preguntas que esta forma retira
+
+- ~~**¿Dónde para el cierre?**~~ En 1, y está en el nombre del campo. Con eso también se cae la terminación con tipos recursivos, que era su consecuencia peor.
+- ~~**¿Un cierre o dos?**~~ No se puede tener dirección: en `Persona hijoMenor(Persona padre, Persona madre)` el mismo tipo es retorno **y** parámetro, así que un conjunto de tipos no distingue lo que se devuelve de lo que se recibe. Y no hace falta — la asimetría de compatibilidad (agregar un campo a un retorno es seguro, agregar un parámetro requerido no) no es una propiedad del tipo sino de cómo lo usa el consumidor, y eso lo decide quien mira, como en todo el resto del diseño.
+- ~~**¿Y los lenguajes sin tipos?**~~ Donde no hay firma resoluble el campo está ausente, igual que `hash_ast` donde no hay gramática.
 
 ## Tres formas de contestar la misma pregunta
 
@@ -149,9 +286,9 @@ Y encaja con lo que el formato ya dice: *"la multiplicidad la aporta el capture"
 
 #### La ventaja sobre C: se ve qué se movió
 
-| | C — un hash del cierre | C bis — N capturas |
+| | C — el vecindario plegado | C bis — N capturas |
 |---|---|---|
-| Cuando el contrato cambia | *"el hash del contrato cambió"* | **`PublicAuthorityDto` quedó `ALTERED`** |
+| Cuando el contrato cambia | *"el vecindario se movió"* | **`PublicAuthorityDto` quedó `ALTERED`** |
 | Para saber qué pasó | hay que ir a buscarlo | ya está dicho |
 | Estados | uno | uno por fragmento |
 
@@ -181,9 +318,11 @@ A dice *«publicá el DTO, anda hoy»*. Lo que A no resuelve es **cuáles** DTOs
 
 O sea: A es qué se captura, C bis es cómo se encuentra. **Se pueden hacer en ese orden**, y la primera no necesita a la segunda para empezar.
 
-### C — El cierre de firma vía lattice
+### C — El vecindario de nivel 1 vía lattice
 
-Lo de arriba. Es la única que sirve donde **no hay un spec generado** — código que no expone una API HTTP, contratos entre módulos, cualquier cosa que no tenga un OpenAPI detrás.
+Lo de arriba: `hash_n1` y `hash_ast_n1`. Es la única que sirve donde **no hay un spec generado** — código que no expone una API HTTP, contratos entre módulos, cualquier cosa que no tenga un OpenAPI detrás.
+
+Y ya no es *"el cierre de firma"* en sentido estricto: al clavar la profundidad en 1 dejó de ser un cierre transitivo y pasó a ser un vecindario. Ahí está casi todo el ahorro — y el nombre del documento quedó de cuando la idea era la otra.
 
 ### Cuál conviene
 
@@ -191,12 +330,12 @@ Lo de arriba. Es la única que sirve donde **no hay un spec generado** — códi
 |---|---|---|---|
 | **A** publicar el DTO | sí | **no** | nada — anda hoy |
 | **B** publicar el openapi | sí | **sí** | gramática JSON + commitear un generado |
-| **C** cierre de firma | sí, opaco | no aplica | lattice + resolver compatibilidad |
+| **C** vecindario de nivel 1 | sí, plegado | no aplica | lattice + dos campos en `accepted` |
 | **C bis** lattice propone N capturas | sí, **y dice cuál se movió** | no aplica | lattice + agrupación (endpoint bilink) |
 
-**A para empezar mañana; B cuando la ruta importe; C bis como la ergonomía de A; C parked.**
+**A para empezar mañana; B cuando la ruta importe; C donde no haya spec generado; C bis como el upgrade aditivo de C, si la atribución llega a doler.**
 
-Y una observación sobre C contra C bis: **C bis no necesita resolver la compatibilidad.** Como cada fragmento conserva su propio estado, un campo agregado a un DTO aparece como ese DTO `ALTERED` y quien mira decide en un segundo si le afecta — en vez de un hash de cierre que dispara sin decir por qué. El problema difícil de C se disuelve al no plegar todo en un valor. Y B no reemplaza a C: sirve donde hay un spec generado, que es una parte del problema y no todo.
+Y una corrección a lo que este documento afirmaba antes: **C bis no resuelve la compatibilidad, y C no la empeora.** Los dos disparan igual ante un cambio aditivo; lo que C bis agrega es atribución. El problema difícil nunca fue el plegado, así que no se disuelve al desplegar — ver [Lo que no está resuelto](#lo-que-no-está-resuelto-y-es-el-problema-difícil). Y B no reemplaza a C: sirve donde hay un spec generado, que es una parte del problema y no todo.
 
 ## Qué haría falta antes de decidir
 
