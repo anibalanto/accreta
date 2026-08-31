@@ -1,0 +1,12 @@
+kind: governs
+endpoint:
+  0:
+    link: capture c0eac1d163aaf1f73b2757a6658b1fbd
+    accepted:
+      agree:
+      - Anibal
+      link: capture c0eac1d163aaf1f73b2757a6658b1fbd
+      hash: 532b922e8d05312412a976aa9e3638611e1ed200efc11e43cc4be25ce01eb066
+    name: el-modelo
+  1:
+    link: path subsystems/bilinker>impl
