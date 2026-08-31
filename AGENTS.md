@@ -35,3 +35,9 @@ Los paths se escriben con tokens Stratum —`*` raíz, `<` subir, `>name` bajar�
 ## Commits
 
 Mensaje de una línea, sin trailer de co-autoría.
+
+**Arranca con el id del ítem que se ejecuta** — `1e: separar absorber de decidir`. Es lo que vuelve el log navegable por tarea, y la vuelta que cierra el paso 0: si toda modificación empieza con un ítem, el commit dice cuál.
+
+**Un commit ejecuta un solo ítem.** Si un cambio ejecuta dos, son dos commits.
+
+**Sin prefijo** sólo cuando el commit no ejecuta un ítem sino que **crea o anota varios** — ahí el ítem se nombra en la prosa, porque forzar un prefijo obligaría a elegir a uno como dueño de la creación de todos.
