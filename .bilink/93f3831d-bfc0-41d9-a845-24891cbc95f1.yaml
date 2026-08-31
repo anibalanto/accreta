@@ -10,3 +10,8 @@ endpoint:
     name: la-spec
   1:
     link: path subsystems/bilinker>impl
+    accepted:
+      agree:
+      - Anibal
+      link: capture 334918eb11d3436650daf1b7e82c1f8a
+      hash: 2bee6c90ff2e61eb36008183a390b20857d315c37801b1397919928982a6a262
