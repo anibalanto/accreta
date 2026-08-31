@@ -1,11 +1,11 @@
 endpoint:
   0:
-    link: capture e2e66a729e080c86fd2c6227dbe8d131
+    link: capture e7f7ca1acd994c8567f99e5d606ed48b
     accepted:
-      link: capture e2e66a729e080c86fd2c6227dbe8d131
+      link: capture e7f7ca1acd994c8567f99e5d606ed48b
       hash: 282bccc8b075ffe7826010ecb27d4feaa8af8a4deb92921f8af4cacdf6014a90
   1:
-    link: path >impl
+    link: path subsystems/stratum>impl
     accepted:
       agree:
       - Anibal
