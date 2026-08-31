@@ -52,7 +52,7 @@ Sincronizar decisiones es traer lo que aceptó otro. De dónde viene cambia qué
 | | De dónde | Los dos lados vienen de… |
 |---|---|---|
 | **3.a** — otra rama, que puede haberse rebaseado sobre la trackeada | [`adopt <rama>`](../commands/adopt.md) | **dos absorciones distintas** |
-| **3.b** — la misma rama: alguien tenía una versión anterior y aceptó | el push concurrente | **la misma absorción** |
+| **3.b** — la misma rama: alguien tenía una versión anterior y aceptó | [`pull <remoto>`](../commands/pull.md) | **la misma absorción** |
 
 El discriminador es de git: se busca hacia atrás la absorción más cercana de cada lado y se comparan. Si es la misma, es 3.b; si son dos, es 3.a.
 
@@ -64,7 +64,7 @@ Es el caso que el formato ya resolvió sin proponérselo: dos personas que acept
 
 Eso vale **porque `commit` no está en `accepted`**. Es el único campo candidato que nunca converge —el mismo contenido aceptado en dos ramas vive en dos commits distintos—, y meterlo adentro habría hecho que 3.a y 3.b conflictuaran en cada endpoint aceptado de los dos lados, sobre algo que nadie decidió. Ver [ADR-0003](../.stratum/impl/docs/adr/0003-formato-captures-y-aceptacion.md) § "`commit` es el commit del contenido".
 
-> **3.b no está especificado.** El fetch fast-forward de la [invariante 6](#invariantes) lo deja afuera: el segundo que pushea es rechazado, correctamente, y hoy no tiene camino de vuelta. `adopt` cubre 3.a y no aplica acá, porque no hay otra rama que nombrar. Es el hueco abierto que esta taxonomía deja a la vista.
+**3.b es [`pull`](../commands/pull.md)**, y es el más simple de los dos: los dos lados cuelgan de la misma absorción, así que el árbol de código no se elige — sale del primer padre. `adopt` cubre 3.a, donde cada rama absorbió lo suyo y por eso hay dos códigos distintos descritos.
 
 ### Lo que la invariante no dice
 
@@ -182,6 +182,7 @@ track  <rama>                                   ← tipo 1: la ref nace
 accept [--place|--content] <uuid>.<N>           ← tipo 2
 apply  <uuid>.<N> <capture-nuevo>               ← tipo 2
 adopt  <rama>                                   ← tipo 3.a
+pull   <remoto>                                 ← tipo 3.b
 ```
 
 **Cinco verbos, y cada uno es un comando que existe.** No hay verbo para el corte: el comando que lo escribe es [`track`](../commands/track.md) en su caso *"no hay de quién heredar"*, y un verbo propio nombraría un comando que nadie puede correr. Los dos nacimientos se distinguen por los padres —el corte tiene uno solo, y no es de la ref— que es como se distingue [todo lo demás de un commit de la ref](#un-commit-hace-una-cosa).
@@ -190,7 +191,7 @@ adopt  <rama>                                   ← tipo 3.a
 
 `adopt` no lleva endpoint. Trae **todo** lo que el vecino decidió entre la base y su tip, en [un solo commit y no N](../commands/adopt.md#son-dos-commits-y-por-qué), y el conjunto sale del merge a tres puntas entre los dos padres — que ya están en el objeto. Un endpoint en el mensaje no agregaría nada que reproducir y sugeriría una granularidad que el acto no tiene: adoptar no es decidir, es traer decisiones ya firmadas por otro.
 
-**El tipo 3.b no tiene verbo**, y es la señal más limpia de que falta especificarlo: no hay comando que nombre *"traer lo que aceptó mi compañero en esta misma rama"*.
+`pull` y `adopt` son los dos casos del tipo 3, y llevan verbos distintos porque nombran fuentes distintas: `adopt` una rama vecina, `pull` la copia que el remoto tiene de esta misma ref.
 
 Después del comando puede ir `: ` y prosa libre para quien lee, y el cuerpo es libre. Al final, un trailer obligatorio:
 
