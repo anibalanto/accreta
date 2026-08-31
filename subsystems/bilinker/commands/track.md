@@ -102,6 +102,17 @@ error: refs/bilink/main ya existe.
   Para ponerla al día con la rama, `bilinker sync`.
 ```
 
+## El mensaje
+
+Los dos casos tienen verbo propio en [la gramática de la ref](../concepts/ref.md#el-mensaje-es-el-comando), y los dos nombran la rama que nace:
+
+```
+track feature/x: hereda de 9c1f0ab sobre 4e77d20
+corte main: los bilinks pasan a refs/bilink/main
+```
+
+Que el corte sea un verbo aparte y no `track` sin candidato es lo mismo que la [tabla de tipos](../concepts/ref.md#un-commit-hace-una-cosa) ya dice: `track` con herencia es un commit de dos padres que trae código, y el corte es de padre único. Distinguirlos en el mensaje evita que un verificador tenga que mirar los padres para saber cuál esperaba.
+
 ## Salida
 
 ```

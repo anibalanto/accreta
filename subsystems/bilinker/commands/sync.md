@@ -35,6 +35,8 @@ El árbol de `.bilink/` no cambia: sale del índice propio, que ya lo tenía. Po
 
 **`sync` es la absorción invocada explícitamente**, y no un tipo de commit propio. Tiene exactamente la misma forma que la absorción que [`accept`](accept.md) y [`apply`](apply.md) escriben cuando les falta — [un commit sobre la ref hace una cosa](../concepts/ref.md#un-commit-hace-una-cosa), y ésta es la que mueve el código. Lo único que distingue a `sync` es que no viene seguido de ninguna decisión.
 
+Y por eso **su mensaje también es el de una absorción**: `absorb <commit-del-proyecto>`, no un verbo `sync` propio. El verbo nombra lo que el commit hace, no el comando por el que se pidió; lo que la persona tipeó va como trailer `Invocation:`.
+
 Los pasos 1 a 3 son [la construcción del commit](../concepts/ref.md#cómo-se-arma-el-commit) que comparten todos los comandos que escriben sobre la ref. `sync` no agrega nada propio; lo que lo distingue es que no escribe ningún archivo antes.
 
 ## Cuándo no hay nada que hacer

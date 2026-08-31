@@ -32,7 +32,7 @@ Sin flags, aprueba las dos dimensiones.
 5. Calcular el hash del fragmento actual y su `hash_ast` si hay gramática.
 6. Escribir `accepted` en el endpoint: `link` con el id del capture vigente, `hash`, `hash_ast`, y `agree` con quien acepta agregado al set.
 7. Calcular el `commit` del contenido y escribirlo en [la cache](../concepts/cache.md).
-8. Cerrar la aceptación con un commit sobre la ref, **de un solo padre**. Nunca un merge: sobre la ref [un commit hace una cosa](../concepts/ref.md#un-commit-hace-una-cosa).
+8. Cerrar la aceptación con un commit sobre la ref, **de un solo padre**. Nunca un merge: sobre la ref [un commit hace una cosa](../concepts/ref.md#un-commit-hace-una-cosa). Su mensaje es [el comando canónico](../concepts/ref.md#el-mensaje-es-el-comando) de **esta** aceptación —`accept [--place|--content] <uuid>.<N>`— y no lo que la persona tipeó, que va como trailer `Invocation:`.
 
 **Un commit por aceptación.** Un `accept .` que aprueba veinte endpoints absorbe una vez —el paso 4— y escribe veinte commits encadenados sobre ese merge. Ver [`ref.md`](../concepts/ref.md#la-correspondencia-con-el-proyecto-es-el-segundo-padre) para por qué la granularidad sigue al objeto y no a la invocación.
 
