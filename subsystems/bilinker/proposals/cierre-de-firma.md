@@ -172,7 +172,7 @@ Los dos hashes cuestan **dos filas en una tabla de campos**, y cubren exactament
 
 **Y el mapa queda disponible como upgrade aditivo.** Como el fold se define sobre los *valores* y no sobre las claves, `hash_n1` es el mismo valor calculado desde el mapa: un bilink que sólo tiene los dos hashes sigue siendo válido, y lo único que no tiene es atribución hasta que alguien lo re-acepte. **El barato es un prefijo válido del caro**, así que no hay ninguna razón para no empezar por el barato.
 
-Lo que se pierde mientras tanto, dicho sin maquillaje: cuando `hash_n1` difiere sabés que el vecindario se movió, no cuál vecino. Corrés lattice y ves los vecinos de hoy con sus hashes, pero no tenés los aceptados de cada uno para diffear. En teoría se re-derivan desde `accepted.commit`; en la práctica eso pide **un LSP indexando un checkout histórico**, que no es la misma clase de costo que re-derivar `commit` con tree-sitter sobre un blob de `git show`. Con tres vecinos es cómodo; con quince, incómodo.
+Lo que se pierde mientras tanto, dicho sin maquillaje: cuando `hash_n1` difiere sabés que el vecindario se movió, no cuál vecino. Corrés lattice y ves los vecinos de hoy con sus hashes, pero no tenés los aceptados de cada uno para diffear. En teoría se reconstruyen partiendo del `commit` del endpoint; en la práctica eso pide **un LSP indexando un checkout histórico**, que puede ni buildear. Con tres vecinos es cómodo; con quince, incómodo.
 
 ## Quién calcula, quién decide, quién guarda
 
@@ -203,7 +203,9 @@ Se podría pensar en dejar el vecindario del lado de impact y que bilinker no se
 
 **La frontera.** `retinar` consume `hsi` cruzando una frontera de repos, y lo que atraviesa esa frontera es la copia opaca de `accepted` del endpoint `repo`. Si `hash_n1` no está ahí, no cruza — y el caso que motivó este documento se queda sin el mecanismo que lo entrega al consumidor.
 
-**No es re-derivable en la clase de costo de la cache.** `commit` vive en la cache y se re-deriva con tree-sitter sobre un blob de `git show`: *"más lento, nunca no disponible"*. Recuperar el `hash_n1` aceptado pediría **un LSP indexando un checkout histórico**, que puede ni buildear. No es un derivado recuperable: es una decisión, y va versionada.
+**No es recuperable.** Reconstruir el `hash_n1` aceptado pediría **un LSP indexando un checkout histórico**, que puede ni buildear. Y ahí está la diferencia con [`commit`](../concepts/cache.md), que se queda en la cache justamente porque su recuperación es un walk con tree-sitter sobre blobs de `git show` —*"más lento, nunca no disponible"*—. Un valor cuya reconstrucción depende de infraestructura que puede no estar no es un derivado: es una decisión, y va versionada.
+
+Y pasa el otro test, el que ADR-0003 usó para dejar `commit` afuera: **`hash_n1` converge.** Dos personas que aceptan el mismo vecindario en el mismo estado escriben el mismo valor, porque sale de hashear contenido — igual que `hash` y `hash_ast`, y a diferencia de `commit`, que nunca converge. Así que no le mete a [`adopt`](../commands/adopt.md) un campo que diverja siempre.
 
 ### Lo que le falta a lattice
 

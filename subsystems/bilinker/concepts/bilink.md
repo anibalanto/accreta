@@ -27,6 +27,8 @@ endpoint:
   0:
     link: capture 67ba7217e0334051becd4921b55a7872
     accepted:
+      agree:
+        - pablo
       link: capture 67ba7217e0334051becd4921b55a7872
       hash: c00e07602bd560755096b57df1ddb9ed49d816fb8af58a4ec9cde82f21f38db3
       hash_ast: 1b9e44a2f0c8d3e7a5b1c9d4e2f6a8b0c3d5e7f9a1b3c5d7e9f1a3b5c7d9e1f3
@@ -282,5 +284,5 @@ Cada endpoint `path` copia los **dos** valores del endpoint estructural de su ve
 11. Un bilink no contiene `state`, `commit` ni ningún derivado: viven en la cache.
 12. La topología de la cadena es lineal — sin ciclos ni bifurcaciones.
 13. Sólo se puede aceptar un endpoint sobre un fragmento commiteado.
-14. `kind` y `name` son inertes: no afectan ningún hash ni ningún estado.
+14. `kind` y `name` son inertes: no afectan ningún hash ni ningún estado. `accepted.agree` tampoco los afecta, pero no es decoración: lo escribe `accept` y es parte de la decisión. Ver [aceptación](accept.md#quiénes-aprobaron).
 15. Un campo desconocido se rechaza con su nombre, nunca se descarta.

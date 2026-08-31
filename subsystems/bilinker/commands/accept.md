@@ -28,12 +28,25 @@ Sin flags, aprueba las dos dimensiones.
 1. Resolver el bilink y, para endpoints estructurales, el capture que su `link` referencia.
 2. Si el capture no resuelve, **fallar**: no se puede aprobar contenido que no se pudo localizar.
 3. Si el fragmento no está commiteado, **fallar** (ver más abajo).
-4. Calcular el hash del fragmento actual y su `hash_ast` si hay gramática.
-5. Escribir `accepted` en el endpoint: `link` con el id del capture vigente, `hash` y `hash_ast`.
-6. Calcular el `commit` del contenido y escribirlo en [la cache](../concepts/cache.md).
-7. Cerrar el acto con **un commit sobre [`refs/bilink/<branch>`](../concepts/ref.md)**, absorbiendo en él el commit del proyecto contra el que se aceptó si no lo estaba ya.
+4. Si el tip de la rama del proyecto no está absorbido, **absorberlo en un commit propio** sobre [`refs/bilink/<branch>`](../concepts/ref.md) — un merge que sólo trae código, con el diff de `.bilink/` vacío. Es la misma forma que [`sync`](sync.md).
+5. Calcular el hash del fragmento actual y su `hash_ast` si hay gramática.
+6. Escribir `accepted` en el endpoint: `link` con el id del capture vigente, `hash`, `hash_ast`, y `agree` con quien acepta agregado al set.
+7. Calcular el `commit` del contenido y escribirlo en [la cache](../concepts/cache.md).
+8. Cerrar la aceptación con un commit sobre la ref, **de un solo padre**. Nunca un merge: sobre la ref [un commit hace una cosa](../concepts/ref.md#un-commit-hace-una-cosa).
+
+**Un commit por aceptación.** Un `accept .` que aprueba veinte endpoints absorbe una vez —el paso 4— y escribe veinte commits encadenados sobre ese merge. Ver [`ref.md`](../concepts/ref.md#la-correspondencia-con-el-proyecto-es-el-segundo-padre) para por qué la granularidad sigue al objeto y no a la invocación.
 
 El bilink cambia, y eso dispara `CHAIN_DIRTY` en el nodo adyacente en el próximo `check`. Es la única forma de mover una cadena: `check` no propaga nada porque no escribe ninguna decisión.
+
+## Aceptar algo que ya está `OK` suma un nombre
+
+Un endpoint en `OK` no tiene valores que cambiar, así que un `accept` sobre él **no escribía nada**. Con [`agree`](../concepts/accept.md#quiénes-aprobaron) sí: agrega a quien acepta al set, y eso es un diff, un commit y una firma.
+
+Es lo que vuelve expresable el endoso de un segundo revisor, y **no cambia el estado**: sigue en `OK`, con un aprobador más.
+
+Si quien acepta ya está en el set, no hay nada que agregar y no se escribe ningún commit — publicar dos veces la misma aprobación no dice nada nuevo.
+
+**En bulk no entra.** `accept .` toma *"todo lo que necesita atención"*, y un endpoint en `OK` no la necesita: sumar el nombre en veinte endpoints que nadie miró es la aprobación a ciegas que la sección de abajo desaconseja. El endoso es por endpoint, nombrándolo.
 
 ## Exige el fragmento commiteado
 
