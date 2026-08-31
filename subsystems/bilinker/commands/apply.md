@@ -89,12 +89,35 @@ Es más simple que la validación que había antes —re-derivar y comparar cont
 
 Un capture en `MOVED` o `REANCHORED` no siempre produce una ubicación nueva: git puede no reportar el rename, el anchor puede no localizarse, la query puede no tener predicado de nombre que reescribir.
 
-**Cuando no puede, lo dice y sigue.** Abortar dejaría sin revisar a todos los demás endpoints por culpa de uno:
+**Cuando no puede, lo dice y sigue.** Abortar dejaría sin revisar a todos los demás endpoints por culpa de uno.
+
+### El caso que sí ve: MOVED y REANCHORED a la vez
+
+Un archivo que se renombra **y** el símbolo capturado adentro también. Ningún estado lo expresa —los dos son de resolución y el capture guarda uno solo— y el mensaje salía culpando al índice de renames de git, que estaba bien:
 
 ```
-warn: 09b88fe0… endpoint.0: MOVED: git no reporta un rename de 'docs/spec.md'.
-      Si el archivo nuevo no está trackeado, `git add` y volver a correr.
+warn: 36f0c759… endpoint.1: MOVED: el archivo se movió a 'crates/bilinker/src/issue.rs',
+      pero el anchor `resolve_task_path` ya no está ahí (UNANCHORED).
+      Repuntar con `bilinker recapture`.
 ```
+
+**El anchor se nombra, no el estado**: es el dato que dice qué buscar.
+
+**Que no haya auto-fix está bien**: dónde quedó el fragmento adentro del archivo destino es una inferencia que `apply` no debería hacer sola. Lo que sí puede es decir qué comando la hace.
+
+### Y las otras dos causas no son de `apply`
+
+Las tres se leían como un mismo mensaje, y sólo la de arriba pasa por acá:
+
+| Lo que pasó | Estado del capture | Quién lo explica |
+|---|---|---|
+| el destino está y el anchor se renombró | `MOVED` | **`apply`** |
+| git no detectó el rename: el destino no está trackeado | sin fix | [`get`](get.md#cuando-el-capture-no-resuelve-igual-dice-a-dónde-apuntaba) |
+| el fragmento no está en ninguna parte | sin fix | [`get`](get.md#cuando-el-capture-no-resuelve-igual-dice-a-dónde-apuntaba) |
+
+**`apply` sólo toca los estados con fix**, así que las dos últimas ni siquiera llegan a su código: dejan el capture sin fix, y `apply` las saltea. Que su mensaje pretendiera cubrirlas era parte del mismo error — describía condiciones que ese camino no puede observar.
+
+Quien las explica es `get`, que es donde se pregunta *"¿qué pasó con este endpoint?"*. Y la del destino sin trackear se decide **buscando el anchor entre los archivos sin trackear**: un hecho, no una sugerencia genérica.
 
 ## Qué escribe
 
