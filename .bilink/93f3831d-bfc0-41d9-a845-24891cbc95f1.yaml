@@ -2,6 +2,11 @@ kind: governs
 endpoint:
   0:
     link: capture 106e065736b7eb785b554acf6f1025ff
+    accepted:
+      agree:
+      - Anibal
+      link: capture 106e065736b7eb785b554acf6f1025ff
+      hash: 5783977ecd7d15fcf26fc56d50ba907258e9eeee17161b612e15bff1a463d1ae
     name: la-spec
   1:
     link: path subsystems/bilinker>impl
