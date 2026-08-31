@@ -85,7 +85,11 @@ branch = "rc-2.32"
 
 **Vive en `.bilink/`, no en `.stratum/`.** Un proveedor externo no es una capa inferior del consumidor, y declararlo bajo `.stratum/` diría que sí. La forma del nombre —un dotfile que describe a su hermano sin punto— es la de Stratum, aplicada a un repo que no es una subcapa.
 
-El clon va al lado de su declaración, en `.bilink/<alias>/`, y está **gitignoreado**: no se commitea el checkout de otro repo.
+El clon va al lado de su declaración, en `.bilink/<alias>/`, y **no se commitea en ninguno de los dos lados** — ni en la rama del proyecto ni en la ref de bilinks. Un checkout de otro repo no es contenido de esta capa: se trae, se descarta y se vuelve a traer, y su procedencia es su propio remoto.
+
+**Y no hace falta ninguna regla nueva para eso.** Del lado del proyecto ya lo cubre el patrón `.bilink/` que [`init`](../commands/init.md) puso en `.git/info/exclude` — uno solo, por clon, para el directorio entero. Del lado de la ref lo cubre [la enumeración](ref.md#cómo-se-arma-el-commit): el árbol se construye listando lo que va, así que un directorio con `.git` adentro —la misma frontera de repo que frena el recorrido de capas— queda afuera por la regla que ya existe.
+
+Escribir el alias en un `.gitignore` sería una escritura **versionada** para resolver algo que es del índice, y una regla por proveedor donde ya hay una que los cubre a todos.
 
 **El `.bilink` no contiene ninguna URL**, sólo un nombre local. Toda la identidad del proveedor —dónde está, qué rama— queda concentrada en un archivo por proveedor. Si `hsi` cambia de host, se edita un archivo y no N bilinks.
 
