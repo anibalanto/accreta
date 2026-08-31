@@ -27,7 +27,7 @@ bilinker verify-ref [<rango>] [--signers <archivo>] [--stdin]
 | la ref no se borra | sin esto, *"sólo avanza"* se esquiva borrándola y empujándola de nuevo |
 | el tip viejo es ancestro del nuevo | la ref es append-only; un no-fast-forward es una reescritura |
 
-Los dos los cubre también `receive.denyDeletes` y `receive.denyNonFastForwards`, y conviene poner los dos: la config no depende de que el hook esté instalado.
+**Los dos los verifica este comando y nadie más.** `receive.denyNonFastForwards` y `receive.denyDeletes` son las dos opciones que uno pondría y no sirven acá: git las chequea sólo sobre `refs/heads/`, así que sobre `refs/bilink/*` un delete y un force-push pasan. Ver [la ref](../concepts/ref.md#la-config-del-servidor-no-alcanza-y-no-es-una-omisión-no-aplica).
 
 ### De cada commit
 
@@ -73,16 +73,9 @@ De la misma regla sale que la **firma** tampoco se le exige al prefijo. Un repo 
 
 ## Del lado del servidor
 
-Las tres capas, de la más barata a la más cara:
+### El `pre-receive` es la única capa
 
-### 1 — Config, sin código
-
-```
-receive.denyNonFastForwards = true
-receive.denyDeletes = true
-```
-
-### 2 — El `pre-receive`
+No hay una capa de config debajo. Las dos opciones que uno pondría —`receive.denyNonFastForwards` y `receive.denyDeletes`— **no aplican fuera de `refs/heads/`**, que es exactamente donde esta ref vive. Ponerlas no hace daño y no hace nada; lo que protege es el hook.
 
 ```sh
 #!/bin/sh
@@ -93,7 +86,7 @@ El hook recibe `<viejo> <nuevo> <ref>` por línea y sale distinto de cero para r
 
 Un servidor que no quiera instalar el binario puede implementar las mismas filas desde [el esquema publicado](../concepts/format-version.md): ninguna necesita nada que el esquema no describa. Lo que se ofrece acá es la implementación ya hecha, no la única posible.
 
-### 3 — El replay en CI
+### El replay en CI
 
 Que `accepted.hash` sea de verdad el hash del fragmento **sí** necesita resolver la query, así que no es de acá. Está en [`proposals/verificar-ref-ajena.md`](../proposals/verificar-ref-ajena.md) § "El replay en CI".
 

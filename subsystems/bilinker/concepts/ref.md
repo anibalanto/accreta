@@ -309,10 +309,24 @@ Tres niveles, y sólo el último es exigible:
 | Nivel | Qué da | Con qué |
 |---|---|---|
 | el clon local | **detección** | la disyunción y la fidelidad, chequeadas antes de cada commit |
-| el refspec | que no se fuerce por accidente | el de [`init`](../commands/init.md), **sin `+`** |
-| el servidor | **rechazo** | `receive.denyNonFastForwards`, `receive.denyDeletes`, y un `pre-receive` |
+| el refspec | que no se pise por accidente al traer | el de [`init`](../commands/init.md), **sin `+`** |
+| el servidor | **rechazo** | un `pre-receive`, y sólo eso |
 
-`denyDeletes` no es un extra: sin él, *"sólo avanza"* se esquiva borrando la ref y empujándola de nuevo.
+### La config del servidor no alcanza, y no es una omisión: no aplica
+
+`receive.denyNonFastForwards` y `receive.denyDeletes` son las dos opciones que uno pondría, y **no cubren esta ref**: git las chequea únicamente sobre `refs/heads/`. Comprobado, con control:
+
+```
+$ git -C origin.git config receive.denyDeletes true
+$ git push origin ':refs/bilink/main'
+ - [deleted]         refs/bilink/main
+$ git push origin ':refs/heads/main'
+ ! [remote rejected] main (deletion prohibited)
+```
+
+Es el **mismo precio** que [estar fuera de `refs/heads/`](#fuera-de-refsheads) cobra en la UI de la forja, y hasta acá se había leído como un problema de GitHub y GitLab. No lo es: la restricción es de git.
+
+De ahí sale algo que cambia la forma de la protección: **el `pre-receive` no es la capa cara sobre dos baratas, es la única capa.** Que no se borre y que sólo avance dejan de ser config y pasan a ser dos filas más de lo que [`verify-ref`](../commands/verify-ref.md) chequea — donde, por otro lado, ya tenían que estar para el caso del que recibe una ref ajena.
 
 El nivel del servidor es [`verify-ref`](../commands/verify-ref.md), y el `pre-receive` que lo llama son dos líneas.
 
@@ -322,7 +336,7 @@ Es la parte que el diseño ya pagó y no había dicho: **las invariantes de form
 
 | Se verifica | Cómo |
 |---|---|
-| avanza y no se borra | `denyNonFastForwards` + `denyDeletes` |
+| avanza y no se borra | el tip viejo es antepasado del nuevo, y el nuevo no es nulo |
 | [disyunción](#las-dos-verificaciones-previas) | el árbol del commit absorbido no contiene `.bilink/` |
 | [fidelidad](#la-invariante-de-fidelidad) | el árbol de código del commit nuevo es el del absorbido |
 | [un commit hace una cosa](#un-commit-hace-una-cosa) | cae en uno de los tres tipos y no en dos: los padres y cuál de los dos árboles se movió lo deciden |
