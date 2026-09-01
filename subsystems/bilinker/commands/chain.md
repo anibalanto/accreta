@@ -11,20 +11,95 @@ Gestiona las cadenas de bilinks: crear nuevas cadenas, consultar su estado compl
 Crea una cadena: genera un UUID y escribe un bilink en cada capa.
 
 ```
-bilinker chain new --tip <STRATUM_PATH[:LINE:COL]> \
+bilinker chain new --tip <STRATUM_PATH[:LINE:COL[,LINE:COL]...]> \
                    [--mid <STRATUM_PATH>]... \
-                   --tip <STRATUM_PATH[:LINE:COL]> \
-                   [--kind <valor>] [--name.0 <etiqueta>] [--name.1 <etiqueta>]
+                   --tip <STRATUM_PATH[:LINE:COL[,LINE:COL]...]> \
+                   [--kind <valor>] [--name.0 <etiqueta>] [--name.1 <etiqueta>] \
+                   [--dry-run] [--yes]
 ```
 
 | Argumento | Descripción |
 |---|---|
-| `--tip <ref>` | Extremo de la cadena: path Stratum al archivo con posición opcional, `abstract`, o `repo <alias>`. Exactamente dos veces. |
+| `--tip <ref>` | Extremo de la cadena: path Stratum al archivo con **una o más** posiciones, `abstract`, o `repo <alias>`. Exactamente dos veces. |
 | `--mid <layer>` | Capa intermedia. Cero o más veces. |
 | `--kind <valor>` | El [`kind`](../concepts/bilink.md) del bilink. |
 | `--name.N <etiqueta>` | El `name` del endpoint N. |
+| `--dry-run` | Muestra qué capturaría y no escribe nada. |
+| `--yes` | No pregunta. Para scripts y para CI. |
 
 Cada `--tip` captura el fragmento —sin posición, el archivo completo— y el endpoint queda apuntando a ese capture. Los mids llevan dos endpoints `path`. Ningún `accepted` se escribe: la cadena nace en `PENDING`.
+
+#### Un tip puede señalar varias partes
+
+Las posiciones extra van separadas por coma, después de la primera:
+
+```bash
+bilinker chain new \
+  --tip 'concepts/capture.md:66:1' \
+  --tip '>impl/crates/bilinker/src/query.rs:109:1,22:1'
+```
+
+Cada posición resuelve a su nodo igual que una sola —al ancla estable más cercana—, y de todas sale **una** query con un `@target` por nodo. El fragmento es su concatenación; ver [`concepts/capture.md`](../concepts/capture.md) § "El fragmento son los `@target`".
+
+**Las posiciones se descartan.** Es lo que el formato ya dice para una y vale igual para varias: sirven para *encontrar* los nodos, y lo que se guarda es la query. El orden en que se pasan tampoco se guarda — el fragmento va en orden de archivo.
+
+**La query se ancla una sola vez.** El nodo raíz del patrón es el ancla estable que contiene a todas las partes, así que las partes quedan ancladas *entre sí*: `@RequestMapping` **de la clase que contiene** al método, y no *"el primer `@RequestMapping` del archivo"*.
+
+Si dos posiciones caen en el mismo nodo, es un nodo: no hay parte repetida.
+
+#### La salida deja ver qué se capturó, y qué no
+
+Un capture es opaco después de escrito, así que una query mal generada se descubre tarde. Antes de escribir, `chain new` muestra cada tip que captura posiciones:
+
+```
+$ bilinker chain new --tip 'docs/spec.md:1:1' --tip 'src/Service.java:2:5,10:5'
+
+. :: src/Service.java
+
+     1   public class Service {
+  ▸  2       public int uno(int a) {
+  ▸  3           return a + 1;
+  ▸  4       }
+     5
+     6       public int dos(int b) {
+     ⋮
+     8       }
+     9
+  ▸ 10       public int tres(int c) {
+  ▸ 11           return c - 3;
+  ▸ 12       }
+    13   }
+
+2 fragmentos · 2–4, 10–12
+queda afuera: todo lo que no está marcado
+
+¿escribir? [y/N/e(ditar)]
+```
+
+Cuatro cosas, y cada una atrapa un error distinto:
+
+- **el archivo como encabezado**, una vez y no repetido por parte — un fragmento de cuatro partes con cuatro encabezados se lee como cuatro captures;
+- **contexto alrededor**, con `⋮` donde se saltan líneas;
+- **`▸` sobre lo capturado**, así lo que no entra se ve *sin marcar* — que es lo que se entiende de un vistazo;
+- **una línea que dice qué quedó afuera**, porque es lo que más se malinterpreta.
+
+El error que esto atrapa es señalar el nodo equivocado en un archivo con veinte parecidos: se ve porque la línea marcada queda lejos de donde tenía que estar.
+
+**Con `--dry-run` se muestra lo mismo y no se escribe nada**, ni el capture ni el bilink. Con `--yes` no se pregunta.
+
+**Sin terminal tampoco se pregunta.** Un `chain new` adentro de un script no puede quedarse esperando una tecla que nadie va a apretar; la vista se imprime igual, por stderr, y se escribe. La confirmación existe para la persona que está mirando, y `--yes` es cómo se dice eso explícitamente.
+
+#### Y las marcas se editan
+
+Confirmar con `y/N` obliga a volver a empezar cuando la resolución agarró mal. `e` abre la misma vista en el editor, y ahí se corrige: se saca un `▸`, se pone otro, se guarda. Es el patrón de `git rebase -i` y `git add -e`.
+
+**Las marcas son señales, no rangos.** Cada línea marcada resuelve a su nodo, igual que una posición de la línea de comandos, así que editar el buffer es otra forma de señalar y lo que se guarda sigue siendo la query. Marcar tres líneas de una función marca la función una vez.
+
+**Los dos tips van en un solo buffer.** Abrir un editor por tip haría corregir a ciegas el segundo, y lo que se está revisando es el vínculo, no cada punta por su cuenta. Al guardar, la vista corregida se vuelve a mostrar: la corrección también se revisa.
+
+Un buffer que vuelve sin ninguna marca no escribe nada — es la forma de abortar, la misma que `git commit` con un mensaje vacío.
+
+**El editor es el de git**, resuelto con `git var GIT_EDITOR`: contesta lo que git realmente usaría, respetando `$GIT_EDITOR` → `core.editor` → `$VISUAL` → `$EDITOR` → el fallback del sistema. Es el mismo criterio por el que quién acepta sale de `git var GIT_AUTHOR_IDENT` y no de `user.name`. Si git no contesta, queda el `y/N`.
 
 #### Los dos tips de la frontera
 
