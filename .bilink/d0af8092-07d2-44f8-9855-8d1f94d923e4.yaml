@@ -6,7 +6,7 @@ endpoint:
       agree:
       - Anibal
       link: capture f4f0ff77ec18c768348c7aaa3571644f
-      hash: 4737cd395a2d58eda4a4951d143fdeb7aa7f3f61825004f9d18e005fcffe3711
+      hash: 9c351716ae655c0b04fcbefbb10c64cd0766458cd444131ce59bce93f5e34b02
   1:
     link: path subsystems/bilinker>impl
     accepted:
