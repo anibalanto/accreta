@@ -43,6 +43,7 @@ endpoint:
 | `hash_ast` | SHA-256 de su s-expression, y de las de todos sus nodos unidas por `\n` cuando hay más de uno. Opcional: ausente donde no hay gramática. |
 | `hash_n1` | SHA-256 plegado del **vecindario**: los tipos que la firma menciona. Opcional. Ver § "El cierre de firma". |
 | `hash_ast_n1` | Ídem sobre las s-expressions de esos vecinos. Opcional, y **todo-o-nada**. |
+| `n1` | `declined` cuando alguien aceptó renunciando al vecindario. Presente sólo en ese caso. Ver § "Cuándo se adquiere el vecindario". |
 
 **`accepted` está o no está.** Su ausencia *es* `PENDING`, literalmente — no hay que enunciar que los campos de aceptación están presentes juntos o ausentes juntos, porque el bloque no se puede escribir a medias. Lo verifica el tipo: `accepted` sin `hash` es rechazado, y un `hash` suelto afuera del bloque también.
 
@@ -115,6 +116,42 @@ pub trait Neighbours {
 `None` es *"no pude mirar"* y no *"no hay vecinos"* — la distinción de la que sale el estado. El binario le pasa una implementación que le habla a [`lspd`](../../lspd/overview.md); la librería no lo menciona, y **no es para evitar un ciclo** —ya no hay— sino para que bilinker no quede atado a *ese* daemon: mañana puede ser SCIP, un índice propio, o un language server hablado directo.
 
 **Y el hasheo queda de este lado.** El recorte de bordes es regla de bilinker y vive en el único lugar donde un nodo se convierte en rango. El proveedor devuelve ubicaciones, no hashes.
+
+### Cuándo se adquiere el vecindario
+
+El puerto puede contestar `None` —*"no pude mirar"*— y ahí hay que decidir qué se escribe. **La regla es una: una falla de infraestructura no puede reducir la cobertura de un vínculo.**
+
+Que un fragmento *tenga* vecindario se sabe por la gramática y no por el proveedor: es si su firma es resoluble. Así que bilinker distingue sin daemon los dos motivos por los que no habría `hash_n1` que calcular, y sólo el segundo es un problema.
+
+Y hay un dato más que se sabe sin daemon: **el conjunto de vecinos lo determina la firma, y la firma está en el fragmento.** Con el [capture de contrato](capture.md) el `hash` del fragmento es el de la firma, así que un `hash` que no se movió es el mismo conjunto de vecinos — aunque su contenido no se haya podido mirar.
+
+| Ya hay `hash_n1` aceptado | Se pudo resolver | Cambió la firma | Qué se escribe |
+|---|---|---|---|
+| no | sí | — | `hash_n1` calculado |
+| no | **no** | — | nada, y `accept` falla |
+| sí | sí | — | `hash_n1` recalculado |
+| sí | **no** | **no** | **el `hash_n1` que ya estaba**, intacto |
+| sí | **no** | **sí** | nada, y `accept` falla |
+
+**La cuarta fila es la que evita el daño.** Preservar es estrictamente más seguro que borrar: si un vecino cambió mientras el proveedor estaba caído, el `hash_n1` viejo sigue ahí y el próximo cierre con proveedor lo reporta. Borrándolo, ese cambio se absorbe en el baseline nuevo y **deja de ser detectable para siempre**.
+
+**Y la quinta es la única donde preservar sería mentir**: si la firma cambió, el conjunto de vecinos pudo cambiar con ella, y el valor viejo es sobre un conjunto que ya no es el de hoy.
+
+No es un mecanismo nuevo: [`--place` y `--content`](#--place-y---content) ya aceptan una dimensión sin tocar la otra. El vecindario es una tercera y se comporta igual. Lo que no puede pasar es que una dimensión se borre **como efecto colateral** de aceptar otra.
+
+### `n1: declined` es lo que vuelve determinista la renuncia
+
+Renunciar al vecindario tiene que poder decirse, y las dos filas que fallan se destraban [declarándolo](../commands/accept.md#--no-n1). Eso escribe `n1: declined`, y **el campo no es cosmético: sin él se rompe la invariante 4.**
+
+Sin marca, el mismo fragmento en el mismo estado produce un `accepted` **con** `hash_n1` o **sin** él según si había un language server prendido en esa máquina. La determinación la tomaría el ambiente, que no es parte del estado del fragmento. Y se lleva puesta la propiedad que puso a `hash_n1` en `accepted` y no en la cache: que *"dos personas que aceptan el mismo vecindario en el mismo estado escriben el mismo valor"*.
+
+Con la marca, quien decide es el flag —igual que `--place` y `--content`— y la convergencia vuelve: dos personas que renuncian escriben lo mismo, y quien no renuncia no puede escribir un baseline mudo sin saberlo.
+
+**Y es lo único que cruza la frontera.** El consumidor recibe una copia opaca del `accepted` del endpoint `repo` y no puede volver a mirar la gramática del fragmento ajeno para reconstruir el motivo. Sin la marca, *"el proveedor no tiene vecindario"* y *"el proveedor renunció a vigilarlo"* le llegan idénticos.
+
+**La ausencia sin marca queda con un solo significado**: el fragmento no tiene firma resoluble. Eso es prosa, un DTO, o un lenguaje sin anotaciones de tipo — derivable de la gramática por cualquiera, siempre igual.
+
+> **Es aditivo y sube la versión de formato igual.** Un parser viejo ignora `n1` y lee esa aceptación como *"este fragmento no tiene vecindario"*, en silencio y sin fallar — que es exactamente el caso que [`format-version.md`](format-version.md) describe. Ver también [frontier.md](frontier.md) § "que siga siendo `abstract`", donde `link: abstract` tiene la misma forma.
 
 ### Van en `accepted`, no en la cache
 
@@ -252,3 +289,5 @@ Un `accept .` sobre una capa recién cambiada fabrica aprobaciones que nadie mir
 8. `agree` no participa de ninguna comparación de estado ni de ningún hash. `OK` no depende de cuántos aprobaron.
 9. Un `accept` que cambia algún valor deja `agree` con quien aceptó y nadie más; uno que no los cambia lo agrega al set que había.
 10. Un commit sobre la ref sólo agrega a **su propio autor** a un `agree`. Sacar no está restringido: agregar es lo único que afirma algo sobre otra persona.
+11. **Ningún `accept` reduce la cobertura de un endpoint sin que alguien lo haya pedido.** Que el proveedor de vecindario no conteste nunca borra un `hash_n1` aceptado: o se preserva, o `accept` falla.
+12. Un `accepted` sin `hash_n1` y sin `n1` afirma que el fragmento **no tiene firma resoluble**. La renuncia se escribe, no se omite.

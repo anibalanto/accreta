@@ -10,6 +10,8 @@ Es el único comando que escribe una decisión. Ver [la aceptación](../concepts
 bilinker accept <uuid>.<N>
 bilinker accept <uuid>.<N> --place
 bilinker accept <uuid>.<N> --content
+bilinker accept <uuid>.<N> --no-n1
+bilinker accept <uuid>.<N> --no-n1 --force
 bilinker accept .
 bilinker accept <path>
 ```
@@ -19,6 +21,8 @@ bilinker accept <path>
 | `<uuid>.<N>` | Endpoint a aceptar: UUID del bilink + índice (0 o 1). |
 | `--place` | Aprueba sólo la ubicación: escribe `accepted.link` y deja `accepted.hash` como estaba. |
 | `--content` | Aprueba sólo el contenido: escribe `accepted.hash` y `accepted.hash_ast`. |
+| `--no-n1` | Acepta renunciando al [vecindario](../concepts/accept.md#el-cierre-de-firma): escribe `n1: declined` y ningún `hash_n1`. |
+| `--force` | Sólo junto a `--no-n1`, y sólo donde éste **baja** una cobertura que ya estaba. |
 | `.` o `<path>` | Acepta en bulk todo lo que necesita atención en la capa actual (o bajo el path dado). |
 
 Sin flags, aprueba las dos dimensiones.
@@ -30,9 +34,10 @@ Sin flags, aprueba las dos dimensiones.
 3. Si el fragmento no está commiteado, **fallar** (ver más abajo).
 4. Si el tip de la rama del proyecto no está absorbido, **absorberlo en un commit propio** sobre [`refs/bilink/<branch>`](../concepts/ref.md) — un merge que sólo trae código, con el diff de `.bilink/` vacío. Es la misma forma que [`sync`](sync.md).
 5. Calcular el hash del fragmento actual y su `hash_ast` si hay gramática.
-6. Escribir `accepted` en el endpoint: `link` con el id del capture vigente, `hash`, `hash_ast`, y `agree` con quien acepta agregado al set.
-7. Calcular el `commit` del contenido y escribirlo en [la cache](../concepts/cache.md).
-8. Cerrar la aceptación con un commit sobre la ref, **de un solo padre**. Nunca un merge: sobre la ref [un commit hace una cosa](../concepts/ref.md#un-commit-hace-una-cosa). Su mensaje es [el comando canónico](../concepts/ref.md#el-mensaje-es-el-comando) de **esta** aceptación —`accept [--place|--content] <uuid>.<N>`— y no lo que la persona tipeó, que va como trailer `Invocation:`.
+6. Si el fragmento tiene firma resoluble, **pedirle el vecindario al proveedor** y resolver según [la tabla de `accept.md`](../concepts/accept.md#cuándo-se-adquiere-el-vecindario): calcularlo, preservar el que había, o **fallar** pidiendo `--no-n1`. Nunca borrarlo en silencio.
+7. Escribir `accepted` en el endpoint: `link` con el id del capture vigente, `hash`, `hash_ast`, el `hash_n1` que corresponda —o `n1: declined`—, y `agree` con quien acepta agregado al set.
+8. Calcular el `commit` del contenido y escribirlo en [la cache](../concepts/cache.md).
+9. Cerrar la aceptación con un commit sobre la ref, **de un solo padre**. Nunca un merge: sobre la ref [un commit hace una cosa](../concepts/ref.md#un-commit-hace-una-cosa). Su mensaje es [el comando canónico](../concepts/ref.md#el-mensaje-es-el-comando) de **esta** aceptación —`accept [--place|--content] <uuid>.<N>`— y no lo que la persona tipeó, que va como trailer `Invocation:`.
 
 **Un commit por aceptación.** Un `accept .` que aprueba veinte endpoints absorbe una vez —el paso 4— y escribe veinte commits encadenados sobre ese merge. Ver [`ref.md`](../concepts/ref.md#la-correspondencia-con-el-proyecto-es-el-segundo-padre) para por qué la granularidad sigue al objeto y no a la invocación.
 
@@ -51,6 +56,43 @@ Si quien acepta ya está en el set, no hay nada que agregar y no se escribe ning
 **Y por eso se pregunta así y no leyendo `user.name`.** El nombre del autor no siempre sale de ahí: puede venir de `GIT_AUTHOR_NAME`, de un `[includeIf]` por directorio, o del sistema cuando nadie lo configuró. Leer un solo lugar acierta a veces, y cuando falla escribe en `agree` un nombre distinto del que va a quedar en el commit — que es exactamente lo que rompe el cruce. Si git no puede contestar, `accept` falla, igual que fallaría el commit que viene después.
 
 **En bulk no entra.** `accept .` toma *"todo lo que necesita atención"*, y un endpoint en `OK` no la necesita: sumar el nombre en veinte endpoints que nadie miró es la aprobación a ciegas que la sección de abajo desaconseja. El endoso es por endpoint, nombrándolo.
+
+## `--no-n1`
+
+**No hay proveedor de vecindario y el fragmento tiene firma resoluble: `accept` no escribe.**
+
+```
+$ bilinker accept a6d8b710.0
+error: no hay proveedor de vecindario, y la firma de fetchPermissionsFromToken lo tiene.
+       Aceptar así deja los tipos que la firma menciona sin vigilar, y el baseline no lo diría.
+       Levantar lspd, o aceptar sin el nivel 1 con --no-n1.
+```
+
+**Avisar y seguir no alcanza.** Un warning por stderr que escribe igual es lo que ya pasaba, con una línea más de texto: en un CI nadie lo lee, y el baseline mudo queda escrito. El aviso vale porque es la negativa.
+
+**Y el aviso es preciso o es ruido.** Sólo aparece donde el fragmento *tendría* vecindario — que se sabe por la gramática, no por el proveedor. Aceptar prosa, un DTO o un lenguaje sin anotaciones de tipo no dice nada, porque ahí la ausencia de `hash_n1` ya era la correcta.
+
+Ver [la tabla](../concepts/accept.md#cuándo-se-adquiere-el-vecindario) para las cinco combinaciones. Las dos que fallan son las únicas que `--no-n1` destraba.
+
+### El `--force` está escalonado
+
+`--no-n1` no alcanza donde el endpoint **ya tiene** `hash_n1` y la firma cambió, que es la única fila donde renunciar *baja* algo:
+
+```
+$ bilinker accept a6d8b710.0 --no-n1
+error: a6d8b710.0 ya tiene un vecindario aceptado, y la firma cambió.
+       Renunciar acá lo pierde: el conjunto de vecinos pudo cambiar con la firma,
+       y sin proveedor no hay con qué reemplazarlo.
+       Levantar lspd, o bajarlo a propósito con --no-n1 --force.
+```
+
+El motivo no es ceremonia: **`--no-n1` en una persona se tipea una vez; en un CI se escribe una vez y queda para siempre.** Una máquina sin language server lo necesita legítimamente para el caso donde no se pierde nada, y con un solo flag esa línea de configuración sería una autorización permanente a bajar cobertura cada vez que alguien cambie una firma. Escalonarlo deja al CI andando para el caso benigno y **lo hace fallar justo cuando alguien tiene que mirar**.
+
+Es la forma que ya tiene [`capture remove --force`](capture.md#bilinker-capture-remove): un guard sobre algo que otros nombran, un mensaje que da **primero la salida no destructiva** y después el override, y un force que lo hace igual y dice qué costó. Acá la salida no destructiva es levantar el proveedor.
+
+**Y pasa el test que [`push`](push.md) le aplica a un force.** Allá no existe, y está dicho: *"ninguna de las dos se resuelve con `--force`, y por eso no existe"* — forzar taparía. Acá resuelve algo real: quien no tiene ni va a tener un language server y elige aceptar el cambio de firma renunciando al nivel 1. La secuela está definida —la cobertura baja a la firma— y un `accept` posterior con proveedor la recupera.
+
+**`--force` es de `--no-n1`, no de `accept`.** Solo, es un error. Un `--force` que modificara el comando entero se comería cualquier guard que se agregue después, en silencio y sin que nadie lo pida.
 
 ## Exige el fragmento commiteado
 
@@ -120,4 +162,4 @@ note: el nodo adyacente detectará CHAIN_DIRTY en el próximo check
 ## Exit codes
 
 - `0`: aceptación registrada.
-- `1`: UUID no encontrado, endpoint inválido, capture sin resolver, o fragmento sin commitear.
+- `1`: UUID no encontrado, endpoint inválido, capture sin resolver, fragmento sin commitear, o vecindario no resuelto sin `--no-n1`.
