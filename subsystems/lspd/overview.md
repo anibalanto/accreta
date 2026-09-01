@@ -2,7 +2,7 @@
 
 `lspd` multiplexa language servers. Mantiene un servidor por lenguaje vivo entre invocaciones, y contesta por un socket las preguntas que necesitan un índice: quién llama a esto, a qué llama esto, qué símbolo hay en esta posición.
 
-No es de nadie. Lo usa [lattice](../lattice/overview.md) para el proveedor `lsp`, y lo va a usar [bilinker](../bilinker/overview.md) para el cierre de firma.
+No es de nadie. Lo usa [lattice](../lattice/overview.md) para el proveedor `lsp`, y [bilinker](../bilinker/concepts/accept.md#el-cierre-de-firma) para el cierre de firma.
 
 ## Por qué existe como capa propia
 
