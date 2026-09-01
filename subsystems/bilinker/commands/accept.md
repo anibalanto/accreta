@@ -21,7 +21,7 @@ bilinker accept <path>
 | `<uuid>.<N>` | Endpoint a aceptar: UUID del bilink + índice (0 o 1). |
 | `--place` | Aprueba sólo la ubicación: escribe `accepted.link` y deja `accepted.hash` como estaba. |
 | `--content` | Aprueba sólo el contenido: escribe `accepted.hash` y `accepted.hash_ast`. |
-| `--no-n1` | Acepta renunciando al [vecindario](../concepts/accept.md#el-cierre-de-firma): escribe `n1: declined` en vez del vecindario adquirido. |
+| `--no-n1` | Acepta renunciando al [vecindario](../concepts/accept.md#el-cierre-de-firma) **entero, del nivel 1 para arriba**: escribe `n1: declined` en vez de los folds. |
 | `--force` | Sólo junto a `--no-n1`, y sólo donde éste **baja** una cobertura que ya estaba. |
 | `.` o `<path>` | Acepta en bulk todo lo que necesita atención en la capa actual (o bajo el path dado). |
 
@@ -73,6 +73,8 @@ error: no hay proveedor de vecindario, y la firma de fetchPermissionsFromToken l
 **Y el aviso es preciso o es ruido.** Sólo aparece donde el fragmento *tendría* vecindario — que se sabe por la gramática, no por el proveedor. Aceptar prosa, un DTO o un lenguaje sin anotaciones de tipo no dice nada, porque ahí la ausencia de `n1` ya era la correcta.
 
 Ver [la tabla](../concepts/accept.md#cuándo-se-adquiere-el-vecindario) para las cinco combinaciones. Las dos que fallan son las únicas que `--no-n1` destraba.
+
+**Y renuncia al vecindario entero, no al nivel 1.** El día que exista un nivel 2 —los campos de los tipos que el 1 resuelve— queda adentro de esta misma renuncia, porque está definido a través del 1: sin el 1 resuelto no hay sobre qué pararse. **No va a haber un `--no-n2`**; el flag nombra dónde empieza lo que necesita un language server, y no un escalón suelto.
 
 ### El `--force` está escalonado
 

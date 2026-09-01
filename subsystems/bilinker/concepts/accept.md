@@ -64,6 +64,10 @@ Plegado, `hash_ast` no puede estar sin su `hash` porque vive adentro del mismo o
 
 **Y generaliza.** El día que haga falta un nivel 2, es un campo hermano con la misma forma —`n2:`— y no dos campos más. Campos hermanos y no un mapa por nivel: agregar un nivel es una decisión discreta, la misma que hoy justifica clavar la profundidad en 1.
 
+**Pero la renuncia no se generaliza: es una sola, y es de 1 para arriba.** El nivel 2 son los campos de los tipos que el 1 resuelve, así que está definido *a través* del 1 — renunciar al 1 deja al 2 sin base sobre la cual existir. Por eso `n1: declined` con un `n2` adquirido no es un estado que haya que prohibir: no se llega ahí sin haber resuelto el 1. Y por eso no hay un `--no-n2` que tenga sentido solo.
+
+El corte que la renuncia nombra no es un número de nivel: es **lo que bilinker calcula por su cuenta contra lo que pide un language server**, y el 1 es el primero del segundo lado.
+
 **`accepted` está o no está.** Su ausencia *es* `PENDING`, literalmente — no hay que enunciar que los campos de aceptación están presentes juntos o ausentes juntos, porque el bloque no se puede escribir a medias. Lo verifica el tipo: `accepted` sin `hash` es rechazado, y un `hash` suelto afuera del bloque también.
 
 `hash` y `hash_ast` van separados y no hasheados juntos porque `RESTYLED` necesita compararlos por separado. Donde `hash_ast` no está, `RESTYLED` no existe y todo cambio de texto es `ALTERED` — que en prosa es lo correcto.
