@@ -22,7 +22,7 @@ Una entrada registra lo que se publicó bajo esa versión. Corregirla en vez de 
 
 #### Sacar un campo sube el major
 
-`3.0.0` saca el `offset` del capture: un fragmento es un nodo entero. Quitar un campo no es aditivo —un lector de `3.0.0` no entiende un archivo que lo lleve— así que sube el major, y con él se va `DISPLACED`, el único estado que hablaba de un sub-rango.
+`3.0.0` saca el `offset` del capture: un fragmento deja de ser un rango adentro de un nodo. Quitar un campo no es aditivo —un lector de `3.0.0` no entiende un archivo que lo lleve— así que sube el major, y con él se va `DISPLACED`, el único estado que hablaba de un sub-rango.
 
 **Los ids no cambiaron.** El id termina cada campo con un `\0` en vez de unirlos con separadores, así que el campo que desaparece contribuía la cadena vacía y su terminador sigue estando. Es una propiedad del formato del id, no una casualidad: vale para cualquier campo que se saque en el futuro.
 
@@ -45,6 +45,12 @@ Un esquema que describa de menos no sirve como guarda. El caso concreto: si el t
 Por eso los prefijos reconocidos se publican, y salen de la misma tabla que usa el parser. Agregar un tipo obliga a tocar esa tabla, eso cambia el esquema, y el guard lo detecta.
 
 > **Regla general:** lo que discrimina al parsear tiene que ser visible en el esquema. Si el parser distingue por algo que el esquema no menciona, ese algo puede cambiar sin que nada se entere.
+
+### Y a veces no se puede, y ahí sólo queda la versión
+
+`3.3.0` es el caso: la `query` de un capture pasa a poder llevar **varios** `@target`, y el fragmento pasa a ser su concatenación. El tipo no cambió —`query` sigue siendo un string— y el archivo tampoco. Un parser de `3.2.0` lee una query de tres `@target`, se queda con el primero, y hashea otro fragmento: en silencio y sin fallar, que es el modo de falla que este registro existe para cubrir.
+
+**Y el esquema no puede describirlo.** Lo que discrimina está adentro de un string, y ningún tipo lo hace visible; el guard no se habría enterado. Es el límite de la regla de arriba: donde el esquema no alcanza, subir la versión es lo único que le queda a un consumidor para saber que lo que lee no es lo que cree.
 
 ## Qué describe el esquema, hoy
 

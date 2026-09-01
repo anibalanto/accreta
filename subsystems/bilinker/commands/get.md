@@ -56,6 +56,14 @@ Si el endpoint es de tipo `path`, resuelve el path Stratum hacia la capa adyacen
 # specs :: persona/voting.yaml  lines 14–16
 ```
 
+**Un fragmento de varios `@target` se muestra por partes**, y la metadata lleva un tramo por parte:
+
+```
+# impl :: PermissionController.java  lines 12–12, 40–43
+```
+
+El texto sale unido por el mismo separador que las une en el `hash` — lo que se lee es el fragmento, no el archivo entre la primera parte y la última. Ver [`concepts/capture.md`](../concepts/capture.md) § "El fragmento son los `@target`".
+
 **Salida:**
 
 ```
