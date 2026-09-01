@@ -129,6 +129,6 @@ Un análisis sobre un grafo degradado sigue siendo válido; lo que no es válido
 
 Ninguna. Lattice no escribe archivos.
 
-Las aristas `accepted` las persiste su dueño (bilinker, en sus bilinks); las `derived` se consultan al daemon en cada query; las `asserted` se releen del texto. El único estado en disco que toca lattice es el socket del daemon (`~/.lattice/daemon.sock`, `daemon.pid`).
+Las aristas `accepted` las persiste su dueño (bilinker, en sus bilinks); las `derived` se consultan a [`lspd`](../lspd/overview.md) en cada query; las `asserted` se releen del texto. **Lattice no toca ningún estado en disco**: lo poco que queda —el endpoint y el pid del daemon, en `~/.lspd/`— es de lspd y no de acá.
 
 El índice de contención se construye en memoria por query, sobre `.bilink/index/index` cuando está disponible (O(1)) y con scan O(N) cuando no — el mismo fallback que ya usa `find_by_file`.
