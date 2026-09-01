@@ -155,7 +155,7 @@ Un endpoint puede desalinearse en dos dimensiones —dónde está y qué dice—
 | `UNRESOLVED` | El capture referenciado no resuelve | `bilinker apply` o `recapture` |
 | `CONTRACT_RESTYLED` | El vecindario se reformateó y su AST no cambió | `bilinker accept` |
 | `CONTRACT_ALTERED` | Un vecino cambió: **el contrato se movió** | revisar + `bilinker accept` |
-| `CONTRACT_UNVERIFIED` | Hay `n1` adquirido y **nadie pudo resolver el vecindario** | levantar el proveedor · o nada |
+| `CONTRACT_UNVERIFIED` | Hay `n` adquirido y **nadie pudo resolver el vecindario** | levantar el proveedor · o nada |
 
 **Los tres últimos son de un eje aparte**: no hablan del fragmento sino de [los tipos que su firma menciona](accept.md#el-cierre-de-firma). Llevan prefijo por eso — `ALTERED` y `CONTRACT_ALTERED` no son grados de lo mismo, son dos preguntas.
 
