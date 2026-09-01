@@ -1,0 +1,4 @@
+file: subsystems/lspd/commands/lspd.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `lspd`"))) @target

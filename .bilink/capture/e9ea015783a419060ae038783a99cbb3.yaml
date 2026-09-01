@@ -1,0 +1,6 @@
+file: subsystems/lspd/concepts/language-servers.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "Los language servers"))
+    (section
+    (atx_heading (inline) @n1 (#eq? @n1 "La tabla"))) @target)

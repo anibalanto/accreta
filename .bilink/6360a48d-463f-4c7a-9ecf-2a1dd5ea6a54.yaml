@@ -1,0 +1,6 @@
+kind: governs
+endpoint:
+  0:
+    link: capture 360f86940f159ad1a2fc6af50ec7884e
+  1:
+    link: path subsystems/lspd>impl
