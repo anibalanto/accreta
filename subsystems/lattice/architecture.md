@@ -10,7 +10,7 @@ flowchart TD
     R --> PL[LspProvider]
     R --> PD[DocProvider]
     PB -->|bilinker graph --format json| BL[(.bilink/)]
-    PL -->|Unix socket| D[lattice-daemon]
+    PL -->|socket local| D[lspd]
     D --> LSP[rust-analyzer · jdtls · …]
     PD --> MD[(archivos .md)]
     G --> C[Containment index]
@@ -22,10 +22,12 @@ flowchart TD
 | **Registry** | Descubre proveedores, consulta disponibilidad, reporta degradación. |
 | **GraphBuilder** | Compone las aristas de todos los proveedores, deduplica y resuelve contención. |
 | **Containment index** | Responde `cubriendo(pos)` — el puente entre aristas `derived` y `accepted`. |
-| **lattice-daemon** | Mantiene language servers vivos y responde `callees` / `callers` / `symbol_at`. |
+| **[lspd](../lspd/overview.md)** | Mantiene language servers vivos y responde `callees` / `callers` / `symbol_at`. **No es de lattice**: es una capa aparte, y bilinker también le pregunta. |
 | **Renderers** | `tree`, `flat`, `json`, `dot`, `html`. |
 
-El daemon es un binario separado con su propio ciclo de vida. El resto vive en el CLI.
+El daemon es un binario separado, con su propio ciclo de vida **y su propia capa**. El resto vive en el CLI.
+
+**Que no sea de lattice es la parte que importa.** Su crate nunca dependió de `lattice`, y desde que bilinker también le pregunta, tenerlo adentro se leería como una inversión de capas que no está ocurriendo. Lattice lo consume como cualquier otro: por el socket, con el cliente compartido. Ver [`lspd`](../lspd/overview.md).
 
 ## Layout de crates
 
@@ -33,9 +35,10 @@ El daemon es un binario separado con su propio ciclo de vida. El resto vive en e
 crates/
   lattice/              modelo, registry, builder, containment, traversal
   lattice-cli/          comandos y renderers
-  lattice-daemon/       gestión de language servers + IPC
   lattice-provider-bilink/   adapta la salida de `bilinker graph --format json`
 ```
+
+La gestión de language servers **no está acá**: es [`lspd`](../lspd/overview.md), y lattice depende de su crate cliente igual que depende de `stratum`.
 
 ## Migración del código existente
 
@@ -45,8 +48,8 @@ Casi todo lo que necesita lattice ya está escrito dentro de bilinker. La migrac
 
 | Origen | Destino | Notas |
 |---|---|---|
-| `crates/bilinker-daemon/` (6 archivos, 712 líneas) | `crates/lattice-daemon/` | **Nada en este crate es específico de bilinks.** `LspManager` despacha por extensión, `LspClient` habla `callHierarchy`, `Language` mapea extensión → ejecutable. Cambia el nombre del socket: `~/.bilinker/daemon.sock` → `~/.lattice/daemon.sock`. |
-| `bilinker/src/daemon.rs` (33 líneas) | `lattice/src/daemon_client.rs` | Cliente JSON-RPC síncrono sobre el socket. |
+| `crates/bilinker-daemon/` (6 archivos, 712 líneas) | `crates/lattice-daemon/`, y de ahí a [`lspd`](../lspd/overview.md) | **Nada en este crate era específico de bilinks** — y resultó que tampoco de lattice. `LspManager` despacha por extensión, `LspClient` habla `callHierarchy`, `Language` mapea extensión → ejecutable. El socket pasó por tres nombres: `~/.bilinker/daemon.sock` → `~/.lattice/daemon.sock` → `~/.lspd/daemon.sock`. |
+| `bilinker/src/daemon.rs` (33 líneas) | `lattice/src/daemon_client.rs`, y de ahí al crate `lspd-client` | Cliente JSON-RPC síncrono. Volvió a mudarse por el mismo motivo: con dos consumidores, el cliente es del daemon. |
 | `bilinker-cli/src/main.rs:1217-1460` (`DotGraph` + colectores) | `lattice-cli/src/render/dot.rs` | Renderer puro. |
 | `bilinker-cli/src/main.rs:1128-1216` (`graph_tree`, `graph_flat`) | `lattice-cli/src/render/` | Renderers puros. |
 
