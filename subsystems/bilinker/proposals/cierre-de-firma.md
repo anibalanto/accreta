@@ -193,7 +193,7 @@ Bilinker recibe las ubicaciones; no sale a buscarlas. El hasheo queda de su lado
 
 ### Para bilinker es un valor opaco
 
-`hash_n1` es un campo que bilinker **guarda y compara sin poder calcularlo por su cuenta**. No es una excepción nueva: es el patrón que el formato ya tiene en [`capture.md`](../concepts/capture.md) invariante 6, donde un `accepted.link` de endpoint layer o repo contiene *"una copia opaca de un id ajeno, que no se resuelve localmente"*. Se compara, no se resuelve.
+`hash_n1` es un campo que bilinker **guarda y compara sin poder calcularlo por su cuenta**. No es una excepción nueva: es el patrón que el formato ya tiene en [`capture.md`](../concepts/capture.md) invariante 7, donde un `accepted.link` de endpoint layer o repo contiene *"una copia opaca de un id ajeno, que no se resuelve localmente"*. Se compara, no se resuelve.
 
 De ahí sale el estado que hay que nombrar: cuando nadie le pasa el valor de hoy, `check` **no dice OK ni dice drift — dice no verificado.** Es la familia de `LAYER_UNREACHABLE` y `REMOTE_UNREACHABLE`: no pude ver el otro lado. Y es la distinción que impact ya defiende para sí mismo — *"un reporte que no distingue 'no encontré impacto' de 'no pude buscarlo' es peor que no tener reporte"*.
 

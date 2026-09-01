@@ -39,7 +39,7 @@ Es la forma más usada del lado de las specs, donde el fragmento suele ser el do
 
 1. Leer el archivo y parsearlo con la gramática tree-sitter del lenguaje detectado por extensión.
 2. Encontrar el nodo AST más pequeño que contiene la selección completa
-   (`named_descendant_for_point_range`).
+   (`named_descendant_for_point_range`). Con varias selecciones, una vez por cada una.
 3. Subir en el árbol AST hasta el primer ancestro que sea un ancla estable para el lenguaje.
 4. Casos especiales por lenguaje:
    - **YAML `block_sequence_item`**: busca el par `id:` dentro del item y usa su valor como predicado, capturando el item completo.
@@ -47,7 +47,9 @@ Es la forma más usada del lado de las specs, donde el fragmento suele ser el do
    - **Markdown `section`**: busca el heading dentro del section y usa su texto inline como predicado, capturando toda la sección (heading + contenido).
    - **Rust `impl_item`**: el discriminante no es un campo `name` sino el tipo implementado (`type:`) y, cuando es la implementación de un trait, también el trait (`trait:`). Con uno solo, `impl Foo` y `impl Bar for Foo` quedan indistinguibles.
 5. Construir la query como el camino del AST desde ese ancestro hasta el nodo target. Cada predicado usa un nombre de captura único (`@n0`, `@n1`, …). El `@target` se coloca en el nodo que representa el fragmento completo.
-6. **Verificar que la query identifica el fragmento**: resolverla contra el mismo archivo y comprobar que devuelve exactamente un match, en los bytes del nodo seleccionado. Si devuelve otro nodo o más de uno, `capture` falla sin escribir nada.
+   **Con varios nodos señalados** —[`chain new`](chain.md) con más de una posición— el ancestro es el ancla estable que los contiene a todos, los caminos se funden en un patrón único, y va un `@target` por nodo. Las partes de un patrón salen en orden de archivo: tree-sitter exige el orden de la gramática, y en Java las anotaciones van antes del nombre.
+   **Ninguna parte puede contener a otra.** El fragmento es la concatenación, así que un nodo adentro de otro se contaría dos veces; cuando pasa, `capture` falla diciendo cuáles, porque lo que ocurrió es que una posición resolvió más arriba de lo que se señaló.
+6. **Verificar que la query identifica el fragmento**: resolverla contra el mismo archivo y comprobar que devuelve exactamente un match, con exactamente los nodos señalados. Si devuelve otros nodos, un número distinto, o matchea más de una vez, `capture` falla sin escribir nada.
 7. Calcular el id —el hash de los campos, cada uno seguido de un `\0`— y escribir `.bilink/capture/<id>.yaml` si no existe. Nada de cache: ni `range`, ni `state`, ni timestamp.
 
 **La selección no sobrevive al paso 3.** Sirve para encontrar el ancla y después se descarta: el capture es el nodo entero. Seleccionar media función captura la función.
@@ -162,8 +164,8 @@ Error: el capture 5fdff600 tiene referentes — usar `bilinker recapture` para r
 
 ## Propiedades garantizadas
 
-- **Unicidad de la referencia**: la `query` resuelve al nodo que se seleccionó, y a ninguno otro. Un ancla sin discriminante —un `impl` sin tipo, un comentario, un `use`— produce una query que matchea el **primer** nodo de ese tipo del archivo: un capture que apunta a otra cosa y no falla. `capture` verifica antes de escribir y falla si no puede identificar el fragmento unívocamente. Un capture mal anclado es peor que uno roto, porque reporta OK sobre una correspondencia que no existe.
-- **Determinismo de la referencia**: dos ejecuciones sobre el mismo archivo y selección sin modificaciones intermedias producen la misma `query` y el mismo `range`.
+- **Unicidad de la referencia**: la `query` resuelve a los nodos que se señalaron, y a ninguno otro. Un ancla sin discriminante —un `impl` sin tipo, un comentario, un `use`— produce una query que matchea el **primer** nodo de ese tipo del archivo: un capture que apunta a otra cosa y no falla. `capture` verifica antes de escribir y falla si no puede identificar el fragmento unívocamente. Un capture mal anclado es peor que uno roto, porque reporta OK sobre una correspondencia que no existe.
+- **Determinismo de la referencia**: dos ejecuciones sobre el mismo archivo y selección sin modificaciones intermedias producen la misma `query` y los mismos rangos. El orden en que se pasan las posiciones no cambia nada: las partes van en orden de archivo.
 - **Reuso**: capturar dos veces el mismo fragmento devuelve el **mismo** id, sin buscar nada. El id es el hash de la ubicación, así que dos referencias a la misma ubicación son literalmente el mismo archivo. Antes había que escanear la capa buscando un capture equivalente; ahora la deduplicación es por construcción.
 - **Independencia de git**: `capture` no requiere que el archivo esté bajo control de versiones. Sí lo requiere [`accept`](accept.md), que necesita el commit del contenido aprobado.
 - **No toca bilinks**: `capture` crea el archivo del capture y nada más. Referenciarlo desde un `link` es un paso aparte, vía `bilinker chain new` o `recapture`.

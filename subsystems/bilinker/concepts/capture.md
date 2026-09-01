@@ -78,6 +78,8 @@ Con varios se pueden decir dos cosas que un nodo solo no puede:
 
 **Y sigue siendo estructural**: son nodos, no rangos de bytes. Si el código se mueve, la query lo vuelve a encontrar, que es la propiedad por la que un capture existe.
 
+**Ninguna parte contiene a otra.** El fragmento es la concatenación, así que una parte adentro de otra se contaría dos veces y el hash pasaría a depender de un solapamiento que nadie quiso. Cuando se señala una posición que resuelve a un nodo que contiene a otro señalado, no hay capture raro que escribir: hay una posición que resolvió más arriba de lo que se apuntó, y decirlo es más útil que capturar cualquier cosa.
+
 #### Una query, no una lista de queries
 
 Un patrón único ancla los fragmentos **entre sí**: dice *"el `@RequestMapping` de la clase que contiene al método `getPermissions`"*. Una lista de queries independientes ancla cada una por su cuenta, y la primera sería *"el `@RequestMapping`"* a secas — que en un archivo con dos clases matchea la equivocada. Se arregla repitiendo el contexto en cada una, o sea reconstruyendo a mano lo que el patrón único ya expresa.
@@ -213,12 +215,13 @@ El `range` sale de la cache, no del capture. Un clon fresco no lo tiene hasta qu
 3. Un capture describe ubicación, nunca aceptación. No contiene hashes ni commits.
 4. `file` es relativo a la raíz de la capa donde vive el capture.
 5. Un capture nombra un conjunto de nodos enteros, uno por `@target`: no hay sub-rango. El fragmento es la concatenación de sus rangos en orden de archivo, separados por `\n`. Los rangos absolutos son derivados y viven en la cache.
-6. Un `link` sólo referencia captures de su propia capa. Un `accepted.link` de endpoint layer o repo puede contener una copia opaca de un id ajeno, que no se resuelve localmente.
-7. Un capture puede ser referenciado por cualquier cantidad de bilinks, incluido cero.
-8. `apply` acuña captures y repunta un `link`; nunca escribe `accepted`.
-9. `accept` escribe `accepted`; nunca toca un capture.
-10. Borrar un bilink nunca borra un capture.
-11. `prune` conserva todo capture alcanzable desde un `link` **o** un `accepted.link`.
+6. Ninguna parte de un fragmento contiene a otra: los rangos son disjuntos.
+7. Un `link` sólo referencia captures de su propia capa. Un `accepted.link` de endpoint layer o repo puede contener una copia opaca de un id ajeno, que no se resuelve localmente.
+8. Un capture puede ser referenciado por cualquier cantidad de bilinks, incluido cero.
+9. `apply` acuña captures y repunta un `link`; nunca escribe `accepted`.
+10. `accept` escribe `accepted`; nunca toca un capture.
+11. Borrar un bilink nunca borra un capture.
+12. `prune` conserva todo capture alcanzable desde un `link` **o** un `accepted.link`.
 
 ## Migración desde el formato anterior
 
