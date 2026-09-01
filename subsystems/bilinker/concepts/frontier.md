@@ -113,6 +113,10 @@ El consumidor copia los **dos** valores aceptados del bilink remoto, igual que u
 
 Con eso la frontera obtiene el mismo vocabulario que el caso local, **sin leer un solo archivo del proveedor**.
 
+**Y el vecindario cruza igual.** Si el bilink remoto lleva [`hash_n1`](accept.md#el-cierre-de-firma), se copia como los otros: un escalar más en el valor opaco. No hay regla nueva de propagación — y es lo que hace que el consumidor se entere de que un DTO del proveedor cambió sin que el proveedor haya tocado el método que lo devuelve.
+
+Un valor opaco que el consumidor **no podría calcular** —resolver los tipos del proveedor pediría indexar su código— es exactamente por qué el campo va en `accepted` y no en la cache.
+
 **Un `apply` del proveedor sin aceptar no mueve nada.** Es trabajo en curso, y el consumidor no tiene por qué enterarse — ni podría resolverlo. Ésa es la razón de copiar campos con nombre y no el hash del archivo `.bilink` remoto entero.
 
 Cada valor cambia por una sola razón y por ninguna otra, y los dos son inmunes a etiquetas, comentarios y reordenamientos del archivo remoto.

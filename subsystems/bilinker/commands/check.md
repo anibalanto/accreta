@@ -8,6 +8,8 @@ Opera en dos pasos: resuelve los captures referenciados —localizando cada frag
 
 Requiere git como dependencia dura. Sólo git y tree-sitter, sin language servers ni indexers.
 
+**El vecindario se pregunta si hay a quién.** El [cierre de firma](../concepts/accept.md#el-cierre-de-firma) necesita resolver tipos, y eso es trabajo de un language server. `check` pregunta una vez si hay proveedor; si no lo hay, los endpoints con vecindario aceptado quedan `CONTRACT_UNVERIFIED` y el resto se evalúa igual. **No lo levanta**, por lo mismo que no clona: es masivo, y arrancar un proceso como efecto colateral de un comando de sólo lectura no es suyo.
+
 **`check` opera completamente offline, y eso es de `check` y no de toda la herramienta.** Es masivo: corre sobre todos los bilinks de una capa, así que no puede clonar ni fetchear como efecto colateral. Un repo ajeno que no está clonado se reporta `REMOTE_UNREACHABLE` y se sigue. Las operaciones de red viven en otros comandos y son explícitas: el clon de un proveedor, el fetch de su ref, y la profundización de [`get --diff`](get.md).
 
 ## Firma
@@ -66,6 +68,9 @@ Comparan lo hallado contra `accepted`.
 | **RESTYLED** | El texto difiere pero el AST coincide — sólo formato. Sólo donde el AST discrimina contenido. | `accept` |
 | **ALTERED** | El fragmento cambió estructuralmente. | revisar + `accept` |
 | **UNRESOLVED** | El capture referenciado no resolvió. | se resuelve en el capture |
+| **CONTRACT_RESTYLED** | El vecindario de la firma se reformateó. | `accept` |
+| **CONTRACT_ALTERED** | Un tipo que la firma menciona cambió. | revisar + `accept` |
+| **CONTRACT_UNVERIFIED** | Hay vecindario aceptado y no se pudo resolver el de hoy. | nada, o levantar el proveedor |
 
 `EXPANDED` necesita el texto aceptado, así que se detecta acá y no en la dimensión de ubicación.
 
@@ -339,7 +344,9 @@ f1e2d3c4  (EXPANDED, OK)
 
 | Código | Condición |
 |---|---|
-| 0 | Todos los captures resuelven y todos los endpoints están en `OK`, `EXPANDED` o `RESTYLED`. |
-| 1 | Algún capture en `UNANCHORED`, `DELETED` o `BROKEN`, o algún endpoint en `RELOCATED`, `ALTERED`, `UNRESOLVED`, `PENDING` o `CHAIN_DIRTY`. |
+| 0 | Todos los captures resuelven y todos los endpoints están en `OK`, `EXPANDED`, `RESTYLED` o `CONTRACT_UNVERIFIED`. |
+| 1 | Algún capture en `UNANCHORED`, `DELETED` o `BROKEN`, o algún endpoint en `RELOCATED`, `ALTERED`, `UNRESOLVED`, `PENDING`, `CHAIN_DIRTY`, `CONTRACT_RESTYLED` o `CONTRACT_ALTERED`. |
+
+**`CONTRACT_UNVERIFIED` sale con 0**, con las ausencias y no con los drifts: no es que el valor difiera, es que no hay con qué compararlo. Correr `check` sin daemon es un modo de operación normal —`check` es masivo y offline— y hacerlo salir con 1 volvería rojo cualquier CI que no levante un language server.
 
 **`RELOCATED` sale con 1.** Antes `MOVED` salía con 0 porque `apply` lo cerraba solo; ahora repuntar no aprueba, y un vínculo apuntando a un fragmento que nadie miró es trabajo pendiente, no un detalle de mantenimiento.

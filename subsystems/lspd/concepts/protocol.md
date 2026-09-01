@@ -14,11 +14,18 @@ JSON-RPC 2.0 con **framing newline-delimited**: cada mensaje es un objeto JSON e
 | `callees` | `{file, line, col}` | `[CalleeInfo]` — llamadas salientes |
 | `callers` | `{file, line, col}` | `[CalleeInfo]` — llamadas entrantes |
 | `symbol_at` | `{file, line, col}` | `SymbolInfo` o `null` |
+| `definitions` | `{file, line, col}` | `[DefinitionInfo]` — dónde está declarado lo que se menciona ahí |
 | `status` | — | `[LspStatus]` |
 | `ping` | — | `"pong"` |
 | `shutdown` | — | `null`, y cierra la conexión |
 
-`CalleeInfo` es `{symbol, name, file, line, col}`; `callees` y `callers` comparten esquema. `SymbolInfo` es `{symbol, name, kind}`. `LspStatus` es `{name, state, queries}`.
+`CalleeInfo` es `{symbol, name, file, line, col}`; `callees` y `callers` comparten esquema. `SymbolInfo` es `{symbol, name, kind}`. `LspStatus` es `{name, state, queries}`. `DefinitionInfo` es `{name, file, line, col, end_line, end_col}`.
+
+**`definitions` es la única pregunta que no es del call graph**, y la pide bilinker para el [cierre de firma](../../bilinker/concepts/accept.md#el-cierre-de-firma): dónde están declarados los tipos que una firma menciona.
+
+Es **un salto y ninguna interpretación**. `lspd` devuelve ubicaciones; no lee el contenido, no lo hashea y no sabe para qué se lo piden. Las tres formas que LSP permite en la respuesta —una, varias, o links— se aplanan a ubicaciones antes de salir: cuál usó el servidor de atrás no es un dato de quien pregunta.
+
+Y la dedup la hace el language server: las tres menciones de `Persona` en `Persona hijoMenor(Persona padre, Persona madre)` resuelven a la misma declaración, así que el vecindario tiene **un** `Persona` y no tres.
 
 **`line` y `col` son 0-based**, como en LSP y a diferencia del resto del ecosistema. La conversión es de quien pregunta: traducirla acá sería ponerle al daemon una convención que no es suya.
 

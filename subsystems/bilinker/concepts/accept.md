@@ -29,6 +29,8 @@ endpoint:
       link: capture 67ba7217e0334051becd4921b55a7872
       hash: c00e07602bd560755096b57df1ddb9ed49d816fb8af58a4ec9cde82f21f38db3
       hash_ast: 1b9e44a2f0c8d3e7a5b1c9d4e2f6a8b0c3d5e7f9a1b3c5d7e9f1a3b5c7d9e1f3
+      hash_n1: 96c765b9a3f1e4d7c2b8a5f0e3d6c9b2a7f4e1d8c5b0a3f6e9d2c7b4a1f8e5d0
+      hash_ast_n1: 88e834c4b1a7f2e5d0c3b6a9f4e7d2c5b8a1f6e3d0c7b4a9f2e5d8c1b6a3f0e7
   1:
     link: path >impl
 ```
@@ -39,10 +41,105 @@ endpoint:
 | `link` | La ubicación aprobada. Ausente en un endpoint `issue` o `abstract`, que no tienen capture. |
 | `hash` | SHA-256 del fragmento aprobado — la concatenación de los `@target`, ver [capture](capture.md) § "El fragmento son los `@target`". |
 | `hash_ast` | SHA-256 de su s-expression, y de las de todos sus nodos unidas por `\n` cuando hay más de uno. Opcional: ausente donde no hay gramática. |
+| `hash_n1` | SHA-256 plegado del **vecindario**: los tipos que la firma menciona. Opcional. Ver § "El cierre de firma". |
+| `hash_ast_n1` | Ídem sobre las s-expressions de esos vecinos. Opcional, y **todo-o-nada**. |
 
 **`accepted` está o no está.** Su ausencia *es* `PENDING`, literalmente — no hay que enunciar que los campos de aceptación están presentes juntos o ausentes juntos, porque el bloque no se puede escribir a medias. Lo verifica el tipo: `accepted` sin `hash` es rechazado, y un `hash` suelto afuera del bloque también.
 
 `hash` y `hash_ast` van separados y no hasheados juntos porque `RESTYLED` necesita compararlos por separado. Donde `hash_ast` no está, `RESTYLED` no existe y todo cambio de texto es `ALTERED` — que en prosa es lo correcto.
+
+## El cierre de firma
+
+Un fragmento no es sólo un árbol de sintaxis: **devuelve un tipo**. Con el capture de contrato de [`capture.md`](capture.md), la firma entra en `hash` y un cambio de tipo de retorno se detecta. Lo que no se ve es que el tipo **siga llamándose igual y tenga otros campos** — que es exactamente lo que rompió al consumidor que motivó todo esto.
+
+`hash_n1` y `hash_ast_n1` cubren esa fila, y una sola: **el vecindario de nivel 1.**
+
+### No recursa, y está en el nombre
+
+Los vecinos son **los tipos que la firma menciona, un salto**. Los campos de esos tipos son nivel 2 y no entran.
+
+| Cambio en el proveedor | ¿Lo ve? |
+|---|---|
+| al DTO le agregan un campo | **sí** — cambió su texto |
+| `String name` → `AuthorityKind name` en el DTO | **sí** |
+| el DTO se muda de archivo | **sí** — cambió el conjunto |
+| el método devuelve otro tipo | **sí** — cambió el conjunto |
+| a `AuthorityKind` le cambian los valores | **no** — es nivel 2 |
+
+Clavar la profundidad en 1 retira tres preguntas de una vez: dónde para el cierre, cómo termina con tipos recursivos, y cómo se recorre. No hay recorrido: se resuelven los tipos de la firma y listo. Si alguna vez hace falta más, un `hash_n2` es aditivo y no invalida nada.
+
+### El fold, y por qué el orden es por identidad
+
+Un solo orden, y dos folds sobre ese orden:
+
+```
+orden = los vecinos por su identidad — <layer-root>::<path> más el nombre del símbolo,
+        byte-wise sobre el UTF-8. Esa clave ordena y no entra en ningún hash.
+
+hash_n1     = H( hash(v)     de cada vecino, en ese orden )
+hash_ast_n1 = H( hash_ast(v) de cada vecino, en ese orden )
+```
+
+**La clave de orden tiene que ser identidad, nunca contenido.** Ordenando por el texto, un reformateo le cambiaría el puesto a un vecino, la lista se reordenaría, y `hash_ast_n1` se movería sin que ningún AST cambiara — un falso *"cambió de verdad"* producido por el orden. Ordenando por identidad nadie se mueve de puesto salvo que un vecino **entre, salga o se renombre**, y esas tres cosas son cambios de contrato.
+
+Tampoco puede ordenar el rango: lleva offsets de bytes, que se corren con cualquier edición más arriba del archivo.
+
+**Los vecinos se hashean con el mismo recorte de bordes que un fragmento.** Es la regla de [`capture.md`](capture.md) § "El rango excluye el espacio que rodea al nodo", y vale igual acá: un vecino sin recortar mueve su hash cuando le agregan algo abajo.
+
+### `hash_ast_n1` es todo-o-nada
+
+Si un vecino no tiene gramática no tiene `hash_ast`, y **no puede quedar afuera del fold**: un cambio real en ese vecino movería `hash_n1` y no `hash_ast_n1`, y eso se leería como *"sólo formateo"* cuando no lo fue. Un falso `RESTYLED` es peor que ningún estado.
+
+Así que el campo está presente sólo si **todos** los vecinos tienen gramática. Si a alguno le falta, está ausente, y cualquier cambio en `hash_n1` es un cambio real. Es el mismo espíritu que la regla de `hash_ast`: falla hacia reportar, no hacia callarse.
+
+`hash_n1` también es opcional — ausente donde el fragmento no tiene firma resoluble, que es prosa, un DTO, o un lenguaje sin anotaciones de tipo.
+
+### Los vecinos no son captures
+
+No se acuñan. Nadie los referencia con un `link` ni con un `accepted.link`, así que un capture acuñado para un vecino sería basura que `prune` borra en la pasada siguiente.
+
+Son **ubicaciones** que alguien resuelve y que bilinker hashea al pasar. Con eso desaparecen la conversión rango → query, un modo nuevo de `capture`, una raíz nueva para `prune`, y —la que más importa— el modo de falla del anclaje: `capture` falla cuando no encuentra un ancla única, y con vecinos resueltos por un language server eso pasaría seguido.
+
+### Bilinker no sale a buscarlos
+
+**Es un valor que bilinker guarda y compara sin poder calcularlo por su cuenta.** No es una excepción nueva: es el patrón que el formato ya tiene en [`capture.md`](capture.md) invariante 7, donde un `accepted.link` de endpoint layer o repo lleva una copia opaca de un id ajeno. Se compara, no se resuelve.
+
+Quien los encuentra entra por un puerto que bilinker define y que **no nombra a nadie**:
+
+```rust
+pub trait Neighbours {
+    fn of(&self, file: &Path, ranges: &Ranges) -> Result<Option<Vec<Location>>>;
+}
+```
+
+`None` es *"no pude mirar"* y no *"no hay vecinos"* — la distinción de la que sale el estado. El binario le pasa una implementación que le habla a [`lspd`](../../lspd/overview.md); la librería no lo menciona, y **no es para evitar un ciclo** —ya no hay— sino para que bilinker no quede atado a *ese* daemon: mañana puede ser SCIP, un índice propio, o un language server hablado directo.
+
+**Y el hasheo queda de este lado.** El recorte de bordes es regla de bilinker y vive en el único lugar donde un nodo se convierte en rango. El proveedor devuelve ubicaciones, no hashes.
+
+### Van en `accepted`, no en la cache
+
+Dos razones, y las dos son las que decidieron dónde va cada campo del formato.
+
+**La frontera.** Lo que cruza entre repos es la copia opaca de `accepted` del endpoint `repo`. Si `hash_n1` no está ahí, **no cruza** — y el caso que motiva todo esto se queda sin el mecanismo que lo entrega al consumidor.
+
+**No es recuperable.** Reconstruirlo pediría un language server indexando un checkout histórico, que puede ni buildear. Ahí está la diferencia con [`commit`](cache.md), que se queda en la cache porque su recuperación es *"más lento, nunca no disponible"*. **Un valor cuya reconstrucción depende de infraestructura que puede no estar no es un derivado: es una decisión.**
+
+Y pasa el otro test: **converge.** Dos personas que aceptan el mismo vecindario en el mismo estado escriben el mismo valor, porque sale de hashear contenido — a diferencia de `commit`, que nunca converge. Así que no le mete a [`adopt`](../commands/adopt.md) un campo que diverja siempre.
+
+### Los cuatro cuadrantes
+
+Dos ejes independientes, y las cuatro combinaciones dicen cosas distintas:
+
+| Difiere | Qué significa |
+|---|---|
+| `hash` | el fragmento se reformateó |
+| `hash` + `hash_ast` | el proveedor cambió lo que el fragmento dice |
+| `hash_n1` | el vecindario se reformateó |
+| `hash_n1` + `hash_ast_n1` | **un vecino cambió: el contrato se movió** |
+
+La última es el caso que motivó todo: el método intacto, el DTO movido.
+
+**Y la segunda dejó de ser un problema por otro lado.** Antes decía *"el proveedor refactorizó por dentro"* y era ruido que le llegaba al consumidor; con el capture de contrato el cuerpo ya no entra en `hash`, así que ese refactor no mueve nada. La resolvió [`capture.md`](capture.md), no el estado.
 
 ## Aceptar exige el fragmento commiteado
 
