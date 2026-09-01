@@ -61,17 +61,54 @@ query: |-
 | Campo | Descripción |
 |---|---|
 | `file` | Path relativo a la raíz de la capa. |
-| `query` | Query tree-sitter con captura `@target`. Ausente = el archivo completo. |
+| `query` | Query tree-sitter con una o más capturas `@target`. Ausente = el archivo completo. |
+
+### El fragmento son los `@target`, en orden de archivo
+
+Una query puede llevar **más de una** captura `@target`. El fragmento es la concatenación de sus rangos, en el orden en que aparecen **en el archivo** — no en el que la query los nombra, que es un detalle de cómo se escribió el patrón y no del documento.
+
+Con un solo `@target` el fragmento es ese nodo y nada más: es el caso de siempre, y da exactamente el mismo `hash` que daba antes de que hubiera varios.
+
+Con varios se pueden decir dos cosas que un nodo solo no puede:
+
+| | |
+|---|---|
+| **menos que un nodo** | la firma de un método sin su cuerpo: se capturan `type`, `name` y `parameters`, y `body` queda afuera |
+| **más que un nodo** | una ruta que sale de dos anotaciones —`@RequestMapping` en la clase, `@GetMapping` en el método—, que como texto completo no existe en ningún nodo |
+
+**Y sigue siendo estructural**: son nodos, no rangos de bytes. Si el código se mueve, la query lo vuelve a encontrar, que es la propiedad por la que un capture existe.
+
+#### Una query, no una lista de queries
+
+Un patrón único ancla los fragmentos **entre sí**: dice *"el `@RequestMapping` de la clase que contiene al método `getPermissions`"*. Una lista de queries independientes ancla cada una por su cuenta, y la primera sería *"el `@RequestMapping`"* a secas — que en un archivo con dos clases matchea la equivocada. Se arregla repitiendo el contexto en cada una, o sea reconstruyendo a mano lo que el patrón único ya expresa.
+
+**Y abriría la resolución parcial**, que no existe: tree-sitter matchea el patrón entero o no matchea. Con una lista, dos de tres queries resueltas no serían `RESOLVED` ni `UNANCHORED` sino un fragmento a medias, y habría que inventarle un estado y decidir si se hashea lo que hay.
+
+Menor pero cierto: el id es `sha256(file \0 query \0)`, y `query` sigue siendo un string. Con una lista habría que definir cómo se hashea una.
+
+#### El separador es `\n`
+
+Los rangos no son contiguos, así que hay que decidir qué va entre uno y el siguiente — y eso **entra en el `hash`**:
+
+| | |
+|---|---|
+| nada | dos capturas pegadas producen un texto que no existe en ningún archivo |
+| **`\n`** | elegido: legible, y estable frente a cuánto espacio haya en el medio |
+| el texto intermedio | es el archivo tal cual, pero entonces el cuerpo entra por la ventana cuando dos capturas lo tienen en el medio |
+
+**Y no se vuelve a tocar.** Cambiarlo movería de una vez el hash de todos los captures multi-fragmento, y todos pasarían a `ALTERED` sin que nadie tocara el código — drift fabricado por un cambio de opinión.
+
+`hash_ast` sigue la misma regla: las s-expressions de los nodos, en el mismo orden, unidas por `\n`.
 
 ### No hay sub-rango
 
-Un capture nombra un nodo entero. **No se puede referenciar un rango de bytes adentro de uno**, y la selección con la que se lo crea sirve para *encontrar* el nodo, no para recortarlo.
+Un capture nombra un **conjunto estructural de nodos** —uno por `@target`, cada uno entero. **No se puede referenciar un rango de bytes adentro de uno**, y la selección con la que se lo crea sirve para *encontrar* los nodos, no para recortarlos.
 
 Un rango adentro de un nodo se corre con cualquier edición encima suya dentro del mismo nodo: su granularidad es ilusoria, se rompe todo el tiempo y hay que repuntarlo a mano. Un ancla de nodo entero es estable, y sus falsas alarmas son honestas — *"esto cambió, fijate si tu spec sigue valiendo"*.
 
 Lo que se pierde es **atribución**, no detección: dos fragmentos de spec que describen dos partes de la misma función pasan a compartir capture. `hash` dice que cambió y `hash_ast` si fue sólo espaciado; cuál parte cambió lo dice `bilinker get --diff`, que es trabajo de quien mira.
 
-**Si hace falta más precisión, la respuesta es una query que nombre algo más chico**, no un recorte sobre una que nombra algo más grande. Por eso una fila de tabla markdown se ancla por el texto de su primera celda: es un nodo, y tiene con qué distinguirse.
+**Si hace falta más precisión, la respuesta es una query** —que nombre algo más chico, o que nombre varios nodos y deje el resto afuera—, no un recorte sobre una que nombra algo más grande. Por eso una fila de tabla markdown se ancla por el texto de su primera celda: es un nodo, y tiene con qué distinguirse.
 
 ### El rango excluye el espacio que rodea al nodo
 
@@ -80,6 +117,8 @@ Dónde empieza un nodo depende de qué hay alrededor. En YAML el mismo item de s
 Eso contradice la propiedad central, así que **el rango resuelto se recorta en los dos bordes**. El fragmento es su contenido; el espacio que lo separa de sus vecinos es de los dos y no de él.
 
 Va en el único lugar donde un nodo se convierte en rango, así que no hay forma de obtener uno sin recortar.
+
+**Con varios `@target` se recorta cada rango por separado**, antes de concatenar. Recortar la concatenación dejaría los bordes internos a merced de dónde termina un nodo y empieza el otro, que es justo el contexto del que el recorte existe para independizar.
 
 Dos campos, y los dos entran en el id. **No hay más**: ni `range`, ni `state`, ni `resolved_at`. Todo eso se puede reconstruir resolviendo la query, así que vive en [`cache/state`](cache.md) y no en git.
 
@@ -173,7 +212,7 @@ El `range` sale de la cache, no del capture. Un clon fresco no lo tiene hasta qu
 2. Un capture es inmutable. Ningún comando modifica uno existente.
 3. Un capture describe ubicación, nunca aceptación. No contiene hashes ni commits.
 4. `file` es relativo a la raíz de la capa donde vive el capture.
-5. Un capture nombra un nodo entero: no hay sub-rango. El rango absoluto en el archivo es derivado y vive en la cache.
+5. Un capture nombra un conjunto de nodos enteros, uno por `@target`: no hay sub-rango. El fragmento es la concatenación de sus rangos en orden de archivo, separados por `\n`. Los rangos absolutos son derivados y viven en la cache.
 6. Un `link` sólo referencia captures de su propia capa. Un `accepted.link` de endpoint layer o repo puede contener una copia opaca de un id ajeno, que no se resuelve localmente.
 7. Un capture puede ser referenciado por cualquier cantidad de bilinks, incluido cero.
 8. `apply` acuña captures y repunta un `link`; nunca escribe `accepted`.

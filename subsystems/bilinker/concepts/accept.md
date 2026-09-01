@@ -37,8 +37,8 @@ endpoint:
 |---|---|
 | `agree` | Quiénes aprobaron **estos** valores. Ver "Quiénes aprobaron". |
 | `link` | La ubicación aprobada. Ausente en un endpoint `issue` o `abstract`, que no tienen capture. |
-| `hash` | SHA-256 del fragmento aprobado. |
-| `hash_ast` | SHA-256 de su s-expression. Opcional: ausente donde no hay gramática. |
+| `hash` | SHA-256 del fragmento aprobado — la concatenación de los `@target`, ver [capture](capture.md) § "El fragmento son los `@target`". |
+| `hash_ast` | SHA-256 de su s-expression, y de las de todos sus nodos unidas por `\n` cuando hay más de uno. Opcional: ausente donde no hay gramática. |
 
 **`accepted` está o no está.** Su ausencia *es* `PENDING`, literalmente — no hay que enunciar que los campos de aceptación están presentes juntos o ausentes juntos, porque el bloque no se puede escribir a medias. Lo verifica el tipo: `accepted` sin `hash` es rechazado, y un `hash` suelto afuera del bloque también.
 

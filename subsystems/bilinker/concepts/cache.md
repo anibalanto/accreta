@@ -14,7 +14,7 @@ El criterio es uno solo: **si un valor se puede recalcular, no va en el bilink.*
 
 | Campo | De quién | Qué es |
 |---|---|---|
-| `range` | del capture | Dónde cayó el fragmento en la última resolución. |
+| `range` | del capture | Dónde cayó el fragmento en la última resolución: un tramo `start~end` por `@target`, separados por coma. |
 | `state` | del capture | Si la ubicación resuelve. |
 | `state.N` | del bilink | Si lo que hay coincide con lo aceptado, por endpoint. |
 | `commit` | del bilink | En qué commit el fragmento quedó con el contenido aceptado. |
