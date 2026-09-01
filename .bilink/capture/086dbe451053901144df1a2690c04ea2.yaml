@@ -1,0 +1,6 @@
+file: subsystems/bilinker/commands/chain.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "`--as spring-controller`: el endpoint, no el método"))
+    (section
+    (atx_heading (inline) @n1 (#eq? @n1 "El ancla es la ruta, no el nombre del método"))) @target)
