@@ -63,6 +63,12 @@ Un generador genera una query y desaparece. El capture que queda es **una query 
 
 **Eso lo fuerza el formato, no la disciplina.** El id de un capture es `sha256(file \0 query \0)`; agregarle *"generado por spring-controller"* le cambiaría el id sin cambiar la ubicación. No hay dónde dejar el rastro aunque uno quisiera.
 
+##### Y pasa la misma verificación que una query escrita a mano
+
+Que el capture resultante sea **una query normal** no es sólo una propiedad del formato: es lo que lo somete a la misma [unicidad de la referencia](capture.md#propiedades-garantizadas) que cualquier otra. Un generador que produce una query que matchea más de un nodo **no escribe**, igual que `capture` sobre un ancla sin discriminante.
+
+No es una regla nueva para generadores: es que no hay excepción. Un capture mal anclado *"es peor que uno roto, porque reporta OK sobre una correspondencia que no existe"*, y eso no cambia porque lo haya escrito un plugin — cambia a peor, porque quien lo pidió no vio la query.
+
 ##### Por qué es un nombre y no una flag booleana
 
 Porque hay más de uno. `--as` toma un nombre, y eso hace que **el atajo del núcleo y el plugin se pidan igual**: `--as interface` y `--as spring-controller` son la misma forma. Un `--interface` booleano habría dejado a los plugins como ciudadanos de segunda.
@@ -149,6 +155,32 @@ arguments: (annotation_argument_list) @n1 (#eq? @n1 "(\"/permissions/from-token\
 Es más fiel que anclar por `getPermissions`: **un refactor renombra el método y no la ruta**, y lo que el bilink describe es el contrato. Es el reverso de lo que `1d` observó —*"una ruta no es un buen ancla si no existe como literal"*— porque el pedazo del método **sí** existe como literal.
 
 Por lo mismo **el nombre del método no se captura**: renombrarlo no cambia el contrato del endpoint, y meterlo en el fragmento haría que un refactor interno disparara drift — exactamente lo que este sprint existe para dejar de hacer.
+
+##### Cuando la anotación del método no lleva literal
+
+`@GetMapping` a secas es la mitad de los endpoints de una api real: la ruta la aporta entera el `@RequestMapping` de la clase, y el método no agrega ningún literal. **Ahí no hay ruta que anclar** — el predicado quedaría en el nombre de la anotación, que no distingue un método de sus hermanos:
+
+```
+(marker_annotation name: (identifier) @n1 (#eq? @n1 "GetMapping")) @target
+```
+
+Eso matchea cualquier método de la clase con la misma anotación pelada, y es exactamente el capture mal anclado que la unicidad prohíbe.
+
+**Ahí el ancla es el nombre del método, y sólo el ancla.** Entra como predicado y **no** lleva `@target`:
+
+```
+(method_declaration
+  (modifiers
+    (marker_annotation
+      name: (identifier) @n1 (#eq? @n1 "GetMapping")) @target)
+  name: (identifier) @n2 (#eq? @n2 "getBookingList")
+  type: (generic_type) @target
+  parameters: (formal_parameters) @target)
+```
+
+**Es un reparto que ningún otro generador usa.** [`--as interface`](#--as-interface-la-firma-sin-el-cuerpo) pone el nombre en los dos roles y argumenta que sin el `@target` *"renombrar el método no sería un cambio de contenido sino una relocalización"*. Para un endpoint eso es justamente lo que se quiere: **renombrar el método no cambia el contrato, así que debe ser una relocalización.** Las dos reglas salen del mismo criterio —qué describe el fragmento— y por eso dan distinto.
+
+Lo que cuesta es que renombrar deja el capture `UNRESOLVED` y hay que repuntarlo. No hay salida sin ese costo: en un endpoint sin literal propio **no hay nada más que distinga un método de sus hermanos**, y el precio de no anclar es un vínculo que apunta a otro endpoint y contesta OK.
 
 ##### Y bilinker no sabe de Spring
 
