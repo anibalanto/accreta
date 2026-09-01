@@ -24,6 +24,8 @@ bilinker chain new --tip <STRATUM_PATH[:LINE:COL[,LINE:COL]...]> \
 | `--mid <layer>` | Capa intermedia. Cero o más veces. |
 | `--kind <valor>` | El [`kind`](../concepts/bilink.md) del bilink. |
 | `--name.N <etiqueta>` | El `name` del endpoint N. |
+| `--as.N <modo>` | Qué parte del nodo señalado captura el tip N. Sin esto, el nodo entero. |
+| `--as` | Sin valor: lista los modos disponibles y no hace nada más. |
 | `--dry-run` | Muestra qué capturaría y no escribe nada. |
 | `--yes` | No pregunta. Para scripts y para CI. |
 
@@ -46,6 +48,55 @@ Cada posición resuelve a su nodo igual que una sola —al ancla estable más ce
 **La query se ancla una sola vez.** El nodo raíz del patrón es el ancla estable que contiene a todas las partes, así que las partes quedan ancladas *entre sí*: `@RequestMapping` **de la clase que contiene** al método, y no *"el primer `@RequestMapping` del archivo"*.
 
 Si dos posiciones caen en el mismo nodo, es un nodo: no hay parte repetida.
+
+#### `--as interface`: la firma sin el cuerpo
+
+El atajo del caso común. Señalás **el método** y se captura su firma:
+
+```bash
+bilinker chain new \
+  --tip 'concepts/api.md:12:1' \
+  --as.1 interface --tip '>impl/src/Service.java:16:5'
+```
+
+Sin el atajo habría que señalar el tipo de retorno, el nombre y los parámetros por separado — tres posiciones para algo que el AST ya tiene agrupado.
+
+**Va por tip, con la misma forma que `--name.N`**, porque los dos extremos rara vez se capturan igual: del lado de la spec hay una sección de markdown y del lado del código un método, y un modo global obligaría a que el modo del código valiera también para la prosa.
+
+##### Lo que bilinker sabe, y es poco
+
+Que en un nodo de función hay un campo que es **el cuerpo**, y que la firma es todo lo demás. En tree-sitter eso tiene nombre por gramática —`body` en Java, Rust y TypeScript—, y con eso alcanza: se capturan todos los hijos con nombre del nodo **menos** ése.
+
+No es conocimiento de framework: es de la gramática, y la gramática ya es una dependencia. Es una tabla de la misma clase que las anclas estables, y existe por lo mismo — para que **un lenguaje que no está falle en vez de adivinar**:
+
+```
+$ bilinker chain new --as.1 interface --tip 'spec.md:1:1' --tip 'script.py:10:1'
+Error: `--as interface` no sabe qué es el cuerpo en python.
+       Señalar las partes a mano, o agregar python a la tabla.
+```
+
+Es la misma decisión que `capture` toma cuando no puede identificar un nodo unívocamente: falla antes de escribir, y el error dice qué hacer.
+
+**Un nodo sin cuerpo se captura entero.** No es un caso especial que haya que anunciar: si la gramática no le da campo `body` —la firma de un método en una `interface` de TypeScript—, la firma *es* el nodo.
+
+##### Por qué es un modo y no una flag booleana
+
+Porque hay más de uno. `--as` toma un nombre, y eso hace que **el atajo del núcleo y el plugin se pidan igual**: `--as interface` y `--as spring-controller` son la misma forma. Un `--interface` booleano habría dejado a los plugins como ciudadanos de segunda.
+
+`--as` sin valor lista los modos que hay.
+
+##### El nombre se captura y además ancla
+
+La firma incluye el nombre, y el nombre es además lo que la query usa para encontrar el nodo. Las dos cosas caen sobre el mismo nodo del AST y se escriben juntas:
+
+```
+(method_declaration
+  name: (identifier) @n0 @target (#eq? @n0 "getPermissions")
+  type: (generic_type) @target
+  parameters: (formal_parameters) @target)
+```
+
+No es una redundancia que se pueda sacar. Sin el `@target`, renombrar el método no sería un cambio de contenido sino una relocalización, y el fragmento aceptado dejaría de mencionar cómo se llama lo que describe.
 
 #### La salida deja ver qué se capturó, y qué no
 
