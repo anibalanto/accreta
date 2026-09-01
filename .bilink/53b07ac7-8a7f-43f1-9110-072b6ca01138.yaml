@@ -1,0 +1,6 @@
+kind: governs
+endpoint:
+  0:
+    link: capture 51dea93e8648d82167dba976ad3039f3
+  1:
+    link: path subsystems/bilinker>impl
