@@ -63,7 +63,7 @@ Los dos son **derivados** del lado de bilinker: `state` vive en su cache y `comm
 
 ### `lsp`
 
-Consulta el daemon (`callees`, `callers`) sobre el socket Unix. Implementa `edges_from`, no `edges`: el call graph no se enumera, se expande.
+Consulta a [`lspd`](../../lspd/overview.md) (`callees`, `callers`) por su socket local. Implementa `edges_from`, no `edges`: el call graph no se enumera, se expande.
 
 Requiere resolver el anclaje del nodo antes de preguntar — ver [node.md](node.md) § "Anclaje".
 
