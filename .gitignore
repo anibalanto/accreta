@@ -1,1 +1,7 @@
 .obsidian/
+
+# Las capas son repos aparte y las trae `stratum pull`. La regla es una sola:
+# los seis `.stratum/` del proyecto son de este repo, así que un glob los cubre a
+# todos — a diferencia de `.bilink/`, que lo escribe una herramienta en repos ajenos
+# y por eso lleva su regla adentro.
+**/.stratum/*/

@@ -4,7 +4,9 @@ Los proyectos de Accreta son proyectos Stratum. La convención de capas y sub-pr
 
 ## El worklist es una capa, y tiene repo propio
 
-`accreta/.stratum/worklist-accreta/` sigue exactamente la convención `.stratum/` de Stratum. **No es una capa interna**: es un repo aparte clonado adentro de `.stratum/`, igual que las capas `impl` de cada subsistema, y accreta la ignora con la misma regla — un `.gitignore` con `/*/`.
+`accreta/.stratum/worklist-accreta/` sigue exactamente la convención `.stratum/` de Stratum. **No es una capa interna**: es un repo aparte clonado adentro de `.stratum/`, igual que las capas `impl` de cada subsistema, y accreta la ignora con la misma regla que a ellas — una sola línea, `**/.stratum/*/`, en el `.gitignore` de la raíz.
+
+**Se ignoran las capas, no el `.stratum/`.** Adentro vive también la declaración de cada una, `.<nombre>.toml`, que es lo único que dice de dónde clonarla: es lo que `stratum pull` lee, y tiene que seguir versionada.
 
 Que sea capa y no sub-proyecto hermano es lo que importa para stratum: se llega con `*>worklist-accreta`, y quién la versiona es otra pregunta.
 
