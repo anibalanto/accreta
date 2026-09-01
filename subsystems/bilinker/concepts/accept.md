@@ -29,8 +29,9 @@ endpoint:
       link: capture 67ba7217e0334051becd4921b55a7872
       hash: c00e07602bd560755096b57df1ddb9ed49d816fb8af58a4ec9cde82f21f38db3
       hash_ast: 1b9e44a2f0c8d3e7a5b1c9d4e2f6a8b0c3d5e7f9a1b3c5d7e9f1a3b5c7d9e1f3
-      hash_n1: 96c765b9a3f1e4d7c2b8a5f0e3d6c9b2a7f4e1d8c5b0a3f6e9d2c7b4a1f8e5d0
-      hash_ast_n1: 88e834c4b1a7f2e5d0c3b6a9f4e7d2c5b8a1f6e3d0c7b4a9f2e5d8c1b6a3f0e7
+      n1:
+        hash: 96c765b9a3f1e4d7c2b8a5f0e3d6c9b2a7f4e1d8c5b0a3f6e9d2c7b4a1f8e5d0
+        hash_ast: 88e834c4b1a7f2e5d0c3b6a9f4e7d2c5b8a1f6e3d0c7b4a9f2e5d8c1b6a3f0e7
   1:
     link: path >impl
 ```
@@ -41,9 +42,27 @@ endpoint:
 | `link` | La ubicación aprobada. Ausente en un endpoint `issue` o `abstract`, que no tienen capture. |
 | `hash` | SHA-256 del fragmento aprobado — la concatenación de los `@target`, ver [capture](capture.md) § "El fragmento son los `@target`". |
 | `hash_ast` | SHA-256 de su s-expression, y de las de todos sus nodos unidas por `\n` cuando hay más de uno. Opcional: ausente donde no hay gramática. |
-| `hash_n1` | SHA-256 plegado del **vecindario**: los tipos que la firma menciona. Opcional. Ver § "El cierre de firma". |
-| `hash_ast_n1` | Ídem sobre las s-expressions de esos vecinos. Opcional, y **todo-o-nada**. |
-| `n1` | `declined` cuando alguien aceptó renunciando al vecindario. Presente sólo en ese caso. Ver § "Cuándo se adquiere el vecindario". |
+| `n1` | El **vecindario**: los tipos que la firma menciona. Tres estados, ver abajo. |
+
+### `n1` es un campo con tres estados, no tres campos
+
+El vecindario tiene **una** respuesta, y por eso es **un** campo:
+
+```yaml
+n1:                      # se adquirió
+  hash: 96c765b9…
+  hash_ast: 88e834c4…    # opcional adentro, y todo-o-nada
+
+n1: declined             # alguien renunció, a propósito
+
+                         # ausente: el fragmento no tiene firma resoluble
+```
+
+Escrito como tres campos sueltos —`hash_n1`, `hash_ast_n1` y un `n1` aparte— quedaban representables tres combinaciones que no significan nada: un fold de ASTs sin el fold de textos que lo acompaña, y una renuncia conviviendo con el valor al que se renunció. **Que ningún código las produzca no es lo mismo que que no se puedan escribir**, y el YAML lo escribe cualquiera a mano.
+
+Plegado, `hash_ast` no puede estar sin su `hash` porque vive adentro del mismo objeto, y `declined` no puede convivir con un hash porque son variantes del mismo campo.
+
+**Y generaliza.** El día que haga falta un nivel 2, es un campo hermano con la misma forma —`n2:`— y no dos campos más. Campos hermanos y no un mapa por nivel: agregar un nivel es una decisión discreta, la misma que hoy justifica clavar la profundidad en 1.
 
 **`accepted` está o no está.** Su ausencia *es* `PENDING`, literalmente — no hay que enunciar que los campos de aceptación están presentes juntos o ausentes juntos, porque el bloque no se puede escribir a medias. Lo verifica el tipo: `accepted` sin `hash` es rechazado, y un `hash` suelto afuera del bloque también.
 
@@ -53,7 +72,7 @@ endpoint:
 
 Un fragmento no es sólo un árbol de sintaxis: **devuelve un tipo**. Con el capture de contrato de [`capture.md`](capture.md), la firma entra en `hash` y un cambio de tipo de retorno se detecta. Lo que no se ve es que el tipo **siga llamándose igual y tenga otros campos** — que es exactamente lo que rompió al consumidor que motivó todo esto.
 
-`hash_n1` y `hash_ast_n1` cubren esa fila, y una sola: **el vecindario de nivel 1.**
+`n1` cubre esa fila, y una sola: **el vecindario de nivel 1.**
 
 ### No recursa, y está en el nombre
 
@@ -77,23 +96,23 @@ Un solo orden, y dos folds sobre ese orden:
 orden = los vecinos por su identidad — <layer-root>::<path> más el nombre del símbolo,
         byte-wise sobre el UTF-8. Esa clave ordena y no entra en ningún hash.
 
-hash_n1     = H( hash(v)     de cada vecino, en ese orden )
-hash_ast_n1 = H( hash_ast(v) de cada vecino, en ese orden )
+n1.hash     = H( hash(v)     de cada vecino, en ese orden )
+n1.hash_ast = H( hash_ast(v) de cada vecino, en ese orden )
 ```
 
-**La clave de orden tiene que ser identidad, nunca contenido.** Ordenando por el texto, un reformateo le cambiaría el puesto a un vecino, la lista se reordenaría, y `hash_ast_n1` se movería sin que ningún AST cambiara — un falso *"cambió de verdad"* producido por el orden. Ordenando por identidad nadie se mueve de puesto salvo que un vecino **entre, salga o se renombre**, y esas tres cosas son cambios de contrato.
+**La clave de orden tiene que ser identidad, nunca contenido.** Ordenando por el texto, un reformateo le cambiaría el puesto a un vecino, la lista se reordenaría, y `n1.hash_ast` se movería sin que ningún AST cambiara — un falso *"cambió de verdad"* producido por el orden. Ordenando por identidad nadie se mueve de puesto salvo que un vecino **entre, salga o se renombre**, y esas tres cosas son cambios de contrato.
 
 Tampoco puede ordenar el rango: lleva offsets de bytes, que se corren con cualquier edición más arriba del archivo.
 
 **Los vecinos se hashean con el mismo recorte de bordes que un fragmento.** Es la regla de [`capture.md`](capture.md) § "El rango excluye el espacio que rodea al nodo", y vale igual acá: un vecino sin recortar mueve su hash cuando le agregan algo abajo.
 
-### `hash_ast_n1` es todo-o-nada
+### `n1.hash_ast` es todo-o-nada
 
-Si un vecino no tiene gramática no tiene `hash_ast`, y **no puede quedar afuera del fold**: un cambio real en ese vecino movería `hash_n1` y no `hash_ast_n1`, y eso se leería como *"sólo formateo"* cuando no lo fue. Un falso `RESTYLED` es peor que ningún estado.
+Si un vecino no tiene gramática no tiene `hash_ast`, y **no puede quedar afuera del fold**: un cambio real en ese vecino movería `n1.hash` y no `n1.hash_ast`, y eso se leería como *"sólo formateo"* cuando no lo fue. Un falso `RESTYLED` es peor que ningún estado.
 
-Así que el campo está presente sólo si **todos** los vecinos tienen gramática. Si a alguno le falta, está ausente, y cualquier cambio en `hash_n1` es un cambio real. Es el mismo espíritu que la regla de `hash_ast`: falla hacia reportar, no hacia callarse.
+Así que el campo está presente sólo si **todos** los vecinos tienen gramática. Si a alguno le falta, está ausente, y cualquier cambio en `n1.hash` es un cambio real. Es el mismo espíritu que la regla de `hash_ast`: falla hacia reportar, no hacia callarse.
 
-`hash_n1` también es opcional — ausente donde el fragmento no tiene firma resoluble, que es prosa, un DTO, o un lenguaje sin anotaciones de tipo.
+`n1` entero también es opcional — ausente donde el fragmento no tiene firma resoluble, que es prosa, un DTO, o un lenguaje sin anotaciones de tipo.
 
 ### Los vecinos no son captures
 
@@ -121,19 +140,19 @@ pub trait Neighbours {
 
 El puerto puede contestar `None` —*"no pude mirar"*— y ahí hay que decidir qué se escribe. **La regla es una: una falla de infraestructura no puede reducir la cobertura de un vínculo.**
 
-Que un fragmento *tenga* vecindario se sabe por la gramática y no por el proveedor: es si su firma es resoluble. Así que bilinker distingue sin daemon los dos motivos por los que no habría `hash_n1` que calcular, y sólo el segundo es un problema.
+Que un fragmento *tenga* vecindario se sabe por la gramática y no por el proveedor: es si su firma es resoluble. Así que bilinker distingue sin daemon los dos motivos por los que no habría vecindario que calcular, y sólo el segundo es un problema.
 
 Y hay un dato más que se sabe sin daemon: **el conjunto de vecinos lo determina la firma, y la firma está en el fragmento.** Con el [capture de contrato](capture.md) el `hash` del fragmento es el de la firma, así que un `hash` que no se movió es el mismo conjunto de vecinos — aunque su contenido no se haya podido mirar.
 
-| Ya hay `hash_n1` aceptado | Se pudo resolver | Cambió la firma | Qué se escribe |
+| Ya hay `n1` adquirido | Se pudo resolver | Cambió la firma | Qué se escribe |
 |---|---|---|---|
-| no | sí | — | `hash_n1` calculado |
+| no | sí | — | `n1` calculado |
 | no | **no** | — | nada, y `accept` falla |
-| sí | sí | — | `hash_n1` recalculado |
-| sí | **no** | **no** | **el `hash_n1` que ya estaba**, intacto |
+| sí | sí | — | `n1` recalculado |
+| sí | **no** | **no** | **el `n1` que ya estaba**, intacto |
 | sí | **no** | **sí** | nada, y `accept` falla |
 
-**La cuarta fila es la que evita el daño.** Preservar es estrictamente más seguro que borrar: si un vecino cambió mientras el proveedor estaba caído, el `hash_n1` viejo sigue ahí y el próximo cierre con proveedor lo reporta. Borrándolo, ese cambio se absorbe en el baseline nuevo y **deja de ser detectable para siempre**.
+**La cuarta fila es la que evita el daño.** Preservar es estrictamente más seguro que borrar: si un vecino cambió mientras el proveedor estaba caído, el `n1` viejo sigue ahí y el próximo cierre con proveedor lo reporta. Borrándolo, ese cambio se absorbe en el baseline nuevo y **deja de ser detectable para siempre**.
 
 **Y la quinta es la única donde preservar sería mentir**: si la firma cambió, el conjunto de vecinos pudo cambiar con ella, y el valor viejo es sobre un conjunto que ya no es el de hoy.
 
@@ -143,7 +162,7 @@ No es un mecanismo nuevo: [`--place` y `--content`](#--place-y---content) ya ace
 
 Renunciar al vecindario tiene que poder decirse, y las dos filas que fallan se destraban [declarándolo](../commands/accept.md#--no-n1). Eso escribe `n1: declined`, y **el campo no es cosmético: sin él se rompe la invariante 4.**
 
-Sin marca, el mismo fragmento en el mismo estado produce un `accepted` **con** `hash_n1` o **sin** él según si había un language server prendido en esa máquina. La determinación la tomaría el ambiente, que no es parte del estado del fragmento. Y se lleva puesta la propiedad que puso a `hash_n1` en `accepted` y no en la cache: que *"dos personas que aceptan el mismo vecindario en el mismo estado escriben el mismo valor"*.
+Sin marca, el mismo fragmento en el mismo estado produce un `accepted` **con** `n1` adquirido o **sin** él según si había un language server prendido en esa máquina. La determinación la tomaría el ambiente, que no es parte del estado del fragmento. Y se lleva puesta la propiedad que puso a `n1` en `accepted` y no en la cache: que *"dos personas que aceptan el mismo vecindario en el mismo estado escriben el mismo valor"*.
 
 Con la marca, quien decide es el flag —igual que `--place` y `--content`— y la convergencia vuelve: dos personas que renuncian escriben lo mismo, y quien no renuncia no puede escribir un baseline mudo sin saberlo.
 
@@ -157,7 +176,7 @@ Con la marca, quien decide es el flag —igual que `--place` y `--content`— y 
 
 Dos razones, y las dos son las que decidieron dónde va cada campo del formato.
 
-**La frontera.** Lo que cruza entre repos es la copia opaca de `accepted` del endpoint `repo`. Si `hash_n1` no está ahí, **no cruza** — y el caso que motiva todo esto se queda sin el mecanismo que lo entrega al consumidor.
+**La frontera.** Lo que cruza entre repos es la copia opaca de `accepted` del endpoint `repo`. Si `n1` no está ahí, **no cruza** — y el caso que motiva todo esto se queda sin el mecanismo que lo entrega al consumidor.
 
 **No es recuperable.** Reconstruirlo pediría un language server indexando un checkout histórico, que puede ni buildear. Ahí está la diferencia con [`commit`](cache.md), que se queda en la cache porque su recuperación es *"más lento, nunca no disponible"*. **Un valor cuya reconstrucción depende de infraestructura que puede no estar no es un derivado: es una decisión.**
 
@@ -171,8 +190,8 @@ Dos ejes independientes, y las cuatro combinaciones dicen cosas distintas:
 |---|---|
 | `hash` | el fragmento se reformateó |
 | `hash` + `hash_ast` | el proveedor cambió lo que el fragmento dice |
-| `hash_n1` | el vecindario se reformateó |
-| `hash_n1` + `hash_ast_n1` | **un vecino cambió: el contrato se movió** |
+| `n1.hash` | el vecindario se reformateó |
+| `n1.hash` + `n1.hash_ast` | **un vecino cambió: el contrato se movió** |
 
 La última es el caso que motivó todo: el método intacto, el DTO movido.
 
@@ -289,5 +308,5 @@ Un `accept .` sobre una capa recién cambiada fabrica aprobaciones que nadie mir
 8. `agree` no participa de ninguna comparación de estado ni de ningún hash. `OK` no depende de cuántos aprobaron.
 9. Un `accept` que cambia algún valor deja `agree` con quien aceptó y nadie más; uno que no los cambia lo agrega al set que había.
 10. Un commit sobre la ref sólo agrega a **su propio autor** a un `agree`. Sacar no está restringido: agregar es lo único que afirma algo sobre otra persona.
-11. **Ningún `accept` reduce la cobertura de un endpoint sin que alguien lo haya pedido.** Que el proveedor de vecindario no conteste nunca borra un `hash_n1` aceptado: o se preserva, o `accept` falla.
-12. Un `accepted` sin `hash_n1` y sin `n1` afirma que el fragmento **no tiene firma resoluble**. La renuncia se escribe, no se omite.
+11. **Ningún `accept` reduce la cobertura de un endpoint sin que alguien lo haya pedido.** Que el proveedor de vecindario no conteste nunca borra un `n1` adquirido: o se preserva, o `accept` falla.
+12. Un `accepted` **sin** `n1` afirma que el fragmento **no tiene firma resoluble**. La renuncia se escribe, no se omite.
