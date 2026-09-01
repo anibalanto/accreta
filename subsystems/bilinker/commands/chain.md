@@ -49,6 +49,38 @@ Cada posición resuelve a su nodo igual que una sola —al ancla estable más ce
 
 Si dos posiciones caen en el mismo nodo, es un nodo: no hay parte repetida.
 
+#### `--as`: quién genera la query
+
+Sin `--as`, la query la genera el núcleo y captura los nodos señalados enteros. Con `--as <nombre>`, la genera **un generador**: `interface`, que es del núcleo, o un plugin como `spring-controller`.
+
+**Va por tip, con la misma forma que `--name.N`**, porque los dos extremos rara vez se capturan igual: del lado de la spec hay una sección de markdown y del lado del código un método, y un modo global obligaría a que el modo del código valiera también para la prosa.
+
+**Un generador toma una posición.** Genera *la* query de *eso* que señalaste, y dos cosas señaladas son dos contratos, no uno con dos mitades. Sin `--as`, las posiciones siguen siendo las que quieras.
+
+##### Y no deja rastro
+
+Un generador genera una query y desaparece. El capture que queda es **una query normal**: no dice quién lo generó, no depende de que el generador exista, y se podría haber escrito señalando las posiciones a mano.
+
+**Eso lo fuerza el formato, no la disciplina.** El id de un capture es `sha256(file \0 query \0)`; agregarle *"generado por spring-controller"* le cambiaría el id sin cambiar la ubicación. No hay dónde dejar el rastro aunque uno quisiera.
+
+##### Por qué es un nombre y no una flag booleana
+
+Porque hay más de uno. `--as` toma un nombre, y eso hace que **el atajo del núcleo y el plugin se pidan igual**: `--as interface` y `--as spring-controller` son la misma forma. Un `--interface` booleano habría dejado a los plugins como ciudadanos de segunda.
+
+`--as` sin valor lista los que hay.
+
+##### El modo se pide; no se adivina
+
+Un generador sabe decir si tiene algo que decir sobre un nodo, y eso sirve para **sugerir**, nunca para elegir:
+
+```
+$ bilinker chain new --tip 'concepts/api.md:12:1' --tip '>impl/src/Ctl.java:16:5'
+…
+sugerencia: `--as.1 spring-controller` compone la ruta y deja el cuerpo afuera
+```
+
+Un generador que acierta cuando no querías **ya te escribió otra cosa**, y un capture es opaco después. Es la misma línea que el proyecto sostiene en otros lados: bilinker arregla solo lo que es suyo, y pide lo que es del repo de otro.
+
 #### `--as interface`: la firma sin el cuerpo
 
 El atajo del caso común. Señalás **el método** y se captura su firma:
@@ -60,8 +92,6 @@ bilinker chain new \
 ```
 
 Sin el atajo habría que señalar el tipo de retorno, el nombre y los parámetros por separado — tres posiciones para algo que el AST ya tiene agrupado.
-
-**Va por tip, con la misma forma que `--name.N`**, porque los dos extremos rara vez se capturan igual: del lado de la spec hay una sección de markdown y del lado del código un método, y un modo global obligaría a que el modo del código valiera también para la prosa.
 
 ##### Lo que bilinker sabe, y es poco
 
@@ -79,12 +109,6 @@ Es la misma decisión que `capture` toma cuando no puede identificar un nodo un�
 
 **Un nodo sin cuerpo se captura entero.** No es un caso especial que haya que anunciar: si la gramática no le da campo `body` —la firma de un método en una `interface` de TypeScript—, la firma *es* el nodo.
 
-##### Por qué es un modo y no una flag booleana
-
-Porque hay más de uno. `--as` toma un nombre, y eso hace que **el atajo del núcleo y el plugin se pidan igual**: `--as interface` y `--as spring-controller` son la misma forma. Un `--interface` booleano habría dejado a los plugins como ciudadanos de segunda.
-
-`--as` sin valor lista los modos que hay.
-
 ##### El nombre se captura y además ancla
 
 La firma incluye el nombre, y el nombre es además lo que la query usa para encontrar el nodo. Las dos cosas caen sobre el mismo nodo del AST y se escriben juntas:
@@ -97,6 +121,38 @@ La firma incluye el nombre, y el nombre es además lo que la query usa para enco
 ```
 
 No es una redundancia que se pueda sacar. Sin el `@target`, renombrar el método no sería un cambio de contenido sino una relocalización, y el fragmento aceptado dejaría de mencionar cómo se llama lo que describe.
+
+#### `--as spring-controller`: el endpoint, no el método
+
+Señalás **sólo el método** y el plugin va a buscar lo demás:
+
+```bash
+bilinker chain new \
+  --tip 'concepts/api.md:12:1' \
+  --as.1 spring-controller --tip '>impl/src/HSIPublicApiUsersRestImpl.java:16:5'
+```
+
+- sube a la clase y toma el `@RequestMapping`
+- baja al método y toma su anotación de ruta —`@GetMapping`, `@PostMapping`, …
+- toma el tipo de retorno y los parámetros
+
+**Cuatro fragmentos de una sola posición.** Y con eso entra la ruta compuesta, que es lo que [`1d`](../../../.stratum/worklist/1d.task.md) diagnosticó y no tenía salida: sale de un `@RequestMapping` de clase más un `@GetMapping` de método, y el literal completo no aparece en ningún lado del archivo.
+
+##### El ancla es la ruta, no el nombre del método
+
+El generador elige qué predicado escribe, y para un controller ancla por el literal de la anotación de ruta:
+
+```
+arguments: (annotation_argument_list) @n1 (#eq? @n1 "(\"/permissions/from-token\")")
+```
+
+Es más fiel que anclar por `getPermissions`: **un refactor renombra el método y no la ruta**, y lo que el bilink describe es el contrato. Es el reverso de lo que `1d` observó —*"una ruta no es un buen ancla si no existe como literal"*— porque el pedazo del método **sí** existe como literal.
+
+Por lo mismo **el nombre del método no se captura**: renombrarlo no cambia el contrato del endpoint, y meterlo en el fragmento haría que un refactor interno disparara drift — exactamente lo que este sprint existe para dejar de hacer.
+
+##### Y bilinker no sabe de Spring
+
+El plugin sí, y es todo lo que sabe: qué anotaciones marcan una ruta y dónde vive cada una. Está en un archivo, detrás del mismo trait que usa `interface`, y agregar otro framework es agregar otro archivo.
 
 #### La salida deja ver qué se capturó, y qué no
 
