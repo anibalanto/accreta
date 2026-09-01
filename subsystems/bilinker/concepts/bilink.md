@@ -153,6 +153,15 @@ Un endpoint puede desalinearse en dos dimensiones —dónde está y qué dice—
 | `ALTERED` | El contenido cambió | revisar + `bilinker accept` |
 | `EXPANDED` | El fragmento creció alrededor de lo aceptado | `bilinker apply` + `accept` |
 | `UNRESOLVED` | El capture referenciado no resuelve | `bilinker apply` o `recapture` |
+| `CONTRACT_RESTYLED` | El vecindario se reformateó y su AST no cambió | `bilinker accept` |
+| `CONTRACT_ALTERED` | Un vecino cambió: **el contrato se movió** | revisar + `bilinker accept` |
+| `CONTRACT_UNVERIFIED` | Hay `hash_n1` aceptado y **nadie pudo resolver el vecindario** | levantar el proveedor · o nada |
+
+**Los tres últimos son de un eje aparte**: no hablan del fragmento sino de [los tipos que su firma menciona](accept.md#el-cierre-de-firma). Llevan prefijo por eso — `ALTERED` y `CONTRACT_ALTERED` no son grados de lo mismo, son dos preguntas.
+
+**Y sólo aparecen cuando el eje del contenido dice `OK`.** Un endpoint tiene un estado y no dos, así que hay que elegir cuál nombrar: si el fragmento mismo cambió, eso se reporta y alguien va a mirar igual. Lo que el eje del vecindario aporta es justamente el caso donde **el fragmento no cambió** y aun así el contrato se movió.
+
+**`CONTRACT_UNVERIFIED` no sale con 1.** Es de la familia de `LAYER_UNREACHABLE` y `REMOTE_UNREACHABLE` — *no pude ver el otro lado*—, y no es trabajo pendiente de nadie: un `check` sin daemon es un modo de operación normal, no un repo en mal estado.
 
 **`RELOCATED` sale con 1.** Es la contrapartida de que `apply` ya no devuelve un endpoint a `OK`: mover un vínculo a otro fragmento es una decisión, y una decisión sin aprobar es trabajo pendiente.
 
