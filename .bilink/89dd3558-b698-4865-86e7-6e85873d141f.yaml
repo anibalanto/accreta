@@ -9,3 +9,9 @@ endpoint:
       hash: d9f1bce9831a92fa28bd25347b1bdd5d9a04f3f61de58c22134da0c3b7bab1eb
   1:
     link: path subsystems/lspd>impl
+    accepted:
+      agree:
+      - Anibal
+      link: capture 7a5319dd5b0c5810afba2b2890a18897
+      hash: 17d961005cbfd8887ac61eff4b68bd5d5a192d07a852c468d22180b035618634
+      hash_ast: b907bbf600409e22113b064f1022da4000d047fb1e9a4e3a43f23da825381568
