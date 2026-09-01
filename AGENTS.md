@@ -1,6 +1,8 @@
 # Accreta
 
-Specs de un ecosistema de herramientas: **bilinker** (referencias verificadas entre fragmentos), **stratum** (capas), **lattice** (grafo), **impact**, **worklist**. Cada subsistema tiene sus specs acá y su implementación Rust en `subsystems/<nombre>/.stratum/impl/`, que es un repo git independiente y gitignoreado por su padre.
+Specs de un ecosistema de herramientas: **bilinker** (referencias verificadas entre fragmentos), **stratum** (capas), **lattice** (grafo), **lspd** (multiplexor de language servers), **impact**, **worklist**. Cada subsistema tiene sus specs acá y su implementación Rust en `subsystems/<nombre>/.stratum/impl/`, que es un repo git independiente y gitignoreado por su padre.
+
+**Las capas se traen con `stratum pull`**, que lee la declaración de cada una en `.stratum/.<nombre>.toml`. La de `impact` **no está declarada porque su repo no está publicado**: existe sólo local, con su ADR adentro.
 
 ## Dónde está el trabajo
 
