@@ -2,5 +2,10 @@ kind: governs
 endpoint:
   0:
     link: capture 6a2053a012e6c42c65edbba120d998b2
+    accepted:
+      agree:
+      - Anibal
+      link: capture 6a2053a012e6c42c65edbba120d998b2
+      hash: 50fb213a11b920a03ed3c2054d320d831f6b74b274e8bd42b129c8cd01c18e79
   1:
     link: path subsystems/lspd>impl
