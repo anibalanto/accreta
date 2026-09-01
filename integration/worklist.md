@@ -7,7 +7,7 @@ Worklist es la capa de tracking de trabajo de Accreta. La relación es bidirecci
 Cuando una Iteration es aceptada, puede generar automáticamente Tasks en worklist linkedeadas a los fragmentos de spec que cambiaron:
 
 ```
-Iteration aceptada → Tasks en .stratum/worklist/ con bilinks a spec actualizada
+Iteration aceptada → Tasks en .stratum/worklist-accreta/ con bilinks a spec actualizada
 ```
 
 ## De worklist hacia Accreta

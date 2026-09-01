@@ -1,9 +1,11 @@
 ---
 name: worklist
-description: "Cómo leer y mover el trabajo de este proyecto — épicas, user stories, tasks y sprints en `.stratum/worklist/`. Cargar esta skill cuando haya que saber qué sigue, qué hay en el sprint actual, qué está en el backlog, dónde está una tarea, o al crear o mover un ítem. También al planificar o repartir trabajo."
+description: "Cómo leer y mover el trabajo de este proyecto — épicas, user stories, tasks y sprints en `.stratum/worklist-accreta/`. Cargar esta skill cuando haya que saber qué sigue, qué hay en el sprint actual, qué está en el backlog, dónde está una tarea, o al crear o mover un ítem. También al planificar o repartir trabajo."
 ---
 
-El trabajo vive en `<project-root>/.stratum/worklist/`. Spec completa en [`subsystems/worklist/`](../../../subsystems/worklist/concepts/item.md) — acá va lo operativo.
+El trabajo vive en `<project-root>/.stratum/worklist-accreta/`, que es **una capa con repo propio** — un clon de accreta no la trae. Spec completa en [`subsystems/worklist/`](../../../subsystems/worklist/concepts/item.md) — acá va lo operativo.
+
+El nombre lleva el proyecto porque el worklist es de accreta y la herramienta no. La convención es el prefijo: la capa de worklist de un proyecto es su `.stratum/worklist*`, y así la busca `bilinker` para resolver un endpoint `issue`.
 
 ## Qué hay
 

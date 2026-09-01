@@ -136,7 +136,7 @@ bilinker chain new \
 - baja al método y toma su anotación de ruta —`@GetMapping`, `@PostMapping`, …
 - toma el tipo de retorno y los parámetros
 
-**Cuatro fragmentos de una sola posición.** Y con eso entra la ruta compuesta, que es lo que [`1d`](../../../.stratum/worklist/1d.task.md) diagnosticó y no tenía salida: sale de un `@RequestMapping` de clase más un `@GetMapping` de método, y el literal completo no aparece en ningún lado del archivo.
+**Cuatro fragmentos de una sola posición.** Y con eso entra la ruta compuesta, que es lo que [`1d`](../../../.stratum/worklist-accreta/1d.task.md) diagnosticó y no tenía salida: sale de un `@RequestMapping` de clase más un `@GetMapping` de método, y el literal completo no aparece en ningún lado del archivo.
 
 ##### El ancla es la ruta, no el nombre del método
 

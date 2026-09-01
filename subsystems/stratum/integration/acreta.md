@@ -8,4 +8,6 @@ Un proyecto Accreta es una carpeta de specs con sub-proyectos hermanos y capas i
 
 ## Worklist como capa de Accreta
 
-`accreta/.stratum/worklist/` es una capa interna del proyecto principal Accreta, siguiendo la convención `.stratum/`. Es el lugar donde viven los ítems de worklist del ecosistema completo.
+`accreta/.stratum/worklist-accreta/` es una capa del proyecto principal Accreta, siguiendo la convención `.stratum/`. Es el lugar donde viven los ítems de worklist del ecosistema completo.
+
+**Tiene repo propio**, así que para stratum es el mismo caso que una capa `impl`: se llega con `*>worklist-accreta`, y si no está clonada la capa falta. Quién la versiona no cambia cómo se navega.
