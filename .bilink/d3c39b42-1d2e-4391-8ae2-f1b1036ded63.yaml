@@ -2,5 +2,10 @@ kind: governs
 endpoint:
   0:
     link: capture dea1123dcd52adcd9461d152f0f15111
+    accepted:
+      agree:
+      - Anibal
+      link: capture dea1123dcd52adcd9461d152f0f15111
+      hash: e5e13da790edbafceff5ba6c6acc6b29933dacf500227857dad85a2e9b858ef5
   1:
     link: path subsystems/bilinker>impl
