@@ -16,4 +16,4 @@ Plataforma distribuida y open-source para la especificación colaborativa de sof
 
 ## Licencia
 
-[LICENSE](LICENSE)
+`MIT OR Apache-2.0`, a elección de quien lo use — [LICENSE-MIT](LICENSE-MIT) · [LICENSE-APACHE](LICENSE-APACHE)
