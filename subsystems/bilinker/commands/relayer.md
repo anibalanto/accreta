@@ -70,4 +70,4 @@ commit:  refs/bilink/… @ f2a6ca1
 
 ## Lo que no hace
 
-**No decide si una capa debería serlo.** Eso lo dice stratum, y bilinker no lo consulta — [`1w`](../../../.stratum/worklist/1w.task.md) deja abierto si `check` debería avisar al encontrar un `.bilink/` bajo la capa actual que no corresponde a una capa declarada. Este comando arregla el caso; no lo detecta.
+**No decide si una capa debería serlo.** Eso lo dice stratum, y bilinker no lo consulta — [`1w`](../../../.stratum/worklist-accreta/1w.task.md) deja abierto si `check` debería avisar al encontrar un `.bilink/` bajo la capa actual que no corresponde a una capa declarada. Este comando arregla el caso; no lo detecta.

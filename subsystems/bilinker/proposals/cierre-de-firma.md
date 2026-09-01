@@ -20,7 +20,7 @@ El documento arranca por la respuesta general. Si lo que se busca es sólo que *
 
 ## Lo que la evidencia dice que importa
 
-El caso de [`1d`](../../../.stratum/worklist/1d.task.md): `retinar` consume un endpoint de `hsi` con el DTO equivocado. Lo que hay que notar es **qué habría detectado cada cosa**:
+El caso de [`1d`](../../../.stratum/worklist-accreta/1d.task.md): `retinar` consume un endpoint de `hsi` con el DTO equivocado. Lo que hay que notar es **qué habría detectado cada cosa**:
 
 | Qué se hashea | ¿Detecta el problema? |
 |---|---|
@@ -188,7 +188,7 @@ Lo que **no** cubre: la ruta. Si `hsi` mueve el endpoint sin tocar el DTO, el co
 
 El `openapi.json` de springdoc **es** el contrato: lo emite el mismo framework que sirve las rutas, así que no puede divergir de lo que se sirve — a diferencia de un DTO espejado a mano, que es exactamente lo que se desincronizó en `retinar`.
 
-Y tiene una ventaja que el código Java no puede dar: **ahí la ruta es una clave literal.** En el fuente, `/public-api/user/permissions/from-token` no existe como string — se compone de un `@RequestMapping` de clase y un `@GetMapping` de método, y por eso [`1d`](../../../.stratum/worklist/1d.task.md) lo dio por inexistente en la primera pasada. En el JSON generado es una clave de objeto, que es un ancla estable de las que [`reference.md`](../concepts/reference.md) ya recomienda.
+Y tiene una ventaja que el código Java no puede dar: **ahí la ruta es una clave literal.** En el fuente, `/public-api/user/permissions/from-token` no existe como string — se compone de un `@RequestMapping` de clase y un `@GetMapping` de método, y por eso [`1d`](../../../.stratum/worklist-accreta/1d.task.md) lo dio por inexistente en la primera pasada. En el JSON generado es una clave de objeto, que es un ancla estable de las que [`reference.md`](../concepts/reference.md) ya recomienda.
 
 **El costo no es la gramática.** Agregar tree-sitter-json es barato. El costo es que el `openapi.json` **hay que commitearlo**, y hoy no lo está: springdoc lo genera en runtime.
 

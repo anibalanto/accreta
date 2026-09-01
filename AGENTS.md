@@ -4,7 +4,9 @@ Specs de un ecosistema de herramientas: **bilinker** (referencias verificadas en
 
 ## Dónde está el trabajo
 
-En `.stratum/worklist/` — épicas, user stories, tasks y sprints. Para saber qué sigue: el sprint con `status: in-progress` en `_sprints/` —o, si no hay ninguno, el próximo `open` por número—, y de ahí a los ítems que referencia.
+En `.stratum/worklist-accreta/` — épicas, user stories, tasks y sprints. Para saber qué sigue: el sprint con `status: in-progress` en `_sprints/` —o, si no hay ninguno, el próximo `open` por número—, y de ahí a los ítems que referencia.
+
+**Es una capa con repo propio**, `git@github.com:anibalanto/worklist-accreta.git`, igual que las capas impl de cada subsistema. Un clon de accreta no la trae: `stratum pull` sí. El nombre lleva el proyecto porque el worklist es de accreta y la herramienta no — la spec del formato está en `subsystems/worklist/` y no nombra a nadie.
 
 Guía operativa del formato: `.claude/skills/worklist/SKILL.md`. Spec completa: `subsystems/worklist/`.
 
@@ -12,7 +14,7 @@ Las decisiones que ese trabajo ejecuta viven en `docs/adr/` de la capa impl del 
 
 ## Cómo se trabaja acá
 
-0. **Primero hay una tarea.** Ninguna modificación al repo empieza sin un ítem en `.stratum/worklist/`.
+0. **Primero hay una tarea.** Ninguna modificación al repo empieza sin un ítem en `.stratum/worklist-accreta/`.
 1. Se toca **la spec**, nunca el código primero.
 2. `bilinker check .` reporta los endpoints que quedaron no-OK.
 3. Cada no-OK es un puntero al fragmento de código que implementaba esa spec. Se sigue con `bilinker get`.
