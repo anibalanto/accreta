@@ -1,16 +1,16 @@
 kind: governs
 endpoint:
-  0:
+  '0':
     link: capture f5fc5981442309c40934b95997874fcd
     accepted:
-      agree:
+    - agree:
       - Anibal
       link: capture f5fc5981442309c40934b95997874fcd
       hash: 89aa2bdcd03fb7060daf5ff91324a1ae55e0fe4bab6504f05f8438538a53da3f
-  1:
+  '1':
     link: path subsystems/bilinker>impl
     accepted:
-      agree:
+    - agree:
       - Anibal
       link: capture 1cf61fdef81bbd01b0a34eb89ed2af52
       hash: 5c9ddb22af48479da86183d302ff626940ebf7866e2b200a958140b97b8e58ae

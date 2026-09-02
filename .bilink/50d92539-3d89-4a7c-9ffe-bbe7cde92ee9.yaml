@@ -1,16 +1,16 @@
 kind: governs
 endpoint:
-  0:
+  '0':
     link: capture ad3e790aeb3fa828014ce04e401a8e2e
     accepted:
-      agree:
+    - agree:
       - Anibal
       link: capture ad3e790aeb3fa828014ce04e401a8e2e
       hash: 649b484d701c69c0987bbbb28ae478cf576e37d4ac882a0277f70066d54ad4d9
-  1:
+  '1':
     link: path subsystems/lspd>impl
     accepted:
-      agree:
+    - agree:
       - Anibal
       link: capture 85c498e1cf7f8063a6c265e864e8c77c
       hash: 3eb1908d4cb4c0dc1af6c35da586b401a99f68e758f9e96263bd5fc3876bceac
