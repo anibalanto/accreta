@@ -26,6 +26,21 @@ La tabla dice qué ejecutable buscar. **Lo que no dice, y hace falta, es qué ne
 
 **Sigue siendo una tabla, y por eso entra acá.** Es un dato por servidor —una constante, no una decisión—, y agregar un lenguaje sigue siendo agregar una fila. Lo que cambia es que la fila tiene dos casillas en vez de una.
 
+### Y una más: con cuánta memoria se lo lanza
+
+Un proceso hijo que no recibe un límite hereda el que el runtime del servidor calcule solo, y **eso no es cero: es lo que ese runtime decida por su cuenta.** La JVM que corre `jdtls` fija su heap máximo en **un cuarto de la RAM de la máquina** —7,8 GB en una de 32 GB— y arranca reservando 1 GB. Ninguno de los dos números los eligió `lspd`, y el primero cambia de máquina en máquina.
+
+| Servidor | Con cuánto se lo lanza |
+|---|---|
+| `jdtls` | `--jvm-arg=-Xmx2G`. Sin eso, el techo es un cuarto de la RAM de la máquina y escala con ella |
+| los demás | nada: no exponen un techo, y el suyo no crece con la máquina |
+
+**Un techo que escala con la máquina es un techo que no protege a ninguna.** El daño no es que un servidor use mucho: es que lo que en la máquina del que desarrolla entra justo, en la del que tiene el doble de RAM se lleva puesta la sesión — y la que se lleva puesta es *la otra*, porque nadie prueba en la máquina grande. Un número fijo falla igual en las dos, que es lo que se quiere de un límite.
+
+Y hay una razón de más para que sea explícito: **el que corre `lspd` casi nunca sabe que lo está corriendo.** Se levanta desde un `bilinker check` en el repo de otra empresa. Un cuelgue ahí no lo diagnostica quien lo causó.
+
+> **Es la misma decisión que el `cwd`**, que el spawn ya toma con el mismo argumento: *un dato que el hijo hereda de quien lo lanzó es un dato que nadie eligió*. Acá también se elige.
+
 **Lo que no entra es interpretar lo que el servidor conteste**: eso sí sería modelo propio. `lspd` le dice a cada uno lo que ese servidor necesita oír para arrancar, y de ahí en adelante todos se hablan igual.
 
 > **Es la clase de dato que sólo se descubre corriéndolo.** Ninguno de los dos está en la especificación de LSP, y los dos aparecieron con el servidor prendido devolviendo respuestas bien formadas y vacías.
