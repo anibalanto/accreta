@@ -158,6 +158,18 @@ Con `declined`, `check` y `status` dicen que ese endpoint no vigila su vecindari
 
 **Al revés funciona y de frente no:** se migra, y quien quiera el vecindario lo recupera aceptando.
 
+#### La disyuntiva era falsa, y de acá sale la regla que la corrige
+
+> **Anotado al restituir los vecindarios degradados.** Todo lo de arriba queda como registro de qué pasó y por qué se eligió eso; lo que rige de acá en adelante es esto.
+
+Las tres salidas eran tres de cuatro. Faltaba **conservar los hashes y declarar que falta la ubicación** —el [`link: unknown`](../concepts/bilink.md#el-link-de-un-nivel-del-vecindario-y-su-tercera-forma) de un nivel—, que entrega lo que `declined` buscaba sin pagar lo que costó: la renuncia se ve escrita igual, y los dos sha256 por endpoint no se van. Elegir la mejor de las tres fue correcto; la tabla no las tenía todas.
+
+Y no era una opción remota: **la migración tuvo los hashes en la mano.** Los lee del archivo de entrada y lo único que no podía derivar era el `link`. Lo que le faltó fue un formato de salida capaz de escribir un nivel sin ubicación — y ése es el punto de [`concepts/migration.md`](../../../concepts/migration.md#una-migración-no-puede-descartar-una-decisión): donde el tipo de salida no modela el hueco, la pérdida está en la firma.
+
+`declined` es una **respuesta** —*"nadie vigila el vecindario de este endpoint"*— puesta donde iba una **imposibilidad** —*"no pude traer los captures"*—. La regla general que lo prohíbe sale de este caso, y el agravante que la vuelve una regla y no una preferencia también: una renuncia escrita **se lee de vuelta**, así que los vecindarios degradados iban a seguir renunciando para siempre sin que nadie volviera a decidirlo.
+
+Devolverlos no es otra migración, y no puede serlo: [`restore-n1`](restore-n1.md) lee los backups del corte, que son archivos que el repo no tiene.
+
 ### El conteo va en las notas, y no es cosmético
 
 Cuántos vecindarios se degradaron se reporta:
