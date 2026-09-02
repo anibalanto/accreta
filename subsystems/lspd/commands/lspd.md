@@ -34,11 +34,14 @@ $ lspd status
 lspd  pid=12345  endpoint=~/.lspd/daemon.sock
 
 language servers:
-  rust-analyzer               RUNNING  queries=147
-  typescript-language-server  RUNNING  queries=32
+  rust-analyzer               READY     queries=147
+  jdtls                       INDEXING  queries=3
+  typescript-language-server  RUNNING   queries=32
 ```
 
 Un daemon recién arrancado no tiene ninguno: se levantan **por lenguaje y a demanda**, la primera vez que llega una pregunta sobre un archivo de ese lenguaje. `(ninguno arrancado todavía)` es un estado normal y no un problema.
+
+Los tres estados están en [los language servers](../concepts/language-servers.md#un-servidor-que-no-informa-su-estado-no-se-puede-esperar). El que hay que saber leer es el tercero: **`RUNNING` no es peor que `READY`, es que ese servidor no informa readiness** y por eso `lspd` no la afirma. Un `INDEXING` con `queries` arriba de cero es normal y es lo que este comando existe para mostrar — son las preguntas que se contestaron con `-32001`, y dicen cuándo conviene volver.
 
 ## Arrancarlo no es del daemon
 
