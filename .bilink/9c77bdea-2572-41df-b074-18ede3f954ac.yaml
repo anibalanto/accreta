@@ -1,6 +1,6 @@
 kind: governs
 endpoint:
-  '0':
+  0:
     link: capture c0eac1d163aaf1f73b2757a6658b1fbd
     accepted:
     - agree:
@@ -8,11 +8,12 @@ endpoint:
       link: capture c0eac1d163aaf1f73b2757a6658b1fbd
       hash: 7dba0ad4b374e6db8c1383c51a4c766af923dd2e60b4468e4ce3bd493fdc82f2
     name: el-modelo
-  '1':
+  1:
     link: path subsystems/bilinker>impl
     accepted:
     - agree:
       - Anibal
       link: capture 82213a02b74fc0359b395c30192e357d
-      hash: a4422baa93cd2de2b54cbb10dc28ddae8a1269f9e3e1204511e050a830607415
-      hash_ast: 5098509da5438654fceb89c2d69f7835575b760b616a5d27d3e0d4d2da43200f
+      hash: f3aae45791a376a1a9d16b53c7fb3bf7b13e8294006298e5f72bde1d7ce1ed75
+      hash_ast: f0840b76b7cbed36d9a8e545358a7ed80b2018bdcd30beff3ade59d5f842f406
+      n: declined
