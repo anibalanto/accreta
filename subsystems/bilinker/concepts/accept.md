@@ -154,6 +154,16 @@ pub trait Neighbours {
 
 **Y el hasheo queda de este lado.** El recorte de bordes es regla de bilinker y vive en el único lugar donde un nodo se convierte en rango. El proveedor devuelve ubicaciones, no hashes.
 
+#### Una lista vacía es una respuesta, y por eso el puerto no se puede defender solo
+
+`Some(vec![])` dice *"miré y esta firma no menciona ningún tipo resoluble"*, y **es legítimo**: una firma de puros primitivos no tiene vecinos. Así que bilinker no puede tratar el vacío como sospechoso — plegarlo da el hash del string vacío y se escribe como vecindario adquirido, que es lo correcto para ese caso.
+
+Lo que no puede es distinguirlo de *"el servidor de atrás todavía no indexó"*, porque **llega igual**. Y ahí el vacío se escribe afirmando una cobertura que no existe, que es exactamente lo que la regla de más abajo prohíbe.
+
+> **La distinción la tiene que dar quien la sabe.** Un proveedor que no puede contestar tiene que decirlo contestando `None`, no un vacío. Bilinker no tiene con qué adivinarlo: si pusiera una guarda contra el vacío, rompería el caso legítimo, y si no la pone, come el ilegítimo. **No hay una tercera opción de este lado del puerto** — es el motivo de que el puerto tenga tres respuestas y no dos.
+
+Del lado de `lspd` eso es [`-32001`](../../lspd/concepts/protocol.md#un-error-es-del-método-no-del-transporte), que el binario traduce a `None`. Un proveedor que ni siquiera pueda saber si está listo —porque el servidor de atrás no lo informa— devuelve lo que tenga: ahí la distinción no se puede dar en ningún lado, y eso es una propiedad del lenguaje, no un defecto que bilinker pueda tapar.
+
 ### Cuándo se adquiere el vecindario
 
 El puerto puede contestar `None` —*"no pude mirar"*— y ahí hay que decidir qué se escribe. **La regla es una: una falla de infraestructura no puede reducir la cobertura de un vínculo.**

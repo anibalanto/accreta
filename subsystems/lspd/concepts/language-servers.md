@@ -19,7 +19,7 @@ Si el ejecutable no está en PATH, la respuesta es un error explícito y no un v
 
 ```
 primera query de un lenguaje
-  → detectar ejecutable → spawn vía stdio → handshake LSP → listo
+  → detectar ejecutable → spawn vía stdio → handshake LSP → indexando → listo
 
 queries siguientes
   → reusar la conexión
@@ -29,6 +29,37 @@ shutdown
 ```
 
 Un daemon recién arrancado no tiene ninguno levantado, y eso es normal: `status` lo dice.
+
+## Terminar el handshake no es estar listo
+
+**Entre el handshake y la primera respuesta útil hay un tramo, y durante ese tramo el servidor contesta vacío.** Medido: `rust-analyzer` sobre un workspace mediano tarda siete minutos en dejar de estar ocupado, y en todo ese rato `definitions` devuelve `[]` con el proceso vivo y el handshake terminado.
+
+Un vacío ahí no significa lo que significa después. Es la misma regla que esta página ya aplica al ejecutable que falta —*"la respuesta es un error explícito y no un vacío; un vacío se leería como no hay llamadas"*— y el mismo tramo que [lattice](../../lattice/concepts/provider.md) llama `Degraded`. Lo que cambia es de qué lado se resuelve: **lattice lo infiere de que acaba de arrancar el daemon, y eso sólo sirve para quien lo arrancó.** Quien encuentra un daemon ya prendido no tiene de dónde inferirlo, así que la señal la tiene que dar `lspd`.
+
+### Y quien la tiene es el servidor
+
+No se cronometra ni se adivina: los dos servidores que importan lo dicen, cada uno con su extensión, y son exactamente las notificaciones que [`2o`](../../../.stratum/worklist-accreta/2o.task.md) dejó ignoradas para no morirse con ellas.
+
+| Servidor | Notificación | Dice que está listo cuando |
+|---|---|---|
+| `rust-analyzer` | `experimental/serverStatus` | `quiescent: true` |
+| `jdtls` | `language/status` | `type: ServiceReady` |
+
+La de `rust-analyzer` **hay que pedirla**: sin `experimental.serverStatusNotification` en las capabilities del `initialize`, no la manda. La de `jdtls` viene sola.
+
+### Un servidor que no informa su estado no se puede esperar
+
+`typescript-language-server` y los de Python no mandan ninguna de las dos, y `lspd` no puede inventar la señal — cronometrar el arranque sería adivinar, y adivinar mal en la dirección cara.
+
+Así que la readiness tiene **tres** valores y no dos, y el tercero es el honesto:
+
+| `state` | Qué dice |
+|---|---|
+| `INDEXING` | el servidor dijo que todavía no está listo |
+| `READY` | el servidor dijo que sí |
+| `RUNNING` | está arriba, y **este servidor no informa readiness** |
+
+`RUNNING` no es un estado degradado ni un error: es lo que hoy vale para todos, y seguir llamándolo así deja dicho que para ese lenguaje la distinción no se puede dar. **Es la información que el consumidor necesita para saber cuánto vale un vacío**, y esconderla atrás de un `READY` optimista sería volver al problema con otro nombre.
 
 **Que se reusen es la razón de que exista un daemon.** Un `rust-analyzer` tarda decenas de segundos en indexar un proyecto mediano; arrancarlo por consulta haría que preguntar por el call graph cueste más que leer el código.
 

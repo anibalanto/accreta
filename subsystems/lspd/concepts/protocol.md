@@ -19,7 +19,7 @@ JSON-RPC 2.0 con **framing newline-delimited**: cada mensaje es un objeto JSON e
 | `ping` | — | `"pong"` |
 | `shutdown` | — | `null`, y cierra la conexión |
 
-`CalleeInfo` es `{symbol, name, file, line, col}`; `callees` y `callers` comparten esquema. `SymbolInfo` es `{symbol, name, kind}`. `LspStatus` es `{name, state, queries}`. `DefinitionInfo` es `{name, file, line, col, end_line, end_col}`.
+`CalleeInfo` es `{symbol, name, file, line, col}`; `callees` y `callers` comparten esquema. `SymbolInfo` es `{symbol, name, kind}`. `LspStatus` es `{name, state, queries}`, con `state` en `INDEXING | READY | RUNNING` — ver [los language servers](language-servers.md#un-servidor-que-no-informa-su-estado-no-se-puede-esperar). `DefinitionInfo` es `{name, file, line, col, end_line, end_col}`.
 
 **`definitions` es la única pregunta que no es del call graph**, y la pide bilinker para el [cierre de firma](../../bilinker/concepts/accept.md#el-cierre-de-firma): dónde están declarados los tipos que una firma menciona.
 
@@ -33,11 +33,17 @@ Y la dedup la hace el language server: las tres menciones de `Persona` en `Perso
 
 Es cómo se decide si hay daemon. Un consumidor que quiera arrancarlo si no está pregunta `ping` y mira si contesta; no hay archivo de pid que consultar ni proceso que enumerar.
 
-**Y contesta antes de que los language servers estén listos.** Eso es deliberado y es la distinción que [lattice](../../lattice/concepts/provider.md) llama `Degraded`: el daemon está, pero el servidor de atrás sigue indexando, así que `callers` puede devolver vacío por *"todavía no sé"* y no por *"no hay"*. Confundir las dos es la equivocación más cara que puede cometer un consumidor, y por eso el protocolo no las junta en un booleano.
+**Y contesta antes de que los language servers estén listos.** Eso es deliberado y es la distinción que [lattice](../../lattice/concepts/provider.md) llama `Degraded`: el daemon está, pero el servidor de atrás sigue indexando. Confundir *"todavía no sé"* con *"no hay"* es la equivocación más cara que puede cometer un consumidor, y por eso el protocolo no las junta en un booleano.
+
+**Pero no alcanza con no juntarlas: hay que contestar la diferencia.** Un `ping` que dice `pong` mientras el servidor indexa deja al consumidor con un vacío que no puede interpretar, y pedirle que además consulte `status` antes de cada pregunta no cierra el caso — **los servidores se levantan a demanda**, así que en la primera pregunta de un lenguaje no hay todavía un `state` que consultar. El único momento en que la distinción se puede dar es al contestar.
+
+Así que **una pregunta que llega mientras el servidor está `INDEXING` se contesta con error**, no con `[]`. Ver `-32001` más abajo.
 
 ## Un error es del método, no del transporte
 
 Una respuesta con `error` es una respuesta: el daemon está vivo y esa pregunta no se pudo contestar. Que el socket no exista o que se corte es otra cosa, y la distingue el cliente.
+
+**Y el cliente conserva el código.** Una tabla de códigos que llega al consumidor aplastada a un mensaje no es una tabla: obliga a matchear texto, y el texto se reescribe. `lspd-client` entrega el código junto al mensaje, que es lo que permite tratar `-32001` distinto de `-32000` sin leer prosa.
 
 | | |
 |---|---|
@@ -45,6 +51,11 @@ Una respuesta con `error` es una respuesta: el daemon está vivo y esa pregunta 
 | `-32601` | no existe ese método |
 | `-32602` | los params no tienen la forma que el método espera |
 | `-32000` | el language server falló o no hay soporte para ese lenguaje |
+| `-32001` | el language server está `INDEXING`: todavía no puede contestar |
+
+**`-32001` no es una falla, y por eso tiene código propio.** Dice *"volvé a preguntar"*, y `status` dice cuándo. Meterlo en `-32000` lo haría indistinguible de un servidor roto, que es la confusión de siempre corrida un casillero.
+
+**Y no se espera.** Sería lo cómodo —bloquear hasta que el servidor esté listo y contestar bien— y está mal por dos motivos: los siete minutos de `rust-analyzer` no entran en el timeout de ningún cliente, y tapar el vacío con una espera es lo mismo que taparlo con un reintento. El daemon contesta lo que sabe en el momento en que se lo preguntan.
 
 ## Qué no está en el protocolo
 
