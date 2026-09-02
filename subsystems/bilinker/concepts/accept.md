@@ -304,7 +304,9 @@ Y es lo que garantiza que lo aprobado sea recuperable. Sin commit no hay `git sh
 
 `agree` es el set de quienes aprobaron **exactamente estos valores**. Como los valores direccionan por contenido, *"estar de acuerdo"* no es ambiguo: es haber aprobado este hash, esta ubicación **y este vecindario**, y no otros.
 
-**La identidad de una entrada es su tupla entera.** Dos personas que aprueban el mismo fragmento con vecindarios distintos no comparten entrada: son dos contratos, y por lo tanto [dos entradas](bilink.md#una-entrada-es-completa-y-por-eso-lleva-un-solo-agree). Y no hay endoso parcial de una entrada — con firma resoluble y sin proveedor `accept` se niega, así que *"aprobé la firma y el vecindario no lo miré"* no es un estado alcanzable.
+**La identidad de una entrada es su tupla entera**: `link`, `hash`, `hash_ast` y `n`. Dos personas que aprueban el mismo fragmento con vecindarios distintos no comparten entrada: son dos contratos, y por lo tanto [dos entradas](bilink.md#una-entrada-es-completa-y-por-eso-lleva-un-solo-agree). Y no hay endoso parcial de una entrada — con firma resoluble y sin proveedor `accept` se niega, así que *"aprobé la firma y el vecindario no lo miré"* no es un estado alcanzable.
+
+> **Y la tupla se nombra entera o no se nombra.** Esta sección decía *"este hash y esta ubicación"*, y el código comparaba cuatro campos desde que el vecindario existe: `hash_ast` y `n` estaban afuera de la enumeración, en dos párrafos, sin que nada lo detectara. **Una enumeración en prosa es lo que envejece cuando se agrega un campo** — la invariante 9 de esta página zafó justamente por decir *"algún valor"* en vez de listar.
 
 **Por endpoint y local, nunca copiado.** En un endpoint estructural están los que aprobaron ese fragmento; en un endpoint `path` o `repo`, los que aprobaron **esa copia**. Quién aprobó del otro lado de la cadena es un hecho de la otra capa, y traerlo acá sería atribuir mal. Los dos endpoints de un bilink pueden tener listas distintas, y es lo normal.
 
@@ -312,7 +314,7 @@ Y es lo que garantiza que lo aprobado sea recuperable. Sin commit no hay `git sh
 
 **Es un set: ordenado y único al serializar.** Un duplicado o un reordenamiento producirían un diff que no dice nada.
 
-**Y si los valores cambian, no se arrastra a nadie: se abre otra entrada.** Es lo que *"estos valores"* significa — quien aprobó el hash anterior no aprobó el nuevo, y poner su nombre en la entrada nueva sería atribuirle una decisión que no tomó.
+**Y si cambia cualquiera de los cuatro, no se arrastra a nadie: se abre otra entrada.** Es lo que *"estos valores"* significa — quien aprobó los valores anteriores no aprobó los nuevos, y poner su nombre en la entrada nueva sería atribuirle una decisión que no tomó.
 
 Lo que cambió es **qué pasa con la entrada vieja**. Antes se pisaba, y la aprobación anterior sólo quedaba en el commit que la había escrito. Ahora la entrada nueva se **suma** y el endpoint queda [`CONSENSUS_DIVERGED`](bilink.md#más-de-un-accepted-es-un-estado-no-una-forma-de-trabajar): las dos decisiones están, visibles, y `check` falla hasta que alguien resuelva.
 
