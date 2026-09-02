@@ -67,6 +67,20 @@ Una migración **no resuelve queries ni consulta git**. Copia lo que había y de
 
 El motivo es que una migración que resuelve puede fallar por razones ajenas al formato —un archivo que se movió, una query que se rompió— y dejar la capa a mitad de camino, con parte de los archivos en un formato y parte en otro. Una transformación puramente sintáctica no puede fallar por el estado del proyecto, y eso vale más que tener el dato fresco.
 
+### Una migración no puede descartar una decisión
+
+> **Si no puede llevar un campo hacia adelante, registra el hueco; nunca lo reemplaza por una respuesta.**
+
+Es la consecuencia de la regla de arriba, y la que menos se ve. Una migración que no resuelve se topa con campos que no puede producir —los que salían de una query, de un language server, de la red— y ahí las salidas parecen dos: descartar el campo, o negarse a migrar. Hay una tercera y es la que corresponde: **conservar lo que sí tenía y declarar que le falta el resto.**
+
+La distinción es entre una **respuesta** y una **imposibilidad**. *"Nadie vigila esto"* es una decisión que alguien tomó; *"no pude traer esto"* es un estado de la migración. Escribir la primera donde iba la segunda no pierde sólo el dato: pierde el registro de que había un dato, y eso es peor, porque el hueco deja de verse.
+
+**Y una decisión que escribe una migración es permanente.** El archivo no dice quién la escribió, así que la herramienta la lee de vuelta como propia y ningún `check` posterior la vuelve a preguntar. Una persona que renuncia cambia de opinión cuando algo se lo recuerda; una renuncia que la migración inventó no tiene a quién recordarle nada.
+
+De ahí sale qué le toca al formato antes que a la migración: **el formato tiene que poder expresar el hueco.** Donde no puede, eso es trabajo previo y no una excusa para inventar un valor — un tipo de salida que no modela el hueco no tiene cómo escribirlo, y entonces la pérdida no es un descuido, está en la firma.
+
+Que fue una migración la que dejó el hueco va donde va la procedencia: el reporte de la corrida, que ya cuenta cuántos campos no pudo traer. El archivo registra lo que **es**, no cómo llegó a serlo.
+
 ### Idempotencia
 
 Correrla dos veces sobre la misma capa no hace nada la segunda vez. Es lo que permite migrar capa por capa, a distinto ritmo, sin llevar la cuenta a mano.
@@ -158,4 +172,5 @@ El runner no commitea. `apply` sí lo hace porque aplica muchos fixes chicos y s
 3. Una migración es idempotente: sobre una capa ya migrada no hace nada.
 4. Con `--dry-run` no se escribe ningún archivo.
 5. Una migración no resuelve queries ni consulta git; solo transforma formato.
-6. El runner nunca commitea ni modifica el historial.
+6. Una migración no descarta una decisión: donde no puede llevar un campo hacia adelante registra el hueco, y nunca lo reemplaza por una respuesta.
+7. El runner nunca commitea ni modifica el historial.

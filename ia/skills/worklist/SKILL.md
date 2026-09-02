@@ -56,6 +56,22 @@ Las dos son referencias y las dos se editan en un solo lugar. La diferencia es q
 
 De ahí sale que **una US no puede atravesar sprints**: si no cabe en una iteración, está mal dimensionada — y eso es un problema de descomposición, no de planificación.
 
+## Cómo se nombra un ítem
+
+> **`<id> <título>`.** Nunca el id solo.
+
+En markdown el link envuelve las dos cosas:
+
+```markdown
+[`3z` Error de cobertura: el vecindario de una firma resuelve a la firma misma, y el tipo que importa no se pregunta](3z.task.md)
+```
+
+El id solo obliga a abrir el archivo para saber de qué se habla, y **el que lo abre es el que menos contexto tiene**: quien escribió la referencia ya sabía cuál era. Vale en los ítems, en los sprints y en las specs que nombran un ítem — el problema es el mismo en los tres.
+
+**El título va verbatim, no una glosa.** Una glosa envejece cuando el título cambia y nada lo detecta; un título copiado envejece igual, pero se ve al lado del que cambió. Y donde el título no describa al ítem, lo que hay que arreglar es el título.
+
+Las referencias ya escritas **se corrigen al tocarlas**, no de una barrida.
+
 ## Cómo contestar "qué sigue"
 
 1. Buscar el sprint con `status: in-progress`. Si no hay, el próximo `open` por número.
