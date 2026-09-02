@@ -15,6 +15,21 @@
 
 Si el ejecutable no está en PATH, la respuesta es un error explícito y no un vacío: `LSP for rust not found: install rust-analyzer`. Un vacío se leería como *"no hay llamadas"*.
 
+### Y la tabla tiene una columna más: qué pide cada servidor en el handshake
+
+La tabla dice qué ejecutable buscar. **Lo que no dice, y hace falta, es qué necesita cada uno para arrancar de verdad**, porque LSP dejó ese pedazo abierto: `initializationOptions` es un campo libre y cada servidor pone ahí lo suyo.
+
+| Servidor | Qué pide, y qué pasa sin eso |
+|---|---|
+| `rust-analyzer` | `experimental.serverStatusNotification` en las capabilities. Sin eso no avisa cuándo terminó de indexar |
+| `jdtls` | `initializationOptions.workspaceFolders`. **Sin eso no importa el proyecto**: cae a su *proyecto invisible*, se queda sin classpath, y resuelve `[]` con el servidor en `READY` |
+
+**Sigue siendo una tabla, y por eso entra acá.** Es un dato por servidor —una constante, no una decisión—, y agregar un lenguaje sigue siendo agregar una fila. Lo que cambia es que la fila tiene dos casillas en vez de una.
+
+**Lo que no entra es interpretar lo que el servidor conteste**: eso sí sería modelo propio. `lspd` le dice a cada uno lo que ese servidor necesita oír para arrancar, y de ahí en adelante todos se hablan igual.
+
+> **Es la clase de dato que sólo se descubre corriéndolo.** Ninguno de los dos está en la especificación de LSP, y los dos aparecieron con el servidor prendido devolviendo respuestas bien formadas y vacías.
+
 ## Se levantan a demanda y se reusan
 
 ```
