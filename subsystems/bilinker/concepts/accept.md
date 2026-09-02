@@ -172,17 +172,25 @@ Que un fragmento *tenga* vecindario se sabe por la gramática y no por el provee
 
 Y hay un dato más que se sabe sin daemon: **el conjunto de vecinos lo determina la firma, y la firma está en el fragmento.** Con el [capture de contrato](capture.md) el `hash` del fragmento es el de la firma, así que un `hash` que no se movió es el mismo conjunto de vecinos — aunque su contenido no se haya podido mirar.
 
-| Ya hay `n` adquirido | Se pudo resolver | Cambió la firma | Qué se escribe |
+**Y el `n` previo tiene tres valores, no dos.** Puede estar adquirido, puede ser una renuncia escrita, o puede no estar — y los tres son entradas distintas, porque una renuncia **es una decisión que alguien tomó** y no la ausencia de una.
+
+| `n` previo | Se pudo resolver | Cambió la firma | Qué se escribe |
 |---|---|---|---|
-| no | sí | — | `n` calculado |
-| no | **no** | — | nada, y `accept` falla |
-| sí | sí | — | `n` recalculado |
-| sí | **no** | **no** | **el `n` que ya estaba**, intacto |
-| sí | **no** | **sí** | nada, y `accept` falla |
+| ausente | sí | — | `n` calculado |
+| ausente | **no** | — | nada, y `accept` falla |
+| `declined` | sí | — | `n` calculado — la renuncia **se levanta sola** |
+| `declined` | **no** | — | **la renuncia que ya estaba**, intacta |
+| adquirido | sí | — | `n` recalculado |
+| adquirido | **no** | **no** | **el `n` que ya estaba**, intacto |
+| adquirido | **no** | **sí** | nada, y `accept` falla |
 
-**La cuarta fila es la que evita el daño.** Preservar es estrictamente más seguro que borrar: si un vecino cambió mientras el proveedor estaba caído, el `n` viejo sigue ahí y el próximo cierre con proveedor lo reporta. Borrándolo, ese cambio se absorbe en el baseline nuevo y **deja de ser detectable para siempre**.
+**Las dos filas de `declined` son la misma idea que las de adquirido**: sin proveedor no hay información nueva con la cual revisar lo que ya se decidió, así que se conserva. Volver a pedirla convertiría la renuncia en algo que se tipea en cada `accept`, y **un pedido que sale siempre no lo lee nadie** — la misma razón por la que el aviso no sale sobre prosa ni sobre un DTO. La guarda se gastaría a fuerza de dispararse cuando no hace falta, y el día que sí baje una cobertura, se la tipea sin leer.
 
-**Y la quinta es la única donde preservar sería mentir**: si la firma cambió, el conjunto de vecinos pudo cambiar con ella, y el valor viejo es sobre un conjunto que ya no es el de hoy.
+**Y conservarla no encierra a nadie**, que es lo que la hace segura: la tercera fila dice que con proveedor la renuncia se levanta sin que nadie pida nada. La asimetría es la correcta — **subir cobertura es automático, bajarla sigue pidiendo que se declare.**
+
+**La sexta fila es la que evita el daño.** Preservar es estrictamente más seguro que borrar: si un vecino cambió mientras el proveedor estaba caído, el `n` viejo sigue ahí y el próximo cierre con proveedor lo reporta. Borrándolo, ese cambio se absorbe en el baseline nuevo y **deja de ser detectable para siempre**.
+
+**Y la séptima es la única donde preservar sería mentir**: si la firma cambió, el conjunto de vecinos pudo cambiar con ella, y el valor viejo es sobre un conjunto que ya no es el de hoy. No tiene gemela en `declined` porque **una renuncia no es sobre un conjunto**: no dice qué vecinos había, dice que no se vigilan. Que la firma cambie no la vuelve falsa.
 
 No es un mecanismo nuevo: [`--place` y `--content`](#--place-y---content) ya aceptan una dimensión sin tocar la otra. El vecindario es una tercera y se comporta igual. Lo que no puede pasar es que una dimensión se borre **como efecto colateral** de aceptar otra.
 
