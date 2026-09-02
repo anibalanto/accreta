@@ -196,13 +196,15 @@ GET /public-api/user/info/from-token
 
 La ruta de clase y el literal del método son dos de los cuatro `@target`; el verbo sale del nombre de la anotación —`@GetMapping` → `GET`—. No hay que ir a buscar nada afuera del fragmento.
 
-**Y en un markerless sale de donde el ancla lo puso.** Sin literal propio, la ruta de clase y el verbo los comparten todos los hermanos, así que el alias sería ambiguo. Lo salva que ahí el nombre del método **está en la query** como predicado, que es lo que [`32`](../../../.stratum/worklist-accreta/32.task.md) decidió para poder distinguirlos:
+**Y en un markerless hace falta el nombre del método.** Sin literal propio, la ruta de clase y el verbo los comparten todos los hermanos, así que el alias sería ambiguo. Lo desempata el nombre, que sale de **entre los dos últimos `@target`**: el tipo de retorno termina, viene el nombre, arrancan los parámetros — y en el medio no hay nada más.
 
 ```
 GET /public-api/appointment/booking/institution  ·  getBookingList
 ```
 
-No es una excepción inventada: es la misma información que distingue al endpoint de sus hermanos, leída del mismo lugar donde se la puso para distinguirlo. **Donde falta el literal sobra el ancla, y viceversa.**
+No es una excepción inventada: es la misma información que [`32`](../../../.stratum/worklist-accreta/32.task.md) ancla en la query justamente donde el literal falta. **Donde falta el literal sobra el nombre, y viceversa.**
+
+**Pero se lee del archivo y no de la query**, aunque en la query esté. Parece igual y no lo es: `name: (identifier)` aparece también en las anotaciones y en la clase, que van más arriba del árbol y por lo tanto antes en el patrón, así que ni el primero ni el último aciertan. Entre dos `@target` no hay ambigüedad posible — **es la forma que el generador escribió, no una heurística sobre texto.**
 
 **El alias es de cada generador y no del formato.** Cada uno nombra en su vocabulario: acá es el verbo y la ruta porque eso es un endpoint; `--as interface` nombra por el método, porque eso es una firma. Un generador que no sepa nombrar no nombra, y el bilink se muestra por UUID.
 
