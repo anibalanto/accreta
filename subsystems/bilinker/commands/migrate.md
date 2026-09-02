@@ -135,3 +135,43 @@ nada que migrar (4 capa(s) revisada(s))
 - **`--dry-run` no escribe**: ni captures, ni bilinks, ni ledger.
 - **No commitea**: revisar con `git diff` y commitear a mano.
 - **No resuelve**: no corre tree-sitter ni git. Correr `bilinker check .` después.
+
+## `bilinker-003-accepted-list` — de 3.8 a 4.0
+
+Dos cambios de forma, y **uno de los dos no se puede completar desde una migración.**
+
+**`accepted` pasa de objeto a lista**, y eso es mecánico: un objeto se vuelve una lista de uno y no se pierde nada. Un endpoint con una decisión sigue teniendo una.
+
+**`n` gana `link` — un capture por vecino— y ahí no hay nada que traer.** Los `n` ya escritos salieron de hashear ubicaciones crudas; convertirlos en captures exige **resolver los tipos de la firma**, y eso necesita un language server. Una migración es *"una función pura de los archivos de entrada: no consulta git, no resuelve queries tree-sitter, no lee la hora"* — así que no puede, y no debería.
+
+### Y por eso el vecindario pasa a `declined`
+
+De las tres salidas, dos son peores:
+
+| | |
+|---|---|
+| **descartar el `n`** | baja la cobertura de 113 endpoints **en silencio**, y la ausencia sin marca significa otra cosa: *"este fragmento no tiene firma resoluble"* |
+| **negarse** si hay algún `n` adquirido | deja la migración bloqueada por algo que no puede arreglar, y obliga a re-aceptar 113 endpoints **antes** de poder leer los archivos con el binario nuevo |
+| **escribir `declined`** | la renuncia queda **escrita**, que es la distinción que [`2r`](../../../.stratum/worklist-accreta/2r.task.md) compró |
+
+Con `declined`, `check` y `status` dicen que ese endpoint no vigila su vecindario en vez de dejar creer que sí; un `accept` posterior **con** proveedor lo levanta solo, porque una renuncia anterior se levanta sola en cuanto hay con qué resolver; y nadie tiene que volver a tipear `--no-n1` en el medio.
+
+**Al revés funciona y de frente no:** se migra, y quien quiera el vecindario lo recupera aceptando.
+
+### El conteo va en las notas, y no es cosmético
+
+Cuántos vecindarios se degradaron se reporta:
+
+```
+113 aceptación(es) envueltas en lista; **113 vecindario(s) pasaron a `declined`** —
+sus captures no se pueden derivar sin un language server. Recuperarlos es aceptar
+con `lspd` vivo.
+```
+
+**Una renuncia masiva escrita sin decirlo sería indistinguible de 113 personas que decidieron renunciar**, y ésa es exactamente la confusión que el campo existe para no tener.
+
+### Lee la forma vieja con tipos locales, y no con un crate congelado
+
+El formato 1 pedía un crate propio —`bilink-format-v1`— porque era otra serialización entera. 3.8 y 4.0 son **el mismo YAML** y difieren en dos lugares: un crate para eso sería más código que el puente.
+
+Y lo que no cambia **no se enumera**: se lee crudo y se copia. Listar los campos que quedan igual es lo que hace que una migración se rompa con el próximo campo aditivo.
