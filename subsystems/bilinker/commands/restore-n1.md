@@ -92,6 +92,14 @@ Restituir escribe adentro de `accepted`, que es territorio de [`accept`](accept.
 
 Lo que **no** hace es acuñar captures ni proponer ubicaciones. Eso es `apply`, y llenar los `unknown` es su propia tarea.
 
+## Un contrato se restituye de los dos lados, y se reporta de uno
+
+Un endpoint `path` o `repo` lleva en su `accepted` una **copia opaca** del `accepted` del vecino, y esa copia incluye el `n`. Así que la `003` lo degradó dos veces por cadena —en el endpoint estructural y en la copia— y la restitución lo devuelve dos veces, cada capa desde su propio backup.
+
+**Y aun así se reporta una sola vez.** El eje del vecindario es del endpoint estructural: `check` no lo evalúa sobre un `path` ni sobre un `repo`, donde lo que compara es la copia contra el vecino. La copia restituida coincide con lo que el vecino restituyó, así que el estado de la cadena queda limpio y el `CONTRACT_UNLOCATED` sale **donde está el fragmento**, que es donde alguien puede acuñar los captures.
+
+Es la misma razón por la que un endpoint `path` no hashea el archivo vecino: la decisión es de un lado y del otro se copia. De ahí que **contar endpoints y contar contratos den números distintos**, y que el segundo sea el que dice cuánto trabajo hay.
+
 ## Salida
 
 Se agrupa por capa, y **nombra los que no pudo**:
