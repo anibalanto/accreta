@@ -49,16 +49,19 @@ Error: esta capa declara formato 3.0.0 y este binario lee 4.0.0.
 
 Y no sirve deducirlo del parseo, porque **un archivo de formato viejo puede parsear bien y significar otra cosa.** El caso está medido: en `3.3.0` la `query` de un capture pasó a poder llevar varios `@target` y el fragmento pasó a ser su concatenación, sin que el tipo ni el archivo cambiaran — un parser de `3.2.0` lee esa query, se queda con el primero, y hashea otro fragmento sin fallar. La versión es lo único que discrimina en esa dirección, así que se pregunta primero.
 
-### Sin `version` es formato 1; sin `.bilink/` no hay capa
+### La versión importa cuando hay archivos que leer
 
-Las dos ausencias se parecen y no significan lo mismo:
+Hay tres situaciones y sólo una es un problema:
 
 | En disco | Qué es | `check` |
 |---|---|---|
-| no hay `.bilink/` | acá no hay capa de bilinker | `all clean (0 bilink(s))`, y es cierto |
-| hay `.bilink/` y no hay `version` | una capa anterior a que el campo existiera: formato 1 | se niega y manda a `migrate` |
+| no hay `.bilink/`, o hay y sólo tiene la cache y su `.gitignore` | no hay archivos del formato que malinterpretar | `all clean (0 bilink(s))`, y es cierto |
+| hay bilinks o captures, y `version` es de este major | se puede leer | verifica |
+| hay bilinks o captures, y `version` es de otro major **o no está** | un formato que este binario no lee | se niega y manda a `migrate` |
 
-La segunda fila es la misma lectura que hace la frontera de un proveedor que no declara versión. La primera es la que **no** hay que confundir con ella: un directorio sin `.bilink/` no tiene bilinks que esconder, y negarse ahí volvería `check` inusable fuera de una capa.
+**El discriminador es que haya archivos del formato, no que exista el directorio.** Cruzando la frontera el consumidor crea `.bilink/` sólo para poner el `.{alias}.toml`, antes de que exista un solo bilink; y una capa recién declarada tiene su cache y nada más. Negarse ahí sería negarse justo donde no hay nada que se pueda leer con el parser equivocado.
+
+La tercera fila incluye la ausencia de `version` porque **una capa con archivos y sin declaración es formato 1** —anterior a que el campo existiera—, que es la misma lectura que hace la frontera de un proveedor que no declara nada.
 
 ### Un binario más viejo que la capa falla al parsear, y eso ya está cubierto
 
@@ -91,6 +94,14 @@ $ bilinker check .
 **`all clean` es una afirmación sobre todo lo que hay, así que no se imprime cuando quedó algo sin leer.** Un `check` que verificó 203 de 206 no puede decir `all clean (206)` ni `all clean (203)` a secas: el primero miente sobre lo que miró, el segundo esconde lo que no pudo mirar.
 
 Y el conteo va **al lado del resultado, no en vez de él**. Los 203 que sí se leyeron se evalúan y se reportan igual: un archivo roto no es razón para dejar de decir lo que se sabe de los demás.
+
+Y el conteo va **al lado del resultado, no en vez de él**. Los 203 que sí se leyeron se evalúan y se reportan igual: un archivo roto no es razón para dejar de decir lo que se sabe de los demás. Por eso la línea final aparece también cuando hubo no-OK —`203 bilink(s) verificados — 3 ilegible(s)`—, que es donde normalmente no habría ninguna: con todo leído, el detalle de arriba ya dice todo; con algo sin leer, falta decir sobre cuántos se dijo.
+
+### Y crear la capa es declarar su formato
+
+Comparar la versión destapó que casi nadie la escribía: sólo [`chain new`](chain.md) la declaraba, y una capa nacida de un [`capture`](capture.md) suelto quedaba sin `version`, o sea indistinguible de una anterior a que el campo existiera. **Un paso aparte es un paso olvidable**, así que declarar la versión pasa a ser parte de escribir el primer archivo en una capa.
+
+Con un límite: **sólo si no hay nada que malinterpretar.** Un `.bilink/` que ya tiene bilinks o captures y no declara nada *es* formato 1, y estamparle la versión de hoy escribiría una respuesta falsa encima de una verdadera — decidir eso es de `migrate`. Una capa vacía no tiene ese problema, y ahí declarar es lo honesto: cruzando la frontera el consumidor crea `.bilink/` sólo para poner el `.{alias}.toml`, antes de que exista un solo bilink, y esa capa es nueva.
 
 ## Las dos dimensiones
 
