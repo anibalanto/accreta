@@ -26,11 +26,13 @@ Las decisiones que ese trabajo ejecuta viven en `docs/adr/` de la capa impl del 
 
 Aplica a specs, a código, a ADRs y a propuestas. **La única excepción es crear o mover un ítem del worklist**, porque exigirle tarea a eso sería recursivo.
 
-Conversar, leer, explorar y proponer no modifican nada y no necesitan ítem. Pero cuando una conversación de diseño produce algo que vale escribir, **lo primero que se escribe es la tarea.**
+Cuando una conversación de diseño produce algo que vale escribir, **lo primero que se escribe es la tarea.**
 
 **El inventario de trabajo de un cambio *es* la lista de no-OK.** Buscar el código a mano produce una lista que envejece el mismo día que se escribe; los bilinks están vivos.
 
 Guía operativa: `ia/skills/bilinker/SKILL.md`. `.claude/skills` es un symlink relativo a `ia/skills`: hay una sola copia de cada skill, y no puede divergir.
+
+**Nada te exime de cargar las skills y seguir las convenciones.**
 
 ## Paths
 
