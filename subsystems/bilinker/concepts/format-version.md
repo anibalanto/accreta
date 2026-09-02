@@ -20,6 +20,24 @@ Cambiar los tipos sin subir la versión **falla el test**. La versión ordinal s
 
 Una entrada registra lo que se publicó bajo esa versión. Corregirla en vez de agregar una nueva reescribiría el pasado, y el hash dejaría de certificar el artefacto que alguien ya descargó.
 
+#### La regla protege lo publicado, y la línea es la publicación
+
+Mientras una versión **no salió** —no hay release, ni tag, ni nadie que la haya descargado— su entrada todavía se está escribiendo, y corregirla no reescribe ningún pasado: no hay artefacto que dejar de certificar. La línea es la publicación, no el número.
+
+Sin esa salvedad la regla pide algo que no puede cumplirse: **subir el major para poder corregir un hash que nadie leyó**, y con eso el número deja de significar lo que dice. Un major anuncia que un lector viejo no entiende un archivo nuevo; usarlo para arreglar el registro de una versión inédita lo convierte en un contador de correcciones.
+
+Lo que la salvedad **no** hace es abrir la puerta a corregir en silencio: la entrada corregida lleva escrito al lado por qué se movió el esquema, porque el próximo que lea el registro va a encontrar un hash que no corresponde a ninguna release y necesita saber si eso fue deliberado.
+
+#### El esquema se puede mover sin que el formato cambie
+
+Un doc comment se publica como `description`, así que **corregir una frase mueve el hash del esquema sin tocar el formato**. Es un tercer caso, y las dos formulaciones de arriba no lo cubren: no es *"el formato cambió"* ni *"lo entendemos mejor"* —el tipo es idéntico y lo que se entendía también—, es que el documento publicado lleva prosa adentro.
+
+Pasó al corregir un ejemplo que un arreglo dejó falso: el esquema cambió **una línea de 257**, y sin las descripciones era byte a byte el mismo. Subir el major ahí habría dicho que un lector de la versión anterior no entiende un archivo nuevo, que es lo único que un major significa, y era mentira.
+
+**La salida no es sacar las descripciones del hash.** El esquema se publica para que un consumidor valide sin adoptar bilinker, y la prosa es parte de lo que se publica: un artefacto cuyo hash no cubre la mitad que se lee no certifica el artefacto. Lo que la distingue de un cambio de formato es **si salió** — que es la misma línea de la salvedad de arriba, y por eso las dos secciones son una sola regla vista de dos lados.
+
+Cómo verificar que fue sólo prosa es mecánico: generar el esquema de los dos lados y compararlos **sin las descripciones**. Si ahí no difieren, el formato no cambió.
+
 #### Sacar un campo sube el major
 
 `3.0.0` saca el `offset` del capture: un fragmento deja de ser un rango adentro de un nodo. Quitar un campo no es aditivo —un lector de `3.0.0` no entiende un archivo que lo lleve— así que sube el major, y con él se va `DISPLACED`, el único estado que hablaba de un sub-rango.
