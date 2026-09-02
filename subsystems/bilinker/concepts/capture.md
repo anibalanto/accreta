@@ -80,6 +80,10 @@ Con varios se pueden decir dos cosas que un nodo solo no puede:
 
 **Ninguna parte contiene a otra.** El fragmento es la concatenación, así que una parte adentro de otra se contaría dos veces y el hash pasaría a depender de un solapamiento que nadie quiso. Cuando se señala una posición que resuelve a un nodo que contiene a otro señalado, no hay capture raro que escribir: hay una posición que resolvió más arriba de lo que se apuntó, y decirlo es más útil que capturar cualquier cosa.
 
+**Pero dos partes sí pueden compartir una línea**, y es el caso normal: en `public Dto get(String t)` el tipo de retorno y los parámetros son dos partes de la misma línea, con el nombre del método en el medio y afuera. No se solapan —son rangos disjuntos— y el fragmento no las cuenta dos veces.
+
+Lo que eso obliga es a que **mostrar un fragmento no sea imprimir sus partes una detrás de otra**: concatenadas, esa línea sale repetida y se lee como una duplicación que no existe. Es problema de quien lo muestra y no del formato, y lo resuelve [`get`](../commands/get.md#un-hueco-es-un-hueco-y-se-marca-en-las-dos-escalas) marcando el hueco intra-línea. El fragmento sigue siendo la concatenación, y el `hash` no cambia.
+
 #### Una query, no una lista de queries
 
 Un patrón único ancla los fragmentos **entre sí**: dice *"el `@RequestMapping` de la clase que contiene al método `getPermissions`"*. Una lista de queries independientes ancla cada una por su cuenta, y la primera sería *"el `@RequestMapping`"* a secas — que en un archivo con dos clases matchea la equivocada. Se arregla repitiendo el contexto en cada una, o sea reconstruyendo a mano lo que el patrón único ya expresa.

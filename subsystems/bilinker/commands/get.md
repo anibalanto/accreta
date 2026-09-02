@@ -34,7 +34,7 @@ Si no hay bilinks que cubran esa posición, retorna lista vacía (código 0).
 ## Forma 2: endpoint → contenido del fragmento referenciado
 
 ```
-bilinker get <UUID>.<N> [-B <rows>] [-A <rows>] [--diff]
+bilinker get <UUID>.<N> [-B <rows>] [-A <rows>] [--diff] [--raw]
 ```
 
 | Argumento | Tipo | Descripción |
@@ -43,12 +43,13 @@ bilinker get <UUID>.<N> [-B <rows>] [-A <rows>] [--diff]
 | `-B rows` | int | Líneas de contexto antes del fragmento. |
 | `-A rows` | int | Líneas de contexto después del fragmento. |
 | `--diff` | flag | Muestra el diff entre el fragmento aceptado y el fragmento actual. |
+| `--raw` | flag | El texto del fragmento y nada más: sin números de línea y sin huecos. |
 
 Resuelve el endpoint N del bilink `<uuid>.yaml` de la capa actual y retorna el texto del fragmento que referencia.
 
 Si el endpoint es de tipo `path`, resuelve el path Stratum hacia la capa adyacente, localiza el mismo UUID en su `.bilink/`, y retorna el fragmento del endpoint estructural que contiene. Requiere que los archivos de la capa adyacente estén accesibles localmente.
 
-**stdout** — El texto del fragmento.
+**stdout** — El fragmento, **una línea por línea del archivo, con su número**.
 
 **stderr** — Metadata:
 
@@ -62,28 +63,59 @@ Si el endpoint es de tipo `path`, resuelve el path Stratum hacia la capa adyacen
 # impl :: PermissionController.java  lines 12–12, 40–43
 ```
 
-El texto sale unido por el mismo separador que las une en el `hash` — lo que se lee es el fragmento, no el archivo entre la primera parte y la última. Ver [`concepts/capture.md`](../concepts/capture.md) § "El fragmento son los `@target`".
-
 **Salida:**
 
 ```
 $ bilinker get 7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.1
 
-impl: Persona#vote
-description: El método vote registra el voto del ciudadano.
+14:   impl: Persona#vote
+15:   description: El método vote registra el voto del ciudadano.
 ```
 
 ```
 $ bilinker get 7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.1 -B 2 -A 2
 
-  id: persona-voting
-  name: Voting
-
-impl: Persona#vote
-description: El método vote registra el voto del ciudadano.
-
-tests:
+12:     id: persona-voting
+13:     name: Voting
+14:   impl: Persona#vote
+15:   description: El método vote registra el voto del ciudadano.
+16:
+17:   tests:
 ```
+
+### Un hueco es un hueco, y se marca en las dos escalas
+
+> `⋮` para las líneas que no entran. `...` para lo que no entra **adentro** de una línea.
+
+```
+$ bilinker get 67ba7217.0
+
+22:   @RequestMapping("/public-api/user")
+ ⋮
+36:   	@GetMapping(value = "/info/from-token")
+37:   	... PublicUserInfoDto ... (@RequestHeader("user-token") String userToken) ...
+```
+
+**Los `...` son el límite entre partes, y por eso no hace falta marcarlo aparte.** En la línea 37 dicen tres cosas de una: que `public` no entra, que el nombre del método no entra —la decisión de [`32`](../../../.stratum/worklist-accreta/32.task.md), ahora visible— y que el ` {` tampoco. Dónde termina una parte y arranca la otra se ve porque lo que hay en el medio no está.
+
+**Y hace falta porque el texto pelado mentía.** Todo capture de `spring-controller` tiene cuatro `@target`, y el tipo de retorno y los parámetros **comparten línea** siempre que la firma quepa en una. Concatenados, esa línea salía dos veces y se leía como una duplicación:
+
+```
+	public PublicUserInfoDto fetchUserInfoFromToken(@RequestHeader("user-token") String userToken) {
+	public PublicUserInfoDto fetchUserInfoFromToken(@RequestHeader("user-token") String userToken) {
+```
+
+No estaba capturada dos veces: eran dos partes en la misma línea. Con la vista, una línea del archivo sale **una vez**, aunque la toquen varias partes.
+
+La sangría se conserva tal cual: es espacio en blanco, no aporta contenido, y sin ella el código no se lee.
+
+### `--raw` es el texto, y no es el default
+
+**Hasta acá el stdout era el fragmento exacto**, unido por el mismo separador que lo une en el `hash` — o sea que lo que se imprimía *era* el fragmento, el mismo que `check` compara. Eso pasa a `--raw`.
+
+El argumento no es de gustos. Si alguien quiere el texto exacto es **para compararlo**, y comparar lo hacen `check` y `--diff`, no una persona en una terminal. Un default que sirve para pipear y no para leer optimiza el uso raro.
+
+**Y `get` es el comando de después.** La [vista previa](chain.md#la-salida-deja-ver-qué-se-capturó-y-qué-no) existe porque *"un capture es opaco después de escrito"*; `get` se usa justo cuando esa opacidad ya se cobró, y mostraba **menos** que la vista de antes de escribir. Ver [`concepts/capture.md`](../concepts/capture.md) § "El fragmento son los `@target`" para qué es una parte.
 
 ### Flag `--diff`
 
@@ -223,3 +255,5 @@ bilinker get 7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.1
 - **Independencia de git**: `get` sin `--diff` no requiere control de versiones.
 - **Sin efectos secundarios**: `get` no escribe ningún archivo.
 - **Un endpoint que no resuelve imprime su referencia igual**: archivo, id del capture, y query. Falla después.
+- **`--raw` imprime el fragmento y nada más**: el mismo texto que `check` hashea, byte por byte. Es la única salida de la que eso se puede afirmar, y por eso el flag existe.
+- **Una línea del archivo sale una sola vez**, aunque la toquen varias partes.
