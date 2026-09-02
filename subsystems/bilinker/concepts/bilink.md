@@ -65,9 +65,11 @@ El `link` de un nivel es el eje de su ubicación, y **toma tres formas**:
 
 | | |
 |---|---|
-| *(ausente)* | se miró y no hay vecinos — una firma de puros primitivos |
+| *(ausente)* | se miró y no hay vecinos — una firma cuyos tipos son todos de otra capa |
 | `capture <id> <id> …` | éstos son los vecinos, ordenados por id |
 | `unknown` | el contrato está y de qué vecinos salió no se sabe |
+
+> Decía *"una firma de puros primitivos"*, y ese caso ya no llega hasta acá: un primitivo no es un identificador de tipo, así que la firma no aporta ninguna posición y el nivel **no se adquiere**. La ausencia del `link` de un nivel que sí existe es la del vecindario preguntado y vacío. Ver [`accept.md`](accept.md#dónde-se-pregunta-los-identificadores-de-tipo-no-el-primer-byte-de-cada-campo).
 
 `unknown` **no es un vecindario vacío ni una renuncia**: el nivel está adquirido —`hash` y `hash_ast` siguen ahí, y el eje del contenido se verifica igual— y lo único que falta es la ubicación. Aparece cuando alguien tuvo los hashes sin poder resolver los captures: una migración que no pudo traerlos, o un consumidor que recibe los del proveedor sin poder resolver captures ajenos.
 
