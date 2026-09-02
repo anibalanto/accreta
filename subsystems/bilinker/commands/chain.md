@@ -369,11 +369,54 @@ Chain: 7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a  [DIRTY]
 
 ### `bilinker chain list`
 
-Lista todas las cadenas encontradas en el proyecto a partir del directorio actual.
+Lista las cadenas encontradas en el proyecto a partir del directorio actual.
 
 ```
-bilinker chain list
+bilinker chain list [<texto>] [--as <modo>] [--link <tipo>] [--state <estado>] [--under <path>]
 ```
+
+| Argumento | Filtra por |
+|---|---|
+| `<texto>` | que el [alias](#el-alias-el-verbo-y-la-ruta-compuestos-del-fragmento) lo contenga, sin distinguir mayúsculas |
+| `--as <modo>` | con qué generador se capturó algún extremo — `spring-controller`, `interface` |
+| `--link <tipo>` | qué clase de extremo tiene — `capture`, `path`, `issue`, `abstract`, `repo` |
+| `--state <estado>` | el estado de la cadena — `ok`, `pendiente`, `dirty`, … |
+| `--under <path>` | que algún extremo referencie un archivo bajo ese path |
+
+**Los filtros se combinan con Y.** Un `chain list booking --state pendiente` es *las que se llaman así **y** están sin aceptar*; que se acumulen es lo que permite bajar de 98 a una sin salir del comando.
+
+#### Filtrar es lo que vuelve usable un listado de 98
+
+Una línea por cadena alcanza mientras haya diez. Con 98 —la superficie pública de `hsi`— encontrar *el endpoint de disponibilidad de turnos* obligaba a sacar cada UUID y correrle `get`, uno por uno.
+
+En un repo propio el problema queda escondido, porque uno encuentra un bilink **por el archivo que está editando**, con `get <file>`. Del otro lado de la frontera nadie sabe qué archivo mirar — que es exactamente la situación de quien recibe una api publicada.
+
+#### Los dos ejes de tipo no son el mismo, y por eso son dos flags
+
+Se confunden fácil, y mezclarlos daría un filtro que a veces contesta una pregunta y a veces la otra:
+
+| eje | flag | valores | contesta |
+|---|---|---|---|
+| tipo del `link` | `--link` | `capture`, `path`, `issue`, `abstract`, `repo` | **qué clase de extremo es** |
+| generador | `--as` | `spring-controller`, `interface`, ausente | **con qué receta se capturó** |
+
+Son independientes: un `capture` puede tener cualquier `as` o ninguno, y un `abstract` no tiene ninguno **porque no captura nada**.
+
+**Y `--as` es el que hace útil un listado en un repo mezclado.** En accreta conviven secciones de markdown, funciones de Rust y firmas capturadas con `interface`; pedir *"los `spring-controller`"* es pedir una clase de cosa, no un texto que aparezca en un nombre.
+
+#### Y `abstracts` sin alias es esto con `--link abstract`
+
+Son dos comandos que listan lo mismo con dos formatos, y eso se separa solo con el tiempo. **Pero sólo se superponen a medias**, y la mitad que no vale la pena forzar:
+
+| | qué lista | de dónde lo lee |
+|---|---|---|
+| `chain list --link abstract` | lo que **esta capa** publica | sus propios `.bilink/` |
+| [`abstracts`](abstracts.md) sin alias | lo mismo | ídem — **es este comando con el filtro puesto** |
+| [`abstracts <alias>`](abstracts.md) | lo que publica **otro repo** | el clon del proveedor, con `git show` y sin tocar el sparse |
+
+La tercera fila contesta una pregunta que `chain list` no puede: mira el repo de otro. Así que `abstracts` no desaparece — lo que desaparece es su listado propio de la capa local, que pasa a ser este comando.
+
+**Y el formato de cada uno sigue distinto porque las preguntas son distintas.** `abstracts` trae **el fragmento** porque elegir de qué colgarse se decide leyendo el código; `chain list` trae **el alias** porque encontrar una entre 98 se hace por nombre. Antes de que el alias existiera, mostrar el fragmento era la única forma de decir qué era cada cosa — y por eso `abstracts` había quedado siendo el mejor listado, por accidente.
 
 **Salida:**
 
