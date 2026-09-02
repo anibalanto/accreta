@@ -85,7 +85,11 @@ Y si los valores que se aceptan **coinciden** con los de una entrada existente, 
 
 Una entrada es **una decisión**: estos valores, en sus dos ejes. Quien la firma aprueba el fragmento y su vecindario juntos, que es lo que `accept` escribe de una.
 
-Separarlos —un `agree` adentro de `n.1`— permitiría decir *"apruebo la firma pero no sus tipos"*, y no está claro qué significaría eso para el estado: no hay medio-OK. Si aparece el caso, es un cambio aditivo y se puede agregar después; al revés no.
+Un `agree` adentro de `n.1` diría algo que tiene sentido: *"endoso la firma; el vecindario no lo miré"*. Es el caso de quien acepta **sin proveedor** — puede verificar la firma con tree-sitter y no los tipos, y hoy sus dos únicas salidas son negarse o `--no-n1`, que **renuncia** al vecindario para todos en vez de abstenerse.
+
+**Y no crea un medio-OK**: `agree` es inerte por [invariante 14](#invariantes) y no afecta ningún estado. Lo que falta es otra cosa — **quién lo escribiría distinto**. `accept` escribe los dos niveles en un solo acto contra un solo snapshot, y no hay flag que endose uno y no el otro: `--place` y `--content` separan las dimensiones del fragmento, y `--no-n1` no es abstenerse sino renunciar.
+
+Sin ese flag el campo nace y nunca puede diferir del de arriba. **Es aditivo**, así que entra el día que el flag exista; al revés no.
 
 #### Lo que no está resuelto: si cruza la frontera
 
