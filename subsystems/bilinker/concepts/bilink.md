@@ -136,6 +136,27 @@ No existe un `kind` para relaciones de llamada. Un bilink declara una referencia
 
 Etiqueta del rol semántico del endpoint en la relación que `kind` declara. Texto libre. Va **adentro** del endpoint, no como `name.N` suelto: es un dato de una punta y ahora hay dónde ponerlo.
 
+### `as`
+
+Con qué generador se capturó ese extremo. El valor es el mismo nombre que tomó [`--as.N`](../commands/chain.md#--as-quién-genera-la-query) al escribirlo —`interface`, `spring-controller`—, y su ausencia significa que no se sabe con qué se capturó: es lo que dice cualquier archivo escrito antes de este campo, y lo que dice un capture del núcleo.
+
+```yaml
+endpoint:
+  0:
+    link: capture 67ba7217e0334051becd4921b55a7872
+    as: spring-controller
+  1:
+    link: abstract
+```
+
+**Va por endpoint porque el hecho es de un extremo.** Un tip puede ser un endpoint de Spring y el otro `abstract`; un campo arriba, al lado de `kind`, afirmaría sobre la relación entera algo que vale de un lado solo. Es la misma razón por la que `--as` va por tip y no global, así que el registro de lo que hizo `--as` va donde va `--as`.
+
+**Y no entra en `kind`**, que ya contesta otra pregunta: `kind` clasifica *qué clase de relación* se declara y `as` dice *con qué receta se capturó este extremo*. En el mismo campo no pueden convivir.
+
+**Es la receta, no el valor.** Lo que se guarda no es el nombre ni la ruta que el generador sabe componer —eso sale del fragmento cada vez que se lee, que es lo que no puede mentir— sino con qué componerlos. Un valor derivado y guardado envejece en silencio; la regla que lo deriva no cambia cuando cambia el valor.
+
+**Un `as` que nombra un generador que no está instalado es un dato que no se pudo usar, nunca un error.** El capture sigue resolviendo y `check` sigue contestando: lo único que se degrada es lo que ese generador sabía componer. Ver [`chain new`](../commands/chain.md#el-capture-no-deja-rastro-y-el-bilink-sí).
+
 ## Estados
 
 Ningún estado vive en el archivo: `check` los calcula y los escribe en [la cache](cache.md).
@@ -293,5 +314,5 @@ Cada endpoint `path` copia los **dos** valores del endpoint estructural de su ve
 11. Un bilink no contiene `state`, `commit` ni ningún derivado: viven en la cache.
 12. La topología de la cadena es lineal — sin ciclos ni bifurcaciones.
 13. Sólo se puede aceptar un endpoint sobre un fragmento commiteado.
-14. `kind` y `name` son inertes: no afectan ningún hash ni ningún estado. `accepted.agree` tampoco los afecta, pero no es decoración: lo escribe `accept` y es parte de la decisión. Ver [aceptación](accept.md#quiénes-aprobaron).
+14. `kind`, `name` y `as` son inertes: no afectan ningún hash ni ningún estado. `accepted.agree` tampoco los afecta, pero no es decoración: lo escribe `accept` y es parte de la decisión. Ver [aceptación](accept.md#quiénes-aprobaron).
 15. Un campo desconocido se rechaza con su nombre, nunca se descarta.

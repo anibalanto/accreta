@@ -57,11 +57,15 @@ Sin `--as`, la query la genera el núcleo y captura los nodos señalados enteros
 
 **Un generador toma una posición.** Genera *la* query de *eso* que señalaste, y dos cosas señaladas son dos contratos, no uno con dos mitades. Sin `--as`, las posiciones siguen siendo las que quieras.
 
-##### Y no deja rastro
+##### El capture no deja rastro, y el bilink sí
 
 Un generador genera una query y desaparece. El capture que queda es **una query normal**: no dice quién lo generó, no depende de que el generador exista, y se podría haber escrito señalando las posiciones a mano.
 
 **Eso lo fuerza el formato, no la disciplina.** El id de un capture es `sha256(file \0 query \0)`; agregarle *"generado por spring-controller"* le cambiaría el id sin cambiar la ubicación. No hay dónde dejar el rastro aunque uno quisiera.
+
+**El bilink es otro objeto, y ahí sí hay dónde.** Su id es un UUID y ya lleva campos que no entran en ningún hash, así que el endpoint anota con qué se capturó en [`as`](../concepts/bilink.md#as). No es una excepción a lo de arriba: lo de arriba es una limitación mecánica de un objeto cuyo id es su contenido, no un principio contra saber quién generó qué.
+
+**Y la mitad que importa se conserva entera: perder el plugin cuesta lo que el plugin sabía, nunca el vínculo.** El capture sigue resolviendo, `check` sigue contestando, y un `as` que nombra un generador que no está instalado es un dato que no se pudo usar. Lo que no cambia es que el capture se podría haber escrito a mano — el `as` lo cuenta, no lo condiciona.
 
 ##### Y pasa la misma verificación que una query escrita a mano
 
