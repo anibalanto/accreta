@@ -45,6 +45,25 @@ shutdown
 
 Un daemon recién arrancado no tiene ninguno levantado, y eso es normal: `status` lo dice.
 
+### Uno por lenguaje es una invariante, y el mapa de clientes es quien la sostiene
+
+**No hay servidor corriendo que el mapa no tenga.** Parece una consecuencia de levantarlos a demanda y no lo es: el diagrama de arriba se lee como si las queries llegaran una atrás de la otra, y no llegan —`check` sobre un repo pregunta en paralelo—, y *"primera query de un lenguaje"* no es un instante sino el tramo entero del handshake, que con `jdtls` son segundos.
+
+Sin la invariante escrita, el mapa parece el censo de lo que corre y no lo es. Hay que sostenerla en dos lugares, y son dos preguntas distintas:
+
+| Qué se sostiene | Contra qué |
+|---|---|
+| **Se levanta uno solo**, aunque N queries del mismo lenguaje lleguen juntas | que la ventana del handshake deje entrar a la segunda |
+| **Un servidor que el mapa no conserva no existe** | que quede vivo un proceso al que ya nadie le puede hablar |
+
+La primera se sostiene reservando el lugar en el mapa **antes** del handshake y no después: lo que se comparte es la promesa del cliente y no el cliente terminado, así que el que llega segundo espera esa misma promesa en vez de arrancar otro proceso. Hacerlo al revés —levantar y después ver si alguien ganó de mano— convierte cada arranque concurrente en un servidor de más.
+
+La segunda es de propiedad, y es la que hace daño. **El proceso es del mapa**, y sacarlo del mapa *es* matarlo: no "además" matarlo, que es lo que se puede olvidar y lo que un `Drop` que nadie ejecuta finge cumplir. Un servidor huérfano no es un proceso ocioso de más — no se reusa, `status` no lo cuenta, y el `shutdown` de este diagrama le pasa por al lado. Con `jdtls` son gigas: cada JVM arranca en 1 GB y crece hasta un cuarto de la RAM de la máquina.
+
+> **Y no es hipotético.** Ver [`4f` Error de contención: nueve `jdtls` vivos para un solo `lspd`, y el OOM killer se lleva la sesión entera](../../../.stratum/worklist-accreta/4f.task.md): nueve JVMs huérfanas para un solo daemon, 22 GB, y la sesión de terminal entera muerta con ellas por compartir unidad systemd.
+
+**Es lo que vuelve verdadero al `shutdown` de arriba.** Cerrar *"todos los language servers"* sólo puede significar algo si el mapa los tiene todos.
+
 ## Terminar el handshake no es estar listo
 
 **Entre el handshake y la primera respuesta útil hay un tramo, y durante ese tramo el servidor contesta vacío.** Medido: `rust-analyzer` sobre un workspace mediano tarda siete minutos en dejar de estar ocupado, y en todo ese rato `definitions` devuelve `[]` con el proceso vivo y el handshake terminado.
