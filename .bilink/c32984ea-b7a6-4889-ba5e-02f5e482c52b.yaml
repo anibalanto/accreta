@@ -1,10 +1,12 @@
 endpoint:
-  '0':
+  0:
     link: capture 413be4c2c0623e9dfaef3e6333cef7ef
     accepted:
-    - link: capture 413be4c2c0623e9dfaef3e6333cef7ef
+    - agree:
+      - Anibal
+      link: capture 413be4c2c0623e9dfaef3e6333cef7ef
       hash: 6e794d552c4120c9bffc607c061e04fd9c6591a9ad43b12562b1313fda1a1b4a
-  '1':
+  1:
     link: path subsystems/bilinker>impl
     accepted:
     - agree:
