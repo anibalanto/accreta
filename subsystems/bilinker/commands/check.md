@@ -35,6 +35,63 @@ No escribe cache **a propósito**: la cache describe el estado del árbol contra
 
 Lo que `--against` **no** puede hacer es cruzar versiones de formato: linkea un solo parser. Comparar dos formatos es trabajo de una migración, que depende de los dos.
 
+## Antes del primer bilink, la versión de la capa
+
+`.bilink/version` dice en qué formato están los archivos de esta capa. `check` la compara contra la versión de su propio parser **antes de abrir uno**, y si no la entiende no verifica nada: dice qué versión hay, qué versión lee, y manda a [`migrate`](migrate.md).
+
+```
+$ bilinker check .
+Error: esta capa declara formato 3.0.0 y este binario lee 4.0.0.
+       No se interpreta lo que no se entiende: bilinker migrate --recursive
+```
+
+**Es el criterio que ya usa cruzando la [frontera](../concepts/frontier.md), aplicado del lado de casa** — la misma comparación de major, el mismo *"no se interpreta lo que no se entiende"*, y por la misma razón: una versión que no se entiende no es un estado de los bilinks, es **no poder leerlos**, y reportar cualquier estado sobre eso sería inventar. Que la verificación existiera sólo hacia afuera era la asimetría, y no tenía fundamento: el que malinterpreta es el parser, y no le cambia nada de quién sean los archivos.
+
+Y no sirve deducirlo del parseo, porque **un archivo de formato viejo puede parsear bien y significar otra cosa.** El caso está medido: en `3.3.0` la `query` de un capture pasó a poder llevar varios `@target` y el fragmento pasó a ser su concatenación, sin que el tipo ni el archivo cambiaran — un parser de `3.2.0` lee esa query, se queda con el primero, y hashea otro fragmento sin fallar. La versión es lo único que discrimina en esa dirección, así que se pregunta primero.
+
+### Sin `version` es formato 1; sin `.bilink/` no hay capa
+
+Las dos ausencias se parecen y no significan lo mismo:
+
+| En disco | Qué es | `check` |
+|---|---|---|
+| no hay `.bilink/` | acá no hay capa de bilinker | `all clean (0 bilink(s))`, y es cierto |
+| hay `.bilink/` y no hay `version` | una capa anterior a que el campo existiera: formato 1 | se niega y manda a `migrate` |
+
+La segunda fila es la misma lectura que hace la frontera de un proveedor que no declara versión. La primera es la que **no** hay que confundir con ella: un directorio sin `.bilink/` no tiene bilinks que esconder, y negarse ahí volvería `check` inusable fuera de una capa.
+
+### Un binario más viejo que la capa falla al parsear, y eso ya está cubierto
+
+La comparación es de major, así que una capa `4.1.0` leída por un binario `4.0.0` pasa este control y falla después, en el archivo que lleva el campo nuevo. Está bien que sea así: `deny_unknown_fields` es explícito a propósito, y es exactamente lo que el [registro de versiones](../concepts/format-version.md) existe para garantizar. Lo que faltaba de ese lado no era detectarlo — era **no comérselo**.
+
+## Un archivo que no parsea es un estado, no una ausencia
+
+Saltear un bilink ilegible para no abortar el recorrido de los demás está bien, y es lo mismo que `check` hace con un directorio que no puede leer. Lo que no está bien es saltearlo **en silencio**, porque ahí *"no pude leer 206"* sale igual que *"no hay ninguno"*:
+
+```
+$ bilinker check .
+all clean (0 bilink(s))
+$ echo $?
+0
+```
+
+Un archivo que no parsea **se cuenta aparte de los verificados**, se imprime con su path y su error, y sale con 1:
+
+```
+$ bilinker check .
+
+3 bilink(s) no se pudieron leer:
+  .bilink/7f3d8e9a-….yaml  unknown field `agree`, expected one of `link`, `hash`, `hash_ast`
+  .bilink/3a4b5c6d-….yaml  invalid type: sequence, expected a map
+  .bilink/f1e2d3c4-….yaml  missing field `link`
+
+203 bilink(s) verificados, todos OK — 3 ilegibles
+```
+
+**`all clean` es una afirmación sobre todo lo que hay, así que no se imprime cuando quedó algo sin leer.** Un `check` que verificó 203 de 206 no puede decir `all clean (206)` ni `all clean (203)` a secas: el primero miente sobre lo que miró, el segundo esconde lo que no pudo mirar.
+
+Y el conteo va **al lado del resultado, no en vez de él**. Los 203 que sí se leyeron se evalúan y se reportan igual: un archivo roto no es razón para dejar de decir lo que se sabe de los demás.
+
 ## Las dos dimensiones
 
 Un endpoint puede desalinearse de dos formas, y `check` las distingue porque se aprueban por separado:
@@ -350,7 +407,13 @@ f1e2d3c4  (EXPANDED, OK)
 |---|---|
 | 0 | Todos los captures resuelven y todos los endpoints están en `OK`, `EXPANDED`, `RESTYLED` o `CONTRACT_UNVERIFIED`. |
 | 1 | Algún capture en `UNANCHORED`, `DELETED` o `BROKEN`, o algún endpoint en `RELOCATED`, `ALTERED`, `UNRESOLVED`, `PENDING`, `CHAIN_DIRTY`, `CONTRACT_RESTYLED` o `CONTRACT_ALTERED`. |
+| 1 | Algún bilink no se pudo leer, aunque todos los que se leyeron estén `OK`. |
+| 2 | La versión de formato de la capa no se entiende. No se verificó nada. |
 
 **`CONTRACT_UNVERIFIED` sale con 0**, con las ausencias y no con los drifts: no es que el valor difiera, es que no hay con qué compararlo. Correr `check` sin daemon es un modo de operación normal —`check` es masivo y offline— y hacerlo salir con 1 volvería rojo cualquier CI que no levante un language server.
 
 **`RELOCATED` sale con 1.** Antes `MOVED` salía con 0 porque `apply` lo cerraba solo; ahora repuntar no aprueba, y un vínculo apuntando a un fragmento que nadie miró es trabajo pendiente, no un detalle de mantenimiento.
+
+**Un bilink ilegible sale con 1** por lo mismo que `PENDING`: hay trabajo que hacer y nadie lo hizo. Que el archivo esté roto en vez de pendiente no lo vuelve menos trabajo.
+
+**Y la versión sale con 2, no con 1**, porque no es lo mismo *"hay endpoints no-OK"* que *"no leí nada"*. Un CI que trata cualquier no-cero igual no nota la diferencia, y uno que sí puede distinguir entre un drift que hay que revisar y una capa que hay que migrar.
