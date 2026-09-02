@@ -52,6 +52,22 @@ Por eso los prefijos reconocidos se publican, y salen de la misma tabla que usa 
 
 **Y el esquema no puede describirlo.** Lo que discrimina está adentro de un string, y ningún tipo lo hace visible; el guard no se habría enterado. Es el límite de la regla de arriba: donde el esquema no alcanza, subir la versión es lo único que le queda a un consumidor para saber que lo que lee no es lo que cree.
 
+## El registro cubre una dirección, y la otra la cubre leer la versión
+
+Todo lo de arriba protege una sola dirección: el parser **viejo** leyendo archivos nuevos. Contra eso hay dos cosas, y las dos son mecánicas — `deny_unknown_fields`, que lo hace fallar explícito en vez de ignorar un campo que no entiende, y el hash del esquema, que hace imposible publicar dos formatos distintos con el mismo número.
+
+El simétrico —**parser nuevo, archivos viejos**— no lo cubre ninguna de las dos, y no lo puede cubrir: los archivos viejos no tienen nada raro adentro, así que **parsean bien**. Un campo que se agregó con default se lee como su default, y un significado que cambió adentro de un string —`3.3.0`— se lee con el significado nuevo. No hay nada en el archivo que delate de qué versión es.
+
+Lo único que lo dice es `.bilink/version`. Y de ahí sale que ese campo **no es documentación**: es el único dato que discrimina en esa dirección, así que un campo que se escribe y nadie compara es lo mismo que no tenerlo. Pasó, y el síntoma fue [`check` diciendo `all clean (0 bilink(s))`](../commands/check.md#antes-del-primer-bilink-la-versión-de-la-capa) sobre 206 archivos que no pudo leer.
+
+> **Quien lee archivos de bilinker compara la versión antes de interpretarlos.** No importa de quién sean: la asimetría de verificar hacia afuera y confiar hacia adentro no tiene fundamento, porque el que malinterpreta es el parser y no le cambia nada que los archivos sean del repo de al lado o de éste.
+
+### Y por eso el campo envejeció
+
+`.bilink/version` de accreta decía `3.0.0` mientras los archivos pasaban por `3.1`, `3.3` y `3.8`. Está bien que ninguna de esas versiones lo haya pisado —eran aditivas, y ningún archivo cambió— pero el campo igual quedó diciendo algo falso, y no se notó porque no había lector. **Un dato sin lector no se corrige nunca**: no hay operación que lo obligue a estar bien.
+
+Con lector, el error aparece la primera vez que alguien corre un comando, que es cuando se puede arreglar.
+
 ## Qué describe el esquema, hoy
 
 **El modelo, todavía no el archivo.** Los `.bilink` y `.capture` de hoy son texto plano `clave: valor` con líneas de continuación, escrito y leído por un parser a mano. Un esquema JSON no puede describir eso.
@@ -81,3 +97,5 @@ Los tipos con serde son la fuente y el esquema sale generado. La alternativa —
 3. El registro de hashes es de sólo-agregar.
 4. El esquema publica todo lo que el parser usa para discriminar.
 5. El crate de formato no resuelve queries, no consulta git y no calcula estados.
+6. Todo comando que interprete archivos de bilinker compara la versión declarada de la capa contra la del binario **antes** de interpretar, y se niega si el major difiere. Vale para la capa propia igual que para la de un proveedor.
+7. Un `.bilink/` sin `version` es formato 1. La ausencia del directorio entero no es una capa, y no se lee como una versión.
