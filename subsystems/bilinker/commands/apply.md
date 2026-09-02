@@ -58,6 +58,7 @@ El segundo argumento es el capture **nuevo**: es lo que el `link` pasa a nombrar
 |---|---|
 | **MOVED** | El índice de renames de git: `git diff -M --name-status`. Se verifica que la query resuelva en el destino. |
 | **REANCHORED** | La query relajada matchea un nodo con nombre distinto, por encima del umbral y con margen sobre el segundo. |
+| **CONTRACT_UNLOCATED** | Se le pregunta al proveedor qué vecinos alcanza la firma. No hay conjunto declarado contra el que comparar, así que cualquiera que alcance es el fix. |
 
 Los dos producen lo mismo: **un `(file, query)` nuevo**, y con él un capture nuevo. Ver [`check`](check.md) para los criterios de detección.
 
@@ -170,6 +171,7 @@ Ningún fix cierra solo. Por eso el resumen dice qué falta antes de listar los 
 - `apply` es idempotente: un fix ya aplicado se detecta como no-op.
 - `apply` escribe un commit de decisión por `link` repuntado, todos hijos de la misma absorción.
 - `ALTERED`, `UNRESOLVED` y `CHAIN_DIRTY` no tienen fix y `apply` no los toca.
+- Un nivel del vecindario en `unknown` tiene fix **sólo con proveedor**: sin él, `apply` lo deja como está y lo dice. Y el fix llena la declaración, nunca el `accepted`.
 
 ## Y mantiene el vecindario, para lo cual recibe el puerto
 
@@ -189,6 +191,16 @@ De `{Dto}` a `{Dto, Filtro}`. No es un `MOVED` ni un `REANCHORED` — es un miem
 > Todo comando que toque el eje del vecindario recibe el puerto, y **degrada sin él**.
 
 La frontera del subsistema no se mueve: la librería sigue siendo git y tree-sitter, y el proveedor entra por el puerto.
+
+### Y llena un `unknown`, que es el otro modo de ganar miembros
+
+Un nivel con [`link: unknown`](../concepts/bilink.md#el-link-de-un-nivel-del-vecindario-y-su-tercera-forma) es *"el contrato está y de qué vecinos salió no se sabe"*. Preguntarle al proveedor qué vecinos alcanza la firma **es el fix**, y es la misma operación que ganar un miembro: se descubre un conjunto y se propone.
+
+La diferencia con `{Dto}` → `{Dto, Filtro}` es de qué se compara contra qué. Ahí el conjunto declarado existía y le faltaba uno; acá **no hay con qué comparar**, así que cualquier conjunto que el proveedor alcance es el fix. `unknown` es incomparable por definición: dos `unknown` no coinciden, y tampoco coincide con una lista.
+
+**Y `apply` sólo llena la declaración.** El `accepted` sigue con su `unknown` y su hash conservado, porque `apply` no escribe `accepted` nunca — así que el endpoint sigue en `CONTRACT_UNLOCATED` hasta que alguien acepte. Eso es lo que se quiere: los captures propuestos se revisan con [`get`](get.md) antes de que se conviertan en un contrato.
+
+> **El orden con el que se llena no es preferencia.** Los captures salen de las posiciones que [`reach`](../concepts/accept.md#dónde-se-pregunta-los-identificadores-de-tipo-no-el-primer-byte-de-cada-campo) le pasa al proveedor, así que llenar con esas posiciones mal calculadas escribe un capture que apunta al propio fragmento — y un `accept` encima lo vuelve permanente. `unknown` es un estado seguro y el verde equivocado no.
 
 ### Y sigue sin aprobar nada
 
