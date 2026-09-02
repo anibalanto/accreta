@@ -26,23 +26,78 @@ El mismo UUID aparece en todas las capas que participan de una cadena.
 endpoint:
   0:
     link: capture 67ba7217e0334051becd4921b55a7872
+    n:
+      1:
+        link: capture fe74f8b4e9fd72eeae03ea41ce520155 1b06e7c6750d68696653c9112925a54e
     accepted:
-      agree:
+    - agree:
       - pablo
       link: capture 67ba7217e0334051becd4921b55a7872
       hash: c00e07602bd560755096b57df1ddb9ed49d816fb8af58a4ec9cde82f21f38db3
       hash_ast: 1b9e44a2f0c8d3e7a5b1c9d4e2f6a8b0c3d5e7f9a1b3c5d7e9f1a3b5c7d9e1f3
+      n:
+        1:
+          link: capture fe74f8b4e9fd72eeae03ea41ce520155 1b06e7c6750d68696653c9112925a54e
+          hash: ebdaf622a00a28d0d45d27a793ebe10a8c8c14637259fe11e4f5b82aa739b6b7
+          hash_ast: 49b10d85fc2f5a7a6ecb55108007419f31acf617cceb62601fd8b14890d7b856
   1:
     link: path >impl
 ```
 
-Dos campos por endpoint, y cada uno tiene un escritor y uno solo:
+**Dos ejes por endpoint, y cada uno con su declaración y su decisión.** El fragmento y su [vecindario](accept.md#el-cierre-de-firma) se escriben con la misma forma, y cada campo tiene un escritor y uno solo:
 
-> **`apply` escribe `link`. `accept` escribe `accepted`. `check` no escribe nada en el bilink.**
+| | declaración | decisión |
+|---|---|---|
+| el fragmento | `link` | `accepted[].link` |
+| su vecindario | `n.1.link` | `accepted[].n.1.link` |
+
+> **`apply` escribe las declaraciones. `accept` escribe las decisiones. `check` no escribe nada en el bilink.**
 
 La frontera deja de ser una convención de nombres y pasa a ser estructura. Ver [aceptación](accept.md).
 
+**Y `accepted` es una lista**, porque dos personas pueden haber aprobado versiones distintas del mismo fragmento y **ninguna de las dos se descarta**. Más de una entrada es un estado —`CONSENSUS_DIVERGED`— y no un modo de operación: ver [§ Más de un `accepted`](#más-de-un-accepted-es-un-estado-no-una-forma-de-trabajar).
+
 No existe campo `id`: el UUID del nombre es el identificador. No existe `range`: la ubicación vive en el [capture](capture.md) que el `link` referencia. No existe `resolved_at`, ni `state`, ni `commit`: son derivados y viven en [la cache](cache.md).
+
+### Más de un `accepted` es un estado, no una forma de trabajar
+
+**Un endpoint sólo puede estar `OK` con exactamente una entrada.** Con dos o más el estado es `CONSENSUS_DIVERGED`, y `check` falla.
+
+Eso es lo que vuelve sana a la lista: **no es una estructura para sostener dos verdades, es una forma de no perder ninguna mientras se resuelve.** Es transitoria por construcción — alguien mira, acepta, y colapsa a una.
+
+La alternativa —*"una gobierna y las demás son historia"*— daría un endpoint verde con una aprobación vieja adentro, que es la clase de mentira que el resto del formato existe para impedir.
+
+**Es un eje que no describe al fragmento.** Los demás estados dicen dónde está, qué dice y qué tipos menciona. Éste dice *"sobre esos tres no hay una sola respuesta"*, y de qué lado está el desacuerdo es de las personas, no del código.
+
+#### Cómo colapsa, que es la regla que ya existía
+
+`accept` sobre un endpoint divergido **deja una sola entrada: la de los valores que se están aprobando.** Las entradas cuyos valores difieren se van.
+
+No es una regla nueva — es exactamente lo que [`agree`](accept.md#quiénes-aprobaron) ya hacía:
+
+> quien aprobó el hash anterior no aprobó el nuevo… los aprobadores anteriores quedan donde siempre estuvieron, **en los commits que escribieron los valores anteriores**.
+
+Lo único que la lista cambia es **qué pasa entre las dos aceptaciones**: antes la segunda pisaba a la primera en silencio, ahora conviven visibles hasta que alguien resuelve. El destino final de la aprobación desplazada es el mismo de siempre: la ref.
+
+Y si los valores que se aceptan **coinciden** con los de una entrada existente, no hay colapso que hacer: quien acepta se suma a su `agree`, y las demás entradas siguen ahí. Sigue divergido, y es correcto — sumarse a un lado no resuelve un desacuerdo.
+
+#### Un solo `agree` por entrada
+
+Una entrada es **una decisión**: estos valores, en sus dos ejes. Quien la firma aprueba el fragmento y su vecindario juntos, que es lo que `accept` escribe de una.
+
+Separarlos —un `agree` adentro de `n.1`— permitiría decir *"apruebo la firma pero no sus tipos"*, y no está claro qué significaría eso para el estado: no hay medio-OK. Si aparece el caso, es un cambio aditivo y se puede agregar después; al revés no.
+
+#### Lo que no está resuelto: si cruza la frontera
+
+Un endpoint `repo` copia el `accepted` del proveedor. **Con el proveedor divergido no hay uno solo que copiar**, y las tres salidas son malas de distinta forma:
+
+| | |
+|---|---|
+| no copiar nada | el consumidor queda bloqueado por un desacuerdo interno del proveedor, del que no es parte |
+| copiar la lista | el consumidor hereda un desacuerdo ajeno y su propio `accepted` deja de ser una decisión suya |
+| rechazar y decirlo | honesto —*"no se puede consumir un contrato que sus autores no acuerdan"*— pero pide un estado propio del lado del consumidor, porque **el consumidor no está divergido** |
+
+La tercera es la que se parece más al resto del diseño, y aun así abre un nombre nuevo. **Queda abierta a propósito**: es un caso que no se puede alcanzar hasta que haya un proveedor real con divergencia, y decidirlo antes sería inventar el nombre de un estado que nadie vio.
 
 ## Tipos de endpoint
 
@@ -304,15 +359,19 @@ Cada endpoint `path` copia los **dos** valores del endpoint estructural de su ve
 1. El nombre del archivo es un UUID v4 válido con extensión `.yaml`.
 2. Existen exactamente los endpoints `0` y `1`. La aridad es fija: la multiplicidad la aporta el capture. Ver [capture.md](capture.md) § "El fan-out vive del lado del capture".
 3. Un bilink de misma capa tiene dos endpoints estructurales. Una cadena entre capas tiene exactamente dos tips.
-4. `accepted` está completo o ausente. Su ausencia es `PENDING`.
+4. `accepted` es una lista de cero o más entradas, y cada entrada está completa. La lista vacía y la ausencia son lo mismo: `PENDING`.
 5. `accepted.hash` de un endpoint estructural: SHA-256 del fragmento aprobado.
-6. `accepted` de un endpoint `path`: copia de `accepted.link` y `accepted.hash` del endpoint estructural del bilink adyacente. Nunca el hash del archivo vecino.
+6. Una entrada de `accepted` de un endpoint `path`: copia de `link`, `hash` y `n` de la entrada del endpoint estructural del bilink adyacente. Nunca el hash del archivo vecino. Un vecino divergido no se copia — ver § "si cruza la frontera".
 7. Un endpoint `issue` se hashea como el contenido del archivo del ítem. No tiene capture, así que su `accepted` no lleva `link`.
-8. `state.N = OK` si y sólo si `link` == `accepted.link` **y** el hash actual == `accepted.hash`.
-9. Un endpoint estructural referencia exactamente un capture de su misma capa.
-10. Un bilink no contiene `file`, `query` ni `range`: los dos primeros viven en el capture y el tercero en la cache.
+8. `state.N = OK` si y sólo si **hay exactamente una entrada** en `accepted`, y para ella `link` == `accepted[0].link` y el hash actual == `accepted[0].hash`.
+8.b Con más de una entrada, `state.N = CONSENSUS_DIVERGED`, **sin evaluar los otros ejes**: no hay un valor contra el cual compararlos.
+8.c El vecindario se compara igual y un nivel más abajo: `n.1.link` contra `accepted[0].n.1.link`, y el fold de hoy contra `accepted[0].n.1.hash`. Sin proveedor ese eje degrada y los otros se deciden igual.
+9. El `link` de un endpoint estructural referencia exactamente un capture de su misma capa. Un `n.1.link` referencia cero o más, todos de su misma capa.
+10. Un bilink no contiene `file`, `query` ni `range`: los dos primeros viven en el capture y el tercero en la cache. Vale igual para los captures de `n.1.link`.
 11. Un bilink no contiene `state`, `commit` ni ningún derivado: viven en la cache.
 12. La topología de la cadena es lineal — sin ciclos ni bifurcaciones.
 13. Sólo se puede aceptar un endpoint sobre un fragmento commiteado.
 14. `kind`, `name` y `as` son inertes: no afectan ningún hash ni ningún estado. `accepted.agree` tampoco los afecta, pero no es decoración: lo escribe `accept` y es parte de la decisión. Ver [aceptación](accept.md#quiénes-aprobaron).
 15. Un campo desconocido se rechaza con su nombre, nunca se descarta.
+16. Ningún `accept` descarta una entrada de `accepted` cuyos valores coincidan con los que se están aprobando: se une el `agree`. Sólo se descartan las entradas que aprobaban **otros** valores.
+17. Un capture referenciado por un `n.1.link` —de la declaración o de una decisión— cuenta como referenciado para [`prune`](../commands/capture.md).

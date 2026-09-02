@@ -171,3 +171,11 @@ Error: el capture 5fdff600 tiene referentes — usar `bilinker recapture` para r
 - **Reuso**: capturar dos veces el mismo fragmento devuelve el **mismo** id, sin buscar nada. El id es el hash de la ubicación, así que dos referencias a la misma ubicación son literalmente el mismo archivo. Antes había que escanear la capa buscando un capture equivalente; ahora la deduplicación es por construcción.
 - **Independencia de git**: `capture` no requiere que el archivo esté bajo control de versiones. Sí lo requiere [`accept`](accept.md), que necesita el commit del contenido aprobado.
 - **No toca bilinks**: `capture` crea el archivo del capture y nada más. Referenciarlo desde un `link` es un paso aparte, vía `bilinker chain new` o `recapture`.
+
+## `prune` también mira adentro del vecindario
+
+Un capture está referenciado si algún bilink lo nombra, y con el vecindario siendo captures **`n.1.link` es una forma de nombrarlo** — tanto en la declaración como en cada entrada de `accepted`.
+
+Sin esa regla el primer `prune` se lleva los vecinos de todos los endpoints con cierre de firma, y lo que queda es un `accepted` apuntando a captures que ya no existen: un `UNRESOLVED` masivo producido por una limpieza.
+
+**No es un caso especial, es la misma regla:** se borra lo que nadie referencia, y `n.1.link` referencia.

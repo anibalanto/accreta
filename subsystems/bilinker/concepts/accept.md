@@ -23,14 +23,18 @@ Con las dos dimensiones separadas, `apply` sigue proponiendo la ubicación nueva
 endpoint:
   0:
     link: capture 67ba7217e0334051becd4921b55a7872
+    n:
+      1:
+        link: capture fe74f8b4e9fd72eeae03ea41ce520155 1b06e7c6750d68696653c9112925a54e
     accepted:
-      agree:
+    - agree:
       - pablo
       link: capture 67ba7217e0334051becd4921b55a7872
       hash: c00e07602bd560755096b57df1ddb9ed49d816fb8af58a4ec9cde82f21f38db3
       hash_ast: 1b9e44a2f0c8d3e7a5b1c9d4e2f6a8b0c3d5e7f9a1b3c5d7e9f1a3b5c7d9e1f3
       n:
         1:
+          link: capture fe74f8b4e9fd72eeae03ea41ce520155 1b06e7c6750d68696653c9112925a54e
           hash: 96c765b9a3f1e4d7c2b8a5f0e3d6c9b2a7f4e1d8c5b0a3f6e9d2c7b4a1f8e5d0
           hash_ast: 88e834c4b1a7f2e5d0c3b6a9f4e7d2c5b8a1f6e3d0c7b4a9f2e5d8c1b6a3f0e7
   1:
@@ -43,7 +47,9 @@ endpoint:
 | `link` | La ubicación aprobada. Ausente en un endpoint `issue` o `abstract`, que no tienen capture. |
 | `hash` | SHA-256 del fragmento aprobado — la concatenación de los `@target`, ver [capture](capture.md) § "El fragmento son los `@target`". |
 | `hash_ast` | SHA-256 de su s-expression, y de las de todos sus nodos unidas por `\n` cuando hay más de uno. Opcional: ausente donde no hay gramática. |
-| `n` | El **vecindario**, por nivel. Tres estados, ver abajo. |
+| `n` | El **vecindario**, por nivel: un capture por vecino y sus dos folds. Tres estados, ver abajo. |
+
+**`accepted` es una lista, y el eje del vecindario tiene la misma forma que el del fragmento** — declaración afuera, decisión adentro. Ver [`bilink.md`](bilink.md#más-de-un-accepted-es-un-estado-no-una-forma-de-trabajar) para por qué más de una entrada es un estado y cómo colapsa.
 
 ### `n` es un campo con tres estados
 
@@ -52,6 +58,7 @@ El vecindario tiene **una** respuesta, y por eso es **un** campo — con los niv
 ```yaml
 n:                       # se adquirió
   1:
+    link: capture fe74f8b4… 1b06e7c6…   # un capture por vecino
     hash: 96c765b9…
     hash_ast: 88e834c4…  # opcional adentro del nivel, y todo-o-nada
 
@@ -111,16 +118,18 @@ Clavar la profundidad en 1 retira tres preguntas de una vez: dónde para el cier
 Un solo orden, y dos folds sobre ese orden:
 
 ```
-orden = los vecinos por su identidad — <layer-root>::<path> más el nombre del símbolo,
-        byte-wise sobre el UTF-8. Esa clave ordena y no entra en ningún hash.
+orden = los vecinos por su id de capture, byte-wise. Es el orden en que se escriben
+        en `n.1.link`, así que la clave de orden ya está en el archivo.
 
 n.1.hash     = H( hash(v)     de cada vecino, en ese orden )
 n.1.hash_ast = H( hash_ast(v) de cada vecino, en ese orden )
 ```
 
-**La clave de orden tiene que ser identidad, nunca contenido.** Ordenando por el texto, un reformateo le cambiaría el puesto a un vecino, la lista se reordenaría, y el `hash_ast` del nivel se movería sin que ningún AST cambiara — un falso *"cambió de verdad"* producido por el orden. Ordenando por identidad nadie se mueve de puesto salvo que un vecino **entre, salga o se renombre**, y esas tres cosas son cambios de contrato.
+**La clave de orden tiene que ser identidad, nunca contenido.** Ordenando por el texto, un reformateo le cambiaría el puesto a un vecino, la lista se reordenaría, y el `hash_ast` del nivel se movería sin que ningún AST cambiara — un falso *"cambió de verdad"* producido por el orden.
 
-Tampoco puede ordenar el rango: lleva offsets de bytes, que se corren con cualquier edición más arriba del archivo.
+El id de un capture **es** su identidad: `sha256(file \0 query \0)`. No lleva contenido, así que un reformateo no lo mueve; y cambia exactamente cuando el vecino entra, sale, se muda de archivo o se renombra — que son cambios de contrato.
+
+> Antes la clave era `<layer-root>::<path>` más el nombre del símbolo. Con los vecinos siendo captures esa clave se cae sola: el id ya ordena, ya está escrito, y **es una sola cosa en vez de dos concatenadas**. Tampoco podría ordenar el rango, que lleva offsets y se corre con cualquier edición más arriba del archivo.
 
 **Los vecinos se hashean con el mismo recorte de bordes que un fragmento.** Es la regla de [`capture.md`](capture.md) § "El rango excluye el espacio que rodea al nodo", y vale igual acá: un vecino sin recortar mueve su hash cuando le agregan algo abajo.
 
@@ -149,6 +158,10 @@ pub trait Neighbours {
     fn of(&self, file: &Path, at: &[Position]) -> Result<Option<Vec<Location>>>;
 }
 ```
+
+**Y lo que devuelve se vuelve un capture, no un hash.** Cada ubicación resuelve a un nodo por la regla de siempre —*"la selección sirve para encontrar los nodos, no para recortarlos"*— y lo que queda escrito es un id por vecino, en `n.1.link`.
+
+Hasta acá el vecindario era el único lugar del formato donde **una ubicación externa se hasheaba cruda**, y de esa anomalía salían tres cosas: que el hash cubriera el *nombre* del tipo y no su forma, que un DTO que cambia de archivo mueva el fold sin que nadie sepa por qué, y que no se pudiera preguntar **qué tipos son**. Con captures las tres se caen juntas.
 
 `None` es *"no pude mirar"* y no *"no hay vecinos"* — la distinción de la que sale el estado. El binario le pasa una implementación que le habla a [`lspd`](../../lspd/overview.md); la librería no lo menciona, y **no es para evitar un ciclo** —ya no hay— sino para que bilinker no quede atado a *ese* daemon: mañana puede ser SCIP, un índice propio, o un language server hablado directo.
 
@@ -192,6 +205,23 @@ Error: el fragmento de crates/bilinker/src/check.rs es el archivo entero, y su
        tiene muchas — ninguna es la suya.
        Capturar el contrato con --as, o renunciar al vecindario con --no-n1.
 ```
+
+### Y el vecindario tiene los mismos dos ejes que el fragmento
+
+Con los vecinos siendo captures, el nivel 1 deja de tener un solo eje:
+
+| eje | se compara | qué dice |
+|---|---|---|
+| **ubicación** | `n.1.link` contra `accepted[0].n.1.link` | un vecino entró, salió, se mudó de archivo o se renombró |
+| **contenido** | el fold de hoy contra `accepted[0].n.1.hash` | la **forma** de un vecino cambió |
+
+Es la misma división que arriba, un nivel más abajo, y con el mismo reparto de escritores: `apply` mantiene `n.1.link`, `accept` escribe la decisión.
+
+**Y por eso `apply` recibe el puerto.** Un vecino cuyo archivo se renombró es un `MOVED` que git resuelve — pero el conjunto también **gana y pierde miembros** cuando la firma cambia, y qué tipo entró sólo lo sabe un language server. La regla queda una:
+
+> Todo comando que toque el eje del vecindario recibe el puerto, y **degrada sin él**.
+
+Vale ya para `check` y `accept`; con `apply` deja de haber excepción. Sin proveedor, `apply` arregla lo del fragmento con git y dice que no pudo tocar el vecindario — lo mismo que hace `accept`. **La frontera del subsistema no se mueve**: la librería sigue siendo git y tree-sitter, y el proveedor entra por el puerto.
 
 De la segunda fila salen **las posiciones que se le pasan al puerto**: se sube hasta la firma que contiene al fragmento y se baja a los campos que llevan tipos —el retorno y los parámetros—, que son los mismos que [`--as interface`](../commands/chain.md#--as-interface-la-firma-sin-el-cuerpo) captura. Un capture de contrato y un capture de la función entera terminan preguntando **en las mismas posiciones**, que es como tiene que ser: el vecindario es de la firma, no de cómo se la haya capturado.
 
@@ -280,7 +310,11 @@ Y es lo que garantiza que lo aprobado sea recuperable. Sin commit no hay `git sh
 
 **Es un set: ordenado y único al serializar.** Un duplicado o un reordenamiento producirían un diff que no dice nada.
 
-**Y si los valores cambian, la lista se vacía.** Es lo que *"estos valores"* significa: quien aprobó el hash anterior no aprobó el nuevo, y arrastrar su nombre sería atribuirle una decisión que no tomó. Un `accept` que cambia `hash` o `link` deja `agree` con una sola persona — la que acabó de aceptar — y los aprobadores anteriores quedan donde siempre estuvieron, en los commits que escribieron los valores anteriores.
+**Y si los valores cambian, no se arrastra a nadie: se abre otra entrada.** Es lo que *"estos valores"* significa — quien aprobó el hash anterior no aprobó el nuevo, y poner su nombre en la entrada nueva sería atribuirle una decisión que no tomó.
+
+Lo que cambió es **qué pasa con la entrada vieja**. Antes se pisaba, y la aprobación anterior sólo quedaba en el commit que la había escrito. Ahora la entrada nueva se **suma** y el endpoint queda [`CONSENSUS_DIVERGED`](bilink.md#más-de-un-accepted-es-un-estado-no-una-forma-de-trabajar): las dos decisiones están, visibles, y `check` falla hasta que alguien resuelva.
+
+**El destino final de la desplazada es el mismo de siempre.** Cuando alguien resuelve, la entrada que aprobaba otros valores se va, y donde queda es donde siempre quedó: en los commits que la escribieron. La lista no es un archivo histórico — es la ventana entre dos aceptaciones, que antes era invisible.
 
 Vale también para `--place` y `--content`: lo que se compara es el par, no cada dimensión por su lado. Aprobar una ubicación nueva sobre un contenido que nadie volvió a mirar produce un par que nadie más aprobó.
 

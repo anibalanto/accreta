@@ -170,3 +170,32 @@ Ningún fix cierra solo. Por eso el resumen dice qué falta antes de listar los 
 - `apply` es idempotente: un fix ya aplicado se detecta como no-op.
 - `apply` escribe un commit de decisión por `link` repuntado, todos hijos de la misma absorción.
 - `ALTERED`, `UNRESOLVED` y `CHAIN_DIRTY` no tienen fix y `apply` no los toca.
+
+## Y mantiene el vecindario, para lo cual recibe el puerto
+
+`apply` repunta `link` cuando el fragmento se movió. Con el vecindario siendo [captures](../concepts/accept.md#el-cierre-de-firma), repunta también `n.1.link`, que es la misma operación N veces: un vecino cuyo archivo se renombró es `MOVED`, y eso lo resuelve git.
+
+**Pero el conjunto no sólo se mueve: gana y pierde miembros.**
+
+```java
+- public Dto get(String t)
++ public Dto get(String t, Filtro f)
+```
+
+De `{Dto}` a `{Dto, Filtro}`. No es un `MOVED` ni un `REANCHORED` — es un miembro nuevo, y **qué tipo es `Filtro` sólo lo sabe un language server**. Así que `apply` recibe el proveedor de vecindario, igual que [`check`](check.md) y [`accept`](accept.md).
+
+**Sin proveedor arregla lo del fragmento y dice que no pudo tocar el vecindario.** Es la misma degradación que ya tiene `accept`, y con esto deja de haber una excepción:
+
+> Todo comando que toque el eje del vecindario recibe el puerto, y **degrada sin él**.
+
+La frontera del subsistema no se mueve: la librería sigue siendo git y tree-sitter, y el proveedor entra por el puerto.
+
+### Y sigue sin aprobar nada
+
+Proponer un miembro nuevo del vecindario es una propuesta como cualquier otra: deja el endpoint en `RELOCATED` y **no escribe ningún `accepted`**. `apply --dry-run` con proveedor lo dice antes de tocar nada:
+
+```
+n1: la firma menciona `Filtro`, que no está declarado — se agregaría
+```
+
+**Lo que `apply` no hace, y no debe:** detectar que el tipo de retorno pasó de `A` a `B`. Eso está adentro del fragmento, así que ya disparó `ALTERED` con tree-sitter, y *"ningún estado de aceptación se arregla solo"*. Quien mira acepta, y `accept` re-deriva el vecindario.
