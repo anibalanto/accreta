@@ -142,9 +142,37 @@ Comparan lo hallado contra `accepted`.
 | **UNRESOLVED** | El capture referenciado no resolvió. | se resuelve en el capture |
 | **CONTRACT_RESTYLED** | El vecindario de la firma se reformateó. | `accept` |
 | **CONTRACT_ALTERED** | Un tipo que la firma menciona cambió. | revisar + `accept` |
+| **CONTRACT_RELOCATED** | El conjunto de vecinos declarado ≠ el aceptado. | revisar + `accept` |
+| **CONTRACT_UNLOCATED** | El vecindario aceptado conserva su contenido y su ubicación es `unknown`. | acuñar sus captures + `accept` |
 | **CONTRACT_UNVERIFIED** | Hay vecindario aceptado y no se pudo resolver el de hoy. | nada, o levantar el proveedor |
 
 `EXPANDED` necesita el texto aceptado, así que se detecta acá y no en la dimensión de ubicación.
+
+> `CONTRACT_RELOCATED` existe desde que el nivel 1 tiene `link` y **esta tabla no lo nombraba**. Es lo que pasa cuando un estado se agrega del lado del eje que lo produjo y no del lado de la lista que los enumera: la lista envejece sin que nada falle.
+
+### `CONTRACT_UNLOCATED`: el contrato está y su ubicación no se sabe
+
+El `link` de un nivel puede ser [`unknown`](../concepts/bilink.md#el-link-de-un-nivel-del-vecindario-y-su-tercera-forma) — los dos hashes conservados y ningún id. Ahí el eje de la ubicación **no se puede comparar**, y no poder compararlo no es que coincida.
+
+**No es ninguno de los dos estados que ya había**, y la diferencia no es de matiz:
+
+| | Qué dice |
+|---|---|
+| `CONTRACT_RELOCATED` | los dos conjuntos están y **difieren** |
+| `CONTRACT_UNVERIFIED` | **no hubo con quién** resolver el vecindario de hoy |
+| `CONTRACT_UNLOCATED` | el contenido está aprobado y **de qué vecinos salió no se sabe** |
+
+**Sale con 1**, y ahí está la diferencia que importa con `CONTRACT_UNVERIFIED`: éste no es una ausencia del ambiente sino **trabajo escrito en el archivo**. Hay captures que alguien tiene que acuñar, y hasta que se acuñen el nivel no detecta que un vecino se mudó de archivo o se renombró — vigila la forma del contrato y no su composición. Correr `check` sin daemon es un modo de operación normal; un vecindario sin ubicación no lo es.
+
+**Y no necesita proveedor**, que es lo que lo vuelve la respuesta correcta justamente cuando no hay ninguno: comparar ids nunca lo necesitó. Es la misma propiedad que hace que la ubicación del fragmento se decida incluso donde el contenido degrada, un nivel más abajo — y es lo que garantiza que un nivel sin ubicación **no desaparezca del inventario** por no haber levantado un language server.
+
+#### Un cambio real de contrato le gana
+
+Con proveedor, el contenido del nivel **se compara igual**: se recalcula el vecindario y se pliega contra el `hash` conservado, que es todo el punto de haberlo conservado. Si difiere, el estado es `CONTRACT_ALTERED`.
+
+Es la única prioridad posible entre los dos. Un endpoint tiene un estado y no dos, y de los dos candidatos **uno ya está escrito en el archivo** —que la ubicación falta se ve abriéndolo— y el otro no: que un vecino cambió sólo lo dice haber recalculado. Nombrar el que ya se puede leer taparía el que no.
+
+Los dos salen con 1, así que la elección no cambia el inventario: cambia qué se lee primero sobre un endpoint que está en los dos estados a la vez.
 
 ### `RESTYLED` sólo existe donde el AST discrimina contenido
 
@@ -417,11 +445,13 @@ f1e2d3c4  (EXPANDED, OK)
 | Código | Condición |
 |---|---|
 | 0 | Todos los captures resuelven y todos los endpoints están en `OK`, `EXPANDED`, `RESTYLED` o `CONTRACT_UNVERIFIED`. |
-| 1 | Algún capture en `UNANCHORED`, `DELETED` o `BROKEN`, o algún endpoint en `RELOCATED`, `ALTERED`, `UNRESOLVED`, `PENDING`, `CHAIN_DIRTY`, `CONTRACT_RESTYLED` o `CONTRACT_ALTERED`. |
+| 1 | Algún capture en `UNANCHORED`, `DELETED` o `BROKEN`, o algún endpoint en `RELOCATED`, `ALTERED`, `UNRESOLVED`, `PENDING`, `CHAIN_DIRTY`, `CONTRACT_RESTYLED`, `CONTRACT_ALTERED`, `CONTRACT_RELOCATED` o `CONTRACT_UNLOCATED`. |
 | 1 | Algún bilink no se pudo leer, aunque todos los que se leyeron estén `OK`. |
 | 2 | La versión de formato de la capa no se entiende. No se verificó nada. |
 
 **`CONTRACT_UNVERIFIED` sale con 0**, con las ausencias y no con los drifts: no es que el valor difiera, es que no hay con qué compararlo. Correr `check` sin daemon es un modo de operación normal —`check` es masivo y offline— y hacerlo salir con 1 volvería rojo cualquier CI que no levante un language server.
+
+**`CONTRACT_UNLOCATED` sale con 1, y no es una excepción a eso.** Los dos empiezan con `UN` y ahí se parecen: uno es una ausencia del ambiente y el otro es una ausencia **en el archivo**, puesta ahí por algo que ya pasó. La primera se arregla prendiendo un daemon y puede no arreglarse nunca sin que nadie haya hecho nada mal; la segunda es trabajo que alguien tiene que hacer, y sale con 1 por lo mismo que `PENDING`. **Y no vuelve rojo un CI que ya estaba verde**: ningún archivo lleva el valor hasta que algo lo escriba.
 
 **`RELOCATED` sale con 1.** Antes `MOVED` salía con 0 porque `apply` lo cerraba solo; ahora repuntar no aprueba, y un vínculo apuntando a un fragmento que nadie miró es trabajo pendiente, no un detalle de mantenimiento.
 

@@ -217,6 +217,19 @@ Con los vecinos siendo captures, el nivel 1 deja de tener un solo eje:
 
 Es la misma división que arriba, un nivel más abajo, y con el mismo reparto de escritores: `apply` mantiene `n.1.link`, `accept` escribe la decisión.
 
+#### Y son de verdad independientes: con `unknown` uno tiene valor y el otro no
+
+Que sean dos ejes se ve cuando **se separan**. Un nivel cuyo `link` es [`unknown`](bilink.md#el-link-de-un-nivel-del-vecindario-y-su-tercera-forma) conserva sus dos hashes y no tiene ids:
+
+| eje | Con `link: unknown` |
+|---|---|
+| **ubicación** | no se puede comparar — no hay ids de un lado. No queda limpio: hay captures que alguien tiene que acuñar |
+| **contenido** | **se compara igual**, contra el `hash` conservado. Sin proveedor, no se pudo mirar |
+
+**Y por eso el contrato conservado no es un resto inservible.** Sin ubicación el nivel deja de detectar que un vecino se mudó de archivo o se renombró, y sigue detectando lo que motivó al nivel 1: que **la forma** de un vecino cambió. Es exactamente la mitad que le hacía falta al consumidor que motivó todo esto — *lo que lo rompió fue la forma del tipo, no la firma del método*.
+
+Cuál de los dos ejes nombra el estado, y por qué un cambio real le gana a la ubicación faltante, está en [`check`](../commands/check.md#contract_unlocated-el-contrato-está-y-su-ubicación-no-se-sabe) — es su reparto, no del formato.
+
 **Y por eso `apply` recibe el puerto.** Un vecino cuyo archivo se renombró es un `MOVED` que git resuelve — pero el conjunto también **gana y pierde miembros** cuando la firma cambia, y qué tipo entró sólo lo sabe un language server. La regla queda una:
 
 > Todo comando que toque el eje del vecindario recibe el puerto, y **degrada sin él**.
