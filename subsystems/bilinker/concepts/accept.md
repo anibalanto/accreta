@@ -146,11 +146,15 @@ Quien los encuentra entra por un puerto que bilinker define y que **no nombra a 
 
 ```rust
 pub trait Neighbours {
-    fn of(&self, file: &Path, ranges: &Ranges) -> Result<Option<Vec<Location>>>;
+    fn of(&self, file: &Path, at: &[Position]) -> Result<Option<Vec<Location>>>;
 }
 ```
 
 `None` es *"no pude mirar"* y no *"no hay vecinos"* — la distinción de la que sale el estado. El binario le pasa una implementación que le habla a [`lspd`](../../lspd/overview.md); la librería no lo menciona, y **no es para evitar un ciclo** —ya no hay— sino para que bilinker no quede atado a *ese* daemon: mañana puede ser SCIP, un índice propio, o un language server hablado directo.
+
+**El puerto recibe posiciones, no el rango del fragmento.** Es la división que importa: *dónde hay un tipo que preguntar* es gramática, y la gramática es de bilinker; *qué declara ese tipo* es del proveedor. Pasarle el rango lo obligaría a inventar dónde preguntar adentro, y un proveedor que adivina eso está haciendo trabajo que no es suyo con conocimiento que no tiene.
+
+> **No es teórico: fue un defecto.** El puerto recibía rangos y preguntaba en el byte donde cada uno arrancaba. Para un [capture de contrato](capture.md) eso cae justo sobre el tipo de retorno y sobre los parámetros y anda; para un capture de nodo entero cae sobre `pub`, que no declara nada, y el vecindario salía vacío **con el proveedor resolviendo bien**.
 
 **Y el hasheo queda de este lado.** El recorte de bordes es regla de bilinker y vive en el único lugar donde un nodo se convierte en rango. El proveedor devuelve ubicaciones, no hashes.
 
@@ -168,7 +172,30 @@ Del lado de `lspd` eso es [`-32001`](../../lspd/concepts/protocol.md#un-error-es
 
 El puerto puede contestar `None` —*"no pude mirar"*— y ahí hay que decidir qué se escribe. **La regla es una: una falla de infraestructura no puede reducir la cobertura de un vínculo.**
 
-Que un fragmento *tenga* vecindario se sabe por la gramática y no por el proveedor: es si su firma es resoluble. Así que bilinker distingue sin daemon los dos motivos por los que no habría vecindario que calcular, y sólo el segundo es un problema.
+Que un fragmento *tenga* vecindario se sabe por la gramática y no por el proveedor. Y son **tres** respuestas, no dos:
+
+| | Qué es | Qué se escribe |
+|---|---|---|
+| **no hay** | prosa, YAML, un lenguaje sin tipos, un DTO, un `enum`, una constante | la ausencia, sin marca y sin pedir nada |
+| **hay, y se alcanza** | el fragmento es una firma, o está adentro de una | el `n` calculado sobre sus tipos |
+| **hay, y no se alcanza** | el archivo entero, un `impl`, una clase con métodos | `accept` falla; `--no-n1` deja la renuncia escrita |
+
+**Lo que separa la primera de la tercera es si el fragmento contiene firmas que quedan sin cubrir.** Un DTO no tiene ninguna adentro, así que su ausencia es completa y es la correcta — es la misma razón por la que una clase o un DTO nunca estuvieron en la lista de lo que lleva firma. Un archivo entero de Rust tiene muchas y ninguna es la suya: eso no es *"no hay vecindario"*, es *"no puedo recorrer hacia los elementos del próximo nivel"*.
+
+**La tercera es la que faltaba, y su ausencia era una mentira.** Escribirla como ausencia rompía la propiedad que este documento exige más abajo —que la ausencia sin marca tenga **un** significado— sin que nadie se enterara.
+
+Es la misma figura que la readiness de [`lspd`](../../lspd/concepts/language-servers.md#un-servidor-que-no-informa-su-estado-no-se-puede-esperar), y por el mismo motivo: **el tercer valor es el que hace honestos a los otros dos.** Un error que sale ahí tiene que decir *por qué* no se alcanza, porque quien lo lea no tiene cómo deducirlo:
+
+```
+Error: el fragmento de crates/bilinker/src/check.rs es el archivo entero, y su
+       vecindario no se puede alcanzar: el nivel 1 sale de una firma, y un archivo
+       tiene muchas — ninguna es la suya.
+       Capturar el contrato con --as, o renunciar al vecindario con --no-n1.
+```
+
+De la segunda fila salen **las posiciones que se le pasan al puerto**: se sube hasta la firma que contiene al fragmento y se baja a los campos que llevan tipos —el retorno y los parámetros—, que son los mismos que [`--as interface`](../commands/chain.md#--as-interface-la-firma-sin-el-cuerpo) captura. Un capture de contrato y un capture de la función entera terminan preguntando **en las mismas posiciones**, que es como tiene que ser: el vecindario es de la firma, no de cómo se la haya capturado.
+
+Con eso, sólo la tercera fila es un problema.
 
 Y hay un dato más que se sabe sin daemon: **el conjunto de vecinos lo determina la firma, y la firma está en el fragmento.** Con el [capture de contrato](capture.md) el `hash` del fragmento es el de la firma, así que un `hash` que no se movió es el mismo conjunto de vecinos — aunque su contenido no se haya podido mirar.
 
@@ -205,6 +232,8 @@ Con la marca, quien decide es el flag —igual que `--place` y `--content`— y 
 **Y es lo único que cruza la frontera.** El consumidor recibe una copia opaca del `accepted` del endpoint `repo` y no puede volver a mirar la gramática del fragmento ajeno para reconstruir el motivo. Sin la marca, *"el proveedor no tiene vecindario"* y *"el proveedor renunció a vigilarlo"* le llegan idénticos.
 
 **La ausencia sin marca queda con un solo significado**: el fragmento no tiene firma resoluble. Eso es prosa, un DTO, o un lenguaje sin anotaciones de tipo — derivable de la gramática por cualquiera, siempre igual.
+
+Y por eso el caso *"hay y no se alcanza"* **no puede escribirse como ausencia**: escribiría *"no hay firma"* sobre un archivo lleno de firmas, y le daría a la ausencia un segundo significado que ningún lector puede separar del primero. Ese caso es una renuncia, y va con su marca como cualquier otra.
 
 > **Y sube la versión de formato.** Un parser que no conozca el campo lee esa aceptación como *"este fragmento no tiene vecindario"*, en silencio y sin fallar — que es exactamente el caso que [`format-version.md`](format-version.md) describe. Ver también [frontier.md](frontier.md) § "que siga siendo `abstract`", donde `link: abstract` tiene la misma forma.
 
