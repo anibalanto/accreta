@@ -113,6 +113,32 @@ Los vecinos son **los tipos que la firma menciona, un salto**. Los campos de eso
 
 Clavar la profundidad en 1 retira tres preguntas de una vez: dónde para el cierre, cómo termina con tipos recursivos, y cómo se recorre. No hay recorrido: se resuelven los tipos de la firma y listo. Si alguna vez hace falta más, un `hash_n2` es aditivo y no invalida nada.
 
+### Dónde se pregunta: los identificadores de tipo, no el primer byte de cada campo
+
+Los campos de la firma que llevan tipos —`type` y `parameters` en java, `return_type` y `parameters` en rust y typescript— dicen **dónde buscar**, y no son ellos las posiciones. Lo que recibe el puerto son los **identificadores de tipo que esos campos contienen**, cada uno en su byte inicial.
+
+Tomar el primer byte de cada campo parece equivalente, y falla porque **un campo no empieza en un tipo**:
+
+| El campo | Su primer byte | Qué declara |
+|---|---|---|
+| `parameters` | `(` | nada — y go-to-definition sobre un paréntesis contesta **la función que lo contiene** |
+| `return_type` de `Result<Checked>` | `Result` | el tipo de más afuera, casi siempre de otra capa: se descarta, y `Checked` no se pregunta nunca |
+| `type` de `ResponseEntity<List<Dto>>` | `ResponseEntity` | lo mismo, con el `Dto` dos niveles adentro |
+
+Un tipo pelado —`Dto`, `Integer`— acierta, y acierta **por coincidencia**: ahí el campo *es* el identificador. Es la peor forma de andar, porque el caso simple es el que se prueba primero.
+
+**El de `parameters` es el más grave de los tres, y no por ser más frecuente.** Los otros dos dejan un vecino afuera; éste mete uno falso: el fragmento se declara vecino de sí mismo. Eso sale `OK` —hash real, capture existente— y `check` no tiene con qué notar que lo que vigila es el propio fragmento. Un vecindario que se resuelve a sí mismo **no falla: cubre**, y afirma la cobertura que el nivel 1 existe para dar.
+
+Así que la regla es un recorrido y no una proyección: **se bajan los campos y se juntan los identificadores de tipo que haya adentro, a cualquier profundidad.** `Result<Checked>` da dos, `(String, PathBuf, bool)` da tres, `(a: Foo, b: Bar)` da dos —el paréntesis no es ninguno, y los nombres de los parámetros tampoco—, y `void` da cero.
+
+Y con eso el vecino que es el propio fragmento **deja de poder escribirse**, en vez de quedar prohibido por una guarda: preguntando sobre un identificador de tipo, no hay pregunta que devuelva la función que lo contiene.
+
+#### Los primitivos quedan afuera sin excluirlos
+
+Una gramática le da kind propio a los tipos que no son un identificador —`primitive_type` en rust, `integral_type` y `void_type` en java, `predefined_type` en typescript—, así que juntar identificadores de tipo ya los deja fuera. Es lo correcto y no una simplificación: un `int` no tiene declaración a la que ir, y preguntar por él sólo puede devolver nada o el JDK.
+
+Qué kinds nombran un tipo es **de la gramática**, igual que los campos de la firma, y vive del mismo lado por el mismo motivo: es la otra mitad de *"dónde hay un tipo que preguntar"*. Que los tres lenguajes usen el mismo nombre de nodo es una comodidad, no una garantía — la lista es por lenguaje, como todo lo demás en la gramática.
+
 ### El fold, y por qué el orden es por identidad
 
 Un solo orden, y dos folds sobre ese orden:
@@ -173,7 +199,9 @@ Hasta acá el vecindario era el único lugar del formato donde **una ubicación 
 
 #### Una lista vacía es una respuesta, y por eso el puerto no se puede defender solo
 
-`Some(vec![])` dice *"miré y esta firma no menciona ningún tipo resoluble"*, y **es legítimo**: una firma de puros primitivos no tiene vecinos. Así que bilinker no puede tratar el vacío como sospechoso — plegarlo da el hash del string vacío y se escribe como vecindario adquirido, que es lo correcto para ese caso.
+`Some(vec![])` dice *"miré y ninguna de estas posiciones resuelve a algo de esta capa"*, y **es legítimo**: `Result<Checked>` pregunta por los dos y `Result` vive en otro crate. Así que bilinker no puede tratar el vacío como sospechoso — plegarlo da el hash del string vacío y se escribe como vecindario adquirido, que es lo correcto para ese caso.
+
+> **El ejemplo era otro y ya no llega hasta acá.** Decía *"una firma de puros primitivos no tiene vecinos"*, y con las posiciones siendo identificadores de tipo esa firma no aporta ninguna: se resuelve con la gramática sola, sin proveedor, y el vecindario vacío se decide de este lado. Lo que queda del otro es el vacío que **sólo el proveedor** puede distinguir de *"todavía no indexé"*, que es más chico y sigue siendo indefendible.
 
 Lo que no puede es distinguirlo de *"el servidor de atrás todavía no indexó"*, porque **llega igual**. Y ahí el vacío se escribe afirmando una cobertura que no existe, que es exactamente lo que la regla de más abajo prohíbe.
 
