@@ -57,6 +57,13 @@ Si el endpoint es de tipo `path`, resuelve el path Stratum hacia la capa adyacen
 # specs :: persona/voting.yaml  lines 14–16
 ```
 
+**Con [alias](chain.md#el-alias-el-verbo-y-la-ruta-compuestos-del-fragmento), el encabezado lo lleva**: es lo que contesta *qué* se está mirando, y el archivo y las líneas contestan dónde.
+
+```
+# GET /public-api/user/info/from-token
+# hsi :: …/UserPublicController.java  lines 22–22, 36–37
+```
+
 **Un fragmento de varios `@target` se muestra por partes**, y la metadata lleva un tramo por parte:
 
 ```

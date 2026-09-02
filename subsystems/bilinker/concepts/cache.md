@@ -18,6 +18,13 @@ El criterio es uno solo: **si un valor se puede recalcular, no va en el bilink.*
 | `state` | del capture | Si la ubicación resuelve. |
 | `state.N` | del bilink | Si lo que hay coincide con lo aceptado, por endpoint. |
 | `commit` | del bilink | En qué commit el fragmento quedó con el contenido aceptado. |
+| `alias` | del bilink | Cómo se llama el fragmento en el vocabulario de su generador — `GET /public-api/user/info/from-token`. Sólo donde el endpoint declara [`as`](bilink.md#as). |
+
+**`alias` está acá y no en el bilink por la razón de siempre, y se nota más que en los otros.** Guardado sería inerte por [invariante 14](bilink.md), así que el día que alguien cambie la ruta el rótulo seguiría diciendo lo viejo **y nada podría detectarlo** — un rótulo falso sobre una referencia verificada es peor que no tener rótulo. Derivado no puede mentir: se compone del fragmento de hoy.
+
+Que se derive no quiere decir que se recalcule en cada lectura. Componerlo exige **resolver el capture**, que es exactamente lo que `check` ya hace para escribir `range`: sale del mismo trabajo y lo escribe el mismo comando.
+
+**Va por endpoint y no por capture**, aunque se componga del fragmento: la receta con la que se compone es el `as`, y el `as` es de una punta. Dos endpoints sobre el mismo capture pueden nombrarlo distinto, o uno nombrarlo y el otro no.
 
 **Es un archivo por capa**, igual que `index/index`: reescritura atómica, menos inodos, y cero conflictos de merge porque no está versionado.
 

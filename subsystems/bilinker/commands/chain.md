@@ -186,6 +186,28 @@ Eso matchea cualquier método de la clase con la misma anotación pelada, y es e
 
 Lo que cuesta es que renombrar deja el capture `UNRESOLVED` y hay que repuntarlo. No hay salida sin ese costo: en un endpoint sin literal propio **no hay nada más que distinga un método de sus hermanos**, y el precio de no anclar es un vínculo que apunta a otro endpoint y contesta OK.
 
+##### El alias: el verbo y la ruta, compuestos del fragmento
+
+Un bilink se identifica por su UUID, y para un endpoint hay un nombre que cualquiera reconoce. **Está entero adentro de lo capturado**, así que se compone y no se guarda:
+
+```
+GET /public-api/user/info/from-token
+```
+
+La ruta de clase y el literal del método son dos de los cuatro `@target`; el verbo sale del nombre de la anotación —`@GetMapping` → `GET`—. No hay que ir a buscar nada afuera del fragmento.
+
+**Y en un markerless sale de donde el ancla lo puso.** Sin literal propio, la ruta de clase y el verbo los comparten todos los hermanos, así que el alias sería ambiguo. Lo salva que ahí el nombre del método **está en la query** como predicado, que es lo que [`32`](../../../.stratum/worklist-accreta/32.task.md) decidió para poder distinguirlos:
+
+```
+GET /public-api/appointment/booking/institution  ·  getBookingList
+```
+
+No es una excepción inventada: es la misma información que distingue al endpoint de sus hermanos, leída del mismo lugar donde se la puso para distinguirlo. **Donde falta el literal sobra el ancla, y viceversa.**
+
+**El alias es de cada generador y no del formato.** Cada uno nombra en su vocabulario: acá es el verbo y la ruta porque eso es un endpoint; `--as interface` nombra por el método, porque eso es una firma. Un generador que no sepa nombrar no nombra, y el bilink se muestra por UUID.
+
+Dónde vive el valor compuesto es de [la cache](../concepts/cache.md), no de acá: es un derivado del capture, como `range`.
+
 ##### Y bilinker no sabe de Spring
 
 El plugin sí, y es todo lo que sabe: qué anotaciones marcan una ruta y dónde vive cada una. Está en un archivo, detrás del mismo trait que usa `interface`, y agregar otro framework es agregar otro archivo.
@@ -356,10 +378,16 @@ bilinker chain list
 ```
 $ bilinker chain list
 
-7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a  [DIRTY]   spec → impl
-3a4b5c6d-2e3f-4a5b-9c6d-7e8f9a0b1c2d  [OK]      spec → impl
-f1e2d3c4-5a6b-7c8d-9e0f-1a2b3c4d5e6f  [BROKEN]  spec → impl
+7f3d8e9a  [DIRTY]   GET /public-api/user/info/from-token
+3a4b5c6d  [OK]      GET /public-api/appointment/booking/institution  ·  getBookingList
+f1e2d3c4  [BROKEN]  spec → impl
 ```
+
+**Cada cadena se nombra por su [alias](#el-alias-el-verbo-y-la-ruta-compuestos-del-fragmento) si alguno de sus extremos sabe nombrarse.** Con 98 endpoints un listado de hexadecimales no distingue nada de nada, y encontrar *el de disponibilidad de turnos* obliga a sacar cada UUID y correrle `get`.
+
+**Y el que no tiene alias se muestra como antes.** Un extremo sin `as` —todo lo escrito antes de que existiera— no tiene generador que lo nombre, así que cae al UUID. No es un error: es el estado de casi todo, y el listado tiene que seguir sirviendo ahí.
+
+Filtrar por ese nombre es otra cosa y va aparte.
 
 ## Código de salida
 
