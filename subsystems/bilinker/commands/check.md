@@ -6,7 +6,11 @@ Verifica la consistencia de uno o más bilinks y **no escribe ni un byte en git*
 
 Opera en dos pasos: resuelve los captures referenciados —localizando cada fragmento en el árbol actual— y compara lo hallado contra `accepted`, en sus **dos dimensiones**: dónde está y qué dice. El resultado va a [`cache/state`](../concepts/cache.md).
 
-Requiere git como dependencia dura. Sólo git y tree-sitter, sin language servers ni indexers.
+Requiere git como dependencia dura, y **git y tree-sitter le alcanzan para todo menos un eje**: el [vecindario](../concepts/accept.md#el-cierre-de-firma) necesita resolver tipos, y eso entra por un puerto que el binario implementa contra un language server.
+
+**Sin ese proveedor `check` corre igual** y el eje del vecindario degrada a `CONTRACT_UNVERIFIED`, que no falla y no bloquea. Es la propiedad que importa, y la que hace que adoptar bilinker no requiera levantar nada.
+
+> Esta página decía *"sólo git y tree-sitter, sin language servers ni indexers"*, y dejó de ser cierto cuando el vecindario entró — `check` recibe el proveedor. Lo que sobrevive de esa frase es la degradación, no la ausencia.
 
 **El vecindario se pregunta si hay a quién.** El [cierre de firma](../concepts/accept.md#el-cierre-de-firma) necesita resolver tipos, y eso es trabajo de un language server. `check` pregunta una vez si hay proveedor; si no lo hay, los endpoints con vecindario aceptado quedan `CONTRACT_UNVERIFIED` y el resto se evalúa igual. **No lo levanta**, por lo mismo que no clona: es masivo, y arrancar un proceso como efecto colateral de un comando de sólo lectura no es suyo.
 

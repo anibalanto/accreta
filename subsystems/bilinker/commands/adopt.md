@@ -141,3 +141,21 @@ commit:   refs/bilink/feature/x  ●b → ●c   (2 endpoints)
 - **Todo o nada**: con un conflicto no se escribe ningún commit, ni siquiera el de absorción.
 - **`--dry-run` no escribe y no habla con la red**, y por eso reporta lo mismo que la corrida real.
 - Los conflictos se enumeran por endpoint y por dimensión, nunca se fusionan a mano dentro de un archivo.
+
+## La divergencia se une, y deja de bloquear
+
+Hasta acá un `accepted` en conflicto **bloqueaba el `adopt` entero**: no se escribía ningún commit, ni siquiera el de absorción, y ni lo que no conflictuaba viajaba. Y no había otra salida — no había dónde escribir *"hay dos"*.
+
+Con [`accepted` como lista](../concepts/bilink.md#más-de-un-accepted-es-un-estado-no-una-forma-de-trabajar), un conflicto **se une**: las dos entradas quedan, el endpoint pasa a `CONSENSUS_DIVERGED`, y el resto del `adopt` sigue.
+
+Es exactamente la resolución que este comando ya usaba para `agree`:
+
+> la resolución es correcta y única: **unión**. `adopt` es un merge campo por campo, así que une los dos sets sin preguntarle a nadie.
+
+**Con esto el merge se vuelve total**: todo campo o se mergea o diverge visiblemente, y nada se descarta ni bloquea. La fila `Conflict` deja de ser una razón para no escribir y pasa a ser una razón para escribir **las dos**.
+
+### Y no es aceptar por nadie
+
+Unir no aprueba nada: las dos entradas ya estaban firmadas por quien las escribió, cada una en su rama. Lo que `adopt` hace es traerlas juntas, y el estado dice que falta una decisión — que sigue siendo de una persona mirando, como antes.
+
+Lo que cambió es **cuándo** se pide esa decisión: antes había que tomarla para poder adoptar, ahora se adopta y queda pedida. Es el mismo reparto de siempre — `adopt` compone, `accept` decide.
