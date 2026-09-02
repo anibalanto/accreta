@@ -81,15 +81,39 @@ Lo único que la lista cambia es **qué pasa entre las dos aceptaciones**: antes
 
 Y si los valores que se aceptan **coinciden** con los de una entrada existente, no hay colapso que hacer: quien acepta se suma a su `agree`, y las demás entradas siguen ahí. Sigue divergido, y es correcto — sumarse a un lado no resuelve un desacuerdo.
 
-#### Un solo `agree` por entrada
+#### Una entrada es completa, y por eso lleva un solo `agree`
 
-Una entrada es **una decisión**: estos valores, en sus dos ejes. Quien la firma aprueba el fragmento y su vecindario juntos, que es lo que `accept` escribe de una.
+**Si una entrada está escrita, se aceptó entera.** No hay endoso parcial de una entrada, y por eso un `agree` adentro de `n.1` no nombra nada.
 
-Un `agree` adentro de `n.1` diría algo que tiene sentido: *"endoso la firma; el vecindario no lo miré"*. Es el caso de quien acepta **sin proveedor** — puede verificar la firma con tree-sitter y no los tipos, y hoy sus dos únicas salidas son negarse o `--no-n1`, que **renuncia** al vecindario para todos en vez de abstenerse.
+**Y no hay cómo aceptar a medias.** Con firma resoluble y sin proveedor, `accept` **se niega** — no tenés el mapa completo del vecindario, así que no hay nada que aprobar. La única alternativa es declararlo con `--no-n1`, que es renunciar y no abstenerse. No existe el camino *"apruebo la firma y el vecindario no lo miré"*.
 
-**Y no crea un medio-OK**: `agree` es inerte por [invariante 14](#invariantes) y no afecta ningún estado. Lo que falta es otra cosa — **quién lo escribiría distinto**. `accept` escribe los dos niveles en un solo acto contra un solo snapshot, y no hay flag que endose uno y no el otro: `--place` y `--content` separan las dimensiones del fragmento, y `--no-n1` no es abstenerse sino renunciar.
+**Lo que sí existe es que dos personas aprueben el mismo fragmento y vecindarios distintos** — y eso ya tiene forma: son **dos entradas**.
 
-Sin ese flag el campo nace y nunca puede diferir del de arriba. **Es aditivo**, así que entra el día que el flag exista; al revés no.
+```yaml
+accepted:
+- agree: [anibal]
+  link: capture <a>
+  hash: h1
+  n: { 1: { link: capture <n-a>, hash: hA } }
+
+- agree: [juan]            # mismo fragmento que Pedro…
+  link: capture <b>
+  hash: h2
+  n: { 1: { link: capture <n-b>, hash: hB } }
+
+- agree: [pedro]           # …y otro vecindario
+  link: capture <b>
+  hash: h2
+  n: { 1: { link: capture <n-c>, hash: hC } }
+```
+
+Juan y Pedro coinciden en `link` y `hash` y difieren en `n`. **Son dos contratos distintos**, y por lo tanto dos entradas — no una entrada con dos endosos parciales.
+
+**Es la regla que el formato ya tenía**, extendida una palabra:
+
+> Como los valores direccionan por contenido, *"estar de acuerdo"* no es ambiguo: es haber aprobado este hash y esta ubicación — **y este vecindario** — y no otros.
+
+La identidad de una entrada es su tupla entera. Dos personas convergen en una sola entrada **sólo si coinciden en todo**, y si difieren en cualquier nivel, difieren.
 
 #### Lo que no está resuelto: si cruza la frontera
 

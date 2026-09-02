@@ -302,7 +302,9 @@ Y es lo que garantiza que lo aprobado sea recuperable. Sin commit no hay `git sh
 
 ## Quiénes aprobaron
 
-`agree` es el set de quienes aprobaron **exactamente estos valores**. Como los valores direccionan por contenido, *"estar de acuerdo"* no es ambiguo: es haber aprobado este hash y esta ubicación y no otros.
+`agree` es el set de quienes aprobaron **exactamente estos valores**. Como los valores direccionan por contenido, *"estar de acuerdo"* no es ambiguo: es haber aprobado este hash, esta ubicación **y este vecindario**, y no otros.
+
+**La identidad de una entrada es su tupla entera.** Dos personas que aprueban el mismo fragmento con vecindarios distintos no comparten entrada: son dos contratos, y por lo tanto [dos entradas](bilink.md#una-entrada-es-completa-y-por-eso-lleva-un-solo-agree). Y no hay endoso parcial de una entrada — con firma resoluble y sin proveedor `accept` se niega, así que *"aprobé la firma y el vecindario no lo miré"* no es un estado alcanzable.
 
 **Por endpoint y local, nunca copiado.** En un endpoint estructural están los que aprobaron ese fragmento; en un endpoint `path` o `repo`, los que aprobaron **esa copia**. Quién aprobó del otro lado de la cadena es un hecho de la otra capa, y traerlo acá sería atribuir mal. Los dos endpoints de un bilink pueden tener listas distintas, y es lo normal.
 
