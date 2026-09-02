@@ -6,7 +6,7 @@ endpoint:
       agree:
       - Anibal
       link: capture 360f86940f159ad1a2fc6af50ec7884e
-      hash: 07b29f100d0526a094c7e61873deb6afdfb72f75ae7fa52099bd8b2df470f920
+      hash: 42a81a54c3b04ce384b8d544a5c1c15516300506f3efa9458bd18faa9e42a52d
   1:
     link: path subsystems/lspd>impl
     accepted:
