@@ -8,3 +8,9 @@ endpoint:
       hash: 71a649fe3104c41aa29b9a306e34d3ec207d196ed62dd09cda089e670009a3a4
   1:
     link: path subsystems/bilinker>impl
+    accepted:
+    - agree:
+      - Anibal
+      link: capture 9f06a1c9e9eaf82abe3b5369e275ec54
+      hash: 6c6dfa1ff8dc23d3550523e97a04b98670cbdd39b2b17accccbf07d5af9a0224
+      n: declined
