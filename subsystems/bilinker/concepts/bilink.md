@@ -91,21 +91,26 @@ Y si los valores que se aceptan **coinciden** con los de una entrada existente, 
 
 ```yaml
 accepted:
-- agree: [anibal]
+- agree:
+  - anibal
   link: capture <a>
   hash: h1
   n: { 1: { link: capture <n-a>, hash: hA } }
 
-- agree: [juan]            # mismo fragmento que Pedro…
+- agree:
+  - juan                   # mismo fragmento que Pedro…
   link: capture <b>
   hash: h2
   n: { 1: { link: capture <n-b>, hash: hB } }
 
-- agree: [pedro]           # …y otro vecindario
+- agree:
+  - pedro                  # …y otro vecindario
   link: capture <b>
   hash: h2
   n: { 1: { link: capture <n-c>, hash: hC } }
 ```
+
+**`agree` va en bloque incluso acá, donde hay un nombre por entrada.** Compactarlo a `agree: [anibal]` no rompe nada hoy y le saca al campo lo que lo hace servir: [`git blame` sólo atribuye una línea a un commit](accept.md#un-nombre-por-línea-y-por-eso-no-guarda-su-commit), así que el día que la entrada tenga dos firmantes en una línea el primero se pierde. Que en `n` de acá abajo sí esté compactado no es una excepción: ahí la forma es tipografía, y en `agree` es el mecanismo.
 
 Juan y Pedro coinciden en `link` y `hash` y difieren en `n`. **Son dos contratos distintos**, y por lo tanto dos entradas — no una entrada con dos endosos parciales.
 
