@@ -59,6 +59,32 @@ La frontera deja de ser una convención de nombres y pasa a ser estructura. Ver 
 
 No existe campo `id`: el UUID del nombre es el identificador. No existe `range`: la ubicación vive en el [capture](capture.md) que el `link` referencia. No existe `resolved_at`, ni `state`, ni `commit`: son derivados y viven en [la cache](cache.md).
 
+### El `link` de un nivel del vecindario, y su tercera forma
+
+El `link` de un nivel es el eje de su ubicación, y **toma tres formas**:
+
+| | |
+|---|---|
+| *(ausente)* | se miró y no hay vecinos — una firma de puros primitivos |
+| `capture <id> <id> …` | éstos son los vecinos, ordenados por id |
+| `unknown` | el contrato está y de qué vecinos salió no se sabe |
+
+`unknown` **no es un vecindario vacío ni una renuncia**: el nivel está adquirido —`hash` y `hash_ast` siguen ahí, y el eje del contenido se verifica igual— y lo único que falta es la ubicación. Aparece cuando alguien tuvo los hashes sin poder resolver los captures: una migración que no pudo traerlos, o un consumidor que recibe los del proveedor sin poder resolver captures ajenos.
+
+**Va en el `link` porque es el estado de un eje de un nivel.** Un `n: unknown` al lado de `n: declined` sería un estado del vecindario entero, y escribirlo tiraría los hashes, que son justo la parte que sí se tiene. `unknown` deja el otro eje en pie — es la misma partición que ya gobierna el fragmento.
+
+**Y es un valor del slot, no un campo hermano.** Un `unknown: true` al lado de `link` deja escribible `link: capture <id>` con `unknown: true` encima, que no quiere decir nada: la misma familia de combinación inválida por la que [`n` es un campo con tres estados](accept.md#n-es-un-campo-con-tres-estados) y no tres campos sueltos. En el mismo slot la contradicción no se puede escribir.
+
+**Vale en los dos lados** —`n.1.link` y `accepted[].n.1.link`— porque ninguno de los dos se puede inventar: `apply` mantiene la declaración y tampoco sabe de dónde salió un contrato restituido.
+
+**Que un `link` ausente ya parsee no lo habilita como sustituto.** Los hashes de un nivel se pueden escribir sin este valor, y no hay que hacerlo: la ausencia ya significa *"se miró y no hay vecinos"*, y darle un segundo significado es el mismo error que [`n: declined` puesto donde iba una imposibilidad](accept.md#n-declined-es-lo-que-vuelve-determinista-la-renuncia), un nivel más adentro. El valor existe antes de que haya algo que restituir.
+
+**Dos `unknown` no son la misma ubicación.** El eje se decide comparando dos ids y acá no hay ids de ninguno de los dos lados: la comparación no se puede hacer, y no hacerla no es que coincida. Ese eje **no queda limpio** —es trabajo que alguien tiene que hacer— y cómo lo nombra `check` va con su reporte, no con el formato.
+
+**No comparte grilla con los prefijos de un endpoint.** Los cinco de § "Tipos de endpoint" contestan *dónde*, y ahí `unknown` no entra: un endpoint sin ubicación conocida no tiene contenido aprobado que proteger, así que su forma de decirlo es no tener `accepted`.
+
+> **Y sube la versión de formato.** Es aditivo —ningún archivo existente lo usa— y un parser que no lo conozca no lo lee mal: el valor no tiene fallback y falla explícito. Que falle es lo correcto, y que la versión suba es lo que se lo dice antes de intentarlo. Ver [versión del formato](format-version.md).
+
 ### Más de un `accepted` es un estado, no una forma de trabajar
 
 **Un endpoint sólo puede estar `OK` con exactamente una entrada.** Con dos o más el estado es `CONSENSUS_DIVERGED`, y `check` falla.
@@ -399,7 +425,7 @@ Cada endpoint `path` copia los **dos** valores del endpoint estructural de su ve
 8. `state.N = OK` si y sólo si **hay exactamente una entrada** en `accepted`, y para ella `link` == `accepted[0].link` y el hash actual == `accepted[0].hash`.
 8.b Con más de una entrada, `state.N = CONSENSUS_DIVERGED`, **sin evaluar los otros ejes**: no hay un valor contra el cual compararlos.
 8.c El vecindario se compara igual y un nivel más abajo: `n.1.link` contra `accepted[0].n.1.link`, y el fold de hoy contra `accepted[0].n.1.hash`. Sin proveedor ese eje degrada y los otros se deciden igual.
-9. El `link` de un endpoint estructural referencia exactamente un capture de su misma capa. Un `n.1.link` referencia cero o más, todos de su misma capa.
+9. El `link` de un endpoint estructural referencia exactamente un capture de su misma capa. Un `n.1.link` referencia cero o más, todos de su misma capa, **o es `unknown`** — que no referencia ninguno y no es lo mismo que cero.
 10. Un bilink no contiene `file`, `query` ni `range`: los dos primeros viven en el capture y el tercero en la cache. Vale igual para los captures de `n.1.link`.
 11. Un bilink no contiene `state`, `commit` ni ningún derivado: viven en la cache.
 12. La topología de la cadena es lineal — sin ciclos ni bifurcaciones.
@@ -408,3 +434,4 @@ Cada endpoint `path` copia los **dos** valores del endpoint estructural de su ve
 15. Un campo desconocido se rechaza con su nombre, nunca se descarta.
 16. Ningún `accept` descarta una entrada de `accepted` cuyos valores coincidan con los que se están aprobando: se une el `agree`. Sólo se descartan las entradas que aprobaban **otros** valores.
 17. Un capture referenciado por un `n.1.link` —de la declaración o de una decisión— cuenta como referenciado para [`prune`](../commands/capture.md).
+18. `unknown` en un `n.N.link` —de la declaración o de una decisión— significa que el nivel está adquirido y su ubicación no se sabe. Es incomparable: dos `unknown` no coinciden, y el eje de la ubicación de ese nivel no queda limpio. El eje del contenido se compara igual, contra el `hash` conservado.

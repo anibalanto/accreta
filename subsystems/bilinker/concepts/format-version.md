@@ -54,7 +54,9 @@ Por eso los prefijos reconocidos se publican, y salen de la misma tabla que usa 
 
 ## El registro cubre una dirección, y la otra la cubre leer la versión
 
-Todo lo de arriba protege una sola dirección: el parser **viejo** leyendo archivos nuevos. Contra eso hay dos cosas, y las dos son mecánicas — `deny_unknown_fields`, que lo hace fallar explícito en vez de ignorar un campo que no entiende, y el hash del esquema, que hace imposible publicar dos formatos distintos con el mismo número.
+Todo lo de arriba protege una sola dirección: el parser **viejo** leyendo archivos nuevos. Contra eso hay tres cosas, y las tres son mecánicas — `deny_unknown_fields`, que lo hace fallar explícito en vez de ignorar un campo que no entiende; el hash del esquema, que hace imposible publicar dos formatos distintos con el mismo número; y que ningún slot tenga fallback.
+
+**La tercera no es un mecanismo aparte, es la misma regla que ya gobierna los prefijos.** Un valor agregado a un slot cuyo parser rechaza lo que no reconoce falla explícito igual que un campo desconocido — `deny_unknown_fields` cubre los campos y la regla de *"un prefijo desconocido es un error, no un path"* cubre los valores. Es lo que hace seguro agregar [`unknown` al `link` de un nivel del vecindario](bilink.md#el-link-de-un-nivel-del-vecindario-y-su-tercera-forma): un parser de `4.0.0` no lo lee como un vecindario vacío, se niega. El caso opuesto es `3.3.0`, donde lo que cambió estaba **adentro** de un string que seguía siendo válido: ahí no había slot que rechazara nada, y sólo quedaba la versión.
 
 El simétrico —**parser nuevo, archivos viejos**— no lo cubre ninguna de las dos, y no lo puede cubrir: los archivos viejos no tienen nada raro adentro, así que **parsean bien**. Un campo que se agregó con default se lee como su default, y un significado que cambió adentro de un string —`3.3.0`— se lee con el significado nuevo. No hay nada en el archivo que delate de qué versión es.
 
