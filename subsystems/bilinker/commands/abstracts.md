@@ -41,6 +41,8 @@ Para colgarse de una: bilinker chain new --from-repo 'hsi:<uuid>' --tip <tu frag
 
 Sin alias, la del proveedor: *¿qué estoy publicando?* — que es una pregunta que conviene poder contestar antes de que alguien la haga.
 
+> **Y esa mitad es [`chain list --link abstract`](chain.md#y-abstracts-sin-alias-es-esto-con---link-abstract).** Listar los bilinks de la capa propia con una punta `abstract` no es de este comando: es el listado general con un filtro puesto, y tenerlo dos veces con dos formatos es lo que hace que se separen. Lo que sí es de acá es la fila con alias, que mira **el repo de otro** — y eso `chain list` no lo puede hacer.
+
 **La marca `← ya lo consumís`** sólo aparece mirando a un proveedor, y es lo que evita colgarse dos veces de lo mismo. Del lado propio no tiene sentido: nadie consume lo suyo.
 
 ## Muestra el código, no una lista de ids
