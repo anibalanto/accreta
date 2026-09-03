@@ -61,6 +61,22 @@ Los IDs no codifican la jerarquía — un ítem hijo puede tener un ID posterior
 
 Un sprint no contiene: referencia. Y **vive en `_sprints/`, fuera del árbol de descomposición**, porque no participa de él: puede llevarse ítems de épicas distintas, y tiene su propio contador.
 
+### La membresía es un campo, no sólo un link en la prosa
+
+```yaml
+---
+title: <string>
+status: open | in-progress | done
+items: [<id>, …]
+created_at: <iso8601-utc>
+updated_at: <iso8601-utc>
+---
+```
+
+`items` lleva los ids que el sprint referencia directamente — los mismos que antes sólo estaban como link en el cuerpo, y ni uno más: la [regla del ancestro](#la-regla-del-ancestro) dice que un ítem entra con su subárbol entero, así que `items` nunca nombra una task cuya user story ya está en la lista.
+
+**El cuerpo sigue siendo prosa**, y sigue siendo dónde va todo lo que no es membresía: por qué esos ítems son un sprint, en qué orden, qué quedó afuera, cómo cerró. `items` reemplaza al link que declaraba pertenencia — no reemplaza al texto que explica por qué. Un sprint recién abierto puede tener dos líneas de cuerpo; uno que ya cerró puede tener una retrospectiva entera, y las dos formas son válidas con el mismo frontmatter.
+
 ### Los directorios llevan `_`
 
 > **Todo directorio dentro de `worklist/` empieza con `_`.**

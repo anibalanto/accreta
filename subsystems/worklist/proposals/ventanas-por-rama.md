@@ -1,6 +1,6 @@
 # Draft: el worklist se sincroniza por ramas, y el proveedor es la autoridad
 
-**Estado:** borrador. La forma está propuesta y nada está decidido — salió de una conversación de diseño y de una primera subida a Jira que se frenó antes de crear nada.
+**Estado:** borrador, con el primer slice en ejecución en [`51`](../../../.stratum/worklist-accreta/51.user-story.md). Salió de una conversación de diseño y de una primera subida a Jira que se frenó antes de crear nada.
 
 El worklist vive en un repo propio y no habla con nadie. [`worklist new`](../commands/new.md) está especificado y no se puede implementar: *"el servidor asigna el próximo ID base-36"*, y **ese servidor no existe**.
 
@@ -91,13 +91,9 @@ Si el hook crea el issue en el proveedor y falla antes de commitear el move, un 
 
 ## Lo que el renombre no puede reparar
 
-Adentro del repo la reescritura alcanza. Afuera no, y hoy son **21 referencias desde las specs de accreta** hacia ítems del worklist — que un push al worklist no puede tocar. Con el bootstrap se rompen las 21 juntas.
+Adentro del repo la reescritura alcanza. Afuera no: hoy son **15 referencias desde las specs de accreta** hacia ítems del worklist —ADRs que nombran la épica que ejecutan, propuestas que nombran el ítem que las abrió— que un push al worklist no puede tocar. Con el bootstrap se rompen todas juntas.
 
-Pero eso no lo arregla este diseño, y la épica `1` ya dice dónde se arregla:
-
-> *"La referencia de un ítem a su ADR es hoy un link relativo, y no debería serlo… la referencia pasa a ser **un bilink** — `link.0: capture <fragmento del ADR>`, `link.1: issue <id>`"*
-
-Una referencia cruzada escrita como endpoint `issue` sobrevive al renombre porque bilinker la sigue. **Las 21 son deuda de no haber hecho eso todavía**, no un costo nuevo de esta propuesta — y conviene saldarla antes del bootstrap, no después.
+**No es un costo nuevo de esta propuesta: ya existe hoy**, y este diseño no lo agrava más de lo que el simple paso del tiempo ya lo iba a agravar. La épica `1` apunta a un arreglo posible —un endpoint `issue` del lado de la spec, que sobrevive al renombre porque bilinker lo sigue— pero **queda deliberadamente afuera de acá**: no se factorean bilinks en este diseño por ahora. Se anota como trabajo futuro y no bloquea nada de lo de arriba.
 
 ## Qué lleva una ventana
 
@@ -129,11 +125,13 @@ Y es lo que conserva la propiedad que hoy tiene mover un ítem de sprint: **una 
 
 Lo que ya se sabe de la herramienta que usaría: `acli` está autenticado y **tiene sprints** —`acli jira sprint create --name … --board … --goal …`—, que es justo lo que el MCP de Atlassian no expone.
 
+## Lo que ya se decidió, en [`51`](../../../.stratum/worklist-accreta/51.user-story.md)
+
+**`.sprint.md` vive en su propia ventana, no en el trunk.** Un sprint no es una épica: es el plan de *esa* iteración, así que vive en la rama que esa iteración gobierna, y se mergea a `closed` cuando cierra. Vivir en el trunk hubiera obligado a que mover un ítem de sprint fuera un push al trunk — y eso choca con la idea de que el trunk sólo avanza por merge.
+
+**`backlog` no particiona: es otra ventana sobre el mismo superset.** Un ítem puede existir como archivo en `backlog` y en `sprint/10` a la vez — no hay invariante de exclusión mutua entre ramas, porque *"la ventana no acota el estado, acota el chequeo"*. Qué pasa si las dos copias divergen queda para cuando haya más de una ventana abierta a la vez; el primer slice sólo abre una.
+
 ## Lo que queda por decidir
-
-**Dónde se edita el `.sprint.md`.** Si vive en el trunk, mover un ítem de sprint es un push al trunk que obliga a recortar dos ventanas. Si vive en la ventana, hay una copia por rama y vuelve la divergencia que la sección anterior evita.
-
-**Qué pasa con un ítem que no está en ninguna ventana.** El backlog es *"lo que ningún sprint referencia"*, calculado. Como rama tiene que ser un conjunto concreto de archivos, y hay que decir quién lo recorta y cuándo.
 
 **Si el trunk sólo avanza por merge.** Prohibir el push directo hace que `git log --merges closed` sea la lista de sprints entregados sin que nadie la mantenga. El costo es que arreglar un typo en una épica necesita una rama.
 
