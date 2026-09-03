@@ -1,6 +1,6 @@
 # Draft: el worklist se sincroniza por ramas, y el proveedor es la autoridad
 
-**Estado:** borrador. La forma está propuesta y nada está decidido — salió de una conversación de diseño y de una primera subida a Jira que se frenó antes de crear nada.
+**Estado:** borrador, con el primer slice en ejecución en [`51`](../../../.stratum/worklist-accreta/51.user-story.md). Salió de una conversación de diseño y de una primera subida a Jira que se frenó antes de crear nada.
 
 El worklist vive en un repo propio y no habla con nadie. [`worklist new`](../commands/new.md) está especificado y no se puede implementar: *"el servidor asigna el próximo ID base-36"*, y **ese servidor no existe**.
 
@@ -125,11 +125,13 @@ Y es lo que conserva la propiedad que hoy tiene mover un ítem de sprint: **una 
 
 Lo que ya se sabe de la herramienta que usaría: `acli` está autenticado y **tiene sprints** —`acli jira sprint create --name … --board … --goal …`—, que es justo lo que el MCP de Atlassian no expone.
 
+## Lo que ya se decidió, en [`51`](../../../.stratum/worklist-accreta/51.user-story.md)
+
+**`.sprint.md` vive en su propia ventana, no en el trunk.** Un sprint no es una épica: es el plan de *esa* iteración, así que vive en la rama que esa iteración gobierna, y se mergea a `closed` cuando cierra. Vivir en el trunk hubiera obligado a que mover un ítem de sprint fuera un push al trunk — y eso choca con la idea de que el trunk sólo avanza por merge.
+
+**`backlog` no particiona: es otra ventana sobre el mismo superset.** Un ítem puede existir como archivo en `backlog` y en `sprint/10` a la vez — no hay invariante de exclusión mutua entre ramas, porque *"la ventana no acota el estado, acota el chequeo"*. Qué pasa si las dos copias divergen queda para cuando haya más de una ventana abierta a la vez; el primer slice sólo abre una.
+
 ## Lo que queda por decidir
-
-**Dónde se edita el `.sprint.md`.** Si vive en el trunk, mover un ítem de sprint es un push al trunk que obliga a recortar dos ventanas. Si vive en la ventana, hay una copia por rama y vuelve la divergencia que la sección anterior evita.
-
-**Qué pasa con un ítem que no está en ninguna ventana.** El backlog es *"lo que ningún sprint referencia"*, calculado. Como rama tiene que ser un conjunto concreto de archivos, y hay que decir quién lo recorta y cuándo.
 
 **Si el trunk sólo avanza por merge.** Prohibir el push directo hace que `git log --merges closed` sea la lista de sprints entregados sin que nadie la mantenga. El costo es que arreglar un typo en una épica necesita una rama.
 
