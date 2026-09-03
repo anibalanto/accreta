@@ -10,3 +10,10 @@ endpoint:
     name: asignar-clave
   1:
     link: path subsystems/worklist>impl
+    accepted:
+    - agree:
+      - Anibal
+      link: capture 7a0bbb2f16941a52fb7891e24bfdeaaa
+      hash: ed55ba635228a5ee33c78c05136e489a506f0c5ee9515be04cef86281d59f439
+      hash_ast: ca181f378d3f64eea526ebbe6e2d5e8f8cf195b80f283b176b150a0dc093e623
+      n: declined
