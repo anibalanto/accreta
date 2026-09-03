@@ -2,6 +2,11 @@ kind: governs
 endpoint:
   0:
     link: capture ff1e92dfbe5ae8e06870792d763a0164
+    accepted:
+    - agree:
+      - Anibal
+      link: capture ff1e92dfbe5ae8e06870792d763a0164
+      hash: 24a09ac613fddc39a5faf55bb5fd17553aa028855a3a209e4d7b4d7678fc8ca2
     name: que-se-compara
   1:
     link: path subsystems/worklist>impl
