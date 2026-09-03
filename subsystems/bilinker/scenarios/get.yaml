@@ -77,3 +77,80 @@ scenarios:
       - git show resuelve el path contra la raíz del repo, no contra el -C
       - la capa guarda paths relativos a sí misma
     impl: the_approximate_diff_works_from_a_nested_layer
+
+  - id: get-brings-the-neighbourhood
+    description: get trae los vecinos de nivel 1 junto con el fragmento
+    given:
+      - un endpoint cuyo n.1.link declara dos captures
+    when:
+      - bilinker get <uuid>.<N>
+    expect:
+      - stdout contiene el fragmento y los dos fragmentos vecinos
+      - stderr contiene un encabezado por vecino, con el prefijo del nivel
+
+  - id: get-brings-the-neighbourhood-without-a-provider
+    description: traer el vecindario no consulta al proveedor
+    given:
+      - un endpoint con n.1.link declarado
+      - ningún daemon de language servers corriendo
+    when:
+      - bilinker get <uuid>.<N>
+    expect:
+      - los vecinos salen igual
+    notes:
+      - los vecinos son captures del bilink; get los resuelve, no los recalcula
+
+  - id: get-neighbourhood-keeps-the-written-order
+    description: los vecinos salen en el orden en que están escritos en n.1.link
+    given:
+      - un endpoint con tres captures vecinos, ordenados por id
+    when:
+      - bilinker get <uuid>.<N>
+    expect:
+      - el orden de salida es el del archivo
+    notes:
+      - es el orden del fold, y get no lo recalcula
+
+  - id: get-raw-excludes-the-neighbourhood
+    description: --raw sigue siendo el fragmento y nada más
+    given:
+      - un endpoint con n.1.link declarado
+    when:
+      - bilinker get <uuid>.<N> --raw
+    expect:
+      - stdout es el mismo texto que check hashea, byte por byte
+      - ningún vecino en la salida
+
+  - id: get-brings-the-declared-neighbourhood
+    description: se traen los vecinos declarados, no los aceptados
+    given:
+      - un endpoint cuyo n.1.link difiere del de su accepted (CONTRACT_RELOCATED)
+    when:
+      - bilinker get <uuid>.<N>
+    expect:
+      - salen los vecinos de la declaración
+    notes:
+      - el fragmento que get imprime es el de hoy; contrastar con lo aceptado es --diff
+
+  - id: get-names-a-neighbourhood-it-cannot-bring
+    description: no tener vecinos que traer no es un solo caso, y sólo uno es silencio
+    given:
+      - cuatro endpoints - n ausente, n.1 sin link, n.1.link unknown, n declined
+    when:
+      - bilinker get <uuid>.<N> sobre cada uno
+    expect:
+      - el de n ausente no imprime nada del nivel
+      - los otros tres se nombran, y con frases distintas
+    notes:
+      - un silencio que sirve para los cuatro afirma la cobertura que tres no tienen
+
+  - id: get-unresolved-neighbour-does-not-fail
+    description: un vecino que no resuelve se imprime con su referencia y el comando sale 0
+    given:
+      - un endpoint que resuelve, con un capture vecino UNANCHORED
+    when:
+      - bilinker get <uuid>.<N>
+    expect:
+      - el fragmento sale
+      - el vecino sale con su archivo, su id de capture, su estado y su query
+      - código de salida 0
