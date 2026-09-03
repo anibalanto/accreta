@@ -39,6 +39,18 @@ Una rama segura se hace responsable de poder verificarse entera contra el provee
 
 Venga del cliente o del proveedor, todo commit que entra a una rama segura se propaga a `insecure/all`. Sin eso, el panorama sólo avanzaría cuando un sprint cierra, y estaría semanas viejo; con eso, **`all` está siempre tan al día como el último push aceptado en cualquier ventana — lo que no está es verificado.** Ésa es exactamente la promesa que una insegura puede hacer y la otra no.
 
+### Y el estado del proveedor va a todas las ventanas donde el ítem exista
+
+Un ítem puede estar en más de una ventana a la vez. Cuando llega estado nuevo del proveedor para `ACC-45`, se escribe **en todas las que lo tengan**, no sólo en la que disparó la consulta.
+
+**Y eso no necesita ninguna política de conflicto**, que es lo que lo hace distinto de propagar una edición del cliente: el proveedor es **una sola fuente**, así que todas las ventanas reciben el mismo valor. No hay dos verdades que arbitrar — no hay competencia.
+
+### Las ventanas ad hoc no son permanentes
+
+`secure/sprint/10` dura lo que dura el sprint: está planificada, tiene nombre propio y un `.sprint.md` que la declara. **`secure/ACC-40~ACC-60` no**: se recorta para un trabajo, se usa, y se descarta cuando sus commits ya propagaron a `insecure/all`.
+
+Las dos son seguras por la misma razón —están acotadas— pero **tienen ciclos de vida opuestos**, y la diferencia importa: una ventana ad hoc que sobreviviera indefinidamente acumularía divergencia contra las otras que comparten sus ítems, sin que nada la cierre. La no-permanencia es lo que le pone techo a ese problema en vez de dejarlo crecer.
+
 ## Por qué una ventana y no todo
 
 Porque mantener coherente *todo* obliga a preguntarle al proveedor por todo, todo el tiempo. Con la ventana, empujar tres ítems al sprint 10 obliga a preguntar por los ítems del sprint 10 y por ninguno más.
@@ -168,7 +180,7 @@ Lo que ya se sabe de la herramienta que usaría: `acli` está autenticado y **ti
 
 **Quién escribe el estado del proveedor en una rama segura cuando el push se rechaza.** Sin eso, el `pull` del que fue rechazado no baja nada, vuelve a empujar lo mismo, y entra en loop. No puede ser `pre-receive`, que sólo acepta o rechaza — es la misma partición que obligó a poner el renombre en `post-receive`.
 
-**Qué pasa cuando dos ventanas seguras se solapan.** Un ítem puede estar en `sprint/8` y en un rango ad hoc a la vez; los dos commits van a `insecure/all` y pueden tocar el mismo archivo. Hace falta una política, aunque sea *"el último gana y queda anotado"*.
+**Si una ventana puede recibir trabajo del cliente hecho en otra.** El estado del proveedor va a todas las ventanas donde el ítem exista, y eso no tiene conflicto posible. Una **edición de prosa** hecha por alguien en `sprint/8` no: si `ACC-45` también está en un rango ad hoc, la otra ventana no se entera. Las dos salidas son opuestas — propagar también las ediciones del cliente entre ventanas, o **recortar las ventanas desde `insecure/all`** y que `all` sea el único punto de convergencia. La segunda es más simple y hace de las ventanas vistas derivadas; falta confirmarlo.
 
 **Qué gana un conflicto que el compare-and-swap no ve.** Dos personas editando la *prosa* del mismo ítem no mueven nada en el proveedor, así que el hook acepta las dos y el conflicto es de git, no de Jira. Está bien, y hay que decirlo.
 
