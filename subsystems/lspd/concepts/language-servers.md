@@ -79,6 +79,31 @@ La segunda es de propiedad, y es la que hace daño. **El proceso es del mapa**, 
 
 **Es lo que vuelve verdadero al `shutdown` de arriba.** Cerrar *"todos los language servers"* sólo puede significar algo si el mapa los tiene todos.
 
+### Uno por lenguaje no es una pregunta por vez
+
+Son dos cosas distintas y se confunden porque las decide el mismo candado. **La invariante de arriba es sobre procesos**: hay un `jdtls` y no nueve. *"Una pregunta por vez"* es sobre el tráfico hacia ese proceso, y de eso la invariante no dice nada — un servidor único puede tener N preguntas en vuelo.
+
+Hacia cada servidor hay **un solo socket**, y los mensajes no se pueden entreverar. De ahí sale lo único que hay que serializar:
+
+| Qué | Se serializa | Por qué |
+|---|---|---|
+| **escribir** al servidor | sí | hay un solo socket, y dos mensajes intercalados no son ninguno de los dos |
+| **esperar** la respuesta | no | JSON-RPC correlaciona por `id`, así que N respuestas vuelven en cualquier orden y se reconocen |
+
+**Y la espera es donde está el tiempo.** Un candado que cubre la operación entera —mandar la pregunta y esperar la respuesta— no protege un recurso: apaga el solapamiento que el `id` de JSON-RPC existe para permitir. El que se suelta al terminar de escribir deja N preguntas en vuelo sobre un socket, que es lo que el protocolo de abajo ya soportaba sin que nadie lo pidiera.
+
+> **Y por eso la concurrencia se medía plana.** Variar cuántas preguntas iban a la vez, de 1 a 16, no cambiaba el reloj — lo que **no** decía que el servidor no paralelizara: decía que nunca le llegaba más de una a la vez.
+>
+> **Medido el 2026-09-03**, soltando el candado: un `check` de un archivo sobre un repo Java con 98 bilinks y 391 preguntas pasó de **25,04 s a 3,59 s**, con las mismas 391 preguntas y los mismos 98 resultados. **7×, y ninguno de esos segundos era trabajo.**
+
+### Falta el techo, y el número no sale de acá
+
+Soltar el candado antes deja pasar tantas preguntas en vuelo como tareas haya preguntando — otra vez un número que nadie eligió, como el `cwd` heredado y el techo de heap de las dos tablas de arriba. El techo se elige, y donde se elige es acá.
+
+**Pero cuántas es del servidor, no del daemon**, y por eso no está escrito: lo que aguanta `rust-analyzer` no dice nada de lo que aguanta `jdtls`, y hasta que la espera deje de estar serializada el número no se puede medir. Va a ser una casilla más por servidor, como las otras dos.
+
+**Lo que sí se sabe es que ese techo no multiplica procesos.** N preguntas en vuelo son N contra *un* servidor, no N servidores — y vale escribirlo porque un conjunto de trabajadores es exactamente la forma en que la invariante de arriba se rompería sin querer: cada uno "asegurándose" el suyo son las nueve JVMs otra vez.
+
 ## Terminar el handshake no es estar listo
 
 **Entre el handshake y la primera respuesta útil hay un tramo, y durante ese tramo el servidor contesta vacío.** Medido: `rust-analyzer` sobre un workspace mediano tarda siete minutos en dejar de estar ocupado, y en todo ese rato `definitions` devuelve `[]` con el proceso vivo y el handshake terminado.
