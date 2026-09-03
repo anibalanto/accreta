@@ -103,7 +103,7 @@ $ bilinker get 67ba7217.0
 37:   	... PublicUserInfoDto ... (@RequestHeader("user-token") String userToken) ...
 ```
 
-**Los `...` son el límite entre partes, y por eso no hace falta marcarlo aparte.** En la línea 37 dicen tres cosas de una: que `public` no entra, que el nombre del método no entra —la decisión de [`32`](../../../.stratum/worklist-accreta/32.task.md), ahora visible— y que el ` {` tampoco. Dónde termina una parte y arranca la otra se ve porque lo que hay en el medio no está.
+**Los `...` son el límite entre partes, y por eso no hace falta marcarlo aparte.** En la línea 37 dicen tres cosas de una: que `public` no entra, que el nombre del método no entra —la decisión de `32`, ahora visible— y que el ` {` tampoco. Dónde termina una parte y arranca la otra se ve porque lo que hay en el medio no está.
 
 **Y hace falta porque el texto pelado mentía.** Todo capture de `spring-controller` tiene cuatro `@target`, y el tipo de retorno y los parámetros **comparten línea** siempre que la firma quepa en una. Concatenados, esa línea salía dos veces y se leía como una duplicación:
 
@@ -184,7 +184,7 @@ Cuatro formas de no tener nada que imprimir, y **una sola es un silencio legíti
 
 **La tercera no se lee sólo en `n.1.link: unknown`**, y esa fue la trampa: un `accepted` con contrato cuya declaración no está es el mismo caso —[`CONTRACT_UNLOCATED`](check.md#contract_unlocated-el-contrato-está-y-su-ubicación-no-se-sabe)— y llega sin ningún `unknown` escrito, porque el `unknown` vive del lado de la decisión. Mirar sólo la declaración hace que un fragmento con firma y contrato salga como uno de prosa. Que el nivel aceptado tenga ids o diga `unknown` no cambia lo que hay que hacer —la declaración es la que falta, y la escribe `apply`—, así que no cambia lo que se dice.
 
-Las otras tres **tienen contrato o lo tuvieron**, y un silencio las volvería indistinguibles de la primera — que es afirmar una cobertura que dos de ellas no tienen. Es la misma partición que [`4h`](../../../.stratum/worklist-accreta/4h.task.md) le hizo al `None` de `apply`: *"no había nada"*, *"no se pudo"* y *"se renunció"* no se dicen igual.
+Las otras tres **tienen contrato o lo tuvieron**, y un silencio las volvería indistinguibles de la primera — que es afirmar una cobertura que dos de ellas no tienen. Es la misma partición que `4h` le hizo al `None` de `apply`: *"no había nada"*, *"no se pudo"* y *"se renunció"* no se dicen igual.
 
 #### Un vecino que no resuelve se imprime igual, y no hace fallar al comando
 

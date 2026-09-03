@@ -75,7 +75,7 @@ La primera se sostiene reservando el lugar en el mapa **antes** del handshake y 
 
 La segunda es de propiedad, y es la que hace daño. **El proceso es del mapa**, y sacarlo del mapa *es* matarlo: no "además" matarlo, que es lo que se puede olvidar y lo que un `Drop` que nadie ejecuta finge cumplir. Un servidor huérfano no es un proceso ocioso de más — no se reusa, `status` no lo cuenta, y el `shutdown` de este diagrama le pasa por al lado. Con `jdtls` son gigas: cada JVM arranca en 1 GB y crece hasta un cuarto de la RAM de la máquina.
 
-> **Y no es hipotético.** Ver [`4f` Error de contención: nueve `jdtls` vivos para un solo `lspd`, y el OOM killer se lleva la sesión entera](../../../.stratum/worklist-accreta/4f.task.md): nueve JVMs huérfanas para un solo daemon, 22 GB, y la sesión de terminal entera muerta con ellas por compartir unidad systemd.
+> **Y no es hipotético.** `4f` registra el caso: nueve JVMs huérfanas para un solo daemon, 22 GB, y la sesión de terminal entera muerta con ellas por compartir unidad systemd.
 
 **Es lo que vuelve verdadero al `shutdown` de arriba.** Cerrar *"todos los language servers"* sólo puede significar algo si el mapa los tiene todos.
 
@@ -112,7 +112,7 @@ Un vacío ahí no significa lo que significa después. Es la misma regla que est
 
 ### Y quien la tiene es el servidor
 
-No se cronometra ni se adivina: los dos servidores que importan lo dicen, cada uno con su extensión, y son exactamente las notificaciones que [`2o`](../../../.stratum/worklist-accreta/2o.task.md) dejó ignoradas para no morirse con ellas.
+No se cronometra ni se adivina: los dos servidores que importan lo dicen, cada uno con su extensión, y son exactamente las notificaciones que `2o` dejó ignoradas para no morirse con ellas.
 
 | Servidor | Notificación | Dice que está listo cuando |
 |---|---|---|

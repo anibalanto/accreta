@@ -121,7 +121,7 @@ El prerequisito cubre la capa entera; adentro, un endpoint suelto puede seguir s
 | el conjunto de hoy coincide con el declarado | no hay nada que arreglar |
 | **no se pudo ubicar el fragmento para poder preguntar** | no se miró |
 
-Las dos primeras son una respuesta sobre el árbol. La tercera es la falta de una, y colapsarlas hace que el resumen final afirme algo que nadie verificó. Es la misma regla que [`concepts/language-servers.md`](../../lspd/concepts/language-servers.md) aplica del otro lado de la frontera —*"un vacío se leería como no hay llamadas"*— y la que [`2q` Error de clasificación: cambiar la ruta o el tipo de retorno de un endpoint se reporta como capture roto](../../../.stratum/worklist-accreta/2q.task.md) persigue en el reporte de `check`.
+Las dos primeras son una respuesta sobre el árbol. La tercera es la falta de una, y colapsarlas hace que el resumen final afirme algo que nadie verificó. Es la misma regla que [`concepts/language-servers.md`](../../lspd/concepts/language-servers.md) aplica del otro lado de la frontera —*"un vacío se leería como no hay llamadas"*— y la que `2q` persigue en el reporte de `check`.
 
 Así que el resumen los lista aparte, con el motivo por endpoint, y **el código de salida no es 2**: no es que no haya fixes disponibles, es que sobre esos no se sabe.
 
