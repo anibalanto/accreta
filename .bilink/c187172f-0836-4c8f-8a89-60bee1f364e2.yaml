@@ -2,6 +2,11 @@ kind: governs
 endpoint:
   0:
     link: capture 85dfbb5a003a2fe0dff2675023ade514
+    accepted:
+    - agree:
+      - Anibal
+      link: capture 85dfbb5a003a2fe0dff2675023ade514
+      hash: 53b3ab6ce73676325ce298a36e3638197c5e70b3858f2e00523c7617a78a9247
     name: que-es-un-pedido
   1:
     link: path subsystems/worklist>impl
