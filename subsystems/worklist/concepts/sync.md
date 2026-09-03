@@ -64,6 +64,18 @@ Creator::create_or_find(titulo, tipo, descripcion) -> clave
 
 **La descripción es siempre una línea plana**, nunca el cuerpo del ítem: `Fuente: <ruta>`. Este diseño trata a git como la fuente de verdad y a Jira como quien asigna la clave y trackea el estado — no como un espejo del contenido. Una línea sin formato es ADF válido sin convertir nada; el cuerpo tiene tablas, listas y blockquotes que `acli --description` no interpreta si llegan como Markdown crudo.
 
+### El tipo es del worklist, no de Jira
+
+`Creator::create_or_find` recibe el tipo en el vocabulario del worklist —`task`, `user-story`, `epic`— nunca el nombre que Jira le da. Quién habla con Jira es quien sabe traducirlo, y la traducción es por proyecto: en `ACC` los tipos están localizados —`Tarea`, `Historia`, `Epic`, más `Subtask`, `Error`, `Mejora` que el worklist no usa—, y un `--type Task` en inglés no existe ahí y falla.
+
+```
+task       -> Tarea
+user-story -> Historia
+epic       -> Epic
+```
+
+Confirmado contra `ACC` real. Otro proyecto de Jira puede tener otro vocabulario — la tabla es de esta capa, no universal.
+
 ## Dos pasos, no uno
 
 `pre-receive` sólo puede aceptar o rechazar lo que llega — no puede reescribirlo. El compare-and-swap vive ahí. El renombre y la reescritura son un commit *nuevo*, agregado después de aceptar: viven en `post-receive`. El cliente que empujó tiene que hacer `fetch` para ver los ids reales.
