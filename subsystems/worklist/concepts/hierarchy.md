@@ -16,7 +16,7 @@ La jerarquía de worklist es flexible. Cualquier tipo puede estar en la raíz de
 ## Estructura de ejemplo
 
 ```
-accreta/.stratum/worklist/
+accreta/.worklist/insecure/all/
   1.epic.md                        ← sin parent: raíz del árbol
   2.user-story.md                  ← parent: 1
   3.task.md                        ← parent: 2

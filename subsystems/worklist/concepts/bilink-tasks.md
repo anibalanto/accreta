@@ -10,7 +10,7 @@ link.0: .bilink/<uuid-estructural>.bilink   ← bilink estructural como archivo
 link.1: issue 3a                            ← ítem del worklist
 ```
 
-`link.0` apunta al archivo `.bilink` del bilink estructural (tratado como endpoint estructural — se hashea su contenido). `link.1` apunta al ítem `3a`, que vive en `<project-root>/.stratum/worklist/3a.<tipo>.md`.
+`link.0` apunta al archivo `.bilink` del bilink estructural (tratado como endpoint estructural — se hashea su contenido). `link.1` apunta al ítem `3a`, que vive en `<project-root>/.worklist/insecure/all/3a.<tipo>.md`.
 
 El tipo no se escribe en el endpoint: los ids son únicos, así que `3a` alcanza y el archivo se encuentra por prefijo en un solo directorio. Es lo que permite que `issue 3a` siga resolviendo cuando `3a` se recuelga de otra user story — recolgar cambia un campo, no el nombre del archivo.
 
@@ -56,6 +56,6 @@ link.1: issue 3b   ← subtarea en worklist
 
 ## Invariantes
 
-1. El ID en `issue <id>` es un ID base-36 que corresponde a un ítem en `<project-root>/.stratum/worklist/<id>.<tipo>.md`, cualquiera sea su tipo.
+1. El ID en `issue <id>` es un ID base-36 que corresponde a un ítem en `<project-root>/.worklist/insecure/all/<id>.<tipo>.md`, cualquiera sea su tipo.
 2. El bilink de tarea vive en la capa donde se debe ejecutar la tarea.
 3. No existe archivo `source_bilink` en el ítem ni archivo `<uuid>.tasks` separado — la asociación vive en el bilink de tarea.

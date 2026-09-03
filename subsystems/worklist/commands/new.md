@@ -1,6 +1,6 @@
 # Comando: `worklist new`
 
-Crea un nuevo ítem en `accreta/.stratum/worklist/` y opcionalmente establece un bilink abierto al fragmento que lo origina. Requiere conectividad con el servidor worklist.
+Crea un nuevo ítem en `accreta/.worklist/insecure/all/` y opcionalmente establece un bilink abierto al fragmento que lo origina. Requiere conectividad con el servidor worklist.
 
 ## Uso
 
@@ -58,7 +58,7 @@ worklist new task "actualizar struct BiLinkFile" --under 2
 ```
 created:  3
 type:     task
-path:     accreta/.stratum/worklist/3.task.md
+path:     accreta/.worklist/insecure/all/3.task.md
 bilink:   a3f9c821-4e5b-4c3d-9f2a-1b2c3d4e5f6a  (concepts/bilink.md:104:1 → todo)
 ```
 

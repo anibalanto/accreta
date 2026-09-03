@@ -1,6 +1,6 @@
 # Draft: el worklist se sincroniza por ramas, y el proveedor es la autoridad
 
-**Estado:** borrador, con el primer slice en ejecución en [`51`](../../../.stratum/worklist-accreta/51.user-story.md). Salió de una conversación de diseño y de una primera subida a Jira que se frenó antes de crear nada.
+**Estado:** borrador, con el primer slice en ejecución en [`51`](../../../.worklist/insecure/all/51.user-story.md). Salió de una conversación de diseño y de una primera subida a Jira que se frenó antes de crear nada.
 
 El worklist vive en un repo propio y no habla con nadie. [`worklist new`](../commands/new.md) está especificado y no se puede implementar: *"el servidor asigna el próximo ID base-36"*, y **ese servidor no existe**.
 
@@ -55,7 +55,7 @@ Las dos son seguras por la misma razón —están acotadas— pero **tienen cicl
 
 Porque mantener coherente *todo* obliga a preguntarle al proveedor por todo, todo el tiempo. Con la ventana, empujar tres ítems al sprint 10 obliga a preguntar por los ítems del sprint 10 y por ninguno más.
 
-**Es la misma forma que el sprint que está corriendo.** [`4i`](../../../.stratum/worklist-accreta/4i.task.md) dice *"`check <un archivo>` verifica la capa entera — 98 bilinks y 391 queries al proveedor para preguntar por uno"*. Acá es idéntico un piso más arriba, y la respuesta también: **acotar el alcance de la pregunta al alcance del cambio.**
+**Es la misma forma que el sprint que está corriendo.** [`4i`](../../../.worklist/insecure/all/4i.task.md) dice *"`check <un archivo>` verifica la capa entera — 98 bilinks y 391 queries al proveedor para preguntar por uno"*. Acá es idéntico un piso más arriba, y la respuesta también: **acotar el alcance de la pregunta al alcance del cambio.**
 
 > **La ventana no acota el estado, acota el chequeo.** No existe *"el status de `4j` en `sprint/10`"* distinto del que tiene en el backlog: el estado es uno, el del proveedor. Lo que la ventana delimita es de qué ítems hay que confirmar que no se movieron antes de aceptar un push.
 
@@ -83,11 +83,11 @@ desacuerdo-como-entrada.task.md   →   ACC-235.task.md
 
 `git mv`, así que la historia del archivo no se corta. Un id y no dos: no hay tabla de mapeo, y *"de qué board es este ítem"* lo contesta el nombre.
 
-**Esto le pasa por encima a [`2n`](../../../.stratum/worklist-accreta/2n.task.md)**, que decidió `<proyecto>-<id>` con base-36 local. `ACC-235` cumple el propósito de `2n` mejor —el board está en el id por construcción y no por convención— pero `2n` queda para reescribir, no para archivar: la convención de commits y el formato del endpoint `issue` cambian los dos, y la regla de lectura de los commits viejos sigue haciendo falta.
+**Esto le pasa por encima a [`2n`](../../../.worklist/insecure/all/2n.task.md)**, que decidió `<proyecto>-<id>` con base-36 local. `ACC-235` cumple el propósito de `2n` mejor —el board está en el id por construcción y no por convención— pero `2n` queda para reescribir, no para archivar: la convención de commits y el formato del endpoint `issue` cambian los dos, y la regla de lectura de los commits viejos sigue haciendo falta.
 
 ### Y un pedido no se distingue por prefijo conocido, sino por el alfabeto
 
-Un id base-36 es `[0-9a-z]` y [`2n`](../../../.stratum/worklist-accreta/2n.task.md) ya fijó que **nunca lleva guión**. Una clave de proveedor tiene mayúsculas y un guión, y ninguna de las dos cosas cabe en un id. Así que *"esto es un pedido"* no se decide contra una lista de prefijos: lo decide una partición que el alfabeto garantiza, y nada que alguien nombre a mano puede colisionar con algo que asignó el proveedor.
+Un id base-36 es `[0-9a-z]` y [`2n`](../../../.worklist/insecure/all/2n.task.md) ya fijó que **nunca lleva guión**. Una clave de proveedor tiene mayúsculas y un guión, y ninguna de las dos cosas cabe en un id. Así que *"esto es un pedido"* no se decide contra una lista de prefijos: lo decide una partición que el alfabeto garantiza, y nada que alguien nombre a mano puede colisionar con algo que asignó el proveedor.
 
 **De ahí sale el bootstrap, y es gratis.** Los 153 ítems que hoy tiene el worklist de accreta no llevan clave de proveedor, así que **son todos pedidos**. La migración no es un script: es empujar el repo como está y recibir 153 moves de vuelta.
 
@@ -134,7 +134,7 @@ La primera mitad es del formato y no de esta propuesta: [*"lo que entra a un spr
 
 La épica es la única excepción, y por una razón que ya estaba escrita: [*"una épica no entra a un sprint"*](../concepts/hierarchy.md#épicas). Sin ella, un checkout de `sprint/10` tendría user stories cuyo `parent` no resuelve. Con ella la cadena cierra siempre. Es un ancestro y no un miembro: viaja para que el árbol se lea, no para editarse ahí.
 
-> Una versión anterior de este borrador decía que una ventana **sí** podía partir un subárbol, apoyándose en un párrafo de `hierarchy.md` que contradecía a la regla del ancestro. Ese párrafo era el error y se corrigió en [`4u`](../../../.stratum/worklist-accreta/4u.task.md). Lo que queda acá es más simple: el único ancestro que una ventana hereda es la épica.
+> Una versión anterior de este borrador decía que una ventana **sí** podía partir un subárbol, apoyándose en un párrafo de `hierarchy.md` que contradecía a la regla del ancestro. Ese párrafo era el error y se corrigió en [`4u`](../../../.worklist/insecure/all/4u.task.md). Lo que queda acá es más simple: el único ancestro que una ventana hereda es la épica.
 
 ## Las épicas no tienen ventana propia
 
@@ -156,7 +156,7 @@ Una capa de stratum es **un cuerpo de specs o código que otras capas referencia
 
 **Y disuelve una ambigüedad concreta.** Un worktree tiene un `.git` —archivo, no directorio— en su raíz, y stratum y bilinker resuelven raíces caminando hacia arriba buscando `.git` o `.bilink`. Adentro de `.stratum/`, cada ventana se vería como una capa. En `.worklist/` nadie espera capas, y el problema no llega a existir.
 
-Lo que cuesta, medido: [`2m`](../../../.stratum/worklist-accreta/2m.task.md) queda sin objeto —decidía declarar *cuál capa* es el board, y si no es una capa no hay nada que declarar—; `stratum pull` deja de traerlo y pasa a ser un `git clone`; bilinker cambia su resolución del endpoint `issue`; y el `.gitignore` de accreta necesita una línea propia, porque hoy `**/.stratum/*/` lo cubría de arriba. Los links relativos de ítems a specs no entran en la cuenta: [`4y`](../../../.stratum/worklist-accreta/4y.task.md) ya los convirtió a permalinks absolutos, salvo los 11 que apuntan a `impact`, que no tiene repo publicado.
+Lo que cuesta, medido: [`2m`](../../../.worklist/insecure/all/2m.task.md) queda sin objeto —decidía declarar *cuál capa* es el board, y si no es una capa no hay nada que declarar—; `stratum pull` deja de traerlo y pasa a ser un `git clone`; bilinker cambia su resolución del endpoint `issue`; y el `.gitignore` de accreta necesita una línea propia, porque hoy `**/.stratum/*/` lo cubría de arriba. Los links relativos de ítems a specs no entran en la cuenta: [`4y`](../../../.worklist/insecure/all/4y.task.md) ya los convirtió a permalinks absolutos, salvo los 11 que apuntan a `impact`, que no tiene repo publicado.
 
 ## El bot es la pieza que no existe
 

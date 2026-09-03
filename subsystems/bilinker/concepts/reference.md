@@ -84,7 +84,7 @@ link: issue 3a
 ### Resolución
 
 ```
-<project-root>/.stratum/worklist/<id>.<tipo>.md
+<project-root>/.worklist/insecure/all/<id>.<tipo>.md
 ```
 
 El project root se encuentra subiendo `depth * 2` componentes desde la capa actual.

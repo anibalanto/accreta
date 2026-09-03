@@ -63,7 +63,7 @@ El slug se calcula como lo hace un renderer de markdown: minúsculas, se sacan l
 $ stratum links check --anchors
 577 links internos · 31 roto
 
-.stratum/worklist/g.task.md
+.worklist/insecure/all/g.task.md
     [no existe] ../subsystems/bilinker/commands/init.md
     [no existe] ../subsystems/bilinker/concepts/cache.md
 subsystems/bilinker/concepts/cache.md

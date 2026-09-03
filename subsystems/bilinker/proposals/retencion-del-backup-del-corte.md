@@ -1,6 +1,6 @@
 # Propuesta: el backup de un corte tiene un hogar y una fecha
 
-**Estado:** no implementado. Sale de [`1x`](../../../.stratum/worklist-accreta/1x.task.md), que reclama la política, y del costo que la `003` cobró por no tenerla. Para el corte de la `003` **no se aplica**: su backup ya existe y su ventana se cierra sola cuando [`43`](../../../.stratum/worklist-accreta/43.user-story.md) restituya. Esto es para el próximo.
+**Estado:** no implementado. Sale de [`1x`](../../../.worklist/insecure/all/1x.task.md), que reclama la política, y del costo que la `003` cobró por no tenerla. Para el corte de la `003` **no se aplica**: su backup ya existe y su ventana se cierra sola cuando [`43`](../../../.worklist/insecure/all/43.user-story.md) restituya. Esto es para el próximo.
 
 `migrate --cut` deja el formato anterior en `.bilink-formato-<N>/` y lo dice al terminar. **Nadie dice dónde vive eso ni cuándo se va**, y las dos ausencias son la misma: un directorio suelto no tiene ni dueño ni vencimiento.
 
@@ -48,10 +48,10 @@ De ahí que el hogar sea un path que el glob no matchea, y no una excepción al 
 
 > **Un corte que deja un backup deja también la condición para borrarlo.** Sin condición no hay retención: hay un directorio que sobrevive hasta que alguien lo limpie por error o por prolijidad, y las dos son la misma pérdida.
 
-Y la condición no puede ser *"cuando el corte quedó bien"* en abstracto. Para el `003` la condición real era **que los 139 vecindarios estuvieran restituidos**, que es un enunciado que la migración misma no podía escribir: descartó el campo, así que no sabía que había algo pendiente. De ahí la otra mitad: **una migración que no puede llevar un campo hacia adelante registra el hueco**. El valor con que se escribe ya existe —[`unknown` en el `link` de un nivel](../concepts/bilink.md#el-link-de-un-nivel-del-vecindario-y-su-tercera-forma)— y la regla general la escribe [`49`](../../../.stratum/worklist-accreta/49.task.md). Con el hueco escrito, la condición de borrado es *"no queda ningún `unknown`"*: se calcula en vez de estimarse.
+Y la condición no puede ser *"cuando el corte quedó bien"* en abstracto. Para el `003` la condición real era **que los 139 vecindarios estuvieran restituidos**, que es un enunciado que la migración misma no podía escribir: descartó el campo, así que no sabía que había algo pendiente. De ahí la otra mitad: **una migración que no puede llevar un campo hacia adelante registra el hueco**. El valor con que se escribe ya existe —[`unknown` en el `link` de un nivel](../concepts/bilink.md#el-link-de-un-nivel-del-vecindario-y-su-tercera-forma)— y la regla general la escribe [`49`](../../../.worklist/insecure/all/49.task.md). Con el hueco escrito, la condición de borrado es *"no queda ningún `unknown`"*: se calcula en vez de estimarse.
 
 Las dos van juntas y en ese orden: el hueco declarado es lo que hace que la fecha del backup se pueda derivar en vez de estimar.
 
 ## Qué toca cuando se haga
 
-[`commands/migrate.md`](../commands/migrate.md), que es hoy el único lugar donde el backup del corte se nombra: dónde lo escribe, qué dice al terminar, y la regla. `--rollback` restaura desde el directorio suelto, así que mover el hogar lo mueve a él también, o lo saca — es una de las tres preguntas abiertas de [`1x`](../../../.stratum/worklist-accreta/1x.task.md).
+[`commands/migrate.md`](../commands/migrate.md), que es hoy el único lugar donde el backup del corte se nombra: dónde lo escribe, qué dice al terminar, y la regla. `--rollback` restaura desde el directorio suelto, así que mover el hogar lo mueve a él también, o lo saca — es una de las tres preguntas abiertas de [`1x`](../../../.worklist/insecure/all/1x.task.md).
