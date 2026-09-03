@@ -1,0 +1,12 @@
+kind: governs
+endpoint:
+  0:
+    link: capture 658523d7ad74f918d57cb514b6ec5dc6
+    accepted:
+    - agree:
+      - Anibal
+      link: capture 658523d7ad74f918d57cb514b6ec5dc6
+      hash: a63220add34d0cd52871223ca06b880028b41094ddb74722049e5f21d8a62c4d
+    name: asignar-clave
+  1:
+    link: path subsystems/worklist>impl
