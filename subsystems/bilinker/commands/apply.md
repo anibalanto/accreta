@@ -26,6 +26,7 @@ bilinker apply [--dry-run] [--filter <estado>] [-y]
 
 ## Flujo
 
+0. Comprobar que la capa tenga estado calculado. Si no, **fallar con 3** y nombrar `check` (ver "Pero la capa tiene que estar mirada").
 1. Escanear los bilinks de la capa actual.
 2. Para cada endpoint en un estado con fix, **re-resolverlo** con el mismo algoritmo que usa `check` (ver [`check`](check.md) § "Algoritmo de detección por tipo de endpoint"). Eso produce un estado re-derivado y la ubicación actual del fragmento.
 3. Validar el estado re-derivado contra el cacheado (ver "Validación de frescura"). Si difieren, descartar ese endpoint.
@@ -86,6 +87,52 @@ Así que re-resuelve el capture contra el árbol actual y decide con eso. De la 
 
 Es más simple que la validación que había antes —re-derivar y comparar contra lo cacheado— y no puede quedar desincronizada, porque no hay dos valores que comparar.
 
+### Pero la capa tiene que estar mirada, y eso sí es un prerequisito
+
+`apply` **no corre sobre una capa fría**: se planta, y el mensaje nombra el comando que la llena.
+
+No contradice lo de arriba, porque son dos cosas distintas. Lo que `apply` se niega a heredar es una **conclusión** —que un endpoint esté `MOVED` lo re-deriva él, contra el árbol de ahora—. Lo que exige es que la capa **se haya mirado alguna vez**, y eso no lo puede producir solo: el eje del vecindario arranca del rango del fragmento, y sin rango no hay posición que pasarle al proveedor. Un `apply` sobre una capa que nadie verificó no es un `apply` que no encuentra nada: es uno que no llegó a preguntar.
+
+```
+$ bilinker apply --dry-run
+
+error: la capa no tiene estado calculado — 98 bilinks sin mirar.
+  El vecindario se pregunta desde el rango del fragmento, y ese rango
+  todavía no se derivó.
+
+  Correr primero:  bilinker check .
+
+exit 3
+```
+
+**Se planta en vez de calentarla sola** porque llenar la cache es el trabajo de [`check`](check.md), y hacerlo acá lo escondería: el que adopta se comería el costo de verificar 98 bilinks adentro de un comando que dice *"propone fixes"*, sin haberlo pedido y sin saber que lo pagó. El prerequisito escrito cuesta un comando y no miente sobre lo que hizo cada uno.
+
+Y **la capa fría no es un caso raro**: es el estado de todo clon nuevo, toda rama nueva y toda máquina nueva —lo dice [`concepts/capture.md`](../concepts/capture.md), *"estar fría es normal"*—, así que es exactamente la secuencia del que adopta. Que ese camino termine en un error con el comando adentro, y no en un *"no hay nada que arreglar"*, es la diferencia entre un paso más y una conclusión falsa sobre el repo propio.
+
+### Y con la capa mirada queda el caso de a uno, que tampoco es "no hay nada"
+
+El prerequisito cubre la capa entera; adentro, un endpoint suelto puede seguir sin poder mirarse — el capture no resuelve, y entonces no hay rango desde donde preguntar por su vecindario.
+
+**Ese endpoint no se cuenta como revisado.** Son tres cosas distintas y sólo dos son ausencia de trabajo:
+
+| Lo que pasó | Qué es |
+|---|---|
+| el fragmento no tiene vecindario alcanzable | no hay nada que arreglar |
+| el conjunto de hoy coincide con el declarado | no hay nada que arreglar |
+| **no se pudo ubicar el fragmento para poder preguntar** | no se miró |
+
+Las dos primeras son una respuesta sobre el árbol. La tercera es la falta de una, y colapsarlas hace que el resumen final afirme algo que nadie verificó. Es la misma regla que [`concepts/language-servers.md`](../../lspd/concepts/language-servers.md) aplica del otro lado de la frontera —*"un vacío se leería como no hay llamadas"*— y la que [`2q` Error de clasificación: cambiar la ruta o el tipo de retorno de un endpoint se reporta como capture roto](../../../.stratum/worklist-accreta/2q.task.md) persigue en el reporte de `check`.
+
+Así que el resumen los lista aparte, con el motivo por endpoint, y **el código de salida no es 2**: no es que no haya fixes disponibles, es que sobre esos no se sabe.
+
+#### Con una excepción: el endpoint que esta misma corrida está repuntando
+
+Un endpoint en `MOVED` tampoco tiene rango —su capture no resuelve, que es justamente lo que lo puso en `MOVED`— y aun así **no es un agujero**: es una espera. El vecindario se pregunta desde el rango del fragmento, y el rango que vale es el de la ubicación **nueva**, que este mismo `apply` está proponiendo dos renglones más arriba.
+
+Sin la excepción, cada `MOVED` produciría un *"no se sabe"* al lado del renglón que dice que se arregló. Eso no es un reporte más honesto: es la misma pérdida de señal en la otra dirección — un agujero que aparece siempre deja de leerse, y entonces el que importa pasa desapercibido.
+
+**La distinción es entre no poder preguntar y no poder preguntar todavía.** El primero se reporta porque nadie lo va a resolver solo; el segundo lo resuelve el fix de al lado, y el `check` siguiente pregunta contra la ubicación nueva.
+
 ## Cuando el fix no se puede calcular
 
 Un capture en `MOVED` o `REANCHORED` no siempre produce una ubicación nueva: git puede no reportar el rename, el anchor puede no localizarse, la query puede no tener predicado de nombre que reescribir.
@@ -139,6 +186,10 @@ Pending fixes (3):
   MOVED      7f3d8e9a…  endpoint.1  → specs/domain/voting.yaml
   REANCHORED 3a4b5c6d…  endpoint.0  → anchor check_endpoint  (similitud 83%)
 
+Sin mirar (1):
+  b1c2d3e4…  endpoint.1  el capture no resolvió — no hay rango desde donde
+                          preguntar por el vecindario
+
 Apply? [y/N] y
 
 Repuntados 3 endpoint(s). Los 3 quedan en RELOCATED.
@@ -151,13 +202,18 @@ commit:  refs/bilink/… @ c70d914
 
 Ningún fix cierra solo. Por eso el resumen dice qué falta antes de listar los commits: el trabajo no terminó cuando `apply` termina, y los tres endpoints quedaron esperando un `accept --place`.
 
+**El bloque de "sin mirar" va arriba, entre los fixes y la confirmación**, y no al final con los commits: es lo que la persona necesita para decidir si el resumen le alcanza, y un renglón después de la lista de commits ya no se lee. Cada línea dice el motivo por endpoint, porque *"no se pudo"* sin decir qué falló es la misma respuesta vacía en otro lugar.
+
 ## Código de salida
 
 | Código | Condición |
 |---|---|
 | 0 | Todos los fixes aplicados. |
-| 1 | Error al calcular o aplicar algún fix, o algún fix descartado por cache desactualizada. |
-| 2 | No hay endpoints con fix disponible. |
+| 1 | Error al calcular o aplicar algún fix, algún fix descartado por cache desactualizada, o algún endpoint que no se pudo mirar. |
+| 2 | No hay endpoints con fix disponible, **y todos se miraron**. |
+| 3 | La capa no tiene estado calculado: falta correr `check`. |
+
+**El 2 es una afirmación sobre el árbol**, así que sólo sale cuando hubo con qué hacerla. Un endpoint que no se pudo ubicar la debilita, y por eso cae en el 1 junto con los demás casos de *"no se sabe"*. El 3 no es un caso de eso: es el prerequisito sin cumplir, y se distingue porque lo arregla otro comando.
 
 ## Invariantes
 
@@ -166,6 +222,8 @@ Ningún fix cierra solo. Por eso el resumen dice qué falta antes de listar los 
 - El único efecto de `apply` sobre un bilink es repuntar un `link`.
 - Tras `apply`, el endpoint queda en `RELOCATED`. Ningún fix lo devuelve a `OK`.
 - `apply` nunca aplica un fix derivado de la cache: cada uno se recalcula re-resolviendo contra el árbol y el índice git actuales.
+- `apply` no corre sobre una capa sin estado calculado: falla con 3 y nombra `bilinker check .`. La cache no le da conclusiones; le da la prueba de que la capa se miró.
+- Un endpoint que no se pudo ubicar no se cuenta como revisado: se lista aparte con su motivo, y no deja el código de salida en 2.
 - Si el estado re-derivado no coincide con el cacheado, `apply` descarta el fix y avisa.
 - Si el fix calculado no se puede verificar —el hash no coincide en el path nuevo, el anchor no aparece— `apply` lo rechaza y avisa.
 - `apply` es idempotente: un fix ya aplicado se detecta como no-op.
