@@ -10,3 +10,10 @@ endpoint:
     name: comportamiento-push
   1:
     link: path subsystems/worklist>impl
+    accepted:
+    - agree:
+      - Anibal
+      link: capture 7ea89760d35df4de7fdb7ce94bcc5ac8
+      hash: c960010240ec6cada261c4875c92158129da887c06364864598e7755be60e41c
+      hash_ast: a0de1dc516841025e6e3d2045bcc28a1ebe176aca66f8cfdb58642abcffc0c0c
+      n: declined
