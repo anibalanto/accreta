@@ -5,3 +5,10 @@ endpoint:
     name: comportamiento-create-or-find
   1:
     link: path subsystems/worklist>impl
+    accepted:
+    - agree:
+      - Anibal
+      link: capture 3fc3224306f71c430537174e17dbbacb
+      hash: 66740c04a5c8546ae5013ad219a5c429f5fee856c1b94010da6fa6d8b72edd9e
+      hash_ast: 726e466ebaef27a4518c8c83991d48f02a43b06246daaa57dd6b5b291ca9cd7b
+      n: declined
