@@ -146,7 +146,7 @@ bilinker chain new \
 - baja al método y toma su anotación de ruta —`@GetMapping`, `@PostMapping`, …
 - toma el tipo de retorno y los parámetros
 
-**Cuatro fragmentos de una sola posición.** Y con eso entra la ruta compuesta, que es lo que [`1d`](../../../.stratum/worklist-accreta/1d.task.md) diagnosticó y no tenía salida: sale de un `@RequestMapping` de clase más un `@GetMapping` de método, y el literal completo no aparece en ningún lado del archivo.
+**Cuatro fragmentos de una sola posición.** Y con eso entra la ruta compuesta, que es lo que `1d` diagnosticó y no tenía salida: sale de un `@RequestMapping` de clase más un `@GetMapping` de método, y el literal completo no aparece en ningún lado del archivo.
 
 ##### El ancla es la ruta, no el nombre del método
 
@@ -202,7 +202,7 @@ La ruta de clase y el literal del método son dos de los cuatro `@target`; el ve
 GET /public-api/appointment/booking/institution  ·  getBookingList
 ```
 
-No es una excepción inventada: es la misma información que [`32`](../../../.stratum/worklist-accreta/32.task.md) ancla en la query justamente donde el literal falta. **Donde falta el literal sobra el nombre, y viceversa.**
+No es una excepción inventada: es la misma información que `32` ancla en la query justamente donde el literal falta. **Donde falta el literal sobra el nombre, y viceversa.**
 
 **Pero se lee del archivo y no de la query**, aunque en la query esté. Parece igual y no lo es: `name: (identifier)` aparece también en las anotaciones y en la clase, que van más arriba del árbol y por lo tanto antes en el patrón, así que ni el primero ni el último aciertan. Entre dos `@target` no hay ambigüedad posible — **es la forma que el generador escribió, no una heurística sobre texto.**
 

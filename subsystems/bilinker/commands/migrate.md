@@ -152,7 +152,7 @@ De las tres salidas, dos son peores:
 |---|---|
 | **descartar el `n`** | baja la cobertura de 113 endpoints **en silencio**, y la ausencia sin marca significa otra cosa: *"este fragmento no tiene firma resoluble"* |
 | **negarse** si hay algún `n` adquirido | deja la migración bloqueada por algo que no puede arreglar, y obliga a re-aceptar 113 endpoints **antes** de poder leer los archivos con el binario nuevo |
-| **escribir `declined`** | la renuncia queda **escrita**, que es la distinción que [`2r`](../../../.stratum/worklist-accreta/2r.task.md) compró |
+| **escribir `declined`** | la renuncia queda **escrita**, que es la distinción que `2r` compró |
 
 Con `declined`, `check` y `status` dicen que ese endpoint no vigila su vecindario en vez de dejar creer que sí; un `accept` posterior **con** proveedor lo levanta solo, porque una renuncia anterior se levanta sola en cuanto hay con qué resolver; y nadie tiene que volver a tipear `--no-n1` en el medio.
 
