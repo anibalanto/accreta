@@ -76,6 +76,23 @@ El chequeo no mira el contenido que llega: compara el estado en vivo del proveed
 
 **El proveedor es un puerto**, para que la implementación real (Jira, vía `acli`) y una de prueba compartan la misma forma. La de prueba es un archivo `clave -> status`, mutable desde afuera — necesario para poder probar el rechazo: en un sistema cerrado, sin una forma de simular que el proveedor cambió por su cuenta, esa rama nunca se ejercita.
 
+### El éxito se lee de la salida, nunca del código de retorno
+
+> **`acli` devuelve 0 cuando falla.**
+
+Escribe `✗ Failure: …` en `stdout` y sale con éxito, así que un cliente que mire el código de retorno **no se entera de nada**. El primer push real de una ventana creó cinco issues y las cinco descripciones fueron rechazadas por Jira sin una palabra en la salida del push.
+
+La detección no puede ser buscar ese texto: es de una herramienta ajena y está en el idioma de quien la corre. Se pide `--json`, que responde estructurado:
+
+```json
+{"results":[{"status":"FAILURE","message":"InvalidPayloadException: INVALID_INPUT","id":"ACC-16"}],
+ "totalCount":1,"successCount":0}
+```
+
+**Una operación del proveedor se considera hecha cuando su `status` lo dice**, y `successCount` cierra el lote. Es el mismo principio que el resto: fallar hacia reportar, y no confundir *"no se pudo ver"* con *"está bien"*.
+
+Y de ahí sale una regla para cualquier proveedor futuro: **el puerto devuelve el resultado de la operación, no el de haberla intentado.** Un `Creator` que no distingue las dos cosas no sirve, por más que el comando que corra por debajo salga con 0.
+
 ## Asignar una clave: crear o encontrar
 
 Un pedido se resuelve preguntándole al proveedor si ya existe —por título— antes de crear. Sin esto, un hook que crea el issue y falla antes de comitear el renombre duplica en el reintento.
