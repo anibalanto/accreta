@@ -124,6 +124,78 @@ El argumento no es de gustos. Si alguien quiere el texto exacto es **para compar
 
 **Y `get` es el comando de después.** La [vista previa](chain.md#la-salida-deja-ver-qué-se-capturó-y-qué-no) existe porque *"un capture es opaco después de escrito"*; `get` se usa justo cuando esa opacidad ya se cobró, y mostraba **menos** que la vista de antes de escribir. Ver [`concepts/capture.md`](../concepts/capture.md) § "El fragmento son los `@target`" para qué es una parte.
 
+**Y el [vecindario](#el-vecindario-viene-con-el-fragmento) tampoco entra en `--raw`**, por lo mismo: lo que `check` hashea como fragmento es el fragmento, y un vecino adentro rompe la única salida de la que se puede afirmar que es byte por byte.
+
+### El vecindario viene con el fragmento
+
+Un endpoint con [vecindario de nivel 1](../concepts/accept.md#el-cierre-de-firma) **no está aprobado por su fragmento solo**: `accept` escribe `hash` y `n` en la misma entrada, y *"no existe el camino «apruebo la firma y el vecindario no lo miré»"*. `get` es el comando con el que se mira antes de aprobar, así que trae las dos partes.
+
+Sin eso el comando muestra la firma y calla los tipos que la firma menciona — que es exactamente la mitad que el nivel 1 existe para cubrir. Y en [`CONTRACT_ALTERED`](check.md), que es *el* caso donde el fragmento no cambió y aun así el contrato se movió, lo único que `get` imprimía era lo que sigue igual.
+
+```
+$ bilinker get 67ba7217.0
+
+# GET /public-api/user/info/from-token
+# hsi :: …/UserPublicController.java  lines 22–22, 36–37
+22:   @RequestMapping("/public-api/user")
+ ⋮
+36:   	@GetMapping(value = "/info/from-token")
+37:   	... PublicUserInfoDto ... (@RequestHeader("user-token") String userToken) ...
+
+# n1 · hsi :: …/dto/PublicUserInfoDto.java  lines 8–13
+ 8:   public class PublicUserInfoDto {
+ 9:       private String username;
+10:       private Long authorityId;
+11:       private AuthorityKind authorityKind;
+12:       private Instant expiresAt;
+13:   }
+```
+
+**Cada vecino es un capture, así que se muestra como cualquier otro fragmento.** Los números de línea, el `⋮`, los `...` y la regla de que una línea del archivo sale una sola vez son de la vista y no del endpoint: lo único que cambia es qué capture se resuelve.
+
+De ahí que **cuánto se trae de un vecino no sea una pregunta de este comando**. Un capture nombra un nodo entero —*"la selección sirve para encontrar los nodos, no para recortarlos"*, y no hay sub-rango—, así que un recorte de vecino le inventaría al formato una operación que no tiene en ninguna parte. Lo mismo con el orden: los ids de `n.1.link` están [ordenados por identidad](../concepts/accept.md#el-fold-y-por-qué-el-orden-es-por-identidad), que es el orden del fold, y `get` no los reordena.
+
+Cada vecino lleva su propio encabezado, en el mismo lugar donde va el del fragmento —stderr— y con el mismo formato más el prefijo del nivel. **Es lo que impide que el fragmento y sus vecinos se lean como uno solo**, que es la misma falla que los `...` resolvieron un nivel más adentro.
+
+#### Se traen los declarados, no los aceptados
+
+`n.1.link` del endpoint es [la declaración](../concepts/bilink.md#estructura-del-archivo) —los vecinos de hoy, que mantiene `apply`— y `accepted[].n.1.link` es la decisión. **`get` lee la declaración**, por la misma razón por la que el fragmento que imprime es el de hoy y no el aceptado: contrastar contra lo aceptado es `--diff`.
+
+Cuando los dos conjuntos difieren el estado es `CONTRACT_RELOCATED`, y lo que hay que mirar para decidir si se acepta es justamente el de hoy.
+
+#### No pide proveedor, y por eso puede ser el default
+
+Los vecinos ya son captures escritos en el bilink. Traerlos es resolverlos con tree-sitter sobre archivos de la misma capa — la misma operación que `get` ya hace con el capture del endpoint.
+
+Así que la regla de que [todo comando que toque el eje del vecindario recibe el puerto y degrada sin él](../concepts/accept.md#y-el-vecindario-tiene-los-mismos-dos-ejes-que-el-fragmento) **no le aplica: `get` no recalcula el vecindario, lee el que está escrito.** Mostrarlo cuesta abrir N archivos más, donde N son los tipos que la firma menciona, y no cuesta una sola pregunta a un language server.
+
+#### Cuando no hay vecinos que traer, no es un solo caso
+
+Cuatro formas de no tener nada que imprimir, y **una sola es un silencio legítimo**:
+
+| El archivo dice | Qué pasó | Qué imprime |
+|---|---|---|
+| ni declaración ni contrato aceptado | el fragmento no tiene firma resoluble — prosa, un DTO, un `enum` | nada |
+| `n.1` sin [`link`](../concepts/bilink.md#el-link-de-un-nivel-del-vecindario-y-su-tercera-forma) | se preguntó y no hay vecinos de esta capa | `# n1 · sin vecinos` |
+| hay contrato aceptado y no hay declaración que lo ubique | el contrato está y de qué vecinos salió no se sabe | `# n1 · ubicación desconocida — acuñar con bilinker apply` |
+| `n: declined` | alguien renunció al vecindario | `# n1 · renunciado` |
+
+**La primera es la única donde no imprimir no afirma nada**: no hay vecindario porque no hay firma, y decirlo debajo de cada fragmento de prosa sería ruido en la salida más común del comando.
+
+**La tercera no se lee sólo en `n.1.link: unknown`**, y esa fue la trampa: un `accepted` con contrato cuya declaración no está es el mismo caso —[`CONTRACT_UNLOCATED`](check.md#contract_unlocated-el-contrato-está-y-su-ubicación-no-se-sabe)— y llega sin ningún `unknown` escrito, porque el `unknown` vive del lado de la decisión. Mirar sólo la declaración hace que un fragmento con firma y contrato salga como uno de prosa. Que el nivel aceptado tenga ids o diga `unknown` no cambia lo que hay que hacer —la declaración es la que falta, y la escribe `apply`—, así que no cambia lo que se dice.
+
+Las otras tres **tienen contrato o lo tuvieron**, y un silencio las volvería indistinguibles de la primera — que es afirmar una cobertura que dos de ellas no tienen. Es la misma partición que [`4h`](../../../.stratum/worklist-accreta/4h.task.md) le hizo al `None` de `apply`: *"no había nada"*, *"no se pudo"* y *"se renunció"* no se dicen igual.
+
+#### Un vecino que no resuelve se imprime igual, y no hace fallar al comando
+
+Vale la regla de [más abajo](#cuando-el-capture-no-resuelve-igual-dice-a-dónde-apuntaba) —archivo, id del capture, estado y query— porque el problema es el mismo y el dato que hace falta para arreglarlo también.
+
+Lo que cambia es el código de salida: **sigue siendo 0**, porque el fragmento que se pidió salió. El estado de un capture es de [`check`](check.md), y hacer fallar a `get` por un vecino roto le negaría al que mira el fragmento que sí resolvió — que es lo que vino a buscar.
+
+#### No hay flag para apagarlo
+
+El fragmento solo ya se pide, y es `--raw`. Un segundo flag —el fragmento numerado y sin vecinos— existiría para un uso que no aparece: el que corre `get` está por aceptar, y lo que acepta es el contrato entero.
+
 ### Flag `--diff`
 
 Requiere el `commit` del endpoint —el commit en que el contenido aceptado quedó establecido— y el capture resuelto. Vive en [la cache](../concepts/cache.md); con cache fría se re-deriva.
@@ -255,7 +327,9 @@ bilinker get 7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.1
 | Código | Condición |
 |---|---|
 | 0 | Operación exitosa (puede haber 0 resultados en forma 1). |
-| 1 | Error: archivo no encontrado, UUID inválido, endpoint sin capture, capture sin resolver, capa adyacente no accesible. |
+| 1 | Error: archivo no encontrado, UUID inválido, endpoint sin capture, el capture **del fragmento** sin resolver, capa adyacente no accesible. |
+
+**Un vecino que no resuelve no entra en esa lista.** El fragmento pedido salió, y lo que no resolvió se imprimió con su referencia — ver § "Un vecino que no resuelve se imprime igual".
 
 ## Propiedades garantizadas
 
@@ -264,3 +338,6 @@ bilinker get 7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.1
 - **Un endpoint que no resuelve imprime su referencia igual**: archivo, id del capture, y query. Falla después.
 - **`--raw` imprime el fragmento y nada más**: el mismo texto que `check` hashea, byte por byte. Es la única salida de la que eso se puede afirmar, y por eso el flag existe.
 - **Una línea del archivo sale una sola vez**, aunque la toquen varias partes.
+- **El vecindario declarado sale con el fragmento**, en el orden en que está escrito en `n.1.link` y con la misma vista, y cada vecino con su encabezado.
+- **`get` no le pregunta al proveedor de vecindario**: los vecinos son captures del bilink, y traerlos es resolverlos.
+- **Un vecindario que no se puede traer se nombra**, y sólo la ausencia de firma resoluble es silencio.
