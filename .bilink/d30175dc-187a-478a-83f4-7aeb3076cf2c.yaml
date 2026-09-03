@@ -2,6 +2,11 @@ kind: governs
 endpoint:
   0:
     link: capture c2c02606899a966445be8ec6f2eba89a
+    accepted:
+    - agree:
+      - Anibal
+      link: capture c2c02606899a966445be8ec6f2eba89a
+      hash: 667e21a07b6658fe85ea9933875d9511ad6fbd903c0b226f2dcffbb9d653d92d
     name: que-hace-check-push
   1:
     link: path subsystems/worklist>impl
