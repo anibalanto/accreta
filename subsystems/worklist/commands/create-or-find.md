@@ -5,13 +5,14 @@ La integración real con el proveedor: [`concepts/sync.md`](../concepts/sync.md#
 ## Firma
 
 ```
-worklist create-or-find --project <clave> --type <tipo> <título> [--dry-run]
+worklist create-or-find --project <clave> --type <tipo> --source <ruta> <título> [--dry-run]
 ```
 
 | Argumento | Descripción |
 |---|---|
 | `--project` | La clave del proyecto de Jira — `ACC` para accreta. |
 | `--type` | `Task`, `Historia` o `Epic`. |
+| `--source` | La ruta del ítem en el repo del worklist. Arma la descripción: `Fuente: <ruta>`. |
 | `<título>` | El título del ítem. Se escapa antes de entrar en cualquier JQL. |
 | `--dry-run` | No llama a `acli`. Imprime qué buscaría y qué crearía. |
 
