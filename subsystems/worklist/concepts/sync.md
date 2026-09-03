@@ -60,6 +60,8 @@ Creator::create_or_find(titulo, tipo, descripcion) -> clave
 
 **Buscar mal es peor que no buscar.** Una búsqueda que falla en silencio —una comilla sin escapar rompiendo el JQL— vuelve indistinguible *"no existe"* de *"no se pudo preguntar"*, y el reintento duplica. El título se escapa siempre antes de interpolarlo en cualquier consulta.
 
+**Y el título de búsqueda no es el mismo string que el título del issue.** `summary ~` de JQL no compara texto literal: es una búsqueda de texto completo, y algunos caracteres —`[` y `]`, confirmado— rompen su parser incluso adentro de comillas, sin que JQL tenga forma de escaparlos (`\[` es una secuencia inválida). La búsqueda usa una versión del título con esos caracteres neutralizados; **crear usa el título real, intacto** — `--summary` no pasa por JQL y no tiene ese problema. Buscar con una versión más laxa puede traer falsos positivos; no buscar nada, por un carácter que rompe el parser, produce un duplicado seguro. Lo primero es el riesgo que vale correr.
+
 **La descripción es siempre una línea plana**, nunca el cuerpo del ítem: `Fuente: <ruta>`. Este diseño trata a git como la fuente de verdad y a Jira como quien asigna la clave y trackea el estado — no como un espejo del contenido. Una línea sin formato es ADF válido sin convertir nada; el cuerpo tiene tablas, listas y blockquotes que `acli --description` no interpreta si llegan como Markdown crudo.
 
 ## Dos pasos, no uno
