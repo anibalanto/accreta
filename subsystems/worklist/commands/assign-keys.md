@@ -22,9 +22,16 @@ Para cada `ref` que sea una ventana —`refs/heads/sprint/*` o `refs/heads/backl
 
 1. Lista los `*.md` del árbol de `<nuevo>` cuyo nombre **no** es una clave de proveedor: ésos son los pedidos.
 2. Los ordena topológicamente por `parent` y `relation.*`, sobre el subgrafo de pedidos. Un ciclo aborta sin escribir nada.
-3. Para cada uno, en ese orden, pide su clave con [`create-or-find`](create-or-find.md).
-4. Renombra y reescribe sus referencias, un commit por ítem.
-5. Mueve la ref al commit resultante.
+
+Y después, **tres pasadas** — ver [`concepts/sync.md`](../concepts/sync.md#nada-viaja-al-proveedor-hasta-que-el-estado-local-esté-completo):
+
+| | |
+|---|---|
+| **1** | por cada pedido: pide su clave con [`create-or-find`](create-or-find.md), renombra, y reescribe sus referencias. Un commit por ítem. |
+| **2** | con todos los nombres finales puestos: convierte cada cuerpo a ADF —traduciendo los links a otros ítems— y lo manda como descripción. |
+| **3** | crea los vínculos que `relation.*` declara. |
+
+Al final mueve la ref al commit resultante.
 
 ## Corre sobre un repo bare, sin working tree
 

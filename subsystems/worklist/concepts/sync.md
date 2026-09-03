@@ -111,6 +111,30 @@ normalize: ACC-45           ← lo que el round-trip dejó
 
 Es el tercero de la misma familia que ya tienen `rename <slug> -> <clave>` y `provider: <clave> …`: **el servidor deja su trabajo como un commit propio y auditable.** Con esto, un error del conversor es un diff que se ve y se revierte; reescribiendo el commit del cliente sería una pérdida sin contra qué comparar — y eso importa especialmente porque el conversor es la pieza más nueva de todo esto.
 
+### Nada viaja al proveedor hasta que el estado local esté completo
+
+Resolver una ventana son **tres pasadas**, y el orden no es de estilo:
+
+| | Qué hace | Por qué no antes |
+|---|---|---|
+| **1** | claves y renombres, en orden topológico | — |
+| **2** | los cuerpos, convertidos y enviados | un cuerpo enviado antes lleva los nombres **previos** al renombre, y queda congelado así: el ítem ya tiene clave, así que ningún push posterior lo vuelve a mirar |
+| **3** | los vínculos entre ítems | un vínculo necesita que **las dos puntas** existan en el proveedor |
+
+La pasada 2 sólo salía bien por accidente cuando la referencia estaba declarada en `relation.*` —el orden topológico ponía al referenciado primero—; una referencia que vive **sólo en la prosa** no participa de ese orden y quedaba vieja.
+
+### Un link a otro ítem se traduce en el borde
+
+En el repo un ítem referencia a otro por su archivo; en el proveedor eso no significa nada. La traducción es mecánica y va en las dos direcciones:
+
+```
+<clave>.<tipo>.md   ←→   <base>/browse/<clave>
+```
+
+**Y no se convierte en un vínculo del proveedor.** Una cita en prosa no es una dependencia declarada — ésa es la distinción que `relation.*` existe para hacer, y convertir cada mención en un vínculo llenaría el ítem de relaciones que nadie declaró.
+
+De vuelta, el tipo no está en la URL: se resuelve mirando qué `<clave>.*.md` existe en la ventana. **Si no está —una referencia a algo de otra ventana—, la URL se queda como URL**, que es la forma correcta para algo que no vive acá.
+
 ### Dos cosas no pasan por el conversor
 
 **El frontmatter.** `title`, `status`, `relation.*` no son cuerpo markdown ni viven en la descripción del proveedor. Se separan antes de convertir y se vuelven a pegar después, intactos.
