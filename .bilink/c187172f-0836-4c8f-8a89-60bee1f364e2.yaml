@@ -1,0 +1,7 @@
+kind: governs
+endpoint:
+  0:
+    link: capture 85dfbb5a003a2fe0dff2675023ade514
+    name: que-es-un-pedido
+  1:
+    link: path subsystems/worklist>impl
