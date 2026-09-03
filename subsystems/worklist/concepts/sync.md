@@ -121,6 +121,44 @@ epic       -> Epic
 
 Confirmado contra `ACC` real. Otro proyecto de Jira puede tener otro vocabulario — la tabla es de esta capa, no universal.
 
+### La jerarquía entra hasta donde el proveedor la tiene
+
+El worklist descompone en tres escalones —`epic` → `user-story` → `task`— y Jira **no tiene tres**. Sus tipos viven en niveles numerados, y en `ACC`:
+
+```
+nivel  1   Epic
+nivel  0   Historia   Tarea   Error   Mejora
+nivel -1   Subtask
+```
+
+`Historia` y `Tarea` están **en el mismo nivel**, y Jira no admite `parent` entre pares. Medido contra `ACC`, no supuesto:
+
+| Relación | |
+|---|---|
+| `Historia` bajo `Epic` | ✔ |
+| `Tarea` bajo `Epic` | ✔ |
+| `Tarea` bajo `Historia` | ✘ *"Selecciona una incidencia principal válida"* |
+| `Subtask` bajo `Historia` | ✔ |
+| `Subtask` bajo `Epic` | ✘ salta un nivel |
+
+> **El `parent` de un issue es la épica de la que cuelga, por lejos que quede. El escalón del medio es un link `Relates`.**
+
+Así que un ítem con `parent` sube con dos cosas: `--parent <clave de su épica ancestro>`, subiendo la cadena hasta el primer `epic`; y, si su padre directo **no** es esa épica, un `Relates` hacia él.
+
+**Por qué no `Subtask`.** Es la única forma de tener el anidado exacto, y cuesta dos cosas. La primera: `Subtask` no cuelga de un `Epic`, así que una task hija de épica —o suelta— tendría que seguir siendo `Tarea`, y **el tipo de Jira dejaría de ser función del tipo del worklist** — lo contrario de lo que § "El tipo es del worklist, no de Jira" decidió. La segunda: una subtarea de Jira no lleva sprint propio ni aparece en el backlog como tarjeta, así que las tasks dejarían de ser lo que se mueve en el board. Un ítem del worklist tiene **un solo** tipo de Jira posible, y esa regla no se negocia por el anidado.
+
+**Y `Relates` porque es lo que hay.** Los tipos de link de `ACC` son `Blocks`, `Cloners`, `Duplicate`, `Relates` y `Work item split`: **no hay ningún `Parent/Child`**. Es el mismo mecanismo que § "Los vínculos" usa para `relation.depends`, con otro tipo.
+
+**Lo que se pierde, dicho:** en Jira el árbol tiene dos niveles donde el worklist tiene tres, y una user story deja de ser el contenedor de sus tasks — pasa a ser un issue hermano que las referencia. La descomposición completa vive en git, que es donde `parent` es autoritativo.
+
+### El padre se pone al crear, y después no
+
+`acli` acepta `--parent` en `create` y **no en `edit`** — ni por flag ni en el JSON de `--generate-json`.
+
+Dos consecuencias, y las dos son limitaciones reales y no decisiones. Un issue que ya existe sin padre **no se puede corregir** por esta vía: hay que borrarlo y dejar que el próximo push lo cree. Y **recolgar un ítem de otra user story no se propaga**, que es justo la operación que [jerarquía](hierarchy.md) § "IDs secuenciales y jerarquía" describe como barata: cambia un campo del ítem, no el nombre de su archivo. Barata en git, imposible en el proveedor.
+
+Por eso `create_or_find` que **encuentra** en vez de crear no puede prometer la jerarquía, y lo tiene que decir en vez de callarlo.
+
 ## El cuerpo viaja, y vuelve convertido
 
 > **La verdad viene del proveedor a git. Y si git está actualizado, puede ir al proveedor.**
