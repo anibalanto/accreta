@@ -18,7 +18,7 @@ worklist assign-keys --project <clave> [--stdin] [--dry-run]
 
 ## Comportamiento
 
-Para cada `ref` que sea una ventana —`refs/heads/sprint/*` o `refs/heads/backlog`—:
+Para cada `ref` que sea una ventana —`refs/heads/secure/**`—:
 
 1. Lista los `*.md` del árbol de `<nuevo>` cuyo nombre **no** es una clave de proveedor: ésos son los pedidos.
 2. Los ordena topológicamente por `parent` y `relation.*`, sobre el subgrafo de pedidos. Un ciclo aborta sin escribir nada.

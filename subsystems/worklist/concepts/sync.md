@@ -30,9 +30,23 @@ Cuando un push trae varios pedidos y uno depende de otro —por `parent` o `rela
 
 El orden no lo necesita la reescritura local — cada renombre ya recorre todo el árbol y corrige cualquier referencia al slug que se está reemplazando, sin importar el orden de llamadas. Lo que sí lo necesita es crear en el proveedor: no se puede pedir un issue con `--parent <clave>` si esa clave todavía no existe.
 
+## Dos clases de rama, y el nombre dice qué se puede hacer
+
+Completo y verificable son excluyentes, así que hay dos clases y no una:
+
+| Prefijo | Contiene | Se verifica | `pre-receive` |
+|---|---|---|---|
+| `refs/heads/secure/**` | una vista parcial, acotada | sí, entera, en cualquier momento | corre el compare-and-swap |
+| `refs/heads/insecure/**` | todo, o un conjunto que crece sin techo | no | **rechaza el push** |
+| cualquier otra | no es del worklist | — | no opina |
+
+**Rechazar el push a una insegura es lo que vuelve cierta la palabra.** Una rama que se llama insegura y acepta escrituras miente: no puede verificarse, así que no puede prometer que lo que entra sea consistente con el proveedor. Y de ahí sale, sin que nadie tenga que respetarla, que el panorama sólo avance por propagación — **no hay forma de empujarle.**
+
+`backlog` es insegura: es *"todo lo que ningún sprint tomó"* y crece sin techo. Para trabajar sobre ítems del backlog se recorta una ventana segura acotada.
+
 ## La ventana y el compare-and-swap
 
-Una ventana es un sprint o el backlog — un subconjunto de ítems sobre el que un push se valida. Antes de aceptar:
+Una ventana es una rama `secure/` — un subconjunto de ítems sobre el que un push se valida. Antes de aceptar:
 
 1. Preguntar al proveedor por el estado de los ítems **de esa ventana**, y ninguno más.
 2. Si algo cambió desde el commit sobre el que se empuja, rechazar. La rama queda con el estado nuevo, sin commit de más — como un push no fast-forward cualquiera.
