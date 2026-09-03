@@ -44,6 +44,18 @@ Completo y verificable son excluyentes, así que hay dos clases y no una:
 
 `backlog` es insegura: es *"todo lo que ningún sprint tomó"* y crece sin techo. Para trabajar sobre ítems del backlog se recorta una ventana segura acotada.
 
+### Una ventana sobrevive al cierre de su sprint
+
+> **Nada cierra una ventana. Cerrar el sprint no la borra.**
+
+Una rama segura se hace responsable de **poder verificarse entera contra el proveedor en cualquier momento**, y si se borrara al cerrar el sprint esa responsabilidad tendría fecha de vencimiento: lo que prometería no es *"esto se puede verificar"* sino *"esto se pudo verificar mientras duró"*. Quedando, *"¿el sprint 7 sigue coincidiendo con el proveedor?"* es una pregunta contestable un año después.
+
+**Y nada empuja a borrarlas**, porque una ventana es acotada por construcción: en el panorama de accreta la más grande tiene 19 archivos contra 154. Lo que crece sin techo es el panorama, y el panorama no es una ventana.
+
+El commit de la ventana es además el registro de **qué llevaba el sprint**, y eso no se recupera del panorama más tarde: el `items` de un sprint puede cambiar después de cerrado, y el panorama guarda el estado final de cada ítem y no el conjunto que aquella iteración tomó.
+
+Que quede no la vuelve autoritativa: sigue siendo **derivada**, y se puede volver a cortar. Y borrar una a mano sigue siendo posible, como con cualquier rama — lo que se descarta es que el cierre lo haga solo.
+
 ## La ventana y el compare-and-swap
 
 Una ventana es una rama `secure/` — un subconjunto de ítems sobre el que un push se valida. Antes de aceptar:
