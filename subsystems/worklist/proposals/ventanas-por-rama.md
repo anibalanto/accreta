@@ -91,13 +91,9 @@ Si el hook crea el issue en el proveedor y falla antes de commitear el move, un 
 
 ## Lo que el renombre no puede reparar
 
-Adentro del repo la reescritura alcanza. Afuera no, y hoy son **21 referencias desde las specs de accreta** hacia ítems del worklist — que un push al worklist no puede tocar. Con el bootstrap se rompen las 21 juntas.
+Adentro del repo la reescritura alcanza. Afuera no: hoy son **15 referencias desde las specs de accreta** hacia ítems del worklist —ADRs que nombran la épica que ejecutan, propuestas que nombran el ítem que las abrió— que un push al worklist no puede tocar. Con el bootstrap se rompen todas juntas.
 
-Pero eso no lo arregla este diseño, y la épica `1` ya dice dónde se arregla:
-
-> *"La referencia de un ítem a su ADR es hoy un link relativo, y no debería serlo… la referencia pasa a ser **un bilink** — `link.0: capture <fragmento del ADR>`, `link.1: issue <id>`"*
-
-Una referencia cruzada escrita como endpoint `issue` sobrevive al renombre porque bilinker la sigue. **Las 21 son deuda de no haber hecho eso todavía**, no un costo nuevo de esta propuesta — y conviene saldarla antes del bootstrap, no después.
+**No es un costo nuevo de esta propuesta: ya existe hoy**, y este diseño no lo agrava más de lo que el simple paso del tiempo ya lo iba a agravar. La épica `1` apunta a un arreglo posible —un endpoint `issue` del lado de la spec, que sobrevive al renombre porque bilinker lo sigue— pero **queda deliberadamente afuera de acá**: no se factorean bilinks en este diseño por ahora. Se anota como trabajo futuro y no bloquea nada de lo de arriba.
 
 ## Qué lleva una ventana
 
