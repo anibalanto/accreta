@@ -62,7 +62,9 @@ Creator::create_or_find(titulo, tipo, descripcion) -> clave
 
 **Y el título de búsqueda no es el mismo string que el título del issue.** `summary ~` de JQL no compara texto literal: es una búsqueda de texto completo, y algunos caracteres —`[` y `]`, confirmado— rompen su parser incluso adentro de comillas, sin que JQL tenga forma de escaparlos (`\[` es una secuencia inválida). La búsqueda usa una versión del título con esos caracteres neutralizados; **crear usa el título real, intacto** — `--summary` no pasa por JQL y no tiene ese problema. Buscar con una versión más laxa puede traer falsos positivos; no buscar nada, por un carácter que rompe el parser, produce un duplicado seguro. Lo primero es el riesgo que vale correr.
 
-**La descripción es siempre una línea plana**, nunca el cuerpo del ítem: `Fuente: <ruta>`. Este diseño trata a git como la fuente de verdad y a Jira como quien asigna la clave y trackea el estado — no como un espejo del contenido. Una línea sin formato es ADF válido sin convertir nada; el cuerpo tiene tablas, listas y blockquotes que `acli --description` no interpreta si llegan como Markdown crudo.
+**La descripción lleva el cuerpo del ítem, convertido a ADF** — ver § "El cuerpo viaja, y vuelve convertido".
+
+> Una versión anterior de esta página decía que la descripción era una línea `Fuente: <ruta>` y que *"git es la fuente de verdad"*. **Las dos cosas estaban mal.** La segunda contradice el título de la propuesta que la origina —*"el proveedor es la autoridad"*— y nadie la decidió: se coló como justificación de la primera, que a su vez era una limitación técnica de `acli`, no una decisión de diseño. La regla real es una sola y está abajo.
 
 ### El tipo es del worklist, no de Jira
 
@@ -75,6 +77,45 @@ epic       -> Epic
 ```
 
 Confirmado contra `ACC` real. Otro proyecto de Jira puede tener otro vocabulario — la tabla es de esta capa, no universal.
+
+## El cuerpo viaja, y vuelve convertido
+
+> **La verdad viene del proveedor a git. Y si git está actualizado, puede ir al proveedor.**
+
+Una sola regla, en vez de una tabla de qué campo es de quién: el proveedor arbitra la concurrencia, y **cualquier escritura tiene que probar que parte del estado actual** — que es el compare-and-swap de arriba, aplicado a todo el contenido y no sólo al `status`.
+
+### Lo que se guarda no es lo que empujaste
+
+El camino de escritura de un push aceptado:
+
+1. Se toma el cuerpo del ítem —el markdown, sin el frontmatter— y se convierte a ADF.
+2. Ese ADF se manda al proveedor.
+3. **Se convierte el ADF de vuelta a markdown, y eso es lo que queda guardado** — no el markdown original.
+
+Suena raro y es lo que hace que el resto funcione:
+
+- **No hace falta migrar nada.** La forma canónica no es un estado al que hay que llevar el corpus una vez: es el resultado de escribir. Nada puede salirse de ella, porque todo lo que entra pasa por la conversión.
+- **Lo guardado es una proyección fiel de lo que el proveedor tiene.** Comparar deja de necesitar una conversión en cada chequeo, y el compare-and-swap deja de poder dar falsos positivos por diferencias de formato.
+- **La pérdida se ve en el primer push.** Si el markdown tenía algo que ADF no expresa, el archivo que aterriza difiere del que se empujó y aparece en el `git diff` del `pull`. Guardar una versión rica local y mandar una pobre dejaría dos verdades divergiendo en silencio.
+
+Se apoya en una propiedad medida, no supuesta: **la conversión converge en una pasada.** Medido con `amdc` sobre cuatro archivos reales —entre ellos uno de 29 KB y otro de 28 KB—, el segundo round-trip es byte a byte idéntico al primero, con cero warnings en las dos direcciones. Las diferencias contra el original son normalizaciones de formato —`*cursiva*` a `_cursiva_`, el separador de tablas— y en un caso el pegado de líneas que CommonMark ya considera un solo párrafo. **Ningún texto se pierde**, y los identificadores `SNAKE_CASE` adentro de code spans sobreviven intactos.
+
+### El servidor anota lo que hizo, no borra lo que hiciste
+
+La conversión **no reescribe el commit que llegó**: se agrega uno encima.
+
+```
+<el commit del cliente>     ← lo que se empujó, intacto
+normalize: ACC-45           ← lo que el round-trip dejó
+```
+
+Es el tercero de la misma familia que ya tienen `rename <slug> -> <clave>` y `provider: <clave> …`: **el servidor deja su trabajo como un commit propio y auditable.** Con esto, un error del conversor es un diff que se ve y se revierte; reescribiendo el commit del cliente sería una pérdida sin contra qué comparar — y eso importa especialmente porque el conversor es la pieza más nueva de todo esto.
+
+### Dos cosas no pasan por el conversor
+
+**El frontmatter.** `title`, `status`, `relation.*` no son cuerpo markdown ni viven en la descripción del proveedor. Se separan antes de convertir y se vuelven a pegar después, intactos.
+
+**Y el título.** Va al `summary` como texto plano, por su propio camino — no es parte de la conversión del cuerpo.
 
 ## Dos pasos, no uno
 

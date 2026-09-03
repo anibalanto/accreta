@@ -4,21 +4,52 @@
 
 El worklist vive en un repo propio y no habla con nadie. [`worklist new`](../commands/new.md) está especificado y no se puede implementar: *"el servidor asigna el próximo ID base-36"*, y **ese servidor no existe**.
 
-Esta propuesta dice que el servidor ya existe y es el tracker —Jira, en el caso de accreta—, que el transporte es git, y que la unidad de sincronización es una **ventana**: un sprint, o el backlog.
+Esta propuesta dice que el servidor ya existe y es el tracker —Jira, en el caso de accreta—, que el transporte es git, y que hay **dos clases de rama**, porque completo y verificable son excluyentes.
+
+## Completo o verificable, nunca las dos
+
+| | contiene | se puede verificar contra el proveedor | se puede empujar |
+|---|---|---|---|
+| **insegura** | todo | no | **no** |
+| **segura** | una vista parcial, de menos de `n` ítems | sí, en cualquier momento | sí |
+
+Una rama insegura sirve para **tener un panorama de todos los issues**, y por eso mismo no puede prometer que estén actualizados: verificarlos a todos, todo el tiempo, es exactamente el costo que este diseño existe para no pagar. Como no se puede verificar, **no se puede empujar desde ahí** — y ésa es la propiedad que hace que el nombre se gane: *insegura* no describe un riesgo abstracto, describe qué no podés hacer.
+
+Una rama segura se hace responsable de poder verificarse entera contra el proveedor en cualquier momento. **Por eso no puede tener todos los elementos**: la responsabilidad es lo que la acota, no al revés.
+
+> **La seguridad es una propiedad del tamaño, no del significado.** Un sprint es la ventana más común, no la única: cualquier conjunto acotado y enumerable puede ser seguro.
 
 ## La forma
 
-Ramas de verdad, en `refs/heads/`, en el repo del worklist:
+`.worklist/` en la raíz del proyecto —no una capa de stratum, ver § "Por qué no es una capa"—, con un worktree por rama:
 
 ```
-closed              ← el trunk. Épicas y todo lo entregado.
-  ├ sprint/<id>     ← una ventana por sprint abierto
-  └ backlog         ← la ventana de lo que ningún sprint tomó
+.worklist/.git                    ← bare
+.worklist/insecure/all            ← todo. El panorama.
+.worklist/insecure/backlog        ← lo que ningún sprint tomó. Crece sin techo.
+.worklist/secure/sprint/10        ← una ventana con sentido
+.worklist/secure/ACC-40~ACC-60    ← una ventana ad hoc, acotada por rango
 ```
 
-Cada ventana sale del trunk. Al cerrarse un sprint, su rama **se mergea** al trunk: no junta estados divergentes, cierra la ventana — esos ítems dejan de estar gobernados por una y pasan a ser historia.
+**El path espeja el nombre de la rama, y dice la capacidad.** Parado en un directorio sabés si podés empujar sin preguntarle a git, y una IA que trabaja ahí lo sabe por su `cwd` sin que nadie se lo diga.
 
-**Y son ramas, no un namespace propio.** El worklist es un repo aparte, así que el argumento por el que [los bilinks viven fuera de `refs/heads/`](../../bilinker/concepts/ref.md#fuera-de-refsheads) —*que un clon del proyecto no los arrastre*— acá no aplica: no hay proyecto del cual esconderse. Y esto quiere branchear, mergear y diffear, que es exactamente la maquinaria de una rama. Un namespace propio se justifica cuando la ref **no** es una rama: append-only, sin merge, verificada del lado del servidor. `refs/bilink` es eso; esto no.
+**Y son ramas, no un namespace propio de refs.** El worklist es un repo aparte, así que el argumento por el que [los bilinks viven fuera de `refs/heads/`](../../bilinker/concepts/ref.md#fuera-de-refsheads) —*que un clon del proyecto no los arrastre*— acá no aplica. Esto quiere branchear, mergear y diffear, que es la maquinaria de una rama.
+
+### Cada commit de una segura es también un commit de `insecure/all`
+
+Venga del cliente o del proveedor, todo commit que entra a una rama segura se propaga a `insecure/all`. Sin eso, el panorama sólo avanzaría cuando un sprint cierra, y estaría semanas viejo; con eso, **`all` está siempre tan al día como el último push aceptado en cualquier ventana — lo que no está es verificado.** Ésa es exactamente la promesa que una insegura puede hacer y la otra no.
+
+### Y el estado del proveedor va a todas las ventanas donde el ítem exista
+
+Un ítem puede estar en más de una ventana a la vez. Cuando llega estado nuevo del proveedor para `ACC-45`, se escribe **en todas las que lo tengan**, no sólo en la que disparó la consulta.
+
+**Y eso no necesita ninguna política de conflicto**, que es lo que lo hace distinto de propagar una edición del cliente: el proveedor es **una sola fuente**, así que todas las ventanas reciben el mismo valor. No hay dos verdades que arbitrar — no hay competencia.
+
+### Las ventanas ad hoc no son permanentes
+
+`secure/sprint/10` dura lo que dura el sprint: está planificada, tiene nombre propio y un `.sprint.md` que la declara. **`secure/ACC-40~ACC-60` no**: se recorta para un trabajo, se usa, y se descarta cuando sus commits ya propagaron a `insecure/all`.
+
+Las dos son seguras por la misma razón —están acotadas— pero **tienen ciclos de vida opuestos**, y la diferencia importa: una ventana ad hoc que sobreviviera indefinidamente acumularía divergencia contra las otras que comparten sus ítems, sin que nada la cierre. La no-permanencia es lo que le pone techo a ese problema en vez de dejarlo crecer.
 
 ## Por qué una ventana y no todo
 
@@ -105,11 +136,11 @@ La épica es la única excepción, y por una razón que ya estaba escrita: [*"un
 
 > Una versión anterior de este borrador decía que una ventana **sí** podía partir un subárbol, apoyándose en un párrafo de `hierarchy.md` que contradecía a la regla del ancestro. Ese párrafo era el error y se corrigió en [`4u`](../../../.stratum/worklist-accreta/4u.task.md). Lo que queda acá es más simple: el único ancestro que una ventana hereda es la épica.
 
-## Las épicas viven en el trunk
+## Las épicas no tienen ventana propia
 
 Una épica sobrevive a todas las ventanas: la `1` de accreta tiene quince user stories repartidas en nueve sprints. Y [`hierarchy.md`](../concepts/hierarchy.md#épicas) ya dice que *"una épica no entra a un sprint"*.
 
-Así que no tiene ventana propia: vive en el trunk, y cada ventana la hereda de sólo lectura, como cualquier otro ancestro.
+Así que vive en `insecure/all` como todo lo demás, y cada ventana segura la hereda de sólo lectura, como cualquier otro ancestro — para que la cadena `parent` cierre, no para editarse ahí.
 
 ## La membresía se deriva, no se escribe dos veces
 
@@ -119,21 +150,37 @@ Si en cambio la membresía la definiera *qué archivos hay en la rama*, habría 
 
 Y es lo que conserva la propiedad que hoy tiene mover un ítem de sprint: **una sola escritura.**
 
+## Por qué no es una capa
+
+Una capa de stratum es **un cuerpo de specs o código que otras capas referencian por path** — `*/subsystems/bilinker>impl`. El worklist no es eso: es el aparato de seguimiento *del* proyecto, más pariente de `.bilink/` que de `subsystems/`. Y con un worktree por rama deja de ser siquiera un directorio de documentos: pasa a ser un contenedor de checkouts, que no entra en el modelo de capas de ninguna forma.
+
+**Y disuelve una ambigüedad concreta.** Un worktree tiene un `.git` —archivo, no directorio— en su raíz, y stratum y bilinker resuelven raíces caminando hacia arriba buscando `.git` o `.bilink`. Adentro de `.stratum/`, cada ventana se vería como una capa. En `.worklist/` nadie espera capas, y el problema no llega a existir.
+
+Lo que cuesta, medido: [`2m`](../../../.stratum/worklist-accreta/2m.task.md) queda sin objeto —decidía declarar *cuál capa* es el board, y si no es una capa no hay nada que declarar—; `stratum pull` deja de traerlo y pasa a ser un `git clone`; bilinker cambia su resolución del endpoint `issue`; y el `.gitignore` de accreta necesita una línea propia, porque hoy `**/.stratum/*/` lo cubría de arriba. Los links relativos de ítems a specs no entran en la cuenta: [`4y`](../../../.stratum/worklist-accreta/4y.task.md) ya los convirtió a permalinks absolutos, salvo los 11 que apuntan a `impact`, que no tiene repo publicado.
+
 ## El bot es la pieza que no existe
 
 **Atlassian no habla git.** No hay hook de Atlassian sobre una rama tuya, así que entre el push y Jira hay un servicio propio, que hay que escribir y correr. Es el único componente nuevo de todo esto, y conviene tenerlo a la vista antes que cualquier detalle de formato: dónde vive, con qué credencial, y qué pasa cuando está caído.
 
 Lo que ya se sabe de la herramienta que usaría: `acli` está autenticado y **tiene sprints** —`acli jira sprint create --name … --board … --goal …`—, que es justo lo que el MCP de Atlassian no expone.
 
-## Lo que ya se decidió, en [`51`](../../../.stratum/worklist-accreta/51.user-story.md)
+## Lo que ya se decidió
 
-**`.sprint.md` vive en su propia ventana, no en el trunk.** Un sprint no es una épica: es el plan de *esa* iteración, así que vive en la rama que esa iteración gobierna, y se mergea a `closed` cuando cierra. Vivir en el trunk hubiera obligado a que mover un ítem de sprint fuera un push al trunk — y eso choca con la idea de que el trunk sólo avanza por merge.
+**`.sprint.md` vive en su propia ventana.** Un sprint no es una épica: es el plan de *esa* iteración, así que vive en la rama que esa iteración gobierna.
 
-**`backlog` no particiona: es otra ventana sobre el mismo superset.** Un ítem puede existir como archivo en `backlog` y en `sprint/10` a la vez — no hay invariante de exclusión mutua entre ramas, porque *"la ventana no acota el estado, acota el chequeo"*. Qué pasa si las dos copias divergen queda para cuando haya más de una ventana abierta a la vez; el primer slice sólo abre una.
+**`backlog` es insegura, no una ventana.** Es *"todo lo que ningún sprint tomó"* y crece sin techo, así que no puede prometer verificarse entera. Para trabajar sobre ítems del backlog se recorta una ventana segura acotada — `secure/ACC-40~ACC-60` — y se empuja ahí.
+
+**Nadie empuja al panorama.** `insecure/all` no acepta pushes porque no se puede verificar, y por lo tanto sólo avanza por propagación desde ramas seguras. La vieja pregunta de *"si el trunk sólo avanza por merge"* deja de ser una regla que alguien tiene que respetar: **no hay forma de violarla.**
+
+**El worklist no es una capa de stratum**, y por eso vive en `.worklist/`. Ver § "Por qué no es una capa".
 
 ## Lo que queda por decidir
 
-**Si el trunk sólo avanza por merge.** Prohibir el push directo hace que `git log --merges closed` sea la lista de sprints entregados sin que nadie la mantenga. El costo es que arreglar un typo en una épica necesita una rama.
+**Cuánto vale `n`.** Verificar una ventana **no cuesta una query por ítem**: `key in (ACC-1, ACC-2, …)` trae todas de una, con `status` y `summary`, y tolera claves inexistentes — probado contra `ACC`. Así que el techo no es la latencia sino el largo del JQL y la paginación, y `n` en el orden de las centenas es plausible. Falta medirlo, no estimarlo.
+
+**Quién escribe el estado del proveedor en una rama segura cuando el push se rechaza.** Sin eso, el `pull` del que fue rechazado no baja nada, vuelve a empujar lo mismo, y entra en loop. No puede ser `pre-receive`, que sólo acepta o rechaza — es la misma partición que obligó a poner el renombre en `post-receive`.
+
+**Si una ventana puede recibir trabajo del cliente hecho en otra.** El estado del proveedor va a todas las ventanas donde el ítem exista, y eso no tiene conflicto posible. Una **edición de prosa** hecha por alguien en `sprint/8` no: si `ACC-45` también está en un rango ad hoc, la otra ventana no se entera. Las dos salidas son opuestas — propagar también las ediciones del cliente entre ventanas, o **recortar las ventanas desde `insecure/all`** y que `all` sea el único punto de convergencia. La segunda es más simple y hace de las ventanas vistas derivadas; falta confirmarlo.
 
 **Qué gana un conflicto que el compare-and-swap no ve.** Dos personas editando la *prosa* del mismo ítem no mueven nada en el proveedor, así que el hook acepta las dos y el conflicto es de git, no de Jira. Está bien, y hay que decirlo.
 
