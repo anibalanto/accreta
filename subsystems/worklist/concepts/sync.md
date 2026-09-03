@@ -121,6 +121,16 @@ epic       -> Epic
 
 Confirmado contra `ACC` real. Otro proyecto de Jira puede tener otro vocabulario — la tabla es de esta capa, no universal.
 
+### Una dependencia que cruza la ventana se reporta, no rompe el push
+
+Los `relation.depends` que apuntan **adentro** de la ventana llegan a la pasada 3 ya traducidos: el renombre los reescribió junto con el resto de las referencias. Los que apuntan **afuera** quedan como slug del worklist, y un slug no es una clave del proveedor.
+
+> **Un vínculo que no se puede traducir se informa. No aborta la ventana.**
+
+Una ventana es acotada por diseño y las dependencias no respetan sus bordes: que una user story de un sprint dependa de otra del anterior es lo normal en un backlog, y arrastrar la dependencia adentro dejaría de estar acotada. Exigir que todas caigan adentro sería pedirle al backlog que se ordene por el recorte.
+
+**Y es un síntoma de la propagación que falta.** El ítem de afuera ya tiene clave —se la puso el push de su propia ventana—; lo que no la tiene es el panorama, porque las claves quedan en la rama de cada ventana y nadie las lleva de vuelta. Con la propagación andando, la ventana re-cortada traería el `depends` ya traducido y el vínculo se crearía solo.
+
 ### La jerarquía entra hasta donde el proveedor la tiene
 
 El worklist descompone en tres escalones —`epic` → `user-story` → `task`— y Jira **no tiene tres**. Sus tipos viven en niveles numerados, y en `ACC`:
