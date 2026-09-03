@@ -2,6 +2,11 @@ kind: governs
 endpoint:
   0:
     link: capture a9449567fc35e56166838874c9af8fd1
+    accepted:
+    - agree:
+      - Anibal
+      link: capture a9449567fc35e56166838874c9af8fd1
+      hash: 112a5a0852edffea48c004f5477fcdc959d0217fb5bd87777348a273304cf964
     name: comportamiento-create-or-find
   1:
     link: path subsystems/worklist>impl
