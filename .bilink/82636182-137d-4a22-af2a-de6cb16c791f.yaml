@@ -6,7 +6,7 @@ endpoint:
     - agree:
       - Anibal
       link: capture 658523d7ad74f918d57cb514b6ec5dc6
-      hash: 3975100a7ab3681f065aa9c1c5f211cb2a635fb663347f862a6a2ea791dd4ba4
+      hash: e958c652addd5a6e3def14459170961c05c558b1afa045c6e02ef87f5eb11049
     name: asignar-clave
   1:
     link: path subsystems/worklist>impl
