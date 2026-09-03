@@ -10,3 +10,10 @@ endpoint:
     name: que-se-compara
   1:
     link: path subsystems/worklist>impl
+    accepted:
+    - agree:
+      - Anibal
+      link: capture 1062c615d2a26b415102ba0d4c16dd8d
+      hash: e982c8ca57f698dd7e26f4d24aba81822fd2eca149d8102ce1a789e7101dab32
+      hash_ast: 4bdf99aeca522996bbedbfabccbd9f45b93f66682528539272b2e607f71628f1
+      n: declined
