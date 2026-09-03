@@ -143,6 +143,18 @@ Suena raro y es lo que hace que el resto funcione:
 
 Se apoya en una propiedad medida, no supuesta: **la conversión converge en una pasada.** Medido con `amdc` sobre cuatro archivos reales —entre ellos uno de 29 KB y otro de 28 KB—, el segundo round-trip es byte a byte idéntico al primero, con cero warnings en las dos direcciones. Las diferencias contra el original son normalizaciones de formato —`*cursiva*` a `_cursiva_`, el separador de tablas— y en un caso el pegado de líneas que CommonMark ya considera un solo párrafo. **Ningún texto se pierde**, y los identificadores `SNAKE_CASE` adentro de code spans sobreviven intactos.
 
+### El schema del proveedor poda, y la poda es de la frontera
+
+> **En ADF el mark `code` es exclusivo: no convive con `strong` ni con `em`.**
+
+GFM sí permite anidarlos, y `` **`bilinker`** `` —negrita sobre un identificador— es el idioma de la casa. La conversión produce entonces un nodo con `strong` y `code` juntos, y **Jira rechaza el documento entero**: no ese nodo, todo. Un solo `` **`x`** `` deja la descripción sin subir.
+
+Medido: ese nodo solo, en un documento de un párrafo, es rechazado con `INVALID_INPUT`; el mismo texto con `code` solo pasa. El primer cuerpo real que se intentó subir traía **ocho casos**, todos nombres de archivo o de herramienta.
+
+**Cuando `code` viene con otros marks de formato, los otros se van.** El `code` es el que lleva la información —dice que eso es un identificador—; la negrita es énfasis, y el énfasis es lo que se puede perder sin cambiar lo que la frase significa.
+
+Va **en la frontera y no en el conversor**: qué marks se pueden combinar es del vocabulario del proveedor, y `body.rs` sólo sabe de markdown y de ADF. Y la pérdida no se esconde: el paso 3 convierte de vuelta, así que el markdown que aterriza dice `` `bilinker` `` sin negrita y **la poda se ve en el `git diff` del `pull`**, como cualquier otra normalización.
+
 ### El servidor anota lo que hizo, no borra lo que hiciste
 
 La conversión **no reescribe el commit que llegó**: se agrega uno encima.
