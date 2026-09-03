@@ -26,10 +26,10 @@ worklist create-or-find --project <clave> --type <tipo> --source <ruta> <título
 ## Salida
 
 ```
-$ worklist create-or-find --project ACC --type Task "Migrar dependencias a relation.depends"
-found: ACC-101
+$ worklist create-or-find --project ACC --type Task --source 50.task.md "Migrar dependencias a relation.depends"
+ACC-101
 
-$ worklist create-or-find --project ACC --type Task "Migrar dependencias a relation.depends" --dry-run
+$ worklist create-or-find --project ACC --type Task --source 50.task.md "Migrar dependencias a relation.depends" --dry-run
 would search: project = ACC AND summary ~ "Migrar dependencias a relation.depends"
 would create: --project ACC --type Task --summary "Migrar dependencias a relation.depends" --description "Fuente: 50.task.md"
 ```
