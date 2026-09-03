@@ -10,3 +10,10 @@ endpoint:
     name: renombre-y-reescritura
   1:
     link: path subsystems/worklist>impl
+    accepted:
+    - agree:
+      - Anibal
+      link: capture 08ca23d92f5501bd55122240f9af5c9b
+      hash: 107d845745b51a577cadee6e976f9dcaa56a51b9fc71189e15c15e2a38f46f66
+      hash_ast: 55d536632ea6318f6bcfde718b7aeddc1e846698464e6531baf6b57b02fa220a
+      n: declined
