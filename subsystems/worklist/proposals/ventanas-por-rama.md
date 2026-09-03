@@ -80,11 +80,13 @@ El costo es chico y concreto: crear una task y meterla en un sprint son **dos pu
 
 ## Qué lleva una ventana
 
-Sus ítems, **y los ancestros de sus ítems, de sólo lectura.**
+Un subárbol entero, **más la épica de la que cuelga, de sólo lectura.**
 
-La segunda mitad no es comodidad. La [regla del ancestro](../concepts/hierarchy.md#la-regla-del-ancestro) dice que un ítem entra a un sprint sólo si ninguno de sus ancestros entra — y de ahí *no* se sigue que un subárbol viaje entero. Al contrario: [`hierarchy.md`](../concepts/hierarchy.md#el-backlog-no-es-un-archivo) dice que *"si las tasks de una user story están en sprints pero la user story no se nombra, la user story no está en ningún sprint"*. **Dos tasks de la misma US pueden caer en ventanas distintas, y la US en ninguna.**
+La primera mitad es del formato y no de esta propuesta: [*"lo que entra a un sprint es un subárbol entero"*](../concepts/hierarchy.md#la-regla-del-ancestro) — una user story entra con todas sus tasks o no entra. Así que **una ventana nunca parte una user story**, y la cadena `parent` de cualquier miembro cierra adentro de la ventana… hasta la épica.
 
-Sin los ancestros, un checkout de `sprint/10` tendría tasks cuyo `parent` no resuelve, y *"cuáles son los hijos de `4o`"* no se podría contestar desde ninguna ventana sola. Con ellos, la cadena `parent` cierra siempre. Son pocos —épica, US— y no son miembros: no se editan ahí.
+La épica es la única excepción, y por una razón que ya estaba escrita: [*"una épica no entra a un sprint"*](../concepts/hierarchy.md#épicas). Sin ella, un checkout de `sprint/10` tendría user stories cuyo `parent` no resuelve. Con ella la cadena cierra siempre. Es un ancestro y no un miembro: viaja para que el árbol se lea, no para editarse ahí.
+
+> Una versión anterior de este borrador decía que una ventana **sí** podía partir un subárbol, apoyándose en un párrafo de `hierarchy.md` que contradecía a la regla del ancestro. Ese párrafo era el error y se corrigió en [`4u`](../../../.stratum/worklist-accreta/4u.task.md). Lo que queda acá es más simple: el único ancestro que una ventana hereda es la épica.
 
 ## Las épicas viven en el trunk
 

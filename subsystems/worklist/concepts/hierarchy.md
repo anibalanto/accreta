@@ -80,23 +80,25 @@ _sprints/
 
 ### La regla del ancestro
 
-> **Un ítem entra a un sprint sólo si ninguno de sus ancestros entra.**
+> **Lo que entra a un sprint es un subárbol entero.**
 
-Si va una user story, sus tasks van con ella y no se enumeran. Una task se nombra sola cuando no tiene user story arriba — o cuando cuelga directamente de una épica.
+Una user story entra con **todas** sus tasks, o no entra. Sus tasks no se enumeran: van con ella. Y una task se nombra sola sólo cuando no cuelga de ninguna user story — porque es de raíz, o porque cuelga directamente de una épica.
 
 La cadena de ancestros se lee siguiendo `parent` hasta que se acaba.
+
+**No alcanza con decir que un ítem entra sólo si ninguno de sus ancestros entra.** Eso deja pasar una task suelta cuando su user story no entra a *ningún* sprint, y por esa puerta la user story queda partida igual — con la única diferencia de que nadie la nombró. La unidad es el subárbol, no la ausencia de conflicto.
 
 Dos consecuencias, y las dos son deliberadas:
 
 **Una user story no puede atravesar sprints.** Si entra, entra entera. Con lo cual una que no cabe en una iteración deja de ser algo que se parte en el planning y pasa a ser una user story mal dimensionada — el problema se vuelve visible en vez de esconderse en un compromiso parcial.
 
-**Y si una task se quiere sola pero cuelga de una user story**, la pregunta no es cómo sacarla al sprint sino si está bien colgada de esa user story. La regla lleva la discusión a la descomposición, que es donde va.
+**Y si una task se quiere sola pero cuelga de una user story**, la pregunta no es cómo sacarla al sprint sino si está bien colgada de esa user story. La salida es **reacomodar la descomposición** —la task pasa a colgar de otra user story, o de ninguna— y nunca planificarla dejando a su user story atrás. La regla lleva la discusión a la descomposición, que es donde va.
 
 ### El backlog no es un archivo
 
 Un ítem que no está referenciado por ningún sprint está en el backlog **por definición**, y lo lista un comando. Mantenerlo como archivo obligaría a editar dos lugares para mover algo, y los dos podrían divergir.
 
-El cálculo va sobre lo efectivamente referenciado: si las tasks de una user story están en sprints pero la user story no se nombra, la user story no está en ningún sprint. Está bien — el trabajo son las tasks, y la user story es agrupación.
+El cálculo va sobre el subárbol, que es lo que un sprint referencia: **un ítem está en el backlog si el tope de su rama no lo nombra ningún sprint.** Las tasks de una user story planificada no se cuentan aparte —están donde está su user story— y una user story que ningún sprint nombra está en el backlog con todas sus tasks, sin importar cuántas de ellas alguien haya querido adelantar.
 
 ### Épicas
 
