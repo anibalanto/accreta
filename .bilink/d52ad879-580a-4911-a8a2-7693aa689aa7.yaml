@@ -1,0 +1,7 @@
+kind: governs
+endpoint:
+  0:
+    link: capture ff1e92dfbe5ae8e06870792d763a0164
+    name: que-se-compara
+  1:
+    link: path subsystems/worklist>impl

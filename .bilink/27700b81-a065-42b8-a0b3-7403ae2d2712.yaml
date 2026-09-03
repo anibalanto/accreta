@@ -1,0 +1,12 @@
+kind: governs
+endpoint:
+  0:
+    link: capture 0d7c621868aee36bd902f8cb69f98533
+    accepted:
+    - agree:
+      - Anibal
+      link: capture 0d7c621868aee36bd902f8cb69f98533
+      hash: f380e0e90c4de997d997d67e3f38aefafb10a6c66324855bb958a4f71d0963a2
+    name: comportamiento-set-status
+  1:
+    link: path subsystems/worklist>impl
