@@ -54,29 +54,50 @@ desacuerdo-como-entrada.task.md   →   ACC-235.task.md
 
 **Esto le pasa por encima a [`2n`](../../../.stratum/worklist-accreta/2n.task.md)**, que decidió `<proyecto>-<id>` con base-36 local. `ACC-235` cumple el propósito de `2n` mejor —el board está en el id por construcción y no por convención— pero `2n` queda para reescribir, no para archivar: la convención de commits y el formato del endpoint `issue` cambian los dos, y la regla de lectura de los commits viejos sigue haciendo falta.
 
-### La regla que evita la cascada de renombres
+### Y un pedido no se distingue por prefijo conocido, sino por el alfabeto
 
-Renombrar un archivo rompe todo lo que lo apuntaba. En el worklist de accreta eso es, hoy:
+Un id base-36 es `[0-9a-z]` y [`2n`](../../../.stratum/worklist-accreta/2n.task.md) ya fijó que **nunca lleva guión**. Una clave de proveedor tiene mayúsculas y un guión, y ninguna de las dos cosas cabe en un id. Así que *"esto es un pedido"* no se decide contra una lista de prefijos: lo decide una partición que el alfabeto garantiza, y nada que alguien nombre a mano puede colisionar con algo que asignó el proveedor.
 
-| | |
-|---|---|
-| referencias entre ítems | **554**, en 128 archivos |
-| ítems con `parent:` | 79 |
-| **referencias desde las specs de accreta** | **21** |
+**De ahí sale el bootstrap, y es gratis.** Los 153 ítems que hoy tiene el worklist de accreta no llevan clave de proveedor, así que **son todos pedidos**. La migración no es un script: es empujar el repo como está y recibir 153 moves de vuelta.
 
-Las últimas 21 deciden la forma: **viven en otro repo.** Un push al worklist no puede reescribirlas, y renombrar igual las rompe en silencio — la peor manera, la que `2n` describe cuando dice que *"la ambigüedad no falla"*.
+### El renombre y la reescritura son un solo commit
 
-> **No se puede referenciar un ítem que todavía no tiene id.**
+Renombrar `agregar-funcionalidad-1.task.md` a `ACC-101.task.md` rompe todo lo que lo nombraba. **Repararlo es del hook**, y va en el mismo commit que el move:
 
-Con eso el hook **sólo renombra archivos que nadie apunta**, y la cascada no existe. No queda prohibida por una guarda: queda irrepresentable.
+```diff
+- relation.depends: agregar-funcionalidad-1
++ relation.depends: ACC-101
+```
 
-El costo es chico y concreto: crear una task y meterla en un sprint son **dos pushes**. Y una task nueva cuyo padre también es nuevo cae bajo la misma regla — primero el padre.
+Si el move entrara sin la reescritura, la rama quedaría con una referencia colgada y el [invariante 9 de `item.md`](../concepts/item.md#invariantes) violado. **O entran las dos cosas o no entra ninguna.**
+
+**Y la reescritura toca sólo posiciones delimitadas**: valores de frontmatter —`parent`, `relation.*`—, destinos de link —`](…)`— e ids entre backticks, que es como la prosa los nombra. Nunca una subcadena suelta: un nombre provisorio es un string libre, así que `agregar-funcionalidad-1` es prefijo de `agregar-funcionalidad-10` y un reemplazo ciego rompe el segundo al arreglar el primero.
+
+### El orden es para el proveedor, no para los números
+
+El hook ordena topológicamente los pedidos del push por `parent` y `relation.*` antes de crear nada. **No es para que los ids salgan correlativos** —que salgan 101 y 102 es consecuencia, no requisito, y nadie debería leer orden en un número—: es porque **no se puede vincular a un issue que todavía no existe**, ni colgar un hijo de un padre que no está.
+
+El orden va sobre el subgrafo de los pedidos y nada más: una dependencia hacia un ítem que ya tiene clave no impone nada, porque ya está creado. Y un ciclo se rechaza, que es el invariante 9 otra vez.
 
 ### El nombre provisorio tiene que ser único
 
 `new.task.md` colisiona: dos personas creando a la vez chocan en el mismo path, y una sola no puede crear dos tasks en un push. El hook no necesita saber qué dice el nombre, sólo que dice *sin asignar* — así que un slug del título alcanza, y además se lee.
 
-**Y un ítem no tiene nombre real hasta que un push entra.** Offline, o con el proveedor caído, se trabaja con el provisorio. Está bien mientras nadie lo referencie, que es la regla de arriba otra vez.
+**Y un ítem no tiene nombre real hasta que un push entra.** Offline, o con el proveedor caído, se trabaja con el provisorio.
+
+### Crear tiene que ser idempotente, y ahí ya hay experiencia
+
+Si el hook crea el issue en el proveedor y falla antes de commitear el move, un reintento crea un duplicado. La defensa es buscar antes de crear, y **el modo de falla conocido no es olvidarse de buscar sino que la búsqueda falle en silencio**: en `bmad-issue-tracking` una comilla sin escapar adentro de un título rompía el JQL, la búsqueda no devolvía nada, y el reintento duplicaba. Encontrado sobre un título real.
+
+## Lo que el renombre no puede reparar
+
+Adentro del repo la reescritura alcanza. Afuera no, y hoy son **21 referencias desde las specs de accreta** hacia ítems del worklist — que un push al worklist no puede tocar. Con el bootstrap se rompen las 21 juntas.
+
+Pero eso no lo arregla este diseño, y la épica `1` ya dice dónde se arregla:
+
+> *"La referencia de un ítem a su ADR es hoy un link relativo, y no debería serlo… la referencia pasa a ser **un bilink** — `link.0: capture <fragmento del ADR>`, `link.1: issue <id>`"*
+
+Una referencia cruzada escrita como endpoint `issue` sobrevive al renombre porque bilinker la sigue. **Las 21 son deuda de no haber hecho eso todavía**, no un costo nuevo de esta propuesta — y conviene saldarla antes del bootstrap, no después.
 
 ## Qué lleva una ventana
 
