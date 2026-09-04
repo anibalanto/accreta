@@ -1,0 +1,7 @@
+kind: governs
+endpoint:
+  0:
+    link: capture decfb14c0219e6864316e4d6cafbcaea
+    name: la-regla
+  1:
+    link: path subsystems/worklist>impl
