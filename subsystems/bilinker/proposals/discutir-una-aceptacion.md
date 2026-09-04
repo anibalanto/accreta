@@ -16,6 +16,8 @@ Mejor que cualquier otra cosa del sistema, y vale enunciarlo porque es lo que ha
 
 Una discusión colgada de un commit apunta a una decisión que **no puede cambiar debajo suyo**. Y con [el mensaje como comando](../concepts/ref.md#el-mensaje-es-el-comando), el commit ya dice qué se decidió sin abrir un archivo.
 
+> La primera fila quedó descartada de más, y eso abre una cuarta: [`commit-capture-como-nombre`](commit-capture-como-nombre.md). Un capture se mueve **a través** de la historia; adentro de un commit no se mueve nada, así que el par nombra un fragmento y encima dice de cuál se habla — cosa que el commit solo no dice.
+
 ## La discusión no puede vivir en la ref
 
 Es la única cosa que esta propuesta ya tiene resuelta, y sale de lo que la ref decidió: **un commit sobre la ref hace una cosa, y las dos que puede hacer son mover código o decidir.** Un comentario no es ninguna, así que agregarlo como commit de la ref rompe la regla; y editarlo reescribiría historia append-only.
