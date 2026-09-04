@@ -110,6 +110,56 @@ La detección no puede ser buscar ese texto: es de una herramienta ajena y está
 
 Y de ahí sale una regla para cualquier proveedor futuro: **el puerto devuelve el resultado de la operación, no el de haberla intentado.** Un `Creator` que no distingue las dos cosas no sirve, por más que el comando que corra por debajo salga con 0.
 
+## El puerto son las operaciones, no los comandos
+
+> **Quien llama dice *"poné este sprint"*. Con qué se hace es del puerto.**
+
+El puerto se llamó `Provider` y `Creator` y quedó dibujado por lo que `acli` sabe hacer, así que cuando apareció algo que `acli` no puede no hubo dónde ponerlo. La forma correcta es al revés: **las operaciones son las que este sistema necesita**, y el transporte es un detalle de adentro.
+
+### Y hacen falta dos transportes, no por gusto
+
+`acli` trata **crear** y **editar** como vocabularios distintos, y el de editar es más chico. Medido:
+
+| | al crear | al editar |
+|---|---|---|
+| `summary`, `description`, `labels` | ✔ | ✔ |
+| `parent` | ✔ | ✘ |
+| sprint (`customfield_10020`) | ✔ | ✘ |
+
+Y lo que falta del lado de editar es exactamente lo que hace falta para **reconciliar**, que es lo único que sirve cuando alguien tocó el board a mano. Poner un campo sólo al crear no converge: sirve una vez.
+
+Por REST los dos son un `set` sobre un campo, y el resultado no depende del estado previo.
+
+### El reparto, escrito una vez
+
+| Operación | Transporte | Por qué |
+|---|---|---|
+| buscar por título | `acli` | anda, y no hay nada que reconciliar: o está o no está |
+| crear el issue | `acli` | con `--parent`, que ahí sí lo acepta |
+| descripción y título | `acli` | `edit` los cubre, y el cuerpo va por archivo |
+| vínculos | `acli` | `link create` y `link list` |
+| leer el estado en vivo | `acli` | `search --fields` trae status, título y cuerpo de N claves en una llamada |
+| **jerarquía sobre un issue que existe** | **REST** | `acli edit` no acepta `parent` |
+| **membresía de sprint** | **REST** | `acli edit` no acepta `additionalAttributes` |
+| crear el sprint | `acli` | `sprint create` |
+| qué issues tiene un sprint | `acli` | `sprint list-workitems` |
+
+**Escrita, y no decidida caso por caso.** Sin la tabla, cada operación nueva elige sola y nadie ve el mapa; con ella, agregar una es ubicarla en una fila y decir por qué.
+
+### La credencial es del transporte REST, y es nueva
+
+Un **API token** de Atlassian, en `Basic base64(email:token)`. `acli` no sirve de fuente: guarda su sesión en el keyring del sistema y no la expone.
+
+Así que el servidor necesita una credencial propia, que es la misma decisión que la instalación ya tenía que tomar: **todo lo que el hook escriba en el proveedor va a figurar como esa cuenta**, no como quien empujó.
+
+Y su ausencia **es un error de arranque**, no un fallo raro más adelante: sin token, las operaciones REST no existen, y descubrirlo en el medio de una ventana a medio resolver es la peor forma de enterarse.
+
+### Dos transportes, dos formas de mentir, una sola respuesta
+
+§ "El éxito se lee de la salida" vale para los dos y cada uno lo hace distinto: `acli` sale con 0 y pone el fracaso en el cuerpo; REST lo dice con el código HTTP. **El puerto normaliza eso**: quien llama recibe una sola forma de "salió bien" o "falló, y esto pasó".
+
+Es lo que evita que agregar un transporte multiplique los modos de falla que quien llama tiene que conocer.
+
 ## Asignar una clave: crear o encontrar
 
 Un pedido se resuelve preguntándole al proveedor si ya existe —por título— antes de crear. Sin esto, un hook que crea el issue y falla antes de comitear el renombre duplica en el reintento.
@@ -178,11 +228,13 @@ Así que un ítem con `parent` sube con dos cosas: `--parent <clave de su épica
 
 **Lo que se pierde, dicho:** en Jira el árbol tiene dos niveles donde el worklist tiene tres, y una user story deja de ser el contenedor de sus tasks — pasa a ser un issue hermano que las referencia. La descomposición completa vive en git, que es donde `parent` es autoritativo.
 
-### El padre se pone al crear, y después no
+### El padre se pone al crear, y por `acli` no se puede corregir
 
 `acli` acepta `--parent` en `create` y **no en `edit`** — ni por flag ni en el JSON de `--generate-json`.
 
-Dos consecuencias, y las dos son limitaciones reales y no decisiones. Un issue que ya existe sin padre **no se puede corregir** por esta vía: hay que borrarlo y dejar que el próximo push lo cree. Y **recolgar un ítem de otra user story no se propaga**, que es justo la operación que [jerarquía](hierarchy.md) § "IDs secuenciales y jerarquía" describe como barata: cambia un campo del ítem, no el nombre de su archivo. Barata en git, imposible en el proveedor.
+Eso hacía que un issue creado sin padre no se pudiera corregir, y que **recolgar un ítem de otra user story no se propagara** — justo la operación que [jerarquía](hierarchy.md) § "IDs secuenciales y jerarquía" describe como barata: cambia un campo del ítem, no el nombre de su archivo. Barata en git, imposible en el proveedor.
+
+**Por REST sí se puede**, porque `parent` es un campo como cualquier otro y se escribe con un `set`. Es una de las dos filas que § "El reparto, escrito una vez" manda por ese transporte, y por el mismo motivo que la otra: lo que `acli` no cubre es siempre el lado de **editar**, que es el que reconcilia.
 
 Por eso `create_or_find` que **encuentra** en vez de crear no puede prometer la jerarquía, y lo tiene que decir en vez de callarlo.
 
