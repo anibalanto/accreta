@@ -10,3 +10,10 @@ endpoint:
     name: el-reparto
   1:
     link: path subsystems/worklist>impl
+    accepted:
+    - agree:
+      - Anibal
+      link: capture 1fc0cd7d05cb0fe21cfde351094e9e5c
+      hash: f1941d46b2f48d4a3c127e558b59d0aebf8140bc773419d73640c739a7449835
+      hash_ast: 104e81be8d5f5fa67ff391eaac8767da01c7d4f29e63ba0888cce9c8f8efca0f
+      n: declined
