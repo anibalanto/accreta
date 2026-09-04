@@ -142,8 +142,9 @@ Un segundo transporte los toma por lo que son: **un `set` sobre un campo**, cuyo
 | **jerarquía sobre un issue que existe** | **`jira-cli`** | `acli edit` no acepta `parent`; `jira epic add` lo pone sobre issues ya creados |
 | **leer la jerarquía puesta** | `acli` | `workitem view --fields parent`, de a uno: en `search` el campo no está permitido |
 | **membresía de sprint** | **`jira-cli`** | `acli edit` no acepta `additionalAttributes`; `jira sprint add` toma hasta 50 issues por llamada |
-| crear el sprint | `acli` | `sprint create` |
-| qué issues tiene un sprint | `acli` | `sprint list-workitems` |
+| crear el sprint | `acli` | `sprint create --board`, que devuelve el id nuevo con `--json` |
+| **listar los sprints del board** | **`jira-cli`** | `acli` no tiene con qué: sus comandos de sprint son `create`, `update`, `view`, `list-workitems` y `delete`, y ninguno lista los del board |
+| qué issues tiene un sprint | `acli` | `sprint list-workitems --board --sprint` |
 
 **Escrita, y no decidida caso por caso.** Sin la tabla, cada operación nueva elige sola y nadie ve el mapa; con ella, agregar una es ubicarla en una fila y decir por qué.
 
@@ -215,7 +216,9 @@ updated_at: …
 
 **Sin `key` el sprint todavía no existe del otro lado**, igual que un ítem cuyo archivo lleva slug. Y con `key` puesto, el nombre queda libre: cambiarle el título al sprint en cualquiera de los dos lados no rompe nada, porque la correspondencia no pasa por ahí.
 
-**El id del board va aparte**, en la configuración y no en git: es de la instalación, no del worklist. `sprint list-workitems` lo pide además del sprint, y `jira-cli` ya lo lleva en su config.
+**El id del board va aparte**, en la configuración y no en git: es de la instalación, no del worklist. Es un argumento de [`assign-keys`](../commands/assign-keys.md), y **obligatorio**: `sprint create` y `sprint list-workitems` lo piden además del sprint, así que sin él la pasada del sprint no existe — y una pasada que se saltea sola porque falta un dato de configuración es la peor forma de enterarse de que falta.
+
+No es la credencial y no va con ella. `jira-cli` lleva el suyo en su config y nunca se lo pasamos; el que este sistema necesita es para `acli`, que lo pide en las dos operaciones de sprint que le tocan. **Que estén los dos configurados es del tutorial de instalación**, no de un default que adivine.
 
 ## Asignar una clave: crear o encontrar
 
@@ -374,13 +377,15 @@ Es el tercero de la misma familia que ya tienen `rename <slug> -> <clave>` y `pr
 
 ### Nada viaja al proveedor hasta que el estado local esté completo
 
-Resolver una ventana son **tres pasadas**, y el orden no es de estilo:
+Resolver una ventana son **cinco pasadas**, y el orden no es de estilo:
 
 | | Qué hace | Por qué no antes |
 |---|---|---|
 | **1** | claves y renombres, en orden topológico | — |
 | **2** | los cuerpos, convertidos y enviados | un cuerpo enviado antes lleva los nombres **previos** al renombre, y queda congelado así: el ítem ya tiene clave, así que ningún push posterior lo vuelve a mirar |
 | **3** | los vínculos entre ítems | un vínculo necesita que **las dos puntas** existan en el proveedor |
+| **4** | los ítems que ya tenían clave y este push cambió | ver § "Un ítem que ya tiene clave se actualiza, no se saltea" |
+| **5** | el sprint, con sus issues adentro | la membresía se lee del `items` del `.sprint.md`, y ahí los ids son slugs hasta que la pasada 1 los reescribe |
 
 La pasada 2 sólo salía bien por accidente cuando la referencia estaba declarada en `relation.*` —el orden topológico ponía al referenciado primero—; una referencia que vive **sólo en la prosa** no participa de ese orden y quedaba vieja.
 
@@ -401,6 +406,64 @@ De vuelta, el tipo no está en la URL: se resuelve mirando qué `<clave>.*.md` e
 **El frontmatter.** `title`, `status`, `relation.*` no son cuerpo markdown ni viven en la descripción del proveedor. Se separan antes de convertir y se vuelven a pegar después, intactos.
 
 **Y el título.** Va al `summary` como texto plano, por su propio camino — no es parte de la conversión del cuerpo.
+
+## El sprint viaja como sprint, no como issue
+
+Hasta acá todo lo que cruzó la frontera fue un issue. Un sprint no lo es: es un objeto propio del proveedor, con su id, su estado y su lista de miembros. Por eso **no es un pedido** — `_sprints/17.sprint.md` tiene un `/` en el nombre y la búsqueda de pedidos descarta cualquier stem que lo tenga, deliberadamente — y por eso tiene su propia pasada.
+
+Sin ella el board no tiene iteraciones: todos los issues quedan sueltos bajo la épica, y **qué se hizo cuándo** —lo único que un board agrega sobre una lista— se queda en git.
+
+### Corre aunque no haya nada que asignar
+
+Las otras cuatro pasadas no tienen nada que hacer sobre una ventana ya resuelta: ningún pedido, ningún ítem cambiado. La del sprint **sí**, y es justamente el caso que importa: las ventanas ya empujadas son las que tienen sus issues creados y su sprint sin existir.
+
+> **Que no haya nada que asignar no es que no haya nada que hacer.**
+
+Así que la ventana se abre igual mientras lleve un `.sprint.md`, y la pasada reconcilia contra lo que el proveedor tiene. Es lo mismo que se le pide a cualquier otra operación de esta frontera: converger desde cualquier estado, no sólo desde el estado nuevo.
+
+### La membresía es el subárbol, no `items`
+
+`items` nombra **los topes**, no los miembros: la regla del ancestro dice que un ítem entra a un sprint con su subárbol entero, así que una user story está en la lista y sus tasks no. Los miembros del sprint en el proveedor son la clausura de `items` sobre `parent`.
+
+Y los ancestros que la ventana trae **no** son miembros. La épica viaja de sólo lectura para que la cadena `parent` cierre adentro del recorte; que esté en el árbol no la pone en la iteración.
+
+**La distinción no es por tipo.** No es "las épicas no entran": es que entra lo que `items` nombra, con lo que cuelga de eso. Si un día un sprint nombrara una épica, entraría con su subárbol, y la regla no tendría que cambiar.
+
+### El nombre en Jira lo escribe el worklist, y no es la llave
+
+`<número> <título>` — `17 Los sprints en el board`. Es la regla de cómo se nombra un ítem: nunca el id solo, porque el que lee es el que menos contexto tiene.
+
+Y **el nombre no es la correspondencia**: ésa es el `key` del frontmatter. Cambiarle el título al sprint de cualquiera de los dos lados no rompe nada.
+
+### Se busca por nombre exactamente cuando no hay `key`, y eso no se contradice
+
+Con `key` puesto no se busca nada: se usa. Sin `key` creemos que el sprint no existe del otro lado — y creerlo no alcanza, porque una corrida que crea el sprint y se cae antes de mover la ref lo dejó creado y sin anotar. El reintento lo duplicaría.
+
+Es el mismo agujero que [`create-or-find`](../commands/create-or-find.md) tapa para un issue, y merece la misma respuesta: **buscar antes de crear**. Y no vuelve el nombre la llave, por la misma razón que el título de un issue tampoco lo es: la búsqueda corre una sola vez en la vida del sprint, cuando todavía no hay clave que usar.
+
+### Ninguno se crea cerrado, y el motivo tiene fecha
+
+> **Los 16 sprints nacen `future` y ninguno se cierra, aunque su ítem del worklist esté `done`.**
+
+**El motivo es la demo.** Un sprint cerrado en Jira es difícil de alcanzar desde la interfaz, así que lo que contuvo deja de poder mostrarse — y mostrar los 16 con sus issues adentro es lo que hay que mostrar.
+
+**No se sigue de nada del modelo**, y conviene decirlo así en vez de disfrazarlo de regla: el día que la propagación de `status` exista, que un sprint `done` cierre el del proveedor es una opción legítima, con sus propios argumentos. Lo que hay hoy es una necesidad de hoy.
+
+De paso, la API empuja para el mismo lado por una razón que no es ésa: sólo acepta mover issues a sprints `future` o `active`, y activo hay uno solo por board. Un sprint cerrado no recibiría a nadie.
+
+**Y el comando está cerca**: `jira sprint close` existe, a un typo de `jira sprint add`. No es una operación del puerto, y eso es lo que lo mantiene lejos.
+
+### Leer la membresía antes no es verificarla
+
+La pasada lee qué issues tiene el sprint y manda **sólo los que faltan**. Es la misma forma que tiene poner la épica: la lectura de antes existe para no pedir lo que ya está, no para comprobar lo que se pidió.
+
+Lo que se pidió no hace falta comprobarlo: el código de salida de `jira-cli` es fiel — ver § "Dos transportes, dos formas de mentir, una sola respuesta". Y el efecto de leer antes es que **volver a correrlo cuesta una lectura y cero escrituras**, que es más fuerte que "la escritura es idempotente".
+
+### Sacar un ítem de un sprint queda afuera, y con su motivo
+
+`jira sprint add` es un **move**: pone un issue en el sprint que se le nombre, y por eso mover uno de un sprint a otro sale gratis — la membresía es un campo del issue, no una lista del sprint. Lo que no tiene es cómo dejar un issue **sin** sprint.
+
+Así que un ítem que sale de un `items` y no entra en ningún otro se queda donde estaba, y esto no lo corrige. Hoy no pasa: los 16 sprints están cerrados del lado del worklist y su `items` no se mueve.
 
 ## Dos pasos, no uno
 
