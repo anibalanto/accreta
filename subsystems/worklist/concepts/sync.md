@@ -203,6 +203,30 @@ Medido: ese nodo solo, en un documento de un párrafo, es rechazado con `INVALID
 
 Va **en la frontera y no en el conversor**: qué marks se pueden combinar es del vocabulario del proveedor, y `body.rs` sólo sabe de markdown y de ADF. Y la pérdida no se esconde: el paso 3 convierte de vuelta, así que el markdown que aterriza dice `` `bilinker` `` sin negrita y **la poda se ve en el `git diff` del `pull`**, como cualquier otra normalización.
 
+### Un ítem que ya tiene clave se actualiza, no se saltea
+
+Resolver una ventana empezó siendo una sola cosa —**crear** lo que no existe— y eso dejaba un agujero: editar un ítem que ya tiene clave y empujar **no llegaba al proveedor**. El push entraba, el servidor guardaba el cambio, y el hook informaba `sin pedidos`.
+
+Cierto en su propio vocabulario y engañoso donde importa: no había ítems sin clave, pero sí había un cambio que no viajó. Es el mismo defecto de forma que § "El éxito se lee de la salida" —confundir *"no había trabajo"* con *"el trabajo no se hizo"*—, y deja a git y al proveedor divergiendo sin que nadie avise.
+
+> **Lo que se resuelve de una ventana son dos conjuntos: los pedidos, y lo que cambió.**
+
+**Qué cambió lo dice el push**, no el proveedor: el diff entre el tip anterior y el que llega nombra los archivos tocados, y de ahí salen las claves. No hay que preguntarle nada a nadie, y **un push que no toca un ítem no lo re-sube** — actualizar uno no puede costar ochenta llamadas.
+
+Y va **después** del compare-and-swap, que ya corrió: *"si git está actualizado, puede ir al proveedor"* es una garantía cobrada un paso antes, sobre el mismo push.
+
+#### Qué sube, y qué no
+
+| Campo | | |
+|---|---|---|
+| el cuerpo | ✔ | por el mismo camino de siempre: `round_trip`, la poda de marks, los links traducidos |
+| el título | ✔ | es el `summary`, y es lo que se ve en el board |
+| el `status` | ✘ | **no es el mismo campo** que el del proveedor — ver § "La jerarquía entra hasta donde el proveedor la tiene" y la task `5y` |
+
+**Y subir el título tiene un costo que hay que decir.** La identidad de un ítem sin clave es su título: así lo encuentra `create_or_find` para no duplicar. Si el título cambia en el proveedor y alguien vuelve a cortar la ventana desde el panorama —que tiene el título viejo y sin clave—, la búsqueda no encuentra nada y **crea un issue nuevo**. Es el defecto de la task `5l` por otra puerta.
+
+Hoy está acotado porque re-cortar una ventana viva está prohibido, y deja de estarlo el día que la propagación al panorama exista — que es cuando el panorama va a tener las claves y esto se arregla solo.
+
 ### El servidor anota lo que hizo, no borra lo que hiciste
 
 La conversión **no reescribe el commit que llegó**: se agrega uno encima.
