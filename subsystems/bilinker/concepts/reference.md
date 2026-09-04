@@ -89,6 +89,10 @@ link: issue 3a
 
 El project root se encuentra subiendo `depth * 2` componentes desde la capa actual.
 
+**Resuelve contra el panorama, nunca contra una ventana.** `.worklist/` no es un directorio de ítems: es un contenedor de worktrees, y `insecure/all` es el único que los tiene todos. Una ventana —`secure/sprint/<id>`— lleva el subárbol de su sprint y nada más, así que un endpoint que resolviera contra la que está abierta **fallaría según en qué rama esté el checkout**: el mismo `issue 3a` resolvería o no según el sprint del momento, y un bilink válido pasaría a no-OK sin que nadie toque nada.
+
+El path es fijo por eso, y no se busca por prefijo como la capa de worklist se buscaba en `.stratum/`. El nombre del panorama es de la spec de sincronización, no del proyecto que lo usa: todo worklist tiene un `insecure/all` y se llama igual en todos. Ver [worklist — sincronización](../../worklist/concepts/sync.md).
+
 **El tipo no está en el endpoint y no hace falta que esté.** Los ítems son archivos sueltos en un solo directorio y sus ids son únicos, así que el archivo se encuentra por prefijo. Si no matchea nada el endpoint no resuelve; si matchea más de uno, el worklist tiene dos ítems con el mismo id y eso es un error suyo.
 
 Que el tipo quede afuera es lo que hace que el endpoint sobreviva a la planificación: recolgar un ítem de otra user story cambia un campo del ítem, no el nombre de su archivo. Ver [worklist — ítem](../../worklist/concepts/item.md) § "Jerarquía".
