@@ -71,6 +71,23 @@ error: secure/sprint/7 ya existe y tiene 19 commit(s) que este corte no contiene
 
 No es una advertencia: **es un error y no escribe nada.** Perder lo que el servidor escribió deja de ser algo que pasa en silencio.
 
+### Y no se mueve una rama que alguien tiene abierta
+
+`git branch -f` **se niega** a mover una rama con worktree activo. `update-ref` no: la mueve, y deja ese worktree con el índice del árbol anterior.
+
+El síntoma no dice la causa. `git status` muestra archivos *"modificados"* que nadie tocó, y un `git merge` se niega a seguir por cambios locales que no existen. Costó una vuelta entera de diagnóstico averiguar que el trabajo perdido no era trabajo, sino un índice desactualizado.
+
+```
+$ worklist window open 10
+error: secure/sprint/10 está checkouteada en un worktree y no se puede mover:
+  /home/…/.worklist/secure/sprint/10
+
+  moverla dejaría ese worktree con el índice del árbol anterior. Sacá el
+  worktree primero, o traelo con un merge en vez de recortar.
+```
+
+**Ni con `--force`**: forzar es para descartar commits a sabiendas, no para dejar un checkout inconsistente. Son dos cosas distintas y el flag sólo autoriza una.
+
 ### Traer es `--ff-only`, y que no lo sea es información
 
 El servidor **commitea encima** de lo que empujaste: no reescribe tu commit, le agrega los suyos. Así que el caso sano es siempre un fast-forward, y **que no lo sea quiere decir que la rama divergió** — alguien más la empujó, o se re-cortó con `--force`. Un merge automático ahí escondería justo lo que hay que mirar.
