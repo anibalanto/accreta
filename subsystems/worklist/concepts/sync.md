@@ -69,10 +69,27 @@ Una ventana es una rama `secure/` — un subconjunto de ítems sobre el que un p
 **La creencia es lo que ya está escrito.** El `status` de cada ítem en el **tip actual de la rama** —el del servidor, antes de este push, nunca el que el cliente asume como base— ya es la única fuente de lo que se creía cierto. No hay un archivo de estado aparte que mantener sincronizado.
 
 ```
-Provider::state(keys) -> { clave -> status }
+Provider::snapshot(keys) -> { clave -> (status, título, cuerpo) }
 ```
 
-El chequeo no mira el contenido que llega: compara el estado en vivo del proveedor contra lo que el tip actual del servidor tiene escrito, para las claves presentes en ese tip. Coincide → se acepta el push (recién ahí se aplica lo nuevo). Difiere → se rechaza, sin importar qué traiga el push.
+El chequeo no mira el contenido que llega: compara lo que el proveedor tiene en vivo contra lo que el tip actual del servidor tiene escrito. Coincide → se acepta el push (recién ahí se aplica lo nuevo). Difiere → se rechaza, sin importar qué traiga el push.
+
+**Y el cuerpo se compara sin campo nuevo**, por lo mismo: el markdown del tip **es** lo que el proveedor tiene. Eso lo garantiza § "Lo que se guarda no es lo que empujaste" — lo guardado es la vuelta del round-trip, no lo que alguien escribió. Así que comparar es convertir el cuerpo que el proveedor devuelve y ponerlo al lado del archivo. Guardar un hash de lo último subido sería exactamente el archivo de estado aparte que esta sección evita.
+
+### Dos alcances, porque son dos promesas
+
+| Qué | Sobre qué claves | Por qué |
+|---|---|---|
+| el `status` | **todas** las del tip | la rama promete verificarse **entera** en cualquier momento |
+| el título y el cuerpo | **sólo las que el push toca** | *"cualquier escritura tiene que probar que parte del estado actual"* — lo que no se escribe no tiene nada que probar |
+
+No es una optimización: son dos afirmaciones distintas. Una es *"esta rama sigue siendo consistente"*; la otra, *"esta escritura no está pisando nada"*. Verificar el cuerpo de los ochenta ítems para escribir uno probaría algo que nadie preguntó, y costaría ochenta lecturas por push.
+
+> **Un push que no toca un ítem no puede pisarlo, así que no hace falta probar nada sobre él.**
+
+### Y por qué recién ahora
+
+Mientras el cuerpo no viajaba, un push **no podía** pisar una descripción editada en el proveedor: no la tocaba. La task que hizo viajar el cuerpo abrió el hueco, y esta comparación es lo que lo cierra. El daño que evita es concreto: alguien mejora la descripción en el board, alguien más empuja cualquier cambio del mismo ítem, y esa edición desaparece sin que nada lo diga.
 
 **El proveedor es un puerto**, para que la implementación real (Jira, vía `acli`) y una de prueba compartan la misma forma. La de prueba es un archivo `clave -> status`, mutable desde afuera — necesario para poder probar el rechazo: en un sistema cerrado, sin una forma de simular que el proveedor cambió por su cuenta, esa rama nunca se ejercita.
 
