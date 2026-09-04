@@ -128,7 +128,7 @@ El puerto se llamó `Provider` y `Creator` y quedó dibujado por lo que `acli` s
 
 Y lo que falta del lado de editar es exactamente lo que hace falta para **reconciliar**, que es lo único que sirve cuando alguien tocó el board a mano. Poner un campo sólo al crear no converge: sirve una vez.
 
-Por REST los dos son un `set` sobre un campo, y el resultado no depende del estado previo.
+Un segundo transporte los toma por lo que son: **un `set` sobre un campo**, cuyo resultado no depende del estado previo. Y las dos son de **lote** —un sprint recibe sus issues de a decenas—, así que pesa que las tome de a muchas y no de a una.
 
 ### El reparto, escrito una vez
 
@@ -139,26 +139,40 @@ Por REST los dos son un `set` sobre un campo, y el resultado no depende del esta
 | descripción y título | `acli` | `edit` los cubre, y el cuerpo va por archivo |
 | vínculos | `acli` | `link create` y `link list` |
 | leer el estado en vivo | `acli` | `search --fields` trae status, título y cuerpo de N claves en una llamada |
-| **jerarquía sobre un issue que existe** | **REST** | `acli edit` no acepta `parent` |
-| **membresía de sprint** | **REST** | `acli edit` no acepta `additionalAttributes` |
+| **jerarquía sobre un issue que existe** | **`jira-cli`** | `acli edit` no acepta `parent`; `jira epic add` lo pone sobre issues ya creados |
+| **membresía de sprint** | **`jira-cli`** | `acli edit` no acepta `additionalAttributes`; `jira sprint add` toma hasta 50 issues por llamada |
 | crear el sprint | `acli` | `sprint create` |
 | qué issues tiene un sprint | `acli` | `sprint list-workitems` |
 
 **Escrita, y no decidida caso por caso.** Sin la tabla, cada operación nueva elige sola y nadie ve el mapa; con ella, agregar una es ubicarla en una fila y decir por qué.
 
-### La credencial es del transporte REST, y es nueva
+**Y la tabla es también la lista de operaciones del puerto**: no hay ninguna que no esté. Un llamador que necesita algo que no figura no tiene que elegir transporte — tiene que agregar una fila.
 
-Un **API token** de Atlassian, en `Basic base64(email:token)`. `acli` no sirve de fuente: guarda su sesión en el keyring del sistema y no la expone.
+El segundo transporte podría ser REST, y no lo es. Los dos necesitan **la misma credencial**, así que la elección no fue por ahí: fue entre escribir un cliente HTTP y administrar un binario más, y las dos operaciones que faltan son de lote, que es donde un cliente propio las haría de a una. Lo que REST sigue cubriendo y `jira-cli` no es **editar un campo custom cualquiera**: su `--custom` es sólo al crear, igual que `acli`. El día que haga falta escribir un campo que no sea sprint ni épica, la tabla gana una fila y un tercer transporte.
 
-Así que el servidor necesita una credencial propia, que es la misma decisión que la instalación ya tenía que tomar: **todo lo que el hook escriba en el proveedor va a figurar como esa cuenta**, no como quien empujó.
+### La credencial es del segundo transporte, y es nueva
 
-Y su ausencia **es un error de arranque**, no un fallo raro más adelante: sin token, las operaciones REST no existen, y descubrirlo en el medio de una ventana a medio resolver es la peor forma de enterarse.
+Un **API token** de Atlassian. `jira-cli` lo lee de `JIRA_API_TOKEN` en el entorno; por REST habría sido el mismo token en `Basic base64(email:token)`. **La credencial era inevitable**: lo que la elección de transporte ahorró es el cliente HTTP, no el secreto.
+
+`acli` no sirve de fuente: guarda su sesión en el keyring del sistema y no la expone. Así que el servidor necesita una credencial propia, que es la misma decisión que la instalación ya tenía que tomar: **todo lo que el hook escriba en el proveedor va a figurar como esa cuenta**, no como quien empujó.
+
+**Se configura en un solo lugar, y hay dos formas de estar mal configurado.** Los dos transportes autentican distinto —`acli` por su sesión del keyring, `jira-cli` por la variable— así que *"no hay credencial"* no es una condición sola. El arranque las verifica y **dice cuál falta**, porque un mensaje que dice *"falta la credencial"* sobre un sistema con dos manda a mirar la que ya estaba bien.
+
+Y esa verificación **es de arranque**, no de la primera vez que haga falta: sin token, las operaciones de la mitad de abajo de la tabla no existen, y descubrirlo en el medio de una ventana a medio resolver es la peor forma de enterarse.
 
 ### Dos transportes, dos formas de mentir, una sola respuesta
 
-§ "El éxito se lee de la salida" vale para los dos y cada uno lo hace distinto: `acli` sale con 0 y pone el fracaso en el cuerpo; REST lo dice con el código HTTP. **El puerto normaliza eso**: quien llama recibe una sola forma de "salió bien" o "falló, y esto pasó".
+§ "El éxito se lee de la salida" vale para los dos, y cada uno miente a su manera. `acli` sale con 0 y pone el fracaso en el cuerpo, que es lo que costó cinco descripciones rechazadas en silencio. De `jira-cli` **no se sabe todavía**, y ésa es la deuda que trajo elegirlo.
 
-Es lo que evita que agregar un transporte multiplique los modos de falla que quien llama tiene que conocer.
+> **Cómo informa un fallo se averigua leyendo su código, no empujando.**
+
+Es la única ventaja concreta de que sea open source para este caso, y desperdiciarla sería repetir la forma en que apareció el defecto de `acli`: en producción, sobre trabajo real, después.
+
+**Hasta que esté verificado, el puerto no le cree al código de salida**: pide el efecto de vuelta. Es lo que ya hace con los vínculos —`link create` no acepta `--json`, así que se listan los links después— y el precio es una llamada más por operación. Se paga mientras dure la duda; una vez leído el código, la fila de la tabla dice cuál de las dos formas usa.
+
+**Y no siempre se puede pagar.** Leer la épica de vuelta cuesta una llamada por clave: `acli` responde `field 'parent' is not allowed` a un `search --fields parent`, así que va por `workitem view`, que es de a uno. Leer los issues de un sprint cuesta más que una llamada: `sprint list-workitems` pide **el id del board** además del sprint, y eso es configuración que este sistema todavía no tiene. Así que la membresía de sprint viaja hoy **sin verificar**, y está escrito acá en vez de parecer un olvido.
+
+**Y el puerto normaliza igual**: quien llama recibe una sola forma de "salió bien" o "falló, y esto pasó". Es lo que evita que agregar un transporte multiplique los modos de falla que hay que conocer río arriba.
 
 ## Asignar una clave: crear o encontrar
 
@@ -234,9 +248,17 @@ Así que un ítem con `parent` sube con dos cosas: `--parent <clave de su épica
 
 Eso hacía que un issue creado sin padre no se pudiera corregir, y que **recolgar un ítem de otra user story no se propagara** — justo la operación que [jerarquía](hierarchy.md) § "IDs secuenciales y jerarquía" describe como barata: cambia un campo del ítem, no el nombre de su archivo. Barata en git, imposible en el proveedor.
 
-**Por REST sí se puede**, porque `parent` es un campo como cualquier otro y se escribe con un `set`. Es una de las dos filas que § "El reparto, escrito una vez" manda por ese transporte, y por el mismo motivo que la otra: lo que `acli` no cubre es siempre el lado de **editar**, que es el que reconcilia.
+**Con el segundo transporte sí se puede**: `jira epic add` la pone sobre issues ya creados. Es una de las dos filas que § "El reparto, escrito una vez" manda por ahí, y por el mismo motivo que la otra: lo que `acli` no cubre es siempre el lado de **editar**, que es el que reconcilia.
 
 Por eso `create_or_find` que **encuentra** en vez de crear no puede prometer la jerarquía, y lo tiene que decir en vez de callarlo.
+
+#### Pero decirlo no es afirmar sobre el board
+
+> **"No quedó bajo `X`" es una afirmación sobre el proveedor, y se hacía sin mirarlo.**
+
+La marca se calculaba de *encontré en vez de crear* **y** *me pidieron un padre*, que es lo que esa corrida pudo hacer — no lo que el board tiene. Y las dos cosas se separan solas cuando un intento se cae por la mitad: la corrida que murió había creado los issues **con** su padre, la siguiente los encontró, y avisó de 22 que estaban bien.
+
+Un aviso que no se verificó es peor que no avisar: el que no avisa deja trabajo sin hacer, el que miente lo agrega. Así que el puerto tiene la operación de **leer** la épica puesta, y quien avisa compara contra eso.
 
 ## El cuerpo viaja, y vuelve convertido
 
