@@ -5,3 +5,7 @@
 # todos — a diferencia de `.bilink/`, que lo escribe una herramienta en repos ajenos
 # y por eso lleva su regla adentro.
 **/.stratum/*/
+
+# El worklist es un repo aparte, con sus worktrees adentro. No es una capa,
+# asi que el glob de `.stratum/*/` no lo cubre.
+.worklist/

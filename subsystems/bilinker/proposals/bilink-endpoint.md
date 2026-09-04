@@ -54,7 +54,7 @@ link.0: .bilink/7f3d8e9a-1b2c-4d5e-8f6a-7b8c9d0e1f2a.bilink   ← bilink estruct
 link.1: issue 3a                                               ← ítem en worklist
 ```
 
-`bilinker check` hashea el archivo de tarea (`<project-root>/.stratum/worklist/3a.task.md`) como cualquier endpoint estructural — detecta si el contenido de la tarea cambia. Si el fragmento cambia, `state.0` reporta el cambio del bilink estructural referenciado.
+`bilinker check` hashea el archivo de tarea (`<project-root>/.worklist/insecure/all/3a.task.md`) como cualquier endpoint estructural — detecta si el contenido de la tarea cambia. Si el fragmento cambia, `state.0` reporta el cambio del bilink estructural referenciado.
 
 **El endpoint `issue <id>` sí está implementado**; lo que falta es el otro extremo. La motivación de colgar la tarea de *la relación* y no de uno de sus extremos: una tarea que nace de "esta spec no coincide con esta implementación" no es sobre la spec ni sobre el código, es sobre el desacuerdo entre los dos.
 

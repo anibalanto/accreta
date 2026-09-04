@@ -6,7 +6,7 @@
 
 > **El silencio tiene dos causas y una sola representación.**
 
-Y es el hueco que le saca sentido a [`4r`](../../../.stratum/worklist-accreta/4r.task.md): un estado que reporta *"falta que firme quien tenía que firmar"* no puede distinguir al que todavía no llegó del que llegó y dijo que no.
+Y es el hueco que le saca sentido a [`4r`](../../../.worklist/insecure/all/4r.task.md): un estado que reporta *"falta que firme quien tenía que firmar"* no puede distinguir al que todavía no llegó del que llegó y dijo que no.
 
 ## La mitad que ya existe, y hay que verla antes de agregar nada
 
@@ -98,9 +98,9 @@ Lo que sí hace es **retirarle su pregunta abierta 2**. Esa propuesta observaba 
 
 **De quién es la nota.** Escrita al nivel de la entrada, dos personas que rechazan comparten un bloque y **se pierde la atribución por línea**, que es toda la razón por la que `agree` es bloque y no flow. Por eso el ejemplo la pone colgada del nombre. Falta decidir si `agree` toma la misma forma —*"apruebo, y además tengo algo que decir"* es un caso real— o si quedan asimétricos.
 
-**Si rechazar necesita el vecindario resuelto.** Por simetría sí: se rechaza una tupla, y la tupla incluye `n`. El costo es que decir que no **necesita el proveedor**, y con la cache fría eso son los 25 segundos que el sprint [`10`](../../../.stratum/worklist-accreta/_sprints/10.sprint.md) está midiendo. Es el punto donde esta propuesta y ese sprint se tocan.
+**Si rechazar necesita el vecindario resuelto.** Por simetría sí: se rechaza una tupla, y la tupla incluye `n`. El costo es que decir que no **necesita el proveedor**, y con la cache fría eso son los 25 segundos que el sprint [`10`](../../../.worklist/insecure/all/_sprints/10.sprint.md) está midiendo. Es el punto donde esta propuesta y ese sprint se tocan.
 
-**Con qué código de salida.** Un endpoint con un rechazo sin contestar no está `OK`, así que 1 — con el mismo riesgo que [`4r`](../../../.stratum/worklist-accreta/4r.task.md) ya nombra: pone a fallar el CI, que es el punto y también el costo.
+**Con qué código de salida.** Un endpoint con un rechazo sin contestar no está `OK`, así que 1 — con el mismo riesgo que [`4r`](../../../.worklist/insecure/all/4r.task.md) ya nombra: pone a fallar el CI, que es el punto y también el costo.
 
 **Qué hace `adopt`.** Une campo por campo y ya une `agree` sin preguntarle a nadie. Unir `disagree` es la misma operación, pero trae al repo de uno el rechazo de alguien de otro equipo — y si eso cruza la frontera es la misma pregunta abierta 4 de la otra propuesta, sobre otro objeto.
 

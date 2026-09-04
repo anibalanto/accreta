@@ -1,6 +1,6 @@
 # Comando: `worklist list`
 
-Lista los items de `accreta/.stratum/worklist/` con su estado y jerarquía.
+Lista los items de `accreta/.worklist/insecure/all/` con su estado y jerarquía.
 
 ## Uso
 

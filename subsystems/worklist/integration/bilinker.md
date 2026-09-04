@@ -21,7 +21,7 @@ En ambos casos produce:
 ```
 accreta/.bilink/<uuid-struct>.bilink         ← bilink estructural: fragmento ↔ layer
 accreta/.bilink/<uuid-task>.bilink           ← bilink de tarea: .bilink/<uuid-struct>.bilink ↔ task <id>
-accreta/.stratum/worklist/<id>.task.md       ← ítem del worklist
+accreta/.worklist/insecure/all/<id>.task.md       ← ítem del worklist
 ```
 
 La asociación vive en el bilink de tarea. El ítem no tiene `source_bilink` en su frontmatter.

@@ -30,9 +30,35 @@ Cuando un push trae varios pedidos y uno depende de otro —por `parent` o `rela
 
 El orden no lo necesita la reescritura local — cada renombre ya recorre todo el árbol y corrige cualquier referencia al slug que se está reemplazando, sin importar el orden de llamadas. Lo que sí lo necesita es crear en el proveedor: no se puede pedir un issue con `--parent <clave>` si esa clave todavía no existe.
 
+## Dos clases de rama, y el nombre dice qué se puede hacer
+
+Completo y verificable son excluyentes, así que hay dos clases y no una:
+
+| Prefijo | Contiene | Se verifica | `pre-receive` |
+|---|---|---|---|
+| `refs/heads/secure/**` | una vista parcial, acotada | sí, entera, en cualquier momento | corre el compare-and-swap |
+| `refs/heads/insecure/**` | todo, o un conjunto que crece sin techo | no | **rechaza el push** |
+| cualquier otra | no es del worklist | — | no opina |
+
+**Rechazar el push a una insegura es lo que vuelve cierta la palabra.** Una rama que se llama insegura y acepta escrituras miente: no puede verificarse, así que no puede prometer que lo que entra sea consistente con el proveedor. Y de ahí sale, sin que nadie tenga que respetarla, que el panorama sólo avance por propagación — **no hay forma de empujarle.**
+
+`backlog` es insegura: es *"todo lo que ningún sprint tomó"* y crece sin techo. Para trabajar sobre ítems del backlog se recorta una ventana segura acotada.
+
+### Una ventana sobrevive al cierre de su sprint
+
+> **Nada cierra una ventana. Cerrar el sprint no la borra.**
+
+Una rama segura se hace responsable de **poder verificarse entera contra el proveedor en cualquier momento**, y si se borrara al cerrar el sprint esa responsabilidad tendría fecha de vencimiento: lo que prometería no es *"esto se puede verificar"* sino *"esto se pudo verificar mientras duró"*. Quedando, *"¿el sprint 7 sigue coincidiendo con el proveedor?"* es una pregunta contestable un año después.
+
+**Y nada empuja a borrarlas**, porque una ventana es acotada por construcción: en el panorama de accreta la más grande tiene 19 archivos contra 154. Lo que crece sin techo es el panorama, y el panorama no es una ventana.
+
+El commit de la ventana es además el registro de **qué llevaba el sprint**, y eso no se recupera del panorama más tarde: el `items` de un sprint puede cambiar después de cerrado, y el panorama guarda el estado final de cada ítem y no el conjunto que aquella iteración tomó.
+
+Que quede no la vuelve autoritativa: sigue siendo **derivada**, y se puede volver a cortar. Y borrar una a mano sigue siendo posible, como con cualquier rama — lo que se descarta es que el cierre lo haga solo.
+
 ## La ventana y el compare-and-swap
 
-Una ventana es un sprint o el backlog — un subconjunto de ítems sobre el que un push se valida. Antes de aceptar:
+Una ventana es una rama `secure/` — un subconjunto de ítems sobre el que un push se valida. Antes de aceptar:
 
 1. Preguntar al proveedor por el estado de los ítems **de esa ventana**, y ninguno más.
 2. Si algo cambió desde el commit sobre el que se empuja, rechazar. La rama queda con el estado nuevo, sin commit de más — como un push no fast-forward cualquiera.
@@ -43,12 +69,110 @@ Una ventana es un sprint o el backlog — un subconjunto de ítems sobre el que 
 **La creencia es lo que ya está escrito.** El `status` de cada ítem en el **tip actual de la rama** —el del servidor, antes de este push, nunca el que el cliente asume como base— ya es la única fuente de lo que se creía cierto. No hay un archivo de estado aparte que mantener sincronizado.
 
 ```
-Provider::state(keys) -> { clave -> status }
+Provider::snapshot(keys) -> { clave -> (status, título, cuerpo) }
 ```
 
-El chequeo no mira el contenido que llega: compara el estado en vivo del proveedor contra lo que el tip actual del servidor tiene escrito, para las claves presentes en ese tip. Coincide → se acepta el push (recién ahí se aplica lo nuevo). Difiere → se rechaza, sin importar qué traiga el push.
+El chequeo no mira el contenido que llega: compara lo que el proveedor tiene en vivo contra lo que el tip actual del servidor tiene escrito. Coincide → se acepta el push (recién ahí se aplica lo nuevo). Difiere → se rechaza, sin importar qué traiga el push.
+
+**Y el cuerpo se compara sin campo nuevo**, por lo mismo: el markdown del tip **es** lo que el proveedor tiene. Eso lo garantiza § "Lo que se guarda no es lo que empujaste" — lo guardado es la vuelta del round-trip, no lo que alguien escribió. Así que comparar es convertir el cuerpo que el proveedor devuelve y ponerlo al lado del archivo. Guardar un hash de lo último subido sería exactamente el archivo de estado aparte que esta sección evita.
+
+### Dos alcances, porque son dos promesas
+
+| Qué | Sobre qué claves | Por qué |
+|---|---|---|
+| el `status` | **todas** las del tip | la rama promete verificarse **entera** en cualquier momento |
+| el título y el cuerpo | **sólo las que el push toca** | *"cualquier escritura tiene que probar que parte del estado actual"* — lo que no se escribe no tiene nada que probar |
+
+No es una optimización: son dos afirmaciones distintas. Una es *"esta rama sigue siendo consistente"*; la otra, *"esta escritura no está pisando nada"*. Verificar el cuerpo de los ochenta ítems para escribir uno probaría algo que nadie preguntó, y costaría ochenta lecturas por push.
+
+> **Un push que no toca un ítem no puede pisarlo, así que no hace falta probar nada sobre él.**
+
+### Y por qué recién ahora
+
+Mientras el cuerpo no viajaba, un push **no podía** pisar una descripción editada en el proveedor: no la tocaba. La task que hizo viajar el cuerpo abrió el hueco, y esta comparación es lo que lo cierra. El daño que evita es concreto: alguien mejora la descripción en el board, alguien más empuja cualquier cambio del mismo ítem, y esa edición desaparece sin que nada lo diga.
 
 **El proveedor es un puerto**, para que la implementación real (Jira, vía `acli`) y una de prueba compartan la misma forma. La de prueba es un archivo `clave -> status`, mutable desde afuera — necesario para poder probar el rechazo: en un sistema cerrado, sin una forma de simular que el proveedor cambió por su cuenta, esa rama nunca se ejercita.
+
+### El éxito se lee de la salida, nunca del código de retorno
+
+> **`acli` devuelve 0 cuando falla.**
+
+Escribe `✗ Failure: …` en `stdout` y sale con éxito, así que un cliente que mire el código de retorno **no se entera de nada**. El primer push real de una ventana creó cinco issues y las cinco descripciones fueron rechazadas por Jira sin una palabra en la salida del push.
+
+La detección no puede ser buscar ese texto: es de una herramienta ajena y está en el idioma de quien la corre. Se pide `--json`, que responde estructurado:
+
+```json
+{"results":[{"status":"FAILURE","message":"InvalidPayloadException: INVALID_INPUT","id":"ACC-16"}],
+ "totalCount":1,"successCount":0}
+```
+
+**Una operación del proveedor se considera hecha cuando su `status` lo dice**, y `successCount` cierra el lote. Es el mismo principio que el resto: fallar hacia reportar, y no confundir *"no se pudo ver"* con *"está bien"*.
+
+Y de ahí sale una regla para cualquier proveedor futuro: **el puerto devuelve el resultado de la operación, no el de haberla intentado.** Un `Creator` que no distingue las dos cosas no sirve, por más que el comando que corra por debajo salga con 0.
+
+## El puerto son las operaciones, no los comandos
+
+> **Quien llama dice *"poné este sprint"*. Con qué se hace es del puerto.**
+
+El puerto se llamó `Provider` y `Creator` y quedó dibujado por lo que `acli` sabe hacer, así que cuando apareció algo que `acli` no puede no hubo dónde ponerlo. La forma correcta es al revés: **las operaciones son las que este sistema necesita**, y el transporte es un detalle de adentro.
+
+### Y hacen falta dos transportes, no por gusto
+
+`acli` trata **crear** y **editar** como vocabularios distintos, y el de editar es más chico. Medido:
+
+| | al crear | al editar |
+|---|---|---|
+| `summary`, `description`, `labels` | ✔ | ✔ |
+| `parent` | ✔ | ✘ |
+| sprint (`customfield_10020`) | ✔ | ✘ |
+
+Y lo que falta del lado de editar es exactamente lo que hace falta para **reconciliar**, que es lo único que sirve cuando alguien tocó el board a mano. Poner un campo sólo al crear no converge: sirve una vez.
+
+Un segundo transporte los toma por lo que son: **un `set` sobre un campo**, cuyo resultado no depende del estado previo. Y las dos son de **lote** —un sprint recibe sus issues de a decenas—, así que pesa que las tome de a muchas y no de a una.
+
+### El reparto, escrito una vez
+
+| Operación | Transporte | Por qué |
+|---|---|---|
+| buscar por título | `acli` | anda, y no hay nada que reconciliar: o está o no está |
+| crear el issue | `acli` | con `--parent`, que ahí sí lo acepta |
+| descripción y título | `acli` | `edit` los cubre, y el cuerpo va por archivo |
+| vínculos | `acli` | `link create` y `link list` |
+| leer el estado en vivo | `acli` | `search --fields` trae status, título y cuerpo de N claves en una llamada |
+| **jerarquía sobre un issue que existe** | **`jira-cli`** | `acli edit` no acepta `parent`; `jira epic add` lo pone sobre issues ya creados |
+| **membresía de sprint** | **`jira-cli`** | `acli edit` no acepta `additionalAttributes`; `jira sprint add` toma hasta 50 issues por llamada |
+| crear el sprint | `acli` | `sprint create` |
+| qué issues tiene un sprint | `acli` | `sprint list-workitems` |
+
+**Escrita, y no decidida caso por caso.** Sin la tabla, cada operación nueva elige sola y nadie ve el mapa; con ella, agregar una es ubicarla en una fila y decir por qué.
+
+**Y la tabla es también la lista de operaciones del puerto**: no hay ninguna que no esté. Un llamador que necesita algo que no figura no tiene que elegir transporte — tiene que agregar una fila.
+
+El segundo transporte podría ser REST, y no lo es. Los dos necesitan **la misma credencial**, así que la elección no fue por ahí: fue entre escribir un cliente HTTP y administrar un binario más, y las dos operaciones que faltan son de lote, que es donde un cliente propio las haría de a una. Lo que REST sigue cubriendo y `jira-cli` no es **editar un campo custom cualquiera**: su `--custom` es sólo al crear, igual que `acli`. El día que haga falta escribir un campo que no sea sprint ni épica, la tabla gana una fila y un tercer transporte.
+
+### La credencial es del segundo transporte, y es nueva
+
+Un **API token** de Atlassian. `jira-cli` lo lee de `JIRA_API_TOKEN` en el entorno; por REST habría sido el mismo token en `Basic base64(email:token)`. **La credencial era inevitable**: lo que la elección de transporte ahorró es el cliente HTTP, no el secreto.
+
+`acli` no sirve de fuente: guarda su sesión en el keyring del sistema y no la expone. Así que el servidor necesita una credencial propia, que es la misma decisión que la instalación ya tenía que tomar: **todo lo que el hook escriba en el proveedor va a figurar como esa cuenta**, no como quien empujó.
+
+**Se configura en un solo lugar, y hay dos formas de estar mal configurado.** Los dos transportes autentican distinto —`acli` por su sesión del keyring, `jira-cli` por la variable— así que *"no hay credencial"* no es una condición sola. El arranque las verifica y **dice cuál falta**, porque un mensaje que dice *"falta la credencial"* sobre un sistema con dos manda a mirar la que ya estaba bien.
+
+Y esa verificación **es de arranque**, no de la primera vez que haga falta: sin token, las operaciones de la mitad de abajo de la tabla no existen, y descubrirlo en el medio de una ventana a medio resolver es la peor forma de enterarse.
+
+### Dos transportes, dos formas de mentir, una sola respuesta
+
+§ "El éxito se lee de la salida" vale para los dos, y cada uno miente a su manera. `acli` sale con 0 y pone el fracaso en el cuerpo, que es lo que costó cinco descripciones rechazadas en silencio. De `jira-cli` **no se sabe todavía**, y ésa es la deuda que trajo elegirlo.
+
+> **Cómo informa un fallo se averigua leyendo su código, no empujando.**
+
+Es la única ventaja concreta de que sea open source para este caso, y desperdiciarla sería repetir la forma en que apareció el defecto de `acli`: en producción, sobre trabajo real, después.
+
+**Hasta que esté verificado, el puerto no le cree al código de salida**: pide el efecto de vuelta. Es lo que ya hace con los vínculos —`link create` no acepta `--json`, así que se listan los links después— y el precio es una llamada más por operación. Se paga mientras dure la duda; una vez leído el código, la fila de la tabla dice cuál de las dos formas usa.
+
+**Y no siempre se puede pagar.** Leer la épica de vuelta cuesta una llamada por clave: `acli` responde `field 'parent' is not allowed` a un `search --fields parent`, así que va por `workitem view`, que es de a uno. Leer los issues de un sprint cuesta más que una llamada: `sprint list-workitems` pide **el id del board** además del sprint, y eso es configuración que este sistema todavía no tiene. Así que la membresía de sprint viaja hoy **sin verificar**, y está escrito acá en vez de parecer un olvido.
+
+**Y el puerto normaliza igual**: quien llama recibe una sola forma de "salió bien" o "falló, y esto pasó". Es lo que evita que agregar un transporte multiplique los modos de falla que hay que conocer río arriba.
 
 ## Asignar una clave: crear o encontrar
 
@@ -78,6 +202,64 @@ epic       -> Epic
 
 Confirmado contra `ACC` real. Otro proyecto de Jira puede tener otro vocabulario — la tabla es de esta capa, no universal.
 
+### Una dependencia que cruza la ventana se reporta, no rompe el push
+
+Los `relation.depends` que apuntan **adentro** de la ventana llegan a la pasada 3 ya traducidos: el renombre los reescribió junto con el resto de las referencias. Los que apuntan **afuera** quedan como slug del worklist, y un slug no es una clave del proveedor.
+
+> **Un vínculo que no se puede traducir se informa. No aborta la ventana.**
+
+Una ventana es acotada por diseño y las dependencias no respetan sus bordes: que una user story de un sprint dependa de otra del anterior es lo normal en un backlog, y arrastrar la dependencia adentro dejaría de estar acotada. Exigir que todas caigan adentro sería pedirle al backlog que se ordene por el recorte.
+
+**Y es un síntoma de la propagación que falta.** El ítem de afuera ya tiene clave —se la puso el push de su propia ventana—; lo que no la tiene es el panorama, porque las claves quedan en la rama de cada ventana y nadie las lleva de vuelta. Con la propagación andando, la ventana re-cortada traería el `depends` ya traducido y el vínculo se crearía solo.
+
+### La jerarquía entra hasta donde el proveedor la tiene
+
+El worklist descompone en tres escalones —`epic` → `user-story` → `task`— y Jira **no tiene tres**. Sus tipos viven en niveles numerados, y en `ACC`:
+
+```
+nivel  1   Epic
+nivel  0   Historia   Tarea   Error   Mejora
+nivel -1   Subtask
+```
+
+`Historia` y `Tarea` están **en el mismo nivel**, y Jira no admite `parent` entre pares. Medido contra `ACC`, no supuesto:
+
+| Relación | |
+|---|---|
+| `Historia` bajo `Epic` | ✔ |
+| `Tarea` bajo `Epic` | ✔ |
+| `Tarea` bajo `Historia` | ✘ *"Selecciona una incidencia principal válida"* |
+| `Subtask` bajo `Historia` | ✔ |
+| `Subtask` bajo `Epic` | ✘ salta un nivel |
+
+> **El `parent` de un issue es la épica de la que cuelga, por lejos que quede. El escalón del medio es un link `Relates`.**
+
+Así que un ítem con `parent` sube con dos cosas: `--parent <clave de su épica ancestro>`, subiendo la cadena hasta el primer `epic`; y, si su padre directo **no** es esa épica, un `Relates` hacia él.
+
+**Por qué no `Subtask`.** Es la única forma de tener el anidado exacto, y cuesta dos cosas. La primera: `Subtask` no cuelga de un `Epic`, así que una task hija de épica —o suelta— tendría que seguir siendo `Tarea`, y **el tipo de Jira dejaría de ser función del tipo del worklist** — lo contrario de lo que § "El tipo es del worklist, no de Jira" decidió. La segunda: una subtarea de Jira no lleva sprint propio ni aparece en el backlog como tarjeta, así que las tasks dejarían de ser lo que se mueve en el board. Un ítem del worklist tiene **un solo** tipo de Jira posible, y esa regla no se negocia por el anidado.
+
+**Y `Relates` porque es lo que hay.** Los tipos de link de `ACC` son `Blocks`, `Cloners`, `Duplicate`, `Relates` y `Work item split`: **no hay ningún `Parent/Child`**. Es el mismo mecanismo que § "Los vínculos" usa para `relation.depends`, con otro tipo.
+
+**Lo que se pierde, dicho:** en Jira el árbol tiene dos niveles donde el worklist tiene tres, y una user story deja de ser el contenedor de sus tasks — pasa a ser un issue hermano que las referencia. La descomposición completa vive en git, que es donde `parent` es autoritativo.
+
+### El padre se pone al crear, y por `acli` no se puede corregir
+
+`acli` acepta `--parent` en `create` y **no en `edit`** — ni por flag ni en el JSON de `--generate-json`.
+
+Eso hacía que un issue creado sin padre no se pudiera corregir, y que **recolgar un ítem de otra user story no se propagara** — justo la operación que [jerarquía](hierarchy.md) § "IDs secuenciales y jerarquía" describe como barata: cambia un campo del ítem, no el nombre de su archivo. Barata en git, imposible en el proveedor.
+
+**Con el segundo transporte sí se puede**: `jira epic add` la pone sobre issues ya creados. Es una de las dos filas que § "El reparto, escrito una vez" manda por ahí, y por el mismo motivo que la otra: lo que `acli` no cubre es siempre el lado de **editar**, que es el que reconcilia.
+
+Por eso `create_or_find` que **encuentra** en vez de crear no puede prometer la jerarquía, y lo tiene que decir en vez de callarlo.
+
+#### Pero decirlo no es afirmar sobre el board
+
+> **"No quedó bajo `X`" es una afirmación sobre el proveedor, y se hacía sin mirarlo.**
+
+La marca se calculaba de *encontré en vez de crear* **y** *me pidieron un padre*, que es lo que esa corrida pudo hacer — no lo que el board tiene. Y las dos cosas se separan solas cuando un intento se cae por la mitad: la corrida que murió había creado los issues **con** su padre, la siguiente los encontró, y avisó de 22 que estaban bien.
+
+Un aviso que no se verificó es peor que no avisar: el que no avisa deja trabajo sin hacer, el que miente lo agrega. Así que el puerto tiene la operación de **leer** la épica puesta, y quien avisa compara contra eso.
+
 ## El cuerpo viaja, y vuelve convertido
 
 > **La verdad viene del proveedor a git. Y si git está actualizado, puede ir al proveedor.**
@@ -100,6 +282,42 @@ Suena raro y es lo que hace que el resto funcione:
 
 Se apoya en una propiedad medida, no supuesta: **la conversión converge en una pasada.** Medido con `amdc` sobre cuatro archivos reales —entre ellos uno de 29 KB y otro de 28 KB—, el segundo round-trip es byte a byte idéntico al primero, con cero warnings en las dos direcciones. Las diferencias contra el original son normalizaciones de formato —`*cursiva*` a `_cursiva_`, el separador de tablas— y en un caso el pegado de líneas que CommonMark ya considera un solo párrafo. **Ningún texto se pierde**, y los identificadores `SNAKE_CASE` adentro de code spans sobreviven intactos.
 
+### El schema del proveedor poda, y la poda es de la frontera
+
+> **En ADF el mark `code` es exclusivo: no convive con `strong` ni con `em`.**
+
+GFM sí permite anidarlos, y `` **`bilinker`** `` —negrita sobre un identificador— es el idioma de la casa. La conversión produce entonces un nodo con `strong` y `code` juntos, y **Jira rechaza el documento entero**: no ese nodo, todo. Un solo `` **`x`** `` deja la descripción sin subir.
+
+Medido: ese nodo solo, en un documento de un párrafo, es rechazado con `INVALID_INPUT`; el mismo texto con `code` solo pasa. El primer cuerpo real que se intentó subir traía **ocho casos**, todos nombres de archivo o de herramienta.
+
+**Cuando `code` viene con otros marks de formato, los otros se van.** El `code` es el que lleva la información —dice que eso es un identificador—; la negrita es énfasis, y el énfasis es lo que se puede perder sin cambiar lo que la frase significa.
+
+Va **en la frontera y no en el conversor**: qué marks se pueden combinar es del vocabulario del proveedor, y `body.rs` sólo sabe de markdown y de ADF. Y la pérdida no se esconde: el paso 3 convierte de vuelta, así que el markdown que aterriza dice `` `bilinker` `` sin negrita y **la poda se ve en el `git diff` del `pull`**, como cualquier otra normalización.
+
+### Un ítem que ya tiene clave se actualiza, no se saltea
+
+Resolver una ventana empezó siendo una sola cosa —**crear** lo que no existe— y eso dejaba un agujero: editar un ítem que ya tiene clave y empujar **no llegaba al proveedor**. El push entraba, el servidor guardaba el cambio, y el hook informaba `sin pedidos`.
+
+Cierto en su propio vocabulario y engañoso donde importa: no había ítems sin clave, pero sí había un cambio que no viajó. Es el mismo defecto de forma que § "El éxito se lee de la salida" —confundir *"no había trabajo"* con *"el trabajo no se hizo"*—, y deja a git y al proveedor divergiendo sin que nadie avise.
+
+> **Lo que se resuelve de una ventana son dos conjuntos: los pedidos, y lo que cambió.**
+
+**Qué cambió lo dice el push**, no el proveedor: el diff entre el tip anterior y el que llega nombra los archivos tocados, y de ahí salen las claves. No hay que preguntarle nada a nadie, y **un push que no toca un ítem no lo re-sube** — actualizar uno no puede costar ochenta llamadas.
+
+Y va **después** del compare-and-swap, que ya corrió: *"si git está actualizado, puede ir al proveedor"* es una garantía cobrada un paso antes, sobre el mismo push.
+
+#### Qué sube, y qué no
+
+| Campo | | |
+|---|---|---|
+| el cuerpo | ✔ | por el mismo camino de siempre: `round_trip`, la poda de marks, los links traducidos |
+| el título | ✔ | es el `summary`, y es lo que se ve en el board |
+| el `status` | ✘ | **no es el mismo campo** que el del proveedor — ver § "La jerarquía entra hasta donde el proveedor la tiene" y la task `5y` |
+
+**Y subir el título tiene un costo que hay que decir.** La identidad de un ítem sin clave es su título: así lo encuentra `create_or_find` para no duplicar. Si el título cambia en el proveedor y alguien vuelve a cortar la ventana desde el panorama —que tiene el título viejo y sin clave—, la búsqueda no encuentra nada y **crea un issue nuevo**. Es el defecto de la task `5l` por otra puerta.
+
+Hoy está acotado porque re-cortar una ventana viva está prohibido, y deja de estarlo el día que la propagación al panorama exista — que es cuando el panorama va a tener las claves y esto se arregla solo.
+
 ### El servidor anota lo que hizo, no borra lo que hiciste
 
 La conversión **no reescribe el commit que llegó**: se agrega uno encima.
@@ -110,6 +328,30 @@ normalize: ACC-45           ← lo que el round-trip dejó
 ```
 
 Es el tercero de la misma familia que ya tienen `rename <slug> -> <clave>` y `provider: <clave> …`: **el servidor deja su trabajo como un commit propio y auditable.** Con esto, un error del conversor es un diff que se ve y se revierte; reescribiendo el commit del cliente sería una pérdida sin contra qué comparar — y eso importa especialmente porque el conversor es la pieza más nueva de todo esto.
+
+### Nada viaja al proveedor hasta que el estado local esté completo
+
+Resolver una ventana son **tres pasadas**, y el orden no es de estilo:
+
+| | Qué hace | Por qué no antes |
+|---|---|---|
+| **1** | claves y renombres, en orden topológico | — |
+| **2** | los cuerpos, convertidos y enviados | un cuerpo enviado antes lleva los nombres **previos** al renombre, y queda congelado así: el ítem ya tiene clave, así que ningún push posterior lo vuelve a mirar |
+| **3** | los vínculos entre ítems | un vínculo necesita que **las dos puntas** existan en el proveedor |
+
+La pasada 2 sólo salía bien por accidente cuando la referencia estaba declarada en `relation.*` —el orden topológico ponía al referenciado primero—; una referencia que vive **sólo en la prosa** no participa de ese orden y quedaba vieja.
+
+### Un link a otro ítem se traduce en el borde
+
+En el repo un ítem referencia a otro por su archivo; en el proveedor eso no significa nada. La traducción es mecánica y va en las dos direcciones:
+
+```
+<clave>.<tipo>.md   ←→   <base>/browse/<clave>
+```
+
+**Y no se convierte en un vínculo del proveedor.** Una cita en prosa no es una dependencia declarada — ésa es la distinción que `relation.*` existe para hacer, y convertir cada mención en un vínculo llenaría el ítem de relaciones que nadie declaró.
+
+De vuelta, el tipo no está en la URL: se resuelve mirando qué `<clave>.*.md` existe en la ventana. **Si no está —una referencia a algo de otra ventana—, la URL se queda como URL**, que es la forma correcta para algo que no vive acá.
 
 ### Dos cosas no pasan por el conversor
 

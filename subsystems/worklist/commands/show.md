@@ -10,7 +10,7 @@ worklist show <id>
 
 ## Comportamiento
 
-1. Localiza el item por ID en todo el árbol de `accreta/.stratum/worklist/`.
+1. Localiza el item por ID en todo el árbol de `accreta/.worklist/insecure/all/`.
 2. Imprime el frontmatter formateado, el cuerpo Markdown y el fragmento
    de la capa superior al que apunta el bilink origen.
 3. Lista los hijos directos con su estado.

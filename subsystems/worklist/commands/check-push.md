@@ -15,7 +15,7 @@ worklist check-push --provider-file <archivo> [--stdin]
 
 ## Qué hace
 
-1. Para cada `ref` que llega, si no es una ventana —`refs/heads/sprint/*` o `refs/heads/backlog`— la ignora: este comando no opina sobre otras ramas.
+1. Para cada `ref` que llega: si es `refs/heads/insecure/**`, **rechaza el push** — una rama insegura no se puede verificar, así que no puede aceptar escrituras. Si no es `refs/heads/secure/**`, la ignora: este comando no opina sobre ramas que no son del worklist.
 2. Lee, del árbol de `<viejo>`, todos los `*.md` cuyo nombre ya es una clave de proveedor (`is_unassigned` en falso), y su campo `status`.
 3. Le pregunta al proveedor su estado ahora mismo para esas mismas claves.
 4. Si algún valor difiere, rechaza — imprime cuál clave y los dos valores. Si todos coinciden, acepta.

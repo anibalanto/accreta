@@ -16,7 +16,7 @@ La jerarquía de worklist es flexible. Cualquier tipo puede estar en la raíz de
 ## Estructura de ejemplo
 
 ```
-accreta/.stratum/worklist/
+accreta/.worklist/insecure/all/
   1.epic.md                        ← sin parent: raíz del árbol
   2.user-story.md                  ← parent: 1
   3.task.md                        ← parent: 2
@@ -109,6 +109,18 @@ Dos consecuencias, y las dos son deliberadas:
 **Una user story no puede atravesar sprints.** Si entra, entra entera. Con lo cual una que no cabe en una iteración deja de ser algo que se parte en el planning y pasa a ser una user story mal dimensionada — el problema se vuelve visible en vez de esconderse en un compromiso parcial.
 
 **Y si una task se quiere sola pero cuelga de una user story**, la pregunta no es cómo sacarla al sprint sino si está bien colgada de esa user story. La salida es **reacomodar la descomposición** —la task pasa a colgar de otra user story, o de ninguna— y nunca planificarla dejando a su user story atrás. La regla lleva la discusión a la descomposición, que es donde va.
+
+### Al cerrar, lo que no se hizo sale del `items`
+
+> **Un sprint cerrado dice lo que se hizo. Lo que quedó vuelve al backlog.**
+
+El ítem sin terminar se saca de `items`, y el cuerpo del sprint anota que quedó afuera.
+
+**Dejarlo adentro lo haría desaparecer.** El backlog se calcula sobre *"ningún sprint lo nombra"* —no *"ningún sprint abierto"*—, así que un ítem en un sprint cerrado no está en el backlog **ni** en un sprint en curso: no aparece en ninguna de las dos preguntas que este formato sabe contestar, y se pierde de vista sin que nada lo reporte.
+
+Y lo que se querría conservar dejándolo —el registro de lo que se había comprometido— **no se pierde**: va en la prosa, que es donde ya va todo lo que no es membresía. `items` dice qué se terminó; el cuerpo dice qué se prometió y qué no se llegó a hacer.
+
+De ahí sale una asimetría deliberada: **lo que se hizo se consulta a máquina** —el backlog se calcula con eso— y **lo que se planificó lo lee una persona.**
 
 ### El backlog no es un archivo
 

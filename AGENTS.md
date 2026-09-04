@@ -6,9 +6,11 @@ Specs de un ecosistema de herramientas: **bilinker** (referencias verificadas en
 
 ## Dónde está el trabajo
 
-En `.stratum/worklist-accreta/` — épicas, user stories, tasks y sprints. Para saber qué sigue: el sprint con `status: in-progress` en `_sprints/` —o, si no hay ninguno, el próximo `open` por número—, y de ahí a los ítems que referencia.
+En `.worklist/insecure/all/` — épicas, user stories, tasks y sprints. Para saber qué sigue: el sprint con `status: in-progress` en `_sprints/` —o, si no hay ninguno, el próximo `open` por número—, y de ahí a los ítems que referencia.
 
-**Es una capa con repo propio**, `git@github.com:anibalanto/worklist-accreta.git`, igual que las capas impl de cada subsistema. Un clon de accreta no la trae: `stratum pull` sí. El nombre lleva el proyecto porque el worklist es de accreta y la herramienta no — la spec del formato está en `subsystems/worklist/` y no nombra a nadie.
+**No es una capa de stratum**: es el aparato de seguimiento del proyecto, más pariente de `.bilink/` que de `subsystems/`. Vive en `.worklist/`, que es un **contenedor de worktrees** de su repo propio, `git@github.com:anibalanto/worklist-accreta.git` — un clon de accreta no lo trae, y `stratum pull` tampoco: es un `git clone` aparte.
+
+`insecure/all` es el panorama, con todos los ítems; una ventana —`secure/sprint/<id>`— lleva sólo los de ese sprint. El path dice la capacidad: a una rama insegura no se le puede empujar. Ver [`subsystems/worklist/concepts/sync.md`](subsystems/worklist/concepts/sync.md).
 
 Guía operativa del formato: `.claude/skills/worklist/SKILL.md`. Spec completa: `subsystems/worklist/`.
 
@@ -16,7 +18,7 @@ Las decisiones que ese trabajo ejecuta viven en `docs/adr/` de la capa impl del 
 
 ## Cómo se trabaja acá
 
-0. **Primero hay una tarea.** Ninguna modificación al repo empieza sin un ítem en `.stratum/worklist-accreta/`.
+0. **Primero hay una tarea.** Ninguna modificación al repo empieza sin un ítem en `.worklist/insecure/all/`.
 1. Se toca **la spec**, nunca el código primero.
 2. `bilinker check .` reporta los endpoints que quedaron no-OK.
 3. Cada no-OK es un puntero al fragmento de código que implementaba esa spec. Se sigue con `bilinker get`.
