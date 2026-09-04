@@ -110,6 +110,18 @@ Dos consecuencias, y las dos son deliberadas:
 
 **Y si una task se quiere sola pero cuelga de una user story**, la pregunta no es cómo sacarla al sprint sino si está bien colgada de esa user story. La salida es **reacomodar la descomposición** —la task pasa a colgar de otra user story, o de ninguna— y nunca planificarla dejando a su user story atrás. La regla lleva la discusión a la descomposición, que es donde va.
 
+### Al cerrar, lo que no se hizo sale del `items`
+
+> **Un sprint cerrado dice lo que se hizo. Lo que quedó vuelve al backlog.**
+
+El ítem sin terminar se saca de `items`, y el cuerpo del sprint anota que quedó afuera.
+
+**Dejarlo adentro lo haría desaparecer.** El backlog se calcula sobre *"ningún sprint lo nombra"* —no *"ningún sprint abierto"*—, así que un ítem en un sprint cerrado no está en el backlog **ni** en un sprint en curso: no aparece en ninguna de las dos preguntas que este formato sabe contestar, y se pierde de vista sin que nada lo reporte.
+
+Y lo que se querría conservar dejándolo —el registro de lo que se había comprometido— **no se pierde**: va en la prosa, que es donde ya va todo lo que no es membresía. `items` dice qué se terminó; el cuerpo dice qué se prometió y qué no se llegó a hacer.
+
+De ahí sale una asimetría deliberada: **lo que se hizo se consulta a máquina** —el backlog se calcula con eso— y **lo que se planificó lo lee una persona.**
+
 ### El backlog no es un archivo
 
 Un ítem que no está referenciado por ningún sprint está en el backlog **por definición**, y lo lista un comando. Mantenerlo como archivo obligaría a editar dos lugares para mover algo, y los dos podrían divergir.
