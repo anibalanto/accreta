@@ -2,6 +2,11 @@ kind: governs
 endpoint:
   0:
     link: capture decfb14c0219e6864316e4d6cafbcaea
+    accepted:
+    - agree:
+      - Anibal
+      link: capture decfb14c0219e6864316e4d6cafbcaea
+      hash: 01f634628cd116616eba18fc999e63a23db8381c3709c8cc4c1d77ac286a8e46
     name: la-regla
   1:
     link: path subsystems/worklist>impl
