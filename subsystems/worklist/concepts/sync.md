@@ -128,7 +128,7 @@ El puerto se llamó `Provider` y `Creator` y quedó dibujado por lo que `acli` s
 
 Y lo que falta del lado de editar es exactamente lo que hace falta para **reconciliar**, que es lo único que sirve cuando alguien tocó el board a mano. Poner un campo sólo al crear no converge: sirve una vez.
 
-Un segundo transporte los toma por lo que son: **un `set` sobre un campo**, cuyo resultado no depende del estado previo. Y las dos son de **lote** —un sprint recibe sus issues de a decenas—, así que pesa que las tome de a muchas y no de a una.
+Un segundo transporte los toma por lo que son: **un `set` sobre un campo**, cuyo resultado no depende del estado previo. Y la membresía de sprint es de **lote** —un sprint recibe sus issues de a decenas—, así que pesa que los tome de a muchos y no de a uno.
 
 ### El reparto, escrito una vez
 
@@ -140,6 +140,7 @@ Un segundo transporte los toma por lo que son: **un `set` sobre un campo**, cuyo
 | vínculos | `acli` | `link create` y `link list` |
 | leer el estado en vivo | `acli` | `search --fields` trae status, título y cuerpo de N claves en una llamada |
 | **jerarquía sobre un issue que existe** | **`jira-cli`** | `acli edit` no acepta `parent`; `jira epic add` lo pone sobre issues ya creados |
+| **leer la jerarquía puesta** | `acli` | `workitem view --fields parent`, de a uno: en `search` el campo no está permitido |
 | **membresía de sprint** | **`jira-cli`** | `acli edit` no acepta `additionalAttributes`; `jira sprint add` toma hasta 50 issues por llamada |
 | crear el sprint | `acli` | `sprint create` |
 | qué issues tiene un sprint | `acli` | `sprint list-workitems` |
@@ -148,7 +149,9 @@ Un segundo transporte los toma por lo que son: **un `set` sobre un campo**, cuyo
 
 **Y la tabla es también la lista de operaciones del puerto**: no hay ninguna que no esté. Un llamador que necesita algo que no figura no tiene que elegir transporte — tiene que agregar una fila.
 
-El segundo transporte podría ser REST, y no lo es. Los dos necesitan **la misma credencial**, así que la elección no fue por ahí: fue entre escribir un cliente HTTP y administrar un binario más, y las dos operaciones que faltan son de lote, que es donde un cliente propio las haría de a una. Lo que REST sigue cubriendo y `jira-cli` no es **editar un campo custom cualquiera**: su `--custom` es sólo al crear, igual que `acli`. El día que haga falta escribir un campo que no sea sprint ni épica, la tabla gana una fila y un tercer transporte.
+El segundo transporte podría ser REST, y no lo es. Los dos necesitan **la misma credencial**, así que la elección no fue por ahí: fue entre escribir un cliente HTTP y administrar un binario más, y la membresía de sprint es de lote, que es donde un cliente propio la haría de a una — 154 llamadas contra 16.
+
+**La jerarquía no gana nada de eso, y conviene decirlo.** En un proyecto *next-gen* `jira epic add` itera y manda un `PUT` por issue: exactamente lo que haría un cliente propio. Ahí el transporte ahorra el cliente HTTP y nada más. La fila se justifica sola —`acli` no puede—, pero no por lote. Lo que REST sigue cubriendo y `jira-cli` no es **editar un campo custom cualquiera**: su `--custom` es sólo al crear, igual que `acli`. El día que haga falta escribir un campo que no sea sprint ni épica, la tabla gana una fila y un tercer transporte.
 
 ### La credencial es del segundo transporte, y es nueva
 
@@ -162,17 +165,57 @@ Y esa verificación **es de arranque**, no de la primera vez que haga falta: sin
 
 ### Dos transportes, dos formas de mentir, una sola respuesta
 
-§ "El éxito se lee de la salida" vale para los dos, y cada uno miente a su manera. `acli` sale con 0 y pone el fracaso en el cuerpo, que es lo que costó cinco descripciones rechazadas en silencio. De `jira-cli` **no se sabe todavía**, y ésa es la deuda que trajo elegirlo.
+§ "El éxito se lee de la salida" vale para los dos, y **mienten en lados opuestos**:
 
-> **Cómo informa un fallo se averigua leyendo su código, no empujando.**
+| | `acli` | `jira-cli` |
+|---|---|---|
+| al fallar | **sale con 0** y escribe el fracaso en `stdout` | **sale con 1**, y el motivo va a `stderr` |
+| al andar | `✓` en `stdout` | `✓` en `stdout` |
+| a medias | el `status` de cada entrada lo dice | **imprime `✓` y sale con 1** |
 
-Es la única ventaja concreta de que sea open source para este caso, y desperdiciarla sería repetir la forma en que apareció el defecto de `acli`: en producción, sobre trabajo real, después.
+> **De `acli` no se puede leer el código de salida. De `jira-cli` no se puede leer el mensaje de éxito.**
 
-**Hasta que esté verificado, el puerto no le cree al código de salida**: pide el efecto de vuelta. Es lo que ya hace con los vínculos —`link create` no acepta `--json`, así que se listan los links después— y el precio es una llamada más por operación. Se paga mientras dure la duda; una vez leído el código, la fila de la tabla dice cuál de las dos formas usa.
+Y eso **se averiguó leyendo su código, no empujando** — que es la única ventaja concreta de que sea open source para este caso. `main` imprime el error en `stderr` y sale con 1; `ExitIfError` hace lo mismo para cualquier error que suba; y la capa de API devuelve error ante cualquier respuesta que no sea la esperada. La cadena cierra: **el código de salida es fiel.**
 
-**Y no siempre se puede pagar.** Leer la épica de vuelta cuesta una llamada por clave: `acli` responde `field 'parent' is not allowed` a un `search --fields parent`, así que va por `workitem view`, que es de a uno. Leer los issues de un sprint cuesta más que una llamada: `sprint list-workitems` pide **el id del board** además del sprint, y eso es configuración que este sistema todavía no tiene. Así que la membresía de sprint viaja hoy **sin verificar**, y está escrito acá en vez de parecer un olvido.
+Lo que no es fiel es el `✓`. En un proyecto *next-gen* —el nuestro— `epic add` no manda un lote: itera issue por issue, junta los que fallaron, y si **al menos uno** anduvo imprime el éxito igual antes de salir con 1.
+
+**Y el motivo viene en el idioma de quien corre** —`No se ha encontrado el sprint`—, así que es el mismo cuidado que con `acli`: se reporta, no se matchea.
+
+De ahí sale que el puerto **sí** le cree al código de salida de `jira-cli`, y **no** al de `acli`. La verificación del efecto se sigue haciendo donde no hay código de salida que leer: los vínculos, porque `link create` no acepta `--json`.
+
+### Leer la épica es su propia operación, y no es para verificar
+
+Es para **no afirmar sin mirar** — ver § "Pero decirlo no es afirmar sobre el board". Y cuesta una llamada por clave: `acli` responde `field 'parent' is not allowed` a un `search --fields parent`, así que va por `workitem view`, que es de a uno.
 
 **Y el puerto normaliza igual**: quien llama recibe una sola forma de "salió bien" o "falló, y esto pasó". Es lo que evita que agregar un transporte multiplique los modos de falla que hay que conocer río arriba.
+
+### La correspondencia con el sprint del proveedor se guarda, no se busca
+
+El sprint del worklist se llama por su número —`_sprints/17.sprint.md`— y el del proveedor por un id numérico suyo. Alguien tiene que sostener la correspondencia, y hay dos formas:
+
+| | |
+|---|---|
+| **buscarlo por nombre** en cada corrida | el nombre pasa a ser la llave, y renombrar un sprint la rompe |
+| **guardar el id** | un dato del proveedor viviendo en git — que es lo que la clave de un ítem ya hace |
+
+> **Se guarda**, en un campo `key` del `.sprint.md`.
+
+Es el mismo trato que un ítem: su clave está en git —en el nombre del archivo— y nadie la busca por título dos veces. Un sprint no puede llevarla en el nombre, porque ahí va su número, que es de otro contador y es parte de cómo se lo nombra. Así que va al frontmatter, y es el único campo que el proveedor escribe:
+
+```yaml
+---
+title: Los sprints en el board
+status: in-progress
+items: [ACC-106, …]
+key: 4127                    # el id del sprint en el proveedor, si ya existe
+created_at: …
+updated_at: …
+---
+```
+
+**Sin `key` el sprint todavía no existe del otro lado**, igual que un ítem cuyo archivo lleva slug. Y con `key` puesto, el nombre queda libre: cambiarle el título al sprint en cualquiera de los dos lados no rompe nada, porque la correspondencia no pasa por ahí.
+
+**El id del board va aparte**, en la configuración y no en git: es de la instalación, no del worklist. `sprint list-workitems` lo pide además del sprint, y `jira-cli` ya lo lleva en su config.
 
 ## Asignar una clave: crear o encontrar
 
