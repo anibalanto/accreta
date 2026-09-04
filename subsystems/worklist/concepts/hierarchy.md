@@ -68,10 +68,13 @@ Un sprint no contiene: referencia. Y **vive en `_sprints/`, fuera del árbol de 
 title: <string>
 status: open | in-progress | done
 items: [<id>, …]
+key: <id del proveedor>       # opcional — lo escribe el servidor
 created_at: <iso8601-utc>
 updated_at: <iso8601-utc>
 ---
 ```
+
+`key` es el único campo que **no** escribe una persona: lo pone el servidor cuando el sprint existe del otro lado, y su ausencia significa que todavía no. Ver [`sync.md`](sync.md#la-correspondencia-con-el-sprint-del-proveedor-se-guarda-no-se-busca).
 
 `items` lleva los ids que el sprint referencia directamente — los mismos que antes sólo estaban como link en el cuerpo, y ni uno más: la [regla del ancestro](#la-regla-del-ancestro) dice que un ítem entra con su subárbol entero, así que `items` nunca nombra una task cuya user story ya está en la lista.
 
