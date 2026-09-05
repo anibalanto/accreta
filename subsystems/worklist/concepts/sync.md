@@ -472,6 +472,18 @@ Y los ancestros que la ventana trae **no** son miembros. La épica viaja de sól
 
 Y **el nombre no es la correspondencia**: ésa es el `key` del frontmatter. Cambiarle el título al sprint de cualquiera de los dos lados no rompe nada.
 
+#### Y entra en 29 caracteres, porque Jira no acepta 30
+
+Medidos los veintidós sprints de este repo, **diez se pasan** y el más largo mide 65. No es un caso de borde.
+
+Se recorta el **título**, nunca el número, y el corte se marca — un título cortado sin aviso se lee como un título raro:
+
+```
+12 El formato: `accepted` co…
+```
+
+**Y lo que lo vuelve seguro no es el largo: es que sea determinístico.** Mientras no haya `key`, este nombre es con lo que se busca antes de crear, así que dos corridas que produjeran nombres distintos duplicarían el sprint. Cortar por cantidad de caracteres lo es; cortar por palabra entera no.
+
 ### Se busca por nombre exactamente cuando no hay `key`, y eso no se contradice
 
 Con `key` puesto no se busca nada: se usa. Sin `key` creemos que el sprint no existe del otro lado — y creerlo no alcanza, porque una corrida que crea el sprint y se cae antes de mover la ref lo dejó creado y sin anotar. El reintento lo duplicaría.
