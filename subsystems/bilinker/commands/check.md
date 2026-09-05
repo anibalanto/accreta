@@ -205,7 +205,7 @@ Se distingue con un test de subcadena contra el **texto aceptado**, no con un um
 
 Que `F` contenga a `T` verbatim implica que nada dentro de lo aceptado cambió, así que la condición de "AST interno sin cambio estructural" se satisface sola.
 
-**Sin `T` no hay EXPANDED.** El texto aceptado sale de git —`accepted.commit` más el path del capture— y eso puede no estar. Cuando falta, la comparación por subcadena no se puede hacer y el estado cae en ALTERED, que pide revisión. Es la respuesta segura, y desde la task `17` el commit se re-deriva, así que el caso es raro.
+**Sin `T` no hay EXPANDED.** El texto aceptado sale de git —`accepted.commit` más el path del capture— y eso puede no estar. Cuando falta, la comparación por subcadena no se puede hacer y el estado cae en ALTERED, que pide revisión. Es la respuesta segura, y hoy el commit se re-deriva, así que el caso es raro.
 
 ### Estados propios de un endpoint `path`
 
