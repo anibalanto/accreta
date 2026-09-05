@@ -1,9 +1,11 @@
 ---
 name: worklist
-description: "Cómo leer y mover el trabajo de este proyecto — épicas, user stories, tasks y sprints en `.worklist/insecure/all/`. Cargar esta skill cuando haya que saber qué sigue, qué hay en el sprint actual, qué está en el backlog, dónde está una tarea, o al crear o mover un ítem. También al planificar o repartir trabajo."
+description: "Cómo leer y mover el trabajo de este proyecto — épicas, user stories, tasks y sprints en `.worklist/`. Cargar esta skill cuando haya que saber qué sigue, qué hay en el sprint actual, qué está en el backlog, dónde está una tarea, al crear o mover un ítem, o **antes de escribir código**: lleva los chequeos que hay que pasar primero. También al planificar o repartir trabajo."
 ---
 
-El trabajo vive en `<project-root>/.worklist/insecure/all/`, que es un worktree del repo propio del worklist — no una capa de stratum, así que un clon de accreta no lo trae y `stratum pull` tampoco. Spec completa en [`subsystems/worklist/`](../../../subsystems/worklist/concepts/item.md) — acá va lo operativo.
+Los ítems viven en `<project-root>/.worklist/`, que es el repo propio del worklist — no una capa de stratum, así que un clon de accreta no lo trae y `stratum pull` tampoco. Spec completa en [`subsystems/worklist/`](../../../subsystems/worklist/concepts/item.md) — acá va lo operativo.
+
+**Están todos en `insecure/all`, y ahí no se trabaja.** El panorama es de donde se lee y contra lo que se consulta; para tocar algo se corta una vista segura. Es la primera regla y está abajo.
 
 **El proyecto lo nombra el directorio y no la rama**, porque el worklist es de accreta y la herramienta no; `insecure/all` es el panorama y se llama igual en todos, porque lo nombra la spec de sincronización. Así lo resuelve `bilinker` un endpoint `issue`, y **siempre contra el panorama, nunca contra una ventana**: si resolviera contra la rama abierta, el mismo `issue <id>` resolvería o no según qué sprint tengas cortado.
 
