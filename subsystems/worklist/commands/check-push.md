@@ -38,7 +38,7 @@ El proveedor arbitra todo lo que tiene clave: dos ventanas que editan el mismo �
 aviso: refs/heads/secure/sprint/10 no se pudo probar contra el panorama — este repo no tiene refs/heads/insecure/all
 ```
 
-No rechaza el push: informa. Que el panorama no esté del lado del servidor es un problema de la instalación, no de quien empuja — es la task `77`.
+No rechaza el push: informa. Que el panorama no esté del lado del servidor es un problema de la instalación, no de quien empuja.
 
 **Y no prueba los renombres**, porque no se copian: [se rehacen](../concepts/propagation.md#el-renombre-es-el-único-que-no-se-copia-y-el-motivo-es-de-alcance) sobre el árbol del panorama, y ahí no hay parche que pueda no aplicar.
 

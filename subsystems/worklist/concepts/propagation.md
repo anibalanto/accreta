@@ -2,7 +2,7 @@
 
 > **Lo que se hace en una ventana llega al panorama por cherry-pick, y la ventana se pone al día regenerándose.**
 
-Decidido y confirmado por eliminación contra git: el merge con revert anda una vez y choca a la segunda con `agregar/agregar`, `sparse-checkout` deja que la ventana escriba lo ajeno con un solo comando, y rebasear el corte **ensancha la ventana sola**. El razonamiento contra cada alternativa está en el ítem [`64` La propagación entre una ventana y el panorama es cherry-pick hacia arriba y rebase hacia abajo](../../../.worklist/insecure/all/64.task.md); esta página es la spec de lo decidido.
+Decidido y confirmado por eliminación contra git: el merge con revert anda una vez y choca a la segunda con `agregar/agregar`, `sparse-checkout` deja que la ventana escriba lo ajeno con un solo comando, y rebasear el corte **ensancha la ventana sola**. Las pruebas de cada alternativa están en el trabajo que lo decidió; esta página es la spec de lo decidido.
 
 El panorama es `insecure/all`, y **nadie le empuja**: [`sync.md`](sync.md#dos-clases-de-rama-y-el-nombre-dice-qué-se-puede-hacer) rechaza el push a una rama insegura, así que la propagación no es una política que alguien pueda saltearse — es la única forma que tiene de avanzar.
 
@@ -92,7 +92,7 @@ Lo que el paso 1 no puede probar son los commits que el servidor todavía no esc
 
 ## Hacia abajo: regenerar, y el rebase es sólo el rescate
 
-Acá había una contradicción aparente. [`64` La propagación entre una ventana y el panorama es cherry-pick hacia arriba y rebase hacia abajo](../../../.worklist/insecure/all/64.task.md) midió que el rebase **ensancha la ventana sola**, y [`71` Una vista dinámica vive sólo local y se pone al día con un rebase; un artefacto es una rama del servidor](../../../.worklist/insecure/all/71.task.md) dice que una vista se pone al día rebaseando. Las dos son ciertas, y hablan de rebasear cosas distintas.
+Acá había una contradicción aparente: está medido que el rebase **ensancha la ventana sola**, y también está decidido que una vista se pone al día rebaseando. Las dos son ciertas, y hablan de rebasear cosas distintas.
 
 **Lo que ensancha es re-aplicar el corte.** El corte es un commit que borra una lista fija de rutas; re-aplicado sobre un panorama que creció, no menciona lo nuevo — así que lo nuevo entra:
 
@@ -122,7 +122,7 @@ Un cherry-pick pregunta contra el árbol que tiene delante, que es el único lug
 
 En el caso sano no hay nada que replantar: `W1` y `W2` **ya subieron al panorama** en el paso 3, así que el corte nuevo los contiene, el cherry-pick queda vacío y se deja caer. Nadie tiene que acordarse de propagar antes de regenerar — **si se propagó, el replante es vacío; si no, replanta y no se pierde nada.**
 
-Es una sola operación cubriendo los dos casos, y es lo que le da un mecanismo a lo que hasta acá era una advertencia: la guarda de [`5o` El worktree local no trae lo que el servidor escribió, y re-cortar la ventana lo descarta](../../../.worklist/insecure/all/5o.task.md) en `window open --force` decía *"descartar es correcto sólo si el trabajo se propagó"* y le pedía a quien corre el comando que lo supiera.
+Es una sola operación cubriendo los dos casos, y es lo que le da un mecanismo a lo que hasta acá era una advertencia: la guarda de [`window open --force`](../commands/window-open.md#y---force-baja-de-categoría) decía *"descartar es correcto sólo si el trabajo se propagó"* y le pedía a quien corre el comando que lo supiera.
 
 **`--force` no desaparece**, y baja de categoría: queda para el caso en que el replante conflictúa y alguien decide tirar lo local. Deja de ser el flujo del `items` que cambió, que ahora es regenerar y ya.
 
@@ -141,10 +141,10 @@ Es una sola operación cubriendo los dos casos, y es lo que le da un mecanismo a
 
 ## Lo que esto destraba
 
-- [`5n` Separar existir en el proveedor de estar en una rama segura, para que el backlog tenga un camino a Jira](../../../.worklist/insecure/all/5n.task.md) — subir el backlog deja de pedir un camino de escritura aparte: con el panorama teniendo claves, es una operación normal.
-- [`5k` Error de traducción: una dependencia que apunta fuera de la ventana viaja como slug y el proveedor la rechaza](../../../.worklist/insecure/all/5k.task.md) — una [dependencia que cruza la ventana](sync.md#una-dependencia-que-cruza-la-ventana-se-reporta-no-rompe-el-push) llega ya traducida, y el vínculo se crea solo.
-- [`5u` Error de permanencia: el servidor de sincronización vive en un scratchpad de sesión y se va con ella](../../../.worklist/insecure/all/5u.task.md) — las ramas `secure/*` dejan de ser la única copia de la correspondencia slug ↔ clave.
-- [`5l` Error de idempotencia: un `*` en el título rompe la búsqueda y `create_or_find` duplica el issue](../../../.worklist/insecure/all/5l.task.md) — la identidad de un ítem deja de ser su título: con clave en el panorama no hay nada que buscar, y buscar por título es lo único que puede duplicar.
+- **El backlog** — subir el backlog deja de pedir un camino de escritura aparte: con el panorama teniendo claves, es una operación normal.
+- **Las dependencias que cruzan** — una [dependencia que cruza la ventana](sync.md#una-dependencia-que-cruza-la-ventana-se-reporta-no-rompe-el-push) llega ya traducida, y el vínculo se crea solo.
+- **La correspondencia slug ↔ clave** — las ramas `secure/*` dejan de ser la única copia de la correspondencia slug ↔ clave.
+- **La identidad de un ítem** — la identidad de un ítem deja de ser su título: con clave en el panorama no hay nada que buscar, y buscar por título es lo único que puede duplicar.
 - **`window open --force`** — el caso del `items` que cambió pasa a ser regenerar, en vez de una salida de emergencia.
 
 Y de paso se cierra el costo diario: hoy el mismo ítem se llama `4i` parado en el panorama y `ACC-96` parado en su ventana, así que **todo lo que se planifica se nombra en base-36 y todo lo que se muestra se nombra `ACC-`**.

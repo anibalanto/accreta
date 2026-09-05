@@ -28,7 +28,7 @@ worklist assign-keys --project <clave> --board <id>
 
 Lo que las pasadas tienen que hacer no depende de que algo se haya movido en git — depende de que git y el proveedor puedan diferir. Con `<viejo>` igual a `<nuevo>`, las pasadas 1 a 4 no encuentran trabajo, que es correcto, y la 5 reconcilia el sprint, que es el punto.
 
-**Sin esto, reconciliar una ventana ya resuelta obliga a imitar el hook a mano** —un `rev-parse`, un `echo` con el sha repetido, y saber el nombre de la ref—, contra el proveedor de producción. Ver la task `6q`.
+**Sin esto, reconciliar una ventana ya resuelta obliga a imitar el hook a mano** —un `rev-parse`, un `echo` con el sha repetido, y saber el nombre de la ref—, contra el proveedor de producción.
 
 **Y el orden es numérico, no lexicográfico**: `1, 2, … 16`, no `1, 10, 11, 2`. Un listado de refs viene ordenado como texto y el que lo lee espera lo otro.
 
@@ -65,7 +65,7 @@ Es una propiedad del repo y no de cada ventana, así que se pregunta antes del l
 aviso: este repo no tiene refs/heads/insecure/all — lo que se resuelva no sube a ningun lado
 ```
 
-Hoy es el caso del bare de la instalación. Es la task `77`.
+Hoy es el caso del bare de la instalación, que recibe las ventanas y no tiene panorama.
 
 ### Y el `--dry-run` no dice cuántos ya estaban
 

@@ -56,7 +56,7 @@ Es lo que una abstracción mal cortada dejaría del lado equivocado, y ninguna e
 
 **La traducción de tipos.** `jira_type` mapea `task → "Tarea"`, `user-story → "Historia"`, `epic → "Epic"`. No son nombres de Jira: son los de **este proyecto** de Jira, en el idioma en que se creó. Eso no es del proveedor siquiera — es de la instancia.
 
-**La búsqueda por título.** `create_or_find` es lo que hace que un reintento no duplique, y descansa en que el proveedor sepa encontrar por título exacto. La JQL costó dos duplicados —[`5l`](../../../.worklist/insecure/all/5l.task.md) y [`65`](../../../.worklist/insecure/all/65.task.md)— y las reglas que sobrevivieron son de la tokenización de Jira. Cada proveedor busca distinto, y **la idempotencia entera cuelga de ahí.**
+**La búsqueda por título.** `create_or_find` es lo que hace que un reintento no duplique, y descansa en que el proveedor sepa encontrar por título exacto. La JQL costó dos duplicados —uno por un `*` en el título, otro por quitarle los guiones— y las reglas que sobrevivieron son de la tokenización de Jira. Cada proveedor busca distinto, y **la idempotencia entera cuelga de ahí.**
 
 ## Qué querría decir "estable"
 

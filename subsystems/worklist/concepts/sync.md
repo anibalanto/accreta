@@ -395,9 +395,9 @@ Y va **después** del compare-and-swap, que ya corrió: *"si git está actualiza
 |---|---|---|
 | el cuerpo | ✔ | por el mismo camino de siempre: `round_trip`, la poda de marks, los links traducidos |
 | el título | ✔ | es el `summary`, y es lo que se ve en el board |
-| el `status` | ✘ | **no es el mismo campo** que el del proveedor — ver § "La jerarquía entra hasta donde el proveedor la tiene" y la task `5y` |
+| el `status` | ✘ | **no es el mismo campo** que el del proveedor — ver § "La jerarquía entra hasta donde el proveedor la tiene" |
 
-**Y subir el título tiene un costo que hay que decir.** La identidad de un ítem sin clave es su título: así lo encuentra `create_or_find` para no duplicar. Si el título cambia en el proveedor y alguien vuelve a cortar la ventana desde el panorama —que tiene el título viejo y sin clave—, la búsqueda no encuentra nada y **crea un issue nuevo**. Es el defecto de la task `5l` por otra puerta.
+**Y subir el título tiene un costo que hay que decir.** La identidad de un ítem sin clave es su título: así lo encuentra `create_or_find` para no duplicar. Si el título cambia en el proveedor y alguien vuelve a cortar la ventana desde el panorama —que tiene el título viejo y sin clave—, la búsqueda no encuentra nada y **crea un issue nuevo**. Es el defecto de la búsqueda por título por otra puerta — ver § "Asignar una clave: crear o encontrar".
 
 Y no lo arregla que re-cortar la ventana sea seguro: [regenerar](propagation.md#hacia-abajo-regenerar-y-el-rebase-es-sólo-el-rescate) parte del panorama, así que el problema es que el panorama no tenga la clave. Se arregla cuando [la propagación](propagation.md) corra, que es cuando la va a tener.
 

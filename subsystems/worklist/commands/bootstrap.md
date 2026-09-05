@@ -47,7 +47,7 @@ Y dónde está parado quien lo corre decide cómo se escribe:
 | la rama **está checkouteada acá** | se trabaja en el árbol y se commitea, como cualquiera |
 | no lo está | worktree temporal en `--detach`, y `update-ref` al final |
 
-**Lo que no hace es mover una rama que otro worktree tiene abierta.** Es el defecto de la task `5o`: `update-ref` la mueve igual y deja ese worktree con el índice del árbol anterior — y acá serían ciento y pico de renombres. Sobre eso no hay `--force` que valga.
+**Lo que no hace es mover una rama que otro worktree tiene abierta.** Es el defecto que [`window open`](window-open.md#y-no-se-mueve-una-rama-que-alguien-tiene-abierta) ya evita: `update-ref` la mueve igual y deja ese worktree con el índice del árbol anterior — y acá serían ciento y pico de renombres. Sobre eso no hay `--force` que valga.
 
 ```
 $ worklist bootstrap --project ACC
@@ -64,7 +64,7 @@ Sólo en el primer caso, y por una razón mecánica: el renombre commitea con `a
 
 ### Por qué no dice "el servidor"
 
-Porque hoy el panorama no está del lado del servidor: el bare de sincronización tiene las dieciséis ventanas y ningún `insecure/all`. Es la task `77`, y hasta que se resuelva **el único lugar donde este comando puede correr es el worktree del panorama**.
+Porque hoy el panorama no está del lado del servidor: el bare de sincronización tiene las dieciséis ventanas y ningún `insecure/all`. Hasta que eso se resuelva, **el único lugar donde este comando puede correr es el worktree del panorama**.
 
 ## Salida
 
