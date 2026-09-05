@@ -57,6 +57,26 @@ Al final mueve la ref al commit resultante, y **sube al panorama lo que quedó**
 
 **La pasada 5 corre aunque no haya nada que asignar.** Una ventana ya resuelta no tiene pedidos ni cambios, y es justamente la que tiene sus issues creados y su sprint sin existir. Ver [`concepts/sync.md`](../concepts/sync.md#corre-aunque-no-haya-nada-que-asignar).
 
+### Que falte el panorama se avisa una vez, no por ventana
+
+Es una propiedad del repo y no de cada ventana, así que se pregunta antes del lote. Repetir la misma línea dieciséis veces convierte un aviso útil en ruido que se scrollea — y el que lo lee termina creyendo que le pasó algo a cada una.
+
+```
+aviso: este repo no tiene refs/heads/insecure/all — lo que se resuelva no sube a ningun lado
+```
+
+Hoy es el caso del bare de la instalación. Es la task `77`.
+
+### Y el `--dry-run` no dice cuántos ya estaban
+
+No le preguntó a nadie: decir `0` sería afirmar sobre el board sin haberlo mirado, que es el defecto que la § "Pero decirlo no es afirmar sobre el board" de [`concepts/sync.md`](../concepts/sync.md#pero-decirlo-no-es-afirmar-sobre-el-board) corrigió del otro lado. Lo único cierto sin preguntar es la membresía que se calculó de `items`:
+
+```
+  sprint 1 -> (dry-run): 4 miembro(s) calculados; no se pregunto cuantos ya estan
+```
+
+**Y no se puede volver a escribir mal**, porque el dato no se puede representar: el campo es un `Option`, y *"no se preguntó"* es `None` y no `0`.
+
 ## Corre sobre un repo bare, sin working tree
 
 Un hook de recepción no tiene árbol de trabajo, y los pasos 4 y 5 necesitan uno. La salida es un **worktree temporal en `--detach`** sobre `<nuevo>`: ahí se hacen los renombres, y al terminar se mueve la ref al `HEAD` resultante y se descarta el worktree.
