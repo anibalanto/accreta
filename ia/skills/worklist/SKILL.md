@@ -5,7 +5,7 @@ description: "Cómo leer y mover el trabajo de este proyecto — épicas, user s
 
 El trabajo vive en `<project-root>/.worklist/insecure/all/`, que es un worktree del repo propio del worklist — no una capa de stratum, así que un clon de accreta no lo trae y `stratum pull` tampoco. Spec completa en [`subsystems/worklist/`](../../../subsystems/worklist/concepts/item.md) — acá va lo operativo.
 
-**El proyecto lo nombra el directorio y no la rama**, porque el worklist es de accreta y la herramienta no; `insecure/all` es el panorama y se llama igual en todos, porque lo nombra la spec de sincronización. Así lo resuelve `bilinker` un endpoint `issue`, y **siempre contra el panorama, nunca contra una ventana**: si resolviera contra la rama abierta, el mismo `issue 3a` resolvería o no según qué sprint tengas cortado.
+**El proyecto lo nombra el directorio y no la rama**, porque el worklist es de accreta y la herramienta no; `insecure/all` es el panorama y se llama igual en todos, porque lo nombra la spec de sincronización. Así lo resuelve `bilinker` un endpoint `issue`, y **siempre contra el panorama, nunca contra una ventana**: si resolviera contra la rama abierta, el mismo `issue <id>` resolvería o no según qué sprint tengas cortado.
 
 ## Hay dos repos, y los dos son bare
 
@@ -43,7 +43,7 @@ worklist window open <sprint-id>          # produce secure/sprint/<id>
 
 ### Y hay un hueco, que conviene saber antes de chocarlo
 
-**Un ítem que no está en ningún sprint no tiene vista segura donde cortarse.** El backlog es inseguro por definición, y la vista para trabajarlo todavía no existe — es lo que resuelven las tasks `5q` (`to-work`), `5n` y la user story `6j`.
+**Un ítem que no está en ningún sprint no tiene vista segura donde cortarse.** El backlog es inseguro por definición, y la vista para trabajarlo todavía no existe: falta una vista derivada de una consulta al proveedor —`to-work`— y falta que el backlog tenga camino al proveedor. Las dos están decididas y sin implementar.
 
 | | |
 |---|---|
@@ -70,7 +70,7 @@ git fetch srv && git merge --ff-only srv/$(git rev-parse --abbrev-ref HEAD)
 
 **Y no un `reset --hard`**, aunque en el caso sano aterrice en el mismo commit: `reset --hard` **descarta sin preguntar**, y `--ff-only` **se niega**. La negativa es el dato. Un `reset --hard` es lo que se usa cuando ya decidiste tirar lo local — es un `--force`, no un `pull`.
 
-**Y refrescar es una vista por vez**, porque cada una es una rama checkouteada en su propio worktree y git mueve de a una. Traer las dieciséis es un `fetch` y dieciséis merges: eso es lo que `worklist sync` —task `6h`— existe para volver un comando.
+**Y refrescar es una vista por vez**, porque cada una es una rama checkouteada en su propio worktree y git mueve de a una. Traer las dieciséis es un `fetch` y dieciséis merges: eso es lo que `worklist sync` existe para volver un comando.
 
 Y no alcanza con que `git status` diga *"limpio"*: una vista atrasada se ve limpia. Medido: las 16 ventanas estuvieron un commit atrás durante horas y ninguna se veía pendiente.
 
@@ -84,7 +84,7 @@ crear el ítem  →  sincronizar  →  cortar o refrescar la vista  →  pasarlo
 
 Es el que el método ya pedía —*primero hay una tarea*— con lo que faltaba: **la tarea no está lista cuando se escribe, está lista cuando tiene id, está en tu vista y dice que la estás haciendo.**
 
-Los tres comandos que van a hacer esto solos están decididos y no existen: `worklist is-secure` (task `6i`), `worklist status` (task `72`) y `worklist sync` (task `6h`).
+**Los tres comandos que van a hacer esto solos están decididos y no existen todavía**: `worklist is-secure`, `worklist status` y `worklist sync`. Mientras tanto, los chequeos son los de arriba.
 
 ### Cómo saber si la vista es segura, hoy
 
@@ -104,7 +104,7 @@ La tercera fila es la que más pasa y la que menos se espera: parado en `accreta
 
 **Y hoy esto no es una aproximación: es exacto.** El `pre-receive` decide la clase con `starts_with("refs/heads/secure/")` y nada más, así que preguntar por el nombre calcula **lo mismo** que el servidor va a calcular.
 
-> Deja de ser exacto el día que la clase se **derive** en vez de creerle al nombre — que es la task `6i`, y es la que trae `worklist is-secure`. Cuando exista, este chequeo se reemplaza por el comando y esta sección se borra.
+> Deja de ser exacto el día que la clase se **derive** en vez de creerle al nombre — que es lo mismo que trae `worklist is-secure`. Cuando ese comando exista, este chequeo se reemplaza por él y esta sección se borra.
 
 De paso: en `.worklist/` el path espeja el nombre de la rama —`.worklist/secure/sprint/7` lleva `secure/sprint/7`— así que el `pwd` dice lo mismo. **La rama es la autoridad**, porque es lo que el hook lee.
 
@@ -171,7 +171,7 @@ De ahí sale que **una US no puede atravesar sprints**: si no cabe en una iterac
 En markdown el link envuelve las dos cosas:
 
 ```markdown
-[`3z` Error de cobertura: el vecindario de una firma resuelve a la firma misma, y el tipo que importa no se pregunta](3z.task.md)
+[`3z` Error de cobertura: el vecindario de una firma resuelve a la firma misma, y el tipo que importa no se pregunta](3z.task.md)   ← adentro del worklist, donde el renombre sí llega
 ```
 
 El id solo obliga a abrir el archivo para saber de qué se habla, y **el que lo abre es el que menos contexto tiene**: quien escribió la referencia ya sabía cuál era. Vale en los ítems y en los sprints.
