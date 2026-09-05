@@ -24,7 +24,9 @@ Antes decían *cuándo* aplicaba cada una — *"si la tarea toca bilinks"*, *"si
 
 En `.worklist/insecure/all/` — épicas, user stories, tasks y sprints. Para saber qué sigue: el sprint con `status: in-progress` en `_sprints/` —o, si no hay ninguno, el próximo `open` por número—, y de ahí a los ítems que referencia.
 
-**No es una capa de stratum**: es el aparato de seguimiento del proyecto, más pariente de `.bilink/` que de `subsystems/`. Vive en `.worklist/`, que es un **contenedor de worktrees** de su repo propio, `git@github.com:anibalanto/worklist-accreta.git` — un clon de accreta no lo trae, y `stratum pull` tampoco: es un `git clone` aparte.
+**No es una capa de stratum**: es el aparato de seguimiento del proyecto, más pariente de `.bilink/` que de `subsystems/`. Vive en `.worklist/`, que es un **contenedor de worktrees** de su repo propio — un clon de accreta no lo trae, y `stratum pull` tampoco: es un `git clone` aparte.
+
+**Ese repo es local**: un bare en `~/.local/share/accreta/worklist-sync/worklist.git`, con los hooks que sincronizan con Jira. No hay copia en GitHub y no la va a haber; el día que haya acuerdo con la empresa, el servidor pasa a un GitLab suyo — **misma forma, otro host**.
 
 `insecure/all` es el panorama, con todos los ítems; una ventana —`secure/sprint/<id>`— lleva sólo los de ese sprint. El path dice la capacidad: a una rama insegura no se le puede empujar. Ver [`subsystems/worklist/concepts/sync.md`](subsystems/worklist/concepts/sync.md).
 
