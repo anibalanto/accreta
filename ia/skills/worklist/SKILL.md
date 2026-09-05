@@ -5,7 +5,27 @@ description: "Cómo leer y mover el trabajo de este proyecto — épicas, user s
 
 El trabajo vive en `<project-root>/.worklist/insecure/all/`, que es un worktree del repo propio del worklist — no una capa de stratum, así que un clon de accreta no lo trae y `stratum pull` tampoco. Spec completa en [`subsystems/worklist/`](../../../subsystems/worklist/concepts/item.md) — acá va lo operativo.
 
-El repo es local: un bare en `~/.local/share/accreta/worklist-sync/worklist.git`. **El proyecto lo nombra el directorio y no la rama**, porque el worklist es de accreta y la herramienta no; `insecure/all` es el panorama y se llama igual en todos, porque lo nombra la spec de sincronización. Así lo resuelve `bilinker` un endpoint `issue`, y **siempre contra el panorama, nunca contra una ventana**: si resolviera contra la rama abierta, el mismo `issue 3a` resolvería o no según qué sprint tengas cortado.
+**El proyecto lo nombra el directorio y no la rama**, porque el worklist es de accreta y la herramienta no; `insecure/all` es el panorama y se llama igual en todos, porque lo nombra la spec de sincronización. Así lo resuelve `bilinker` un endpoint `issue`, y **siempre contra el panorama, nunca contra una ventana**: si resolviera contra la rama abierta, el mismo `issue 3a` resolvería o no según qué sprint tengas cortado.
+
+## Hay dos repos, y los dos son bare
+
+Es lo que más se confunde, y con razón: están los dos en la misma máquina y ninguno tiene un working tree propio.
+
+| | Dónde | Qué es |
+|---|---|---|
+| **el servidor** | `~/.local/share/accreta/worklist-sync/worklist.git` | recibe los push. **Es el único con hooks** |
+| **tu clon** | `<project-root>/.worklist/` | de donde cuelgan los diecisiete worktrees en los que trabajás. En él, el servidor se llama `srv` |
+
+> **Lo que los distingue no es dónde están: es que uno tiene hooks y el otro no.** Que el servidor sea local es una casualidad de hoy — mañana es un GitLab y nada cambia.
+
+Y el sentido es **de una sola dirección**:
+
+```
+tu vista  ──push──▶  el servidor  ──resuelve, y commitea encima──▶  se queda ahí
+          ◀──fetch───
+```
+
+**El servidor nunca te empuja.** Lo que escribe —los `rename <slug> -> <clave>`, los `normalize:`, el `key` del sprint— vive en *sus* ramas hasta que vos lo traés. Por eso el chequeo 3 de abajo existe: tu worktree puede estar atrasado y verse limpio.
 
 ## Se trabaja en una vista segura. El panorama es para leer
 
@@ -47,6 +67,10 @@ git fetch srv && git merge --ff-only srv/$(git rev-parse --abbrev-ref HEAD)
 ```
 
 `--ff-only` y no un merge común: el caso sano es siempre un fast-forward, y **que no lo sea quiere decir que la rama divergió** — alguien más la empujó, o se re-cortó. Un merge automático ahí escondería justo lo que hay que mirar.
+
+**Y no un `reset --hard`**, aunque en el caso sano aterrice en el mismo commit: `reset --hard` **descarta sin preguntar**, y `--ff-only` **se niega**. La negativa es el dato. Un `reset --hard` es lo que se usa cuando ya decidiste tirar lo local — es un `--force`, no un `pull`.
+
+**Y refrescar es una vista por vez**, porque cada una es una rama checkouteada en su propio worktree y git mueve de a una. Traer las dieciséis es un `fetch` y dieciséis merges: eso es lo que `worklist sync` —task `6h`— existe para volver un comando.
 
 Y no alcanza con que `git status` diga *"limpio"*: una vista atrasada se ve limpia. Medido: las 16 ventanas estuvieron un commit atrás durante horas y ninguna se veía pendiente.
 
