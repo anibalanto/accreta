@@ -46,7 +46,7 @@ Completo y verificable son excluyentes, así que hay dos clases y no una:
 
 **Rechazar el push a una insegura es lo que vuelve cierta la palabra.** Una rama que se llama insegura y acepta escrituras miente: no puede verificarse, así que no puede prometer que lo que entra sea consistente con el proveedor. Y de ahí sale, sin que nadie tenga que respetarla, que el panorama sólo avance por [propagación](propagation.md) — **no hay forma de empujarle.**
 
-`backlog` es insegura: es *"todo lo que ningún sprint tomó"* y crece sin techo. Para trabajar sobre ítems del backlog se recorta una ventana segura acotada.
+**El backlog es inseguro** —es *"todo lo que ningún sprint tomó"* y crece sin techo—, y la vista que lo muestre **tiene que llamarse `insecure/…`** para que la tabla la alcance. El prefijo es lo único que se mira: una rama llamada `backlog` a secas cae en *"cualquier otra"*, y ahí el `pre-receive` no opina — no la rechaza, la deja pasar. Para trabajar sobre ítems del backlog se recorta una ventana segura acotada.
 
 ### Una ventana sobrevive al cierre de su sprint
 
@@ -139,7 +139,9 @@ La detección no puede ser buscar ese texto: es de una herramienta ajena y está
  "totalCount":1,"successCount":0}
 ```
 
-**Una operación del proveedor se considera hecha cuando su `status` lo dice**, y `successCount` cierra el lote. Es el mismo principio que el resto: fallar hacia reportar, y no confundir *"no se pudo ver"* con *"está bien"*.
+**Una operación del proveedor se considera hecha cuando su `status` lo dice**, y el lote cierra cuando lo dicen **todas** sus filas. `successCount` viene en la respuesta y **no se lee**: es un total derivado de esas mismas filas, y un contador no dice cuál falló ni por qué — que es exactamente lo que hay que poder informar. Es el mismo principio que el resto: fallar hacia reportar, y no confundir *"no se pudo ver"* con *"está bien"*.
+
+**Y una respuesta sin `results` no es un lote.** `create` devuelve la clave sola, así que ahí no hay filas que mirar y no hay nada que chequear. Es el único lugar donde *"no hay filas"* se trata como éxito, y se apoya en que esa operación tenga su propia forma de fallar — no en que el silencio sea buena señal.
 
 Y de ahí sale una regla para cualquier proveedor futuro: **el puerto devuelve el resultado de la operación, no el de haberla intentado.** Un `Creator` que no distingue las dos cosas no sirve, por más que el comando que corra por debajo salga con 0.
 
@@ -391,7 +393,11 @@ Medido: ese nodo solo, en un documento de un párrafo, es rechazado con `INVALID
 
 **Cuando `code` viene con otros marks de formato, los otros se van.** El `code` es el que lleva la información —dice que eso es un identificador—; la negrita es énfasis, y el énfasis es lo que se puede perder sin cambiar lo que la frase significa.
 
-Va **en la frontera y no en el conversor**: qué marks se pueden combinar es del vocabulario del proveedor, y `body.rs` sólo sabe de markdown y de ADF. Y la pérdida no se esconde: el paso 3 convierte de vuelta, así que el markdown que aterriza dice `` `bilinker` `` sin negrita y **la poda se ve en el `git diff` del `pull`**, como cualquier otra normalización.
+**Va adentro de la conversión, no en la frontera.** `body_to_adf` produce el documento y lo poda antes de devolverlo, así que **no hay ADF que salga de esta capa sin podar** — nadie puede olvidarse de llamarla.
+
+> Esta página decía lo contrario —*"va en la frontera, y `body.rs` sólo sabe de markdown y de ADF"*—, y estaba mal en las dos mitades. La regla **es** del vocabulario ADF: que `code` no conviva con `strong` es del esquema del formato, y el formato es justamente lo que `body.rs` sabe. Del proveedor es sólo **cuánto duele** — Jira rechaza el documento entero. Un consumidor de ADF más tolerante no volvería incorrecta la poda: la volvería menos urgente.
+
+Y la pérdida no se esconde: el paso 3 convierte de vuelta, así que el markdown que aterriza dice `` `bilinker` `` sin negrita y **la poda se ve en el `git diff` del `pull`**, como cualquier otra normalización.
 
 ### Un ítem que ya tiene clave se actualiza, no se saltea
 
@@ -402,6 +408,8 @@ Cierto en su propio vocabulario y engañoso donde importa: no había ítems sin 
 > **Lo que se resuelve de una ventana son dos conjuntos: los pedidos, y lo que cambió.**
 
 **Qué cambió lo dice el push**, no el proveedor: el diff entre el tip anterior y el que llega nombra los archivos tocados, y de ahí salen las claves. No hay que preguntarle nada a nadie, y **un push que no toca un ítem no lo re-sube** — actualizar uno no puede costar ochenta llamadas.
+
+Del diff se miran **sólo los `*.md` de la raíz**: ahí viven los ítems, y lo que cuelga de un subdirectorio no es uno. El único que hay es `_sprints/`, y un sprint no es un issue — viaja por su propio camino, ver § "El sprint viaja como sprint, no como issue".
 
 Y va **después** del compare-and-swap, que ya corrió: *"si git está actualizado, puede ir al proveedor"* es una garantía cobrada un paso antes, sobre el mismo push.
 
@@ -492,7 +500,7 @@ Y **el nombre no es la correspondencia**: ésa es el `key` del frontmatter. Camb
 
 Medidos los veintidós sprints de este repo, **diez se pasan** y el más largo mide 65. No es un caso de borde.
 
-Se recorta el **título**, nunca el número, y el corte se marca — un título cortado sin aviso se lee como un título raro:
+Se recorta **por el final** —28 caracteres más la marca del corte—, así que lo que se pierde es siempre del título: el número va adelante y mide dos o tres caracteres. Y el corte **se marca**, porque un título cortado sin aviso se lee como un título raro:
 
 ```
 12 El formato: `accepted` co…
