@@ -56,6 +56,35 @@ El commit de la ventana es además el registro de **qué llevaba el sprint**, y 
 
 Que quede no la vuelve autoritativa: sigue siendo **derivada**, y se puede volver a cortar. Y borrar una a mano sigue siendo posible, como con cualquier rama — lo que se descarta es que el cierre lo haga solo.
 
+## Tener clave es del ítem; verificarse es de la rama
+
+> **El modelo tenía un solo concepto donde hacen falta dos.**
+
+*"Existe en el proveedor"* y *"vive en una rama que se verifica"* venían juntos por construcción: la clave se la ponía el hook al resolver una ventana, así que nada podía tener lo primero sin lo segundo. Y el costo lo pagaba el backlog: **todo lo que ningún sprint tomó no tenía ningún camino al proveedor**, y eso son la mayoría de los ítems.
+
+Las dos cosas no cuestan lo mismo:
+
+| | Qué promete | Cuánto vale |
+|---|---|---|
+| **tener clave** | que el ítem existe del otro lado | pasa **una vez** y no promete nada después |
+| **verificarse entera** | que la rama sigue coincidiendo con el proveedor | se paga en **cada push**, sobre el conjunto entero |
+
+Lo que hace que una rama insegura no acepte escrituras es lo segundo: crece sin techo, así que *"me verifico entera"* es una promesa que en algún momento no va a poder cumplir. **Lo primero no tiene ese problema**, y medido en vez de invocado: `Provider::state(keys)` toma todas las claves juntas, así que contra Jira son una JQL `key in (…)` paginada y no una llamada por ítem.
+
+> **El panorama puede tener claves sin prometer que estén al día. Eso es exactamente lo que "insegura" significa.**
+
+### Y el que escribe es el servidor, que ya lo hacía
+
+La objeción obvia: si `insecure/all` no acepta pushes, ¿dónde aterrizan esas claves? En el panorama mismo, y no hace falta ninguna excepción — **lo que `insecure/**` rechaza es el push del cliente, no la escritura del servidor.** [La propagación](propagation.md) ya escribe ahí por el mismo camino.
+
+El comando es [`bootstrap`](../commands/bootstrap.md), y hace **sólo la primera pasada**: clave y renombre. Ni vínculos, ni sprint, ni actualización de lo que ya existía — todo eso es sincronización, y sincronizar es lo que esta operación explícitamente no promete.
+
+### El cuerpo viaja sólo donde el issue se creó
+
+La única parte de la pasada 2 que entra, y con una condición. Crear un issue con su descripción es una escritura sobre algo que no existía: no hay nada que pisar. Escribirle el cuerpo a uno que `create_or_find` **encontró** es otra cosa — ahí sí hay algo del otro lado, y no hubo compare-and-swap que probara que partimos de su estado actual.
+
+> **Encontrado no es creado.** Sobre lo encontrado el cuerpo no se toca, y la salida lo dice.
+
 ## La ventana y el compare-and-swap
 
 Una ventana es una rama `secure/` — un subconjunto de ítems sobre el que un push se valida. Antes de aceptar:
