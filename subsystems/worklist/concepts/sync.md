@@ -211,6 +211,14 @@ Lo que no es fiel es el `✓`. En un proyecto *next-gen* —el nuestro— `epic 
 
 **Y el motivo viene en el idioma de quien corre** —`No se ha encontrado el sprint`—, así que es el mismo cuidado que con `acli`: se reporta, no se matchea.
 
+### Salvo en una: un listado vacío no es un fracaso
+
+`jira sprint list` sobre un board **sin ningún sprint** escribe `✗ No result found for given query` y sale con 1. Es fiel a *"no encontré nada"* y no a *"algo salió mal"* — y ése es el estado del que se parte, así que tratarlo como error vuelve **imposible la primera corrida** sobre cualquier board.
+
+> **Si no salió ninguna fila, no hay nada que leer.** Un fracaso que igual imprimió filas sigue siendo un fracaso.
+
+La distinción no mira el mensaje, por lo mismo que el resto: viene en el idioma de quien corre. Y lo que puede confundir está dicho — *"no hay ninguno"* con *"no se pudo preguntar"*, acotado a que la consulta falle de forma transitoria **y** el sprint exista. Es el mismo trato que § "Asignar una clave" le da a la JQL: un falso positivo posible pesa menos que un fracaso seguro.
+
 De ahí sale que el puerto **sí** le cree al código de salida de `jira-cli`, y **no** al de `acli`. La verificación del efecto se sigue haciendo donde no hay código de salida que leer: los vínculos, porque `link create` no acepta `--json`.
 
 ### Leer la épica es su propia operación, y no es para verificar
