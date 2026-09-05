@@ -7,7 +7,8 @@ Resuelve los pedidos que un push dejó en una ventana: les pide una clave al pro
 ## Firma
 
 ```
-worklist assign-keys --project <clave> --board <id> [--stdin] [--dry-run]
+worklist assign-keys --project <clave> --board <id>
+                     [--stdin | --window <id>… | --all-windows] [--dry-run]
 ```
 
 | Argumento | Descripción |
@@ -15,7 +16,21 @@ worklist assign-keys --project <clave> --board <id> [--stdin] [--dry-run]
 | `--project` | La clave del proyecto en el proveedor. |
 | `--board` | El id del board donde vive el sprint. Es de la instalación, no del worklist: ver [`concepts/sync.md`](../concepts/sync.md#la-correspondencia-con-el-sprint-del-proveedor-se-guarda-no-se-busca). |
 | `--stdin` | Lee `<viejo> <nuevo> <ref>` por línea — el protocolo de un hook de recepción. |
+| `--window` | Una ventana por su id: `--window 1`. Se puede repetir. |
+| `--all-windows` | Todas las ventanas del repo, en orden numérico. |
 | `--dry-run` | No llama al proveedor ni escribe nada. Imprime qué asignaría, en qué orden. |
+
+**`--stdin` es para el hook; `--window` es para una persona.** Los tres son excluyentes entre sí.
+
+### Nombrar una ventana es pasar el mismo sha de los dos lados
+
+`--window 1` arma la tripla `(sha, sha, refs/heads/secure/sprint/1)`, y eso **no es un truco para engañar al comando**: es lo que significa *"mirá esta ventana, no traigo nada nuevo"*.
+
+Lo que las pasadas tienen que hacer no depende de que algo se haya movido en git — depende de que git y el proveedor puedan diferir. Con `<viejo>` igual a `<nuevo>`, las pasadas 1 a 4 no encuentran trabajo, que es correcto, y la 5 reconcilia el sprint, que es el punto.
+
+**Sin esto, reconciliar una ventana ya resuelta obliga a imitar el hook a mano** —un `rev-parse`, un `echo` con el sha repetido, y saber el nombre de la ref—, contra el proveedor de producción.
+
+**Y el orden es numérico, no lexicográfico**: `1, 2, … 16`, no `1, 10, 11, 2`. Un listado de refs viene ordenado como texto y el que lo lee espera lo otro.
 
 **`--board` es obligatorio y no tiene default.** Sin él la pasada 5 no puede correr, y una pasada que se saltea sola porque falta configuración es la peor forma de enterarse de que falta.
 
@@ -36,9 +51,45 @@ Y después, **cinco pasadas** — ver [`concepts/sync.md`](../concepts/sync.md#n
 | **4** | los ítems que ya tenían clave y este push cambió: título y cuerpo se actualizan. |
 | **5** | el sprint de la ventana: lo crea si no existe, anota su id en el `.sprint.md`, y mete adentro los issues que le falten. |
 
-Al final mueve la ref al commit resultante.
+Al final mueve la ref al commit resultante, y **sube al panorama lo que quedó** — ver [`concepts/propagation.md`](../concepts/propagation.md) y [`propagate`](propagate.md).
+
+**La propagación va última y no antes**, porque lo que más falta arriba son las claves y las acaba de escribir la pasada 1. Y **que falle no deshace lo resuelto**: la ventana queda adelantada del panorama, que es un estado del que se sale reintentando con `worklist propagate`. Por eso se informa como una línea más y no como un error del comando.
 
 **La pasada 5 corre aunque no haya nada que asignar.** Una ventana ya resuelta no tiene pedidos ni cambios, y es justamente la que tiene sus issues creados y su sprint sin existir. Ver [`concepts/sync.md`](../concepts/sync.md#corre-aunque-no-haya-nada-que-asignar).
+
+### Que falte el panorama se avisa una vez, no por ventana
+
+Es una propiedad del repo y no de cada ventana, así que se pregunta antes del lote. Repetir la misma línea dieciséis veces convierte un aviso útil en ruido que se scrollea — y el que lo lee termina creyendo que le pasó algo a cada una.
+
+```
+aviso: este repo no tiene refs/heads/insecure/all — lo que se resuelva no sube a ningun lado
+```
+
+Hoy es el caso del bare de la instalación, que recibe las ventanas y no tiene panorama.
+
+### Y el `--dry-run` no dice cuántos ya estaban
+
+No le preguntó a nadie: decir `0` sería afirmar sobre el board sin haberlo mirado, que es el defecto que la § "Pero decirlo no es afirmar sobre el board" de [`concepts/sync.md`](../concepts/sync.md#pero-decirlo-no-es-afirmar-sobre-el-board) corrigió del otro lado. Lo único cierto sin preguntar es la membresía que se calculó de `items`:
+
+```
+  sprint 1 -> (dry-run): 4 miembro(s) calculados; no se pregunto cuantos ya estan
+```
+
+**Y no se puede volver a escribir mal**, porque el dato no se puede representar: el campo es un `Option`, y *"no se preguntó"* es `None` y no `0`.
+
+## Corre sobre el repo del directorio actual, y el error lo nombra
+
+No hay flag para decirle cuál: es el del `cwd`. En una máquina con el clon del worklist y el bare de sincronización a un `cd` de distancia, **equivocarse de directorio es el único modo de equivocarse**, así que el error lo dice:
+
+```
+$ worklist assign-keys --project ACC --board 701 --all-windows
+error: no hay ninguna ventana en /home/…/Workspace/accreta: refs/heads/secure/** esta vacio
+
+  este comando corre sobre el repo del directorio actual. Si ese no es
+  el del worklist, parate en el que si lo es.
+```
+
+Un *"no hay ninguna ventana en este repo"* describe bien el síntoma y manda a revisar el repo equivocado.
 
 ## Corre sobre un repo bare, sin working tree
 
@@ -49,13 +100,18 @@ Un hook de recepción no tiene árbol de trabajo, y los pasos 4 y 5 necesitan un
 ## Salida
 
 ```
-$ worklist assign-keys --project ACC --board 701 --stdin <<< "a1b2c3d e4f5g6h refs/heads/secure/sprint/10"
+$ worklist assign-keys --project ACC --board 701 --window 10
 refs/heads/secure/sprint/10: 2 pedido(s)
   orden: agregar-b, agregar-a
   agregar-b -> ACC-101
   agregar-a -> ACC-102  (1 refs reescritas)
   sprint 10 -> 6512 (creado): 2 issue(s) agregados, 0 ya estaban
 refs/heads/secure/sprint/10: e4f5g6h -> 9z8y7x6
+refs/heads/secure/sprint/10: sube 3 commit(s) al panorama
+  rename agregar-b -> ACC-101  (rehecho)  (4 refs reescritas en el panorama)
+  rename agregar-a -> ACC-102  (rehecho)  (1 refs reescritas en el panorama)
+  9z8y7x6 normalize: ACC-101
+  panorama: a1b2c3d -> 7f6e5d4
 ```
 
 Y la segunda corrida sobre lo mismo:

@@ -47,7 +47,7 @@ El diff sí sabe adónde fue, y con eso `apply` puede proponer una **query** nue
 No reemplaza el escaneo, lo adelanta. Tres casos caen al camino de siempre:
 
 - **El fragmento cae adentro de un hunk.** Un movimiento de bloque es borrado + agregado, y los dos se superponen: el diff no distingue "se movió igual" de "cambió".
-- **Sin baseline.** Necesita `accepted.commit`, que desde la task `17` siempre se puede derivar.
+- **Sin baseline.** Necesita `accepted.commit`, que siempre se puede derivar.
 - **Granularidad.** Los hunks son de líneas y el rango de bytes; convertir es barato pero exige el archivo leído, cosa que ya pasa.
 
 ## Lo que abre para lattice

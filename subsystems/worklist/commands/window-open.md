@@ -15,7 +15,7 @@ worklist window open <sprint-id> [--from <rama>] [--dry-run] [--force]
 | `<sprint-id>` | El id del sprint: recorta `_sprints/<id>.sprint.md` y lo que declara. |
 | `--from` | De dónde cortar. Por defecto `insecure/all`, el panorama. |
 | `--dry-run` | Lista qué entraría, sin escribir la rama. |
-| `--force` | Recorta aunque la rama ya exista con commits propios, **descartándolos**. |
+| `--force` | No replanta: el corte nuevo reemplaza a la ventana, **descartando** lo que tenía encima. |
 
 ## Qué entra
 
@@ -48,28 +48,47 @@ secure/sprint/10: 5 archivo(s)
 recortado desde insecure/all (a1b2c3d) -> 9z8y7x6
 ```
 
-## Abrir es una vez. Traerla al día es un `pull`
+## Abrir dos veces regenera: el corte se recalcula y el trabajo se replanta
 
-> **`window open` no se corre dos veces sobre la misma ventana.**
+> **Recortar de nuevo no reemplaza la ventana: la pone al día.**
 
-Recortar produce una rama derivada del panorama. Una ventana que ya vivió tiene encima lo que el servidor escribió —los `rename <slug> -> <clave>`, los `normalize:`— y eso **no está en el panorama**, porque las claves quedan en la rama de cada ventana y la propagación todavía no existe.
+Es lo que decidió [la propagación](../concepts/propagation.md#hacia-abajo-regenerar-y-el-rebase-es-sólo-el-rescate). El comando hace dos cosas y en este orden:
 
-Así que volver a cortar no actualiza: **reemplaza**, y se lleva puesto todo eso. Y si alguien editó un ítem adentro de su ventana, se lleva también su trabajo.
+1. **Recalcula el corte** contra el `items` de hoy, desde el panorama de hoy. No re-aplica el commit de corte anterior, que borra una lista fija de rutas y por eso dejaría entrar todo lo que el panorama ganó desde entonces.
+2. **Replanta encima** lo que la ventana tenía sobre su corte viejo: lo que el servidor escribió —los `rename`, los `normalize:`— y lo que alguien haya editado adentro.
 
-**Por eso el comando se niega** cuando la rama ya existe y su punta no es ancestro del corte nuevo:
+```
+antes:    all(viejo) ─▶ corte(viejo) ─▶ W1 ─▶ W2
+después:  all(nuevo) ─▶ corte(nuevo) ─▶ W1' ─▶ W2'
+```
+
+**Y en el caso sano el replante queda vacío solo.** Si `W1` y `W2` ya subieron al panorama, el corte nuevo los contiene y el cherry-pick no aporta nada, así que se deja caer. Nadie tiene que acordarse de propagar antes de regenerar.
+
+### Sin corte no regenera, y se niega
+
+El corte es lo que dice dónde empieza el trabajo de la ventana. Una rama `secure/**` nacida de un `checkout -b` no lo tiene, y sin él no hay forma de separar su trabajo del árbol que arrastró:
 
 ```
 $ worklist window open 7
-error: secure/sprint/7 ya existe y tiene 19 commit(s) que este corte no contiene
-  a2b035d normalize: ACC-93
-  27faaeb rename m -> ACC-93 (2 refs)
-  …
-  recortar de nuevo los descarta. Para traer lo del servidor:
-      git fetch srv && git merge --ff-only srv/secure/sprint/7
-  Para descartarlos igual: --force
+error: no encuentro el corte de esta ventana: el primer commit sobre el panorama es
+  a2b035d edito ACC-93
 ```
 
-No es una advertencia: **es un error y no escribe nada.** Perder lo que el servidor escribió deja de ser algo que pasa en silencio.
+### Y `--force` baja de categoría
+
+Ya no es el flujo del `items` que cambió —eso ahora es regenerar y ya—: **es tirar lo local a sabiendas** cuando el replante no entra.
+
+```
+$ worklist window open 7
+error: el corte nuevo esta, pero un commit de la ventana no se pudo replantar:
+  a2b035d edito ACC-93
+  choca en: ACC-93.task.md
+
+  pasa cuando el trabajo toca un item que el `items` de hoy ya no lleva.
+  Para tirarlo a sabiendas: --force
+```
+
+**El motivo del choque es siempre el mismo**, y por eso el mensaje lo nombra: el trabajo toca un ítem que el `items` de hoy no lleva, así que el corte nuevo no lo tiene y el parche no encuentra dónde apoyarse. Con `--force` el replante no corre, y la salida dice cuántos commits quedan afuera.
 
 ### Y no se mueve una rama que alguien tiene abierta
 
@@ -83,18 +102,10 @@ error: secure/sprint/10 está checkouteada en un worktree y no se puede mover:
   /home/…/.worklist/secure/sprint/10
 
   moverla dejaría ese worktree con el índice del árbol anterior. Sacá el
-  worktree primero, o traelo con un merge en vez de recortar.
+  worktree primero.
 ```
 
-**Ni con `--force`**: forzar es para descartar commits a sabiendas, no para dejar un checkout inconsistente. Son dos cosas distintas y el flag sólo autoriza una.
-
-### Traer es `--ff-only`, y que no lo sea es información
-
-El servidor **commitea encima** de lo que empujaste: no reescribe tu commit, le agrega los suyos. Así que el caso sano es siempre un fast-forward, y **que no lo sea quiere decir que la rama divergió** — alguien más la empujó, o se re-cortó con `--force`. Un merge automático ahí escondería justo lo que hay que mirar.
-
-### Y `--force` es para cuando el `items` cambió
-
-Es el caso legítimo de re-cortar: el sprint tomó o soltó un ítem, y la ventana tiene que reflejarlo. Hacerlo bien **depende de la propagación** —sin ella, cortar desde el panorama pierde las claves que sólo la ventana tiene— así que hoy `--force` es una salida de emergencia y no el flujo de ese caso.
+**Ni con `--force`**: forzar es para descartar commits a sabiendas, no para dejar un checkout inconsistente. Son dos cosas distintas y el flag sólo autoriza una. Y el chequeo corre **antes de escribir nada**, para que un error no deje un corte a medio hacer.
 
 ## Códigos de salida
 
@@ -102,4 +113,5 @@ Es el caso legítimo de re-cortar: el sprint tomó o soltó un ítem, y la venta
 |--------|-----------|
 | `0` | la ventana quedó recortada |
 | `1` | el sprint no existe en `--from`, o su `items` nombra algo que no está |
-| `1` | la rama ya existe y el corte descartaría commits — salvo `--force` |
+| `1` | la rama existe y no tiene corte, o un commit no se pudo replantar — salvo `--force` |
+| `1` | la rama está checkouteada en un worktree — tampoco con `--force` |

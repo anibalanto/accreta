@@ -24,6 +24,10 @@ Renombrar `<slug>.<tipo>.md` a `<clave>.<tipo>.md` rompe todo lo que lo nombraba
 
 Un slug es un string libre, así que `agregar-funcionalidad-1` es prefijo de `agregar-funcionalidad-10`: cada posición de arriba exige que el slug no siga con un carácter de identificador, para que renombrar el primero nunca toque al segundo.
 
+**Y la reescritura baja a los subdirectorios.** Recorre **todos** los `*.md` del repo, no sólo la raíz donde viven los ítems: un `.sprint.md` vive en `_sprints/` y referencia a los ítems de su iteración, así que quedarse en la raíz lo dejaba nombrando slugs que ya no existen. Lo único que el recorrido saltea es `.git`.
+
+El destino de link conserva el `../` que lo trae: **lo que el renombre cambia es el nombre del archivo, no dónde está**. Un link de `_sprints/7.sprint.md` a `../<slug>.task.md` queda apuntando a `../<clave>.task.md`, y sigue subiendo un nivel.
+
 ## El orden es para el proveedor, no para los números
 
 Cuando un push trae varios pedidos y uno depende de otro —por `parent` o `relation.*`—, se asignan en orden topológico sobre el subgrafo de **pedidos únicamente**: una dependencia hacia un ítem que ya tiene clave no impone nada, porque ya existe. Un ciclo se rechaza sin escribir nada.
@@ -40,7 +44,7 @@ Completo y verificable son excluyentes, así que hay dos clases y no una:
 | `refs/heads/insecure/**` | todo, o un conjunto que crece sin techo | no | **rechaza el push** |
 | cualquier otra | no es del worklist | — | no opina |
 
-**Rechazar el push a una insegura es lo que vuelve cierta la palabra.** Una rama que se llama insegura y acepta escrituras miente: no puede verificarse, así que no puede prometer que lo que entra sea consistente con el proveedor. Y de ahí sale, sin que nadie tenga que respetarla, que el panorama sólo avance por propagación — **no hay forma de empujarle.**
+**Rechazar el push a una insegura es lo que vuelve cierta la palabra.** Una rama que se llama insegura y acepta escrituras miente: no puede verificarse, así que no puede prometer que lo que entra sea consistente con el proveedor. Y de ahí sale, sin que nadie tenga que respetarla, que el panorama sólo avance por [propagación](propagation.md) — **no hay forma de empujarle.**
 
 `backlog` es insegura: es *"todo lo que ningún sprint tomó"* y crece sin techo. Para trabajar sobre ítems del backlog se recorta una ventana segura acotada.
 
@@ -55,6 +59,35 @@ Una rama segura se hace responsable de **poder verificarse entera contra el prov
 El commit de la ventana es además el registro de **qué llevaba el sprint**, y eso no se recupera del panorama más tarde: el `items` de un sprint puede cambiar después de cerrado, y el panorama guarda el estado final de cada ítem y no el conjunto que aquella iteración tomó.
 
 Que quede no la vuelve autoritativa: sigue siendo **derivada**, y se puede volver a cortar. Y borrar una a mano sigue siendo posible, como con cualquier rama — lo que se descarta es que el cierre lo haga solo.
+
+## Tener clave es del ítem; verificarse es de la rama
+
+> **El modelo tenía un solo concepto donde hacen falta dos.**
+
+*"Existe en el proveedor"* y *"vive en una rama que se verifica"* venían juntos por construcción: la clave se la ponía el hook al resolver una ventana, así que nada podía tener lo primero sin lo segundo. Y el costo lo pagaba el backlog: **todo lo que ningún sprint tomó no tenía ningún camino al proveedor**, y eso son la mayoría de los ítems.
+
+Las dos cosas no cuestan lo mismo:
+
+| | Qué promete | Cuánto vale |
+|---|---|---|
+| **tener clave** | que el ítem existe del otro lado | pasa **una vez** y no promete nada después |
+| **verificarse entera** | que la rama sigue coincidiendo con el proveedor | se paga en **cada push**, sobre el conjunto entero |
+
+Lo que hace que una rama insegura no acepte escrituras es lo segundo: crece sin techo, así que *"me verifico entera"* es una promesa que en algún momento no va a poder cumplir. **Lo primero no tiene ese problema**, y medido en vez de invocado: `Provider::state(keys)` toma todas las claves juntas, así que contra Jira son una JQL `key in (…)` paginada y no una llamada por ítem.
+
+> **El panorama puede tener claves sin prometer que estén al día. Eso es exactamente lo que "insegura" significa.**
+
+### Y el que escribe es el servidor, que ya lo hacía
+
+La objeción obvia: si `insecure/all` no acepta pushes, ¿dónde aterrizan esas claves? En el panorama mismo, y no hace falta ninguna excepción — **lo que `insecure/**` rechaza es el push del cliente, no la escritura del servidor.** [La propagación](propagation.md) ya escribe ahí por el mismo camino.
+
+El comando es [`bootstrap`](../commands/bootstrap.md), y hace **sólo la primera pasada**: clave y renombre. Ni vínculos, ni sprint, ni actualización de lo que ya existía — todo eso es sincronización, y sincronizar es lo que esta operación explícitamente no promete.
+
+### El cuerpo viaja sólo donde el issue se creó
+
+La única parte de la pasada 2 que entra, y con una condición. Crear un issue con su descripción es una escritura sobre algo que no existía: no hay nada que pisar. Escribirle el cuerpo a uno que `create_or_find` **encontró** es otra cosa — ahí sí hay algo del otro lado, y no hubo compare-and-swap que probara que partimos de su estado actual.
+
+> **Encontrado no es creado.** Sobre lo encontrado el cuerpo no se toca, y la salida lo dice.
 
 ## La ventana y el compare-and-swap
 
@@ -182,6 +215,14 @@ Lo que no es fiel es el `✓`. En un proyecto *next-gen* —el nuestro— `epic 
 
 **Y el motivo viene en el idioma de quien corre** —`No se ha encontrado el sprint`—, así que es el mismo cuidado que con `acli`: se reporta, no se matchea.
 
+### Salvo en una: un listado vacío no es un fracaso
+
+`jira sprint list` sobre un board **sin ningún sprint** escribe `✗ No result found for given query` y sale con 1. Es fiel a *"no encontré nada"* y no a *"algo salió mal"* — y ése es el estado del que se parte, así que tratarlo como error vuelve **imposible la primera corrida** sobre cualquier board.
+
+> **Si no salió ninguna fila, no hay nada que leer.** Un fracaso que igual imprimió filas sigue siendo un fracaso.
+
+La distinción no mira el mensaje, por lo mismo que el resto: viene en el idioma de quien corre. Y lo que puede confundir está dicho — *"no hay ninguno"* con *"no se pudo preguntar"*, acotado a que la consulta falle de forma transitoria **y** el sprint exista. Es el mismo trato que § "Asignar una clave" le da a la JQL: un falso positivo posible pesa menos que un fracaso seguro.
+
 De ahí sale que el puerto **sí** le cree al código de salida de `jira-cli`, y **no** al de `acli`. La verificación del efecto se sigue haciendo donde no hay código de salida que leer: los vínculos, porque `link create` no acepta `--json`.
 
 ### Leer la épica es su propia operación, y no es para verificar
@@ -225,16 +266,28 @@ No es la credencial y no va con ella. `jira-cli` lleva el suyo en su config y nu
 Un pedido se resuelve preguntándole al proveedor si ya existe —por título— antes de crear. Sin esto, un hook que crea el issue y falla antes de comitear el renombre duplica en el reintento.
 
 ```
-Creator::create_or_find(titulo, tipo, descripcion) -> clave
+Board::create_or_find(titulo, tipo, descripcion, parent) -> Found(clave) | Created(clave)
 ```
 
-**Buscar mal es peor que no buscar.** Una búsqueda que falla en silencio —una comilla sin escapar rompiendo el JQL— vuelve indistinguible *"no existe"* de *"no se pudo preguntar"*, y el reintento duplica. El título se escapa siempre antes de interpolarlo en cualquier consulta.
+**Encontrado y creado no son el mismo resultado, y la firma lo dice.** El padre sólo viaja en la creación —§ "El padre se pone al crear, y por `acli` no se puede corregir"—, así que un ítem que se **encontró** no lleva la jerarquía que se pidió, y quien llama tiene que poder decirlo. Devolver la clave sola obligaría a inferir de qué lado se cayó, y una inferencia así ya mandó a revisar 22 issues que estaban bien.
 
-**Y el título de búsqueda no es el mismo string que el título del issue.** `summary ~` de JQL no compara texto literal: es una búsqueda de texto completo, y algunos caracteres —`[` y `]`, confirmado— rompen su parser incluso adentro de comillas, sin que JQL tenga forma de escaparlos (`\[` es una secuencia inválida). La búsqueda usa una versión del título con esos caracteres neutralizados; **crear usa el título real, intacto** — `--summary` no pasa por JQL y no tiene ese problema. Buscar con una versión más laxa puede traer falsos positivos; no buscar nada, por un carácter que rompe el parser, produce un duplicado seguro. Lo primero es el riesgo que vale correr.
+**Buscar mal es peor que no buscar.** Una búsqueda que falla en silencio —un metacaracter rompiendo el JQL— vuelve indistinguible *"no existe"* de *"no se pudo preguntar"*, y el reintento duplica. Ningún texto libre entra crudo en una consulta.
 
 **La descripción lleva el cuerpo del ítem, convertido a ADF** — ver § "El cuerpo viaja, y vuelve convertido".
 
 > Una versión anterior de esta página decía que la descripción era una línea `Fuente: <ruta>` y que *"git es la fuente de verdad"*. **Las dos cosas estaban mal.** La segunda contradice el título de la propuesta que la origina —*"el proveedor es la autoridad"*— y nadie la decidió: se coló como justificación de la primera, que a su vez era una limitación técnica de `acli`, no una decisión de diseño. La regla real es una sola y está abajo.
+
+### El título de búsqueda no es el mismo string que el título del issue
+
+`summary ~` de JQL no compara texto literal: es una búsqueda de texto completo, y algunos caracteres —`[` y `]`, confirmado— rompen su parser incluso adentro de comillas, sin que JQL tenga forma de escaparlos (`\[` es una secuencia inválida).
+
+> **No se escapa: se reduce.** No hay escapado que sirva, así que la búsqueda usa una versión del título **sin** esos caracteres — cada uno cae y deja un espacio, que después se colapsa.
+
+**Crear usa el título real, intacto** — `--summary` no pasa por JQL y no tiene ese problema. Y las dos formas de equivocarse no pesan lo mismo: un metacaracter que se cuele hace fallar la JQL y detiene el push; un carácter quitado de más trae falsos positivos, que la comparación exacta descarta. Buscar de más es el riesgo que vale correr; no buscar nada, por un carácter que rompe el parser, produce un duplicado seguro.
+
+**Los acentos se conservan.** El full-text de Jira **no** los normaliza: `Indice` no encuentra un issue titulado `Índice`, así que quitarlos para ir a lo seguro sería exactamente el fracaso que esto evita.
+
+**Y quien decide no es la query, es la comparación.** La JQL trae de más a propósito; de lo que trae se toma el resultado cuyo `summary` es **exactamente** el título. Un título que no deja ningún carácter buscable no se puede resolver, y falla en vez de crear a ciegas — crear sin haber podido buscar es la duplicación que esta sección entera existe para evitar.
 
 ### El tipo es del worklist, no de Jira
 
@@ -256,7 +309,7 @@ Los `relation.depends` que apuntan **adentro** de la ventana llegan a la pasada 
 
 Una ventana es acotada por diseño y las dependencias no respetan sus bordes: que una user story de un sprint dependa de otra del anterior es lo normal en un backlog, y arrastrar la dependencia adentro dejaría de estar acotada. Exigir que todas caigan adentro sería pedirle al backlog que se ordene por el recorte.
 
-**Y es un síntoma de la propagación que falta.** El ítem de afuera ya tiene clave —se la puso el push de su propia ventana—; lo que no la tiene es el panorama, porque las claves quedan en la rama de cada ventana y nadie las lleva de vuelta. Con la propagación andando, la ventana re-cortada traería el `depends` ya traducido y el vínculo se crearía solo.
+**Y es un síntoma de [la propagación](propagation.md) que todavía no corre.** El ítem de afuera ya tiene clave —se la puso el push de su propia ventana—; lo que no la tiene es el panorama, porque las claves quedan en la rama de cada ventana y nadie las lleva de vuelta. Con la propagación andando, la ventana re-cortada traería el `depends` ya traducido y el vínculo se crearía solo.
 
 ### La jerarquía entra hasta donde el proveedor la tiene
 
@@ -358,11 +411,11 @@ Y va **después** del compare-and-swap, que ya corrió: *"si git está actualiza
 |---|---|---|
 | el cuerpo | ✔ | por el mismo camino de siempre: `round_trip`, la poda de marks, los links traducidos |
 | el título | ✔ | es el `summary`, y es lo que se ve en el board |
-| el `status` | ✘ | **no es el mismo campo** que el del proveedor — ver § "La jerarquía entra hasta donde el proveedor la tiene" y la task `5y` |
+| el `status` | ✘ | **no es el mismo campo** que el del proveedor — ver § "La jerarquía entra hasta donde el proveedor la tiene" |
 
-**Y subir el título tiene un costo que hay que decir.** La identidad de un ítem sin clave es su título: así lo encuentra `create_or_find` para no duplicar. Si el título cambia en el proveedor y alguien vuelve a cortar la ventana desde el panorama —que tiene el título viejo y sin clave—, la búsqueda no encuentra nada y **crea un issue nuevo**. Es el defecto de la task `5l` por otra puerta.
+**Y subir el título tiene un costo que hay que decir.** La identidad de un ítem sin clave es su título: así lo encuentra `create_or_find` para no duplicar. Si el título cambia en el proveedor y alguien vuelve a cortar la ventana desde el panorama —que tiene el título viejo y sin clave—, la búsqueda no encuentra nada y **crea un issue nuevo**. Es el defecto de la búsqueda por título por otra puerta — ver § "Asignar una clave: crear o encontrar".
 
-Hoy está acotado porque re-cortar una ventana viva está prohibido, y deja de estarlo el día que la propagación al panorama exista — que es cuando el panorama va a tener las claves y esto se arregla solo.
+Y no lo arregla que re-cortar la ventana sea seguro: [regenerar](propagation.md#hacia-abajo-regenerar-y-el-rebase-es-sólo-el-rescate) parte del panorama, así que el problema es que el panorama no tenga la clave. Se arregla cuando [la propagación](propagation.md) corra, que es cuando la va a tener.
 
 ### El servidor anota lo que hizo, no borra lo que hiciste
 
@@ -434,6 +487,18 @@ Y los ancestros que la ventana trae **no** son miembros. La épica viaja de sól
 `<número> <título>` — `17 Los sprints en el board`. Es la regla de cómo se nombra un ítem: nunca el id solo, porque el que lee es el que menos contexto tiene.
 
 Y **el nombre no es la correspondencia**: ésa es el `key` del frontmatter. Cambiarle el título al sprint de cualquiera de los dos lados no rompe nada.
+
+#### Y entra en 29 caracteres, porque Jira no acepta 30
+
+Medidos los veintidós sprints de este repo, **diez se pasan** y el más largo mide 65. No es un caso de borde.
+
+Se recorta el **título**, nunca el número, y el corte se marca — un título cortado sin aviso se lee como un título raro:
+
+```
+12 El formato: `accepted` co…
+```
+
+**Y lo que lo vuelve seguro no es el largo: es que sea determinístico.** Mientras no haya `key`, este nombre es con lo que se busca antes de crear, así que dos corridas que produjeran nombres distintos duplicarían el sprint. Cortar por cantidad de caracteres lo es; cortar por palabra entera no.
 
 ### Se busca por nombre exactamente cuando no hay `key`, y eso no se contradice
 
