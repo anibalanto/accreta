@@ -102,7 +102,27 @@ En markdown el link envuelve las dos cosas:
 [`3z` Error de cobertura: el vecindario de una firma resuelve a la firma misma, y el tipo que importa no se pregunta](3z.task.md)
 ```
 
-El id solo obliga a abrir el archivo para saber de qué se habla, y **el que lo abre es el que menos contexto tiene**: quien escribió la referencia ya sabía cuál era. Vale en los ítems, en los sprints y en las specs que nombran un ítem — el problema es el mismo en los tres.
+El id solo obliga a abrir el archivo para saber de qué se habla, y **el que lo abre es el que menos contexto tiene**: quien escribió la referencia ya sabía cuál era. Vale en los ítems y en los sprints.
+
+### Y en una spec no se cita un ítem
+
+> **Ninguna spec nombra un ítem.** Ni con un link, ni con un `` `5y` `` en la prosa.
+
+El id de un ítem **cambia por diseño**: `@arreglar-el-hook` pasa a `ACC-347` el día que cruza. El renombre reescribe su propio repo y ninguno más, así que una cita desde una spec queda apuntando a un archivo que ya no existe — y nada lo detecta, porque es markdown, no un bilink.
+
+**Una spec que cita un ítem apuesta a que su id no cambie.**
+
+Y el proyecto ya tiene dónde va cada cosa:
+
+| | |
+|---|---|
+| **la spec** | lo que es cierto |
+| **el ADR**, en `docs/adr/` de la capa impl | la decisión, y por qué se tomó |
+| **el ítem** | el trabajo que la ejecuta |
+
+Una spec que necesita justificar algo cita **el ADR**. Si la justificación sólo existe adentro de un ítem, lo que falta es el ADR — la cita es el síntoma.
+
+**Un endpoint `issue <id>` es otra cosa** y sí referencia un ítem: es una referencia verificada y repuntable, que `bilinker` mantiene. La regla es sobre la prosa, no sobre el mecanismo que existe para esto.
 
 **El título va verbatim, no una glosa.** Una glosa envejece cuando el título cambia y nada lo detecta; un título copiado envejece igual, pero se ve al lado del que cambió. Y donde el título no describa al ítem, lo que hay que arreglar es el título.
 
