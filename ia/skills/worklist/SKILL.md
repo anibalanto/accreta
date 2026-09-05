@@ -48,9 +48,27 @@ crear el ítem  →  sincronizar  →  cortar la vista  →  trabajar
 
 **La tarea no está lista cuando se escribe: está lista cuando tiene id.** Es lo que hace que el `@` viva minutos en vez de meses.
 
-### Cómo saber dónde estás parado
+### Cómo saber si la vista es segura, hoy
 
-Hoy, mirando el path. El comando que lo contesta —`worklist is-secure`— está decidido en la task `6i` y no existe todavía, así que el chequeo es a ojo — y por eso conviene tenerlo escrito.
+**Es el nombre de la rama, parado en la vista:**
+
+```bash
+git rev-parse --abbrev-ref HEAD
+```
+
+| Devuelve | |
+|---|---|
+| `secure/…` | **segura** — se puede empujar, y el push se verifica |
+| `insecure/…` | **insegura** — no acepta escrituras |
+| cualquier otra cosa | **no estás en una vista del worklist** |
+
+La tercera fila es la que más pasa y la que menos se espera: parado en `accreta` la rama es `main`, y en la capa impl también. Que el comando no diga *"insegura"* ahí es correcto — no es una vista, es otro repo.
+
+**Y hoy esto no es una aproximación: es exacto.** El `pre-receive` decide la clase con `starts_with("refs/heads/secure/")` y nada más, así que preguntar por el nombre calcula **lo mismo** que el servidor va a calcular.
+
+> Deja de ser exacto el día que la clase se **derive** en vez de creerle al nombre — que es la task `6i`, y es la que trae `worklist is-secure`. Cuando exista, este chequeo se reemplaza por el comando y esta sección se borra.
+
+De paso: en `.worklist/` el path espeja el nombre de la rama —`.worklist/secure/sprint/7` lleva `secure/sprint/7`— así que el `pwd` dice lo mismo. **La rama es la autoridad**, porque es lo que el hook lee.
 
 ## Qué hay
 
