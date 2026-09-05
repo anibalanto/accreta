@@ -32,9 +32,25 @@ worklist window open <sprint-id>          # produce secure/sprint/<id>
 
 Decirlo así y no dar una regla que a veces no se puede cumplir: la excepción existe, y lo que importa es que **se note al hacerla** en vez de que sea el camino por defecto.
 
+### Dos chequeos antes de escribir una línea de código
+
+> **Las dos son bandera roja: no se avanza, se arregla primero.**
+
+**Uno: la vista es insegura.** `worklist is-secure` en falso quiere decir que lo que escribas no se puede empujar, no se verifica y no cruza al proveedor. No es una advertencia sobre después: es que el trabajo no tiene dónde ir.
+
+**Dos: el ítem todavía lleva `@`.** Un `@<slug>` es un id que el servidor todavía no reemplazó, así que **no hay con qué prefijar el commit** — y `AGENTS.md` § Commits pide que arranque con el id del ítem. Trabajar antes de sincronizar deja una historia que nombra un id que va a dejar de existir.
+
+La salida es la misma en los dos casos, y es el orden que el método ya pedía con el paso que faltaba:
+
+```
+crear el ítem  →  sincronizar  →  cortar la vista  →  trabajar
+```
+
+**La tarea no está lista cuando se escribe: está lista cuando tiene id.** Es lo que hace que el `@` viva minutos en vez de meses.
+
 ### Cómo saber dónde estás parado
 
-Hoy, mirando el path. El comando que lo contesta —`worklist is-secure`— está decidido en la task `6i` y no existe todavía.
+Hoy, mirando el path. El comando que lo contesta —`worklist is-secure`— está decidido en la task `6i` y no existe todavía, así que el chequeo es a ojo — y por eso conviene tenerlo escrito.
 
 ## Qué hay
 
