@@ -2,5 +2,10 @@ kind: governs
 endpoint:
   0:
     link: capture 5a478460e40597238bd874d0084bab61
+    accepted:
+    - agree:
+      - Anibal
+      link: capture 5a478460e40597238bd874d0084bab61
+      hash: 4a095449bc80742122f88bab9b393a3692553959669e5307a99a130c30f179bb
   1:
     link: path subsystems/worklist>impl
