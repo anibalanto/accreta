@@ -118,7 +118,9 @@ Las referencias ya escritas **se corrigen al tocarlas**, no de una barrida.
 
 ## Al crear o mover
 
-Los ítems **se escriben a mano hoy**: `worklist new` está especificado pero no implementado, y además delega la asignación de ids a un servidor que no existe. Al crear uno, tomar el siguiente id base-36 libre del contador que corresponda, y escribirlo en la raíz de `worklist/` con su `parent`.
+Los ítems **se escriben a mano hoy**: `worklist new` está especificado pero no implementado, y además delega la asignación de ids a un servidor que no existe. Al crear uno, tomar el siguiente id base-36 libre del contador que corresponda, y escribirlo en la raíz de la vista con su `parent`.
+
+**Y en la vista donde se va a trabajar** — ver § "Se trabaja en una vista segura". Si el ítem pertenece a un sprint, en su ventana; si no pertenece a ninguno, hoy no hay dónde y se hace en el panorama sabiendo que es la excepción.
 
 Mover un ítem es editar **un solo campo o un solo link**, nunca un archivo:
 
