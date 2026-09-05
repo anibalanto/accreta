@@ -7,6 +7,35 @@ El trabajo vive en `<project-root>/.worklist/insecure/all/`, que es un worktree 
 
 El repo es local: un bare en `~/.local/share/accreta/worklist-sync/worklist.git`. **El proyecto lo nombra el directorio y no la rama**, porque el worklist es de accreta y la herramienta no; `insecure/all` es el panorama y se llama igual en todos, porque lo nombra la spec de sincronización. Así lo resuelve `bilinker` un endpoint `issue`, y **siempre contra el panorama, nunca contra una ventana**: si resolviera contra la rama abierta, el mismo `issue 3a` resolvería o no según qué sprint tengas cortado.
 
+## Se trabaja en una vista segura. El panorama es para leer
+
+> **`insecure/all` no se toca.** Toda modificación de un ítem se hace parado en una vista segura — `secure/…`.
+
+No es una convención: una rama insegura **no se puede verificar** —crece sin techo— así que no acepta escrituras, y no hay forma de empujarle. Lo que se escriba ahí no cruza al proveedor y no pasa por ningún chequeo. **Trabajar en el panorama es escribir en el único lugar del que nada sale.**
+
+El panorama es lo que se **consulta**: qué sigue, dónde está un ítem, qué lleva un sprint, y contra qué resuelve un endpoint `issue`. Para eso es, y para eso lo tiene todo.
+
+Para trabajar se corta la vista, y se edita ahí:
+
+```bash
+worklist window open <sprint-id>          # produce secure/sprint/<id>
+```
+
+### Y hay un hueco, que conviene saber antes de chocarlo
+
+**Un ítem que no está en ningún sprint no tiene vista segura donde cortarse.** El backlog es inseguro por definición, y la vista para trabajarlo todavía no existe — es lo que resuelven las tasks `5q` (`to-work`), `5n` y la user story `6j`.
+
+| | |
+|---|---|
+| el ítem pertenece a un sprint | se crea y se edita **adentro de su ventana** |
+| no pertenece a ninguno | hoy no hay dónde, y hacerlo en el panorama es una excepción a la vista |
+
+Decirlo así y no dar una regla que a veces no se puede cumplir: la excepción existe, y lo que importa es que **se note al hacerla** en vez de que sea el camino por defecto.
+
+### Cómo saber dónde estás parado
+
+Hoy, mirando el path. El comando que lo contesta —`worklist is-secure`— está decidido en la task `6i` y no existe todavía.
+
 ## Qué hay
 
 Todos los ítems son **archivos sueltos en la raíz**. No hay carpetas por ítem.
