@@ -24,6 +24,10 @@ Renombrar `<slug>.<tipo>.md` a `<clave>.<tipo>.md` rompe todo lo que lo nombraba
 
 Un slug es un string libre, así que `agregar-funcionalidad-1` es prefijo de `agregar-funcionalidad-10`: cada posición de arriba exige que el slug no siga con un carácter de identificador, para que renombrar el primero nunca toque al segundo.
 
+**Y la reescritura baja a los subdirectorios.** Recorre **todos** los `*.md` del repo, no sólo la raíz donde viven los ítems: un `.sprint.md` vive en `_sprints/` y referencia a los ítems de su iteración, así que quedarse en la raíz lo dejaba nombrando slugs que ya no existen. Lo único que el recorrido saltea es `.git`.
+
+El destino de link conserva el `../` que lo trae: **lo que el renombre cambia es el nombre del archivo, no dónde está**. Un link de `_sprints/7.sprint.md` a `../<slug>.task.md` queda apuntando a `../<clave>.task.md`, y sigue subiendo un nivel.
+
 ## El orden es para el proveedor, no para los números
 
 Cuando un push trae varios pedidos y uno depende de otro —por `parent` o `relation.*`—, se asignan en orden topológico sobre el subgrafo de **pedidos únicamente**: una dependencia hacia un ítem que ya tiene clave no impone nada, porque ya existe. Un ciclo se rechaza sin escribir nada.
@@ -262,16 +266,28 @@ No es la credencial y no va con ella. `jira-cli` lleva el suyo en su config y nu
 Un pedido se resuelve preguntándole al proveedor si ya existe —por título— antes de crear. Sin esto, un hook que crea el issue y falla antes de comitear el renombre duplica en el reintento.
 
 ```
-Creator::create_or_find(titulo, tipo, descripcion) -> clave
+Board::create_or_find(titulo, tipo, descripcion, parent) -> Found(clave) | Created(clave)
 ```
 
-**Buscar mal es peor que no buscar.** Una búsqueda que falla en silencio —una comilla sin escapar rompiendo el JQL— vuelve indistinguible *"no existe"* de *"no se pudo preguntar"*, y el reintento duplica. El título se escapa siempre antes de interpolarlo en cualquier consulta.
+**Encontrado y creado no son el mismo resultado, y la firma lo dice.** El padre sólo viaja en la creación —§ "El padre se pone al crear, y por `acli` no se puede corregir"—, así que un ítem que se **encontró** no lleva la jerarquía que se pidió, y quien llama tiene que poder decirlo. Devolver la clave sola obligaría a inferir de qué lado se cayó, y una inferencia así ya mandó a revisar 22 issues que estaban bien.
 
-**Y el título de búsqueda no es el mismo string que el título del issue.** `summary ~` de JQL no compara texto literal: es una búsqueda de texto completo, y algunos caracteres —`[` y `]`, confirmado— rompen su parser incluso adentro de comillas, sin que JQL tenga forma de escaparlos (`\[` es una secuencia inválida). La búsqueda usa una versión del título con esos caracteres neutralizados; **crear usa el título real, intacto** — `--summary` no pasa por JQL y no tiene ese problema. Buscar con una versión más laxa puede traer falsos positivos; no buscar nada, por un carácter que rompe el parser, produce un duplicado seguro. Lo primero es el riesgo que vale correr.
+**Buscar mal es peor que no buscar.** Una búsqueda que falla en silencio —un metacaracter rompiendo el JQL— vuelve indistinguible *"no existe"* de *"no se pudo preguntar"*, y el reintento duplica. Ningún texto libre entra crudo en una consulta.
 
 **La descripción lleva el cuerpo del ítem, convertido a ADF** — ver § "El cuerpo viaja, y vuelve convertido".
 
 > Una versión anterior de esta página decía que la descripción era una línea `Fuente: <ruta>` y que *"git es la fuente de verdad"*. **Las dos cosas estaban mal.** La segunda contradice el título de la propuesta que la origina —*"el proveedor es la autoridad"*— y nadie la decidió: se coló como justificación de la primera, que a su vez era una limitación técnica de `acli`, no una decisión de diseño. La regla real es una sola y está abajo.
+
+### El título de búsqueda no es el mismo string que el título del issue
+
+`summary ~` de JQL no compara texto literal: es una búsqueda de texto completo, y algunos caracteres —`[` y `]`, confirmado— rompen su parser incluso adentro de comillas, sin que JQL tenga forma de escaparlos (`\[` es una secuencia inválida).
+
+> **No se escapa: se reduce.** No hay escapado que sirva, así que la búsqueda usa una versión del título **sin** esos caracteres — cada uno cae y deja un espacio, que después se colapsa.
+
+**Crear usa el título real, intacto** — `--summary` no pasa por JQL y no tiene ese problema. Y las dos formas de equivocarse no pesan lo mismo: un metacaracter que se cuele hace fallar la JQL y detiene el push; un carácter quitado de más trae falsos positivos, que la comparación exacta descarta. Buscar de más es el riesgo que vale correr; no buscar nada, por un carácter que rompe el parser, produce un duplicado seguro.
+
+**Los acentos se conservan.** El full-text de Jira **no** los normaliza: `Indice` no encuentra un issue titulado `Índice`, así que quitarlos para ir a lo seguro sería exactamente el fracaso que esto evita.
+
+**Y quien decide no es la query, es la comparación.** La JQL trae de más a propósito; de lo que trae se toma el resultado cuyo `summary` es **exactamente** el título. Un título que no deja ningún carácter buscable no se puede resolver, y falla en vez de crear a ciegas — crear sin haber podido buscar es la duplicación que esta sección entera existe para evitar.
 
 ### El tipo es del worklist, no de Jira
 
