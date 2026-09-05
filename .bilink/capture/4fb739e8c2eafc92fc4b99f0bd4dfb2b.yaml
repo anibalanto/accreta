@@ -1,0 +1,6 @@
+file: subsystems/worklist/commands/propagate.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "Qué sube"))
+    (section
+    (atx_heading (inline) @n1 (#eq? @n1 "El renombre se rehace; todo lo demás se cherry-pickea"))) @target)

@@ -1,0 +1,6 @@
+file: subsystems/worklist/concepts/sync.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "El sprint viaja como sprint, no como issue"))
+    (section
+    (atx_heading (inline) @n1 (#eq? @n1 "El nombre en Jira lo escribe el worklist, y no es la llave"))) @target)

@@ -1,0 +1,6 @@
+kind: governs
+endpoint:
+  0:
+    link: capture 28b5ef9639c4b0730416cab44a257047
+  1:
+    link: path subsystems/worklist>impl

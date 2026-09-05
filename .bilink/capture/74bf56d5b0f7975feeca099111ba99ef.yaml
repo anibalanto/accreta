@@ -1,0 +1,6 @@
+file: subsystems/worklist/concepts/propagation.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "Hacia arriba: sube lo resuelto, no lo que llegó"))
+    (section
+    (atx_heading (inline) @n1 (#eq? @n1 "Hasta dónde subió se anota en una ref, no se deduce"))) @target)

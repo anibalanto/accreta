@@ -1,0 +1,6 @@
+file: subsystems/worklist/concepts/propagation.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "Qué pasa cuando el cherry-pick no aplica"))
+    (section
+    (atx_heading (inline) @n1 (#eq? @n1 "Y el panorama nunca guarda un conflicto"))) @target)

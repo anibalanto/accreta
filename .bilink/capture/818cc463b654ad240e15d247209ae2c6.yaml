@@ -1,0 +1,6 @@
+file: subsystems/worklist/commands/bootstrap.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "Qué hace, y sobre todo qué no"))
+    (section
+    (atx_heading (inline) @n1 (#eq? @n1 "Encontrado no es creado"))) @target)

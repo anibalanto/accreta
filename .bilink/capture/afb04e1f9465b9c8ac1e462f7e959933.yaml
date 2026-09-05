@@ -1,0 +1,6 @@
+file: subsystems/worklist/concepts/sync.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "El cuerpo viaja, y vuelve convertido"))
+    (section
+    (atx_heading (inline) @n1 (#eq? @n1 "Un link a otro ítem se traduce en el borde"))) @target)

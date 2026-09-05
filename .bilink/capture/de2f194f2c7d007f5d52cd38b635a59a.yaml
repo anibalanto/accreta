@@ -1,0 +1,6 @@
+file: subsystems/worklist/commands/window-open.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "Comando: `worklist window open`"))
+    (section
+    (atx_heading (inline) @n1 (#eq? @n1 "Abrir dos veces regenera: el corte se recalcula y el trabajo se replanta"))) @target)
