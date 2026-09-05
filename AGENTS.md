@@ -4,6 +4,22 @@ Specs de un ecosistema de herramientas: **bilinker** (referencias verificadas en
 
 **Las capas se traen con `stratum pull`**, que lee la declaración de cada una en `.stratum/.<nombre>.toml`. La de `impact` **no está declarada porque su repo no está publicado**: existe sólo local, con su ADR adentro.
 
+## Antes de nada: las tres guías
+
+**Cargá las tres antes de leer, buscar o tocar cualquier cosa.** No hay condición que evaluar.
+
+| | |
+|---|---|
+| `ia/skills/worklist/SKILL.md` | el formato del trabajo: ítems, sprints, cómo se nombra y cómo se mueve |
+| `ia/skills/bilinker/SKILL.md` | las referencias verificadas — prerequisito del método |
+| `ia/skills/stratum-paths/SKILL.md` | cómo se compone cualquier path |
+
+**Las tres las usa todo el trabajo de este repo**, y el método de abajo lo hace explícito: el paso 0 es worklist, los pasos 2 y 4 son bilinker, y cualquier comando con un path es stratum.
+
+Antes decían *cuándo* aplicaba cada una — *"si la tarea toca bilinks"*, *"si vas a componer un path"*. **Ese juicio sólo se puede hacer después de haber empezado a leer**, y para entonces ya leíste sin la guía que dice cómo.
+
+`.claude/skills` es un symlink relativo a `ia/skills`: hay una sola copia de cada guía, y no puede divergir.
+
 ## Dónde está el trabajo
 
 En `.worklist/insecure/all/` — épicas, user stories, tasks y sprints. Para saber qué sigue: el sprint con `status: in-progress` en `_sprints/` —o, si no hay ninguno, el próximo `open` por número—, y de ahí a los ítems que referencia.
@@ -12,7 +28,7 @@ En `.worklist/insecure/all/` — épicas, user stories, tasks y sprints. Para sa
 
 `insecure/all` es el panorama, con todos los ítems; una ventana —`secure/sprint/<id>`— lleva sólo los de ese sprint. El path dice la capacidad: a una rama insegura no se le puede empujar. Ver [`subsystems/worklist/concepts/sync.md`](subsystems/worklist/concepts/sync.md).
 
-Guía operativa del formato: `.claude/skills/worklist/SKILL.md`. Spec completa: `subsystems/worklist/`.
+Spec completa: `subsystems/worklist/`.
 
 Las decisiones que ese trabajo ejecuta viven en `docs/adr/` de la capa impl del subsistema correspondiente.
 
@@ -32,13 +48,9 @@ Cuando una conversación de diseño produce algo que vale escribir, **lo primero
 
 **El inventario de trabajo de un cambio *es* la lista de no-OK.** Buscar el código a mano produce una lista que envejece el mismo día que se escribe; los bilinks están vivos.
 
-Guía operativa: `ia/skills/bilinker/SKILL.md`. `.claude/skills` es un symlink relativo a `ia/skills`: hay una sola copia de cada skill, y no puede divergir.
-
-**Nada te exime de cargar las skills y seguir las convenciones.**
-
 ## Paths
 
-Los paths se escriben con tokens Stratum —`*` raíz, `<` subir, `>name` bajar— y se resuelven con `$(stratum '...')`. No hardcodear rutas absolutas. Guía: `.claude/skills/stratum-paths/SKILL.md`.
+Los paths se escriben con tokens Stratum —`*` raíz, `<` subir, `>name` bajar— y se resuelven con `$(stratum '...')`. No hardcodear rutas absolutas.
 
 ## Commits
 
