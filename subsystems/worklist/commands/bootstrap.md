@@ -36,11 +36,35 @@ Crear un issue con su descripción escribe sobre algo que no existía: no hay na
   5e -> ACC-207  (ya existia: el cuerpo no se toco)
 ```
 
-## Corre en el servidor, y no es un push
+## Se corre donde el panorama vive, y hoy eso es tu worktree
 
-`insecure/**` [rechaza el push](../concepts/sync.md#dos-clases-de-rama-y-el-nombre-dice-qué-se-puede-hacer) — **del cliente.** Que el servidor escriba en el panorama es lo que [la propagación](../concepts/propagation.md) ya hace en cada push aceptado; esto es lo mismo por otro motivo.
+`insecure/**` [rechaza el push](../concepts/sync.md#dos-clases-de-rama-y-el-nombre-dice-qué-se-puede-hacer) — **del cliente.** Escribir en el árbol donde uno está parado es otra cosa, y no pasa por ningún hook.
 
-Así que se corre parado en el repo bare, como `assign-keys`, y con la misma credencial.
+Y dónde está parado quien lo corre decide cómo se escribe:
+
+| | |
+|---|---|
+| la rama **está checkouteada acá** | se trabaja en el árbol y se commitea, como cualquiera |
+| no lo está | worktree temporal en `--detach`, y `update-ref` al final |
+
+**Lo que no hace es mover una rama que otro worktree tiene abierta.** Es el defecto de la task `5o`: `update-ref` la mueve igual y deja ese worktree con el índice del árbol anterior — y acá serían ciento y pico de renombres. Sobre eso no hay `--force` que valga.
+
+```
+$ worklist bootstrap --project ACC
+error: refs/heads/insecure/all esta checkouteada en otro worktree y no se puede mover:
+  /home/…/.worklist/insecure/all
+
+  moverla dejaria ese worktree con el indice del arbol anterior, y aca son
+  126 renombres. Corre esto parado ahi, o saca el worktree primero.
+```
+
+### Y el árbol tiene que estar limpio
+
+Sólo en el primer caso, y por una razón mecánica: el renombre commitea con `add -A`, así que **lo que hubiera sin commitear se colaría adentro**. Se rechaza antes de pedirle nada al proveedor.
+
+### Por qué no dice "el servidor"
+
+Porque hoy el panorama no está del lado del servidor: el bare de sincronización tiene las dieciséis ventanas y ningún `insecure/all`. Es la task `77`, y hasta que se resuelva **el único lugar donde este comando puede correr es el worktree del panorama**.
 
 ## Salida
 
@@ -67,3 +91,4 @@ refs/heads/insecure/all: no hay ningun item sin clave
 |--------|-----------|
 | `0` | los pedidos quedaron con clave, o no había ninguno |
 | `1` | un ciclo entre pedidos, o el proveedor falló — la ref queda como estaba |
+| `1` | la rama está abierta en otro worktree, o el árbol tiene cambios sin commitear |
