@@ -73,7 +73,9 @@ Las dos cosas no cuestan lo mismo:
 | **tener clave** | que el ítem existe del otro lado | pasa **una vez** y no promete nada después |
 | **verificarse entera** | que la rama sigue coincidiendo con el proveedor | se paga en **cada push**, sobre el conjunto entero |
 
-Lo que hace que una rama insegura no acepte escrituras es lo segundo: crece sin techo, así que *"me verifico entera"* es una promesa que en algún momento no va a poder cumplir. **Lo primero no tiene ese problema**, y medido en vez de invocado: `Provider::state(keys)` toma todas las claves juntas, así que contra Jira son una JQL `key in (…)` paginada y no una llamada por ítem.
+Lo que hace que una rama insegura no acepte escrituras es lo segundo: crece sin techo, así que *"me verifico entera"* es una promesa que en algún momento no va a poder cumplir. **Lo primero no tiene ese problema**, y medido en vez de invocado: el puerto tiene **una sola operación** —`Provider::snapshot(keys)`— y toma todas las claves juntas, así que contra Jira son una JQL `key in (…)` paginada y no una llamada por ítem.
+
+**Y lo que devuelve por clave son tres campos opcionales**, no un `status` pelado: `None` en uno es *"este proveedor no lo informa"*, que no es lo mismo que vacío. El de prueba sólo lleva `status`, y comparar contra su ausencia daría siempre distinto — ver § "Dos alcances, porque son dos promesas".
 
 > **El panorama puede tener claves sin prometer que estén al día. Eso es exactamente lo que "insegura" significa.**
 
