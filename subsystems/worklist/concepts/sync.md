@@ -40,7 +40,7 @@ Completo y verificable son excluyentes, así que hay dos clases y no una:
 | `refs/heads/insecure/**` | todo, o un conjunto que crece sin techo | no | **rechaza el push** |
 | cualquier otra | no es del worklist | — | no opina |
 
-**Rechazar el push a una insegura es lo que vuelve cierta la palabra.** Una rama que se llama insegura y acepta escrituras miente: no puede verificarse, así que no puede prometer que lo que entra sea consistente con el proveedor. Y de ahí sale, sin que nadie tenga que respetarla, que el panorama sólo avance por propagación — **no hay forma de empujarle.**
+**Rechazar el push a una insegura es lo que vuelve cierta la palabra.** Una rama que se llama insegura y acepta escrituras miente: no puede verificarse, así que no puede prometer que lo que entra sea consistente con el proveedor. Y de ahí sale, sin que nadie tenga que respetarla, que el panorama sólo avance por [propagación](propagation.md) — **no hay forma de empujarle.**
 
 `backlog` es insegura: es *"todo lo que ningún sprint tomó"* y crece sin techo. Para trabajar sobre ítems del backlog se recorta una ventana segura acotada.
 
@@ -256,7 +256,7 @@ Los `relation.depends` que apuntan **adentro** de la ventana llegan a la pasada 
 
 Una ventana es acotada por diseño y las dependencias no respetan sus bordes: que una user story de un sprint dependa de otra del anterior es lo normal en un backlog, y arrastrar la dependencia adentro dejaría de estar acotada. Exigir que todas caigan adentro sería pedirle al backlog que se ordene por el recorte.
 
-**Y es un síntoma de la propagación que falta.** El ítem de afuera ya tiene clave —se la puso el push de su propia ventana—; lo que no la tiene es el panorama, porque las claves quedan en la rama de cada ventana y nadie las lleva de vuelta. Con la propagación andando, la ventana re-cortada traería el `depends` ya traducido y el vínculo se crearía solo.
+**Y es un síntoma de [la propagación](propagation.md) que todavía no corre.** El ítem de afuera ya tiene clave —se la puso el push de su propia ventana—; lo que no la tiene es el panorama, porque las claves quedan en la rama de cada ventana y nadie las lleva de vuelta. Con la propagación andando, la ventana re-cortada traería el `depends` ya traducido y el vínculo se crearía solo.
 
 ### La jerarquía entra hasta donde el proveedor la tiene
 
@@ -362,7 +362,7 @@ Y va **después** del compare-and-swap, que ya corrió: *"si git está actualiza
 
 **Y subir el título tiene un costo que hay que decir.** La identidad de un ítem sin clave es su título: así lo encuentra `create_or_find` para no duplicar. Si el título cambia en el proveedor y alguien vuelve a cortar la ventana desde el panorama —que tiene el título viejo y sin clave—, la búsqueda no encuentra nada y **crea un issue nuevo**. Es el defecto de la task `5l` por otra puerta.
 
-Hoy está acotado porque re-cortar una ventana viva está prohibido, y deja de estarlo el día que la propagación al panorama exista — que es cuando el panorama va a tener las claves y esto se arregla solo.
+Hoy está acotado porque re-cortar una ventana viva está prohibido, y deja de estarlo el día que [la propagación al panorama](propagation.md) corra — que es cuando el panorama va a tener las claves y esto se arregla solo.
 
 ### El servidor anota lo que hizo, no borra lo que hiciste
 
