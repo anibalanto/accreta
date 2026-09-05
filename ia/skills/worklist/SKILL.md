@@ -43,6 +43,8 @@ Para trabajar se corta la vista, y se edita ahí:
 worklist window open <sprint-id>          # produce secure/sprint/<id>
 ```
 
+**El nombre es provisorio.** El comando que corta tiene tres candidatos —`window open`, `view add`, `window new`— y no son sinónimos: uno de ellos ya significa *ampliar un recorte que existe*, no cortar uno nuevo. Está sin decidir, así que lo de arriba es lo que hay hoy, no la forma final.
+
 ### Y hay un hueco, que conviene saber antes de chocarlo
 
 **Un ítem que no está en ningún sprint no tiene vista segura donde cortarse.** El backlog es inseguro por definición, y la vista para trabajarlo todavía no existe: falta una vista derivada de una consulta al proveedor —`to-work`— y falta que el backlog tenga camino al proveedor. Las dos están decididas y sin implementar.
