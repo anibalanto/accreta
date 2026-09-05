@@ -202,11 +202,29 @@ Una spec que necesita justificar algo cita **el ADR**. Si la justificación sól
 
 Las referencias ya escritas **se corrigen al tocarlas**, no de una barrida.
 
-## Cómo contestar "qué sigue"
+## Cómo contestar "qué sigue": dos pasos, y el orden es obligatorio
+
+> **En el panorama se ve qué hay. En la vista segura se constata que sea lo último.**
+
+No es prolijidad: son las dos promesas, y **son excluyentes**. El panorama eligió estar completo, y por eso mismo *"no puede prometer que estén actualizados"*. Preguntarle si algo está al día es preguntarle lo único que declaró no poder contestar.
+
+**Paso 1 — el panorama, para el inventario:**
 
 1. Buscar el sprint con `status: in-progress`. Si no hay, el próximo `open` por número.
-2. Sus links son el compromiso de la iteración. Bajar a la US y de ahí a sus tasks.
+2. Sus `items` son el compromiso de la iteración. Bajar a la US y de ahí a sus tasks.
 3. Cada task dice **qué specs toca**, no qué archivos de código: el código sale de los bilinks que se rompan.
+
+**Paso 2 — la vista segura del sprint, para constatar.** Cortada o refrescada, es la única que puede verificarse entera contra el proveedor. El `status` que vale es el de ahí.
+
+**Y no se puede invertir.** La vista no sabe lo que no tiene: preguntarle *"qué sigue"* devuelve lo de su sprint y **calla el resto sin decir que calló**.
+
+### Cuando la vista no está cortada
+
+Pasa seguido, y hoy pasa con todo lo que no sea de los sprints ya subidos. Entonces el segundo paso no se puede dar, y la respuesta es:
+
+> **"Esto es lo que hay, y no está constatado."**
+
+Decirlo **es** el paso. La alternativa es presentar como actual algo que nadie verificó, que es el mismo error de forma que el resto de las reglas de acá evitan.
 
 **El backlog no es un archivo.** Se calcula, no se mantiene: tenerlo escrito obligaría a editar dos lugares al mover algo. Y el cálculo va sobre el subárbol, que es lo que un sprint referencia — **un ítem está en el backlog si el tope de su rama no lo nombra ningún sprint**. Las tasks de una user story planificada no se cuentan aparte, y una user story que ningún sprint nombra está en el backlog con todas sus tasks, sin importar cuántas alguien haya querido adelantar.
 
