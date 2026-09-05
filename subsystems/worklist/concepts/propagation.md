@@ -83,7 +83,7 @@ No es un defecto de la propagación: es el único detector que hay hoy de una re
 
 Un conflicto anotado en una rama de trabajo espera a que alguien lo mire. Anotado en el tronco, se reparte. Así que la salida no es escribirlo:
 
-1. El `pre-receive` **prueba** el cherry-pick de los commits del cliente contra el panorama. Si no aplica, rechaza el push — la misma forma que ya tiene el compare-and-swap, y por la misma razón: una escritura tiene que probar que parte del estado actual.
+1. El `pre-receive` **prueba** el cherry-pick de los commits del cliente contra el panorama. Si no aplica, rechaza el push — la misma forma que ya tiene el compare-and-swap, y por la misma razón: una escritura tiene que probar que parte del estado actual. Se prueba con `merge-tree`, **en memoria**: un hook que rechaza no puede dejar un worktree ni objetos atrás, y esto corre en todos los pushes y no sólo en los que fallan.
 2. El `post-receive` lo **aplica**, después de sus propios commits. Es la [misma partición en dos pasos](sync.md#dos-pasos-no-uno) que todo lo demás: `pre-receive` sólo puede aceptar o rechazar, y escribir es de después.
 
 Lo que el paso 1 no puede probar son los commits que el servidor todavía no escribió. Si uno de ésos no aplica, **el panorama no avanza y el hook lo reporta**: la ventana queda adelantada, que es un estado del que se sale reintentando la propagación, y no una pérdida.

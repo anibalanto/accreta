@@ -18,7 +18,18 @@ worklist check-push --provider-file <archivo> [--stdin]
 1. Para cada `ref` que llega: si es `refs/heads/insecure/**`, **rechaza el push** — una rama insegura no se puede verificar, así que no puede aceptar escrituras. Si no es `refs/heads/secure/**`, la ignora: este comando no opina sobre ramas que no son del worklist.
 2. Lee, del árbol de `<viejo>`, todos los `*.md` cuyo nombre ya es una clave de proveedor (`is_unassigned` en falso), y su campo `status`.
 3. Le pregunta al proveedor su estado ahora mismo para esas mismas claves.
-4. Si algún valor difiere, rechaza — imprime cuál clave y los dos valores. Si todos coinciden, acepta.
+4. Si algún valor difiere, rechaza — imprime cuál clave y los dos valores.
+5. Y **prueba contra el panorama**: si lo que la ventana traería no aplica sobre `insecure/all`, rechaza. Ver [`concepts/propagation.md`](../concepts/propagation.md#y-el-panorama-nunca-guarda-un-conflicto).
+
+Si las dos pruebas pasan, acepta.
+
+## Son dos árbitros, y el segundo sólo ve lo que el primero no
+
+El proveedor arbitra todo lo que tiene clave: dos ventanas que editan el mismo ítem chocan en el paso 4, un paso antes de que el panorama se entere. Lo que llega al paso 5 es lo que **no tiene contraparte allá** — en la práctica, un ancestro de sólo lectura que alguien editó adentro de su ventana.
+
+**Se prueba en memoria, con `merge-tree`.** Un `pre-receive` que rechaza no puede dejar un worktree ni objetos atrás, y el paso 5 corre en todos los pushes, no sólo en los que fallan.
+
+**Y no prueba los renombres**, porque no se copian: [se rehacen](../concepts/propagation.md#el-renombre-es-el-único-que-no-se-copia-y-el-motivo-es-de-alcance) sobre el árbol del panorama, y ahí no hay parche que pueda no aplicar.
 
 ## Salida
 
@@ -27,9 +38,17 @@ $ worklist check-push --provider-file provider.json --stdin <<< "a1b2c3d e4f5g6h
 reject: ACC-101 status era "open" en el tip, el proveedor dice "done"
 ```
 
+Y el segundo árbitro:
+
+```
+reject: a2b035d edito ACC-14 no entra al panorama — choca en ACC-14.epic.md
+        alguien mas escribio eso desde otra ventana. Regenera la tuya y volve a aplicarlo.
+```
+
 ## Códigos de salida
 
 | Código | Condición |
 |--------|-----------|
 | `0` | todas las ventanas del rango coinciden con el proveedor |
 | `1` | al menos una clave difiere — push rechazado |
+| `1` | lo que la ventana traería no aplica sobre el panorama — push rechazado |
