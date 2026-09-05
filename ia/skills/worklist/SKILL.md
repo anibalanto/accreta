@@ -32,21 +32,35 @@ worklist window open <sprint-id>          # produce secure/sprint/<id>
 
 Decirlo así y no dar una regla que a veces no se puede cumplir: la excepción existe, y lo que importa es que **se note al hacerla** en vez de que sea el camino por defecto.
 
-### Dos chequeos antes de escribir una línea de código
+### Antes de escribir una línea de código
 
-> **Las dos son bandera roja: no se avanza, se arregla primero.**
+> **Cuatro cosas, y las cuatro se contestan sin ningún comando del worklist.** Las dos primeras son banderas rojas: no se avanza, se arregla.
 
-**Uno: la vista es insegura.** `worklist is-secure` en falso quiere decir que lo que escribas no se puede empujar, no se verifica y no cruza al proveedor. No es una advertencia sobre después: es que el trabajo no tiene dónde ir.
+**1 · La vista es segura.** Si no, lo que escribas no se puede empujar, no se verifica y no cruza al proveedor. No es una advertencia sobre después: es que el trabajo no tiene dónde ir. Ver § "Cómo saber si la vista es segura".
 
-**Dos: el ítem todavía lleva `@`.** Un `@<slug>` es un id que el servidor todavía no reemplazó, así que **no hay con qué prefijar el commit** — y `AGENTS.md` § Commits pide que arranque con el id del ítem. Trabajar antes de sincronizar deja una historia que nombra un id que va a dejar de existir.
+**2 · El ítem no lleva `@`.** Un `@<slug>` es un id que el servidor todavía no reemplazó, así que **no hay con qué prefijar el commit** — y `AGENTS.md` § Commits pide que arranque con el id del ítem. La salida es sincronizar, no inventar un id.
 
-La salida es la misma en los dos casos, y es el orden que el método ya pedía con el paso que faltaba:
+**3 · La vista está al día.** El servidor **commitea encima** de lo que empujaste —los `rename`, los `normalize:`, el `key` del sprint— y eso no está en tu worktree hasta que lo traigas:
+
+```bash
+git fetch srv && git merge --ff-only srv/$(git rev-parse --abbrev-ref HEAD)
+```
+
+`--ff-only` y no un merge común: el caso sano es siempre un fast-forward, y **que no lo sea quiere decir que la rama divergió** — alguien más la empujó, o se re-cortó. Un merge automático ahí escondería justo lo que hay que mirar.
+
+Y no alcanza con que `git status` diga *"limpio"*: una vista atrasada se ve limpia. Medido: las 16 ventanas estuvieron un commit atrás durante horas y ninguna se veía pendiente.
+
+**4 · El ítem está `in-progress`, no `open`.** `open` quiere decir *"nadie lo tomó"*, y arrancar sin moverlo deja el trabajo invisible para todo lo demás — el board, el sprint, y cualquiera que pregunte qué se está haciendo. Se cambia **en la vista**, con el resto del trabajo, así que viaja al proveedor por el mismo camino.
+
+### El orden que evita los cuatro
 
 ```
-crear el ítem  →  sincronizar  →  cortar la vista  →  trabajar
+crear el ítem  →  sincronizar  →  cortar o refrescar la vista  →  pasarlo a in-progress  →  trabajar
 ```
 
-**La tarea no está lista cuando se escribe: está lista cuando tiene id.** Es lo que hace que el `@` viva minutos en vez de meses.
+Es el que el método ya pedía —*primero hay una tarea*— con lo que faltaba: **la tarea no está lista cuando se escribe, está lista cuando tiene id, está en tu vista y dice que la estás haciendo.**
+
+Los tres comandos que van a hacer esto solos están decididos y no existen: `worklist is-secure` (task `6i`), `worklist status` (task `72`) y `worklist sync` (task `6h`).
 
 ### Cómo saber si la vista es segura, hoy
 
