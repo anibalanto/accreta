@@ -1,0 +1,6 @@
+file: subsystems/worklist/concepts/sync.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "Asignar una clave: crear o encontrar"))
+    (section
+    (atx_heading (inline) @n1 (#eq? @n1 "El título de búsqueda no es el mismo string que el título del issue"))) @target)
