@@ -110,15 +110,23 @@ antes:    all(viejo) ─▶ corte(viejo) ─▶ W1 ─▶ W2
 después:  all(nuevo) ─▶ corte(nuevo) ─▶ W1' ─▶ W2'
 ```
 
-El corte nuevo se computa como lo computa [`window open`](../commands/window-open.md#qué-entra): contra el `items` de hoy, no contra la lista de rutas que se borró la vez pasada. Y `W1`/`W2` se replantan encima con `git rebase --onto`.
+El corte nuevo se computa como lo computa [`window open`](../commands/window-open.md#qué-entra): contra el `items` de hoy, no contra la lista de rutas que se borró la vez pasada. Y `W1`/`W2` se replantan encima, **de a un cherry-pick y no con `git rebase --onto`.**
+
+### Por qué de a uno, y no es preferencia
+
+El descarte por patch-id de `rebase` compara contra el **upstream** que se le nombra, que acá es el corte viejo. Y lo que ya subió no vive ahí: vive en el panorama, que es ancestro del corte **nuevo**. Medido — con `rebase --onto` el trabajo ya propagado se replanta igual, y la ventana termina con una copia de lo que el panorama ya le estaba dando.
+
+Un cherry-pick pregunta contra el árbol que tiene delante, que es el único lugar donde la respuesta es la correcta.
 
 ### Y el descarte deja de ser una promesa
 
-En el caso sano no hay nada que replantar: `W1` y `W2` **ya subieron al panorama** en el paso 3, así que el corte nuevo los contiene y el rebase los deja caer solo, por patch-id. Nadie tiene que acordarse de propagar antes de regenerar — **si se propagó, el replante es vacío; si no, replanta y no se pierde nada.**
+En el caso sano no hay nada que replantar: `W1` y `W2` **ya subieron al panorama** en el paso 3, así que el corte nuevo los contiene, el cherry-pick queda vacío y se deja caer. Nadie tiene que acordarse de propagar antes de regenerar — **si se propagó, el replante es vacío; si no, replanta y no se pierde nada.**
 
 Es una sola operación cubriendo los dos casos, y es lo que le da un mecanismo a lo que hasta acá era una advertencia: la guarda de [`5o` El worktree local no trae lo que el servidor escribió, y re-cortar la ventana lo descarta](../../../.worklist/insecure/all/5o.task.md) en `window open --force` decía *"descartar es correcto sólo si el trabajo se propagó"* y le pedía a quien corre el comando que lo supiera.
 
 **`--force` no desaparece**, y baja de categoría: queda para el caso en que el replante conflictúa y alguien decide tirar lo local. Deja de ser el flujo del `items` que cambió, que ahora es regenerar y ya.
+
+**Y el replante conflictúa por una razón sola**: el trabajo toca un ítem que el `items` de hoy ya no lleva, así que el corte nuevo no lo tiene y el parche no encuentra dónde apoyarse. Es información, no un accidente — dice que alguien trabajó sobre algo que se fue de la ventana.
 
 ## Cuándo se dispara
 

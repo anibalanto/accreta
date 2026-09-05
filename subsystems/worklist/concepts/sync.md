@@ -362,7 +362,7 @@ Y va **después** del compare-and-swap, que ya corrió: *"si git está actualiza
 
 **Y subir el título tiene un costo que hay que decir.** La identidad de un ítem sin clave es su título: así lo encuentra `create_or_find` para no duplicar. Si el título cambia en el proveedor y alguien vuelve a cortar la ventana desde el panorama —que tiene el título viejo y sin clave—, la búsqueda no encuentra nada y **crea un issue nuevo**. Es el defecto de la task `5l` por otra puerta.
 
-Hoy está acotado porque re-cortar una ventana viva está prohibido, y deja de estarlo el día que [la propagación al panorama](propagation.md) corra — que es cuando el panorama va a tener las claves y esto se arregla solo.
+Y no lo arregla que re-cortar la ventana sea seguro: [regenerar](propagation.md#hacia-abajo-regenerar-y-el-rebase-es-sólo-el-rescate) parte del panorama, así que el problema es que el panorama no tenga la clave. Se arregla cuando [la propagación](propagation.md) corra, que es cuando la va a tener.
 
 ### El servidor anota lo que hizo, no borra lo que hiciste
 
