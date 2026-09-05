@@ -77,6 +77,20 @@ No le preguntó a nadie: decir `0` sería afirmar sobre el board sin haberlo mir
 
 **Y no se puede volver a escribir mal**, porque el dato no se puede representar: el campo es un `Option`, y *"no se preguntó"* es `None` y no `0`.
 
+## Corre sobre el repo del directorio actual, y el error lo nombra
+
+No hay flag para decirle cuál: es el del `cwd`. En una máquina con el clon del worklist y el bare de sincronización a un `cd` de distancia, **equivocarse de directorio es el único modo de equivocarse**, así que el error lo dice:
+
+```
+$ worklist assign-keys --project ACC --board 701 --all-windows
+error: no hay ninguna ventana en /home/…/Workspace/accreta: refs/heads/secure/** esta vacio
+
+  este comando corre sobre el repo del directorio actual. Si ese no es
+  el del worklist, parate en el que si lo es.
+```
+
+Un *"no hay ninguna ventana en este repo"* describe bien el síntoma y manda a revisar el repo equivocado.
+
 ## Corre sobre un repo bare, sin working tree
 
 Un hook de recepción no tiene árbol de trabajo, y los pasos 4 y 5 necesitan uno. La salida es un **worktree temporal en `--detach`** sobre `<nuevo>`: ahí se hacen los renombres, y al terminar se mueve la ref al `HEAD` resultante y se descarta el worktree.
