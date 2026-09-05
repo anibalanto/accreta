@@ -51,7 +51,9 @@ Y después, **cinco pasadas** — ver [`concepts/sync.md`](../concepts/sync.md#n
 | **4** | los ítems que ya tenían clave y este push cambió: título y cuerpo se actualizan. |
 | **5** | el sprint de la ventana: lo crea si no existe, anota su id en el `.sprint.md`, y mete adentro los issues que le falten. |
 
-Al final mueve la ref al commit resultante.
+Al final mueve la ref al commit resultante, y **sube al panorama lo que quedó** — ver [`concepts/propagation.md`](../concepts/propagation.md) y [`propagate`](propagate.md).
+
+**La propagación va última y no antes**, porque lo que más falta arriba son las claves y las acaba de escribir la pasada 1. Y **que falle no deshace lo resuelto**: la ventana queda adelantada del panorama, que es un estado del que se sale reintentando con `worklist propagate`. Por eso se informa como una línea más y no como un error del comando.
 
 **La pasada 5 corre aunque no haya nada que asignar.** Una ventana ya resuelta no tiene pedidos ni cambios, y es justamente la que tiene sus issues creados y su sprint sin existir. Ver [`concepts/sync.md`](../concepts/sync.md#corre-aunque-no-haya-nada-que-asignar).
 
@@ -71,6 +73,11 @@ refs/heads/secure/sprint/10: 2 pedido(s)
   agregar-a -> ACC-102  (1 refs reescritas)
   sprint 10 -> 6512 (creado): 2 issue(s) agregados, 0 ya estaban
 refs/heads/secure/sprint/10: e4f5g6h -> 9z8y7x6
+refs/heads/secure/sprint/10: sube 3 commit(s) al panorama
+  rename agregar-b -> ACC-101  (rehecho)  (4 refs reescritas en el panorama)
+  rename agregar-a -> ACC-102  (rehecho)  (1 refs reescritas en el panorama)
+  9z8y7x6 normalize: ACC-101
+  panorama: a1b2c3d -> 7f6e5d4
 ```
 
 Y la segunda corrida sobre lo mismo:
