@@ -1,6 +1,6 @@
 # Sincronización con el proveedor
 
-Un ítem sin clave de proveedor es un **pedido**. El proveedor —hoy Jira, vía `acli`— asigna la clave real; git es el transporte. Ver [`proposals/ventanas-por-rama.md`](../proposals/ventanas-por-rama.md) para el razonamiento completo; esta página es la spec de lo ya decidido.
+Un ítem marcado con `@` es un **pedido**: nació de este lado y todavía no tiene su id definitivo. El proveedor —hoy Jira, vía `acli`— asigna la clave real; git es el transporte. Sin proveedor configurado el que asigna es el contador del servidor, y el resto de esta página no aplica — ver [`item.md`](item.md) § "El contador base-36 sigue existiendo, y es del servidor". Ver [`proposals/ventanas-por-rama.md`](../proposals/ventanas-por-rama.md) para el razonamiento completo; esta página es la spec de lo ya decidido.
 
 ## Qué es un pedido
 

@@ -85,4 +85,6 @@ subsystems/bilinker/concepts/cache.md
 
 ## Lo que no entra
 
-**El metalink** —`stratum:*/subsystems/bilinker/concepts/cache.md`, el destino escrito con tokens Stratum— es lo que arregla la causa, y este comando sólo detecta el síntoma. Está en el ítem `1i` del worklist, con el argumento de por qué **no puede salir sin que el proveedor `doc` de lattice aprenda el esquema en el mismo cambio**: sin eso, cada metalink se clasificaría como `external`, que no se espera que resuelva, y el grafo se vería sano.
+**El metalink** —`stratum:*/subsystems/bilinker/concepts/cache.md`, el destino escrito con tokens Stratum— es lo que arregla la causa, y este comando sólo detecta el síntoma.
+
+**Y no puede salir sin que el proveedor `doc` de lattice aprenda el esquema en el mismo cambio.** Sin eso, cada metalink se clasificaría como `external` —que no se espera que resuelva— y el grafo se vería sano justo donde dejó de estarlo: los links que hoy se reportan rotos pasarían a no reportarse, y el arreglo se leería como una mejora.
