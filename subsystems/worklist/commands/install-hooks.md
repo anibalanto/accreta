@@ -45,14 +45,26 @@ Y es la mitad del problema que generar el path no resuelve: el path lo pone bien
 ```sh
 #!/bin/sh
 # generado por worklist-server install-hooks — no editar
+# Contra el proveedor de prueba: con el real, el status del worklist
+# y el de Jira no son el mismo campo, y el compare-and-swap rechaza
+# todas las ventanas de entrada.
 exec /usr/local/bin/worklist-server check-push --stdin --provider-file /…/provider.json
 ```
 
 ```sh
 #!/bin/sh
 # generado por worklist-server install-hooks — no editar
+#
+# La propagacion al panorama va adentro de assign-keys, al final.
+#
+# El token llega por el entorno de quien empuja: jira-cli lo lee de
+# JIRA_API_TOKEN, y un hook hereda el entorno del proceso que lo dispara — asi
+# que el secreto no vive en disco, y la contra es que un push desde una sesion
+# sin exportarlo falla en el arranque, diciendo cual credencial falta.
 exec /usr/local/bin/worklist-server assign-keys --stdin --project ACC --board 701 --base https://lamansys.atlassian.net
 ```
+
+**Los comentarios son parte de lo que se genera.** El hook escrito a mano explicaba de dónde sale el token, y la primera regeneración se lo comió: quien abra el archivo después ve un `exec` sin contexto y ninguna pista de por qué un push falla desde una sesión sin la variable exportada. **Un generador que pierde lo que el hook sabía deja el servidor peor documentado que antes.**
 
 **El `post-receive` no llama a `propagate`, y no es un olvido**: [`assign-keys`](assign-keys.md) ya propaga al final, con el motivo escrito ahí — *"lo que más falta arriba son las claves y las acaba de escribir la pasada 1"*. Un `propagate` aparte correría la propagación dos veces.
 
