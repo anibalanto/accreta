@@ -84,9 +84,11 @@ updated_at: <iso8601-utc>
 
 > **Todo directorio dentro de `worklist/` empieza con `_`.**
 
-Los ítems son archivos sueltos en la raíz, así que un directorio nunca es un ítem — es un espacio de nombres para otra cosa, como `_sprints/`. El `_` lo dice desde el nombre: los ids son base-36, `[0-9a-z]`, y un nombre que empieza con `_` **nunca puede ser uno**.
+Los ítems son archivos sueltos en la raíz, así que un directorio nunca es un ítem — es un espacio de nombres para otra cosa, como `_sprints/`.
 
-Sin la regla, `sprints/` sería un nombre libre que el contador alcanzaría en el ítem 62.507.780.128 — nunca, pero "nunca" por improbable y no por imposible, y entonces distinguir un directorio de un ítem pasaría a depender de que ese número no llegue.
+**Lo que lo garantiza es el `/`, que no es un caracter de id**: el stem de `_sprints/17.sprint.md` es `_sprints/17`, y eso no es un id se llame como se llame el directorio. Ver [`item.md`](item.md) § "El alfabeto de un id".
+
+**Y el `_` lo hace visible antes de tener que razonarlo.** La garantía es estructural y la convención es de lectura: un `ls` contesta *"esto es un espacio de nombres"* sin que nadie tenga que acordarse de qué caracteres forman un id. Las dos hacen falta, y no son la misma cosa — apoyar la garantía en el `_` era lo que hacía que dependiera de una convención que cualquiera puede romper sin que nada falle.
 
 ```
 1.epic.md                     ← épica 1

@@ -4,11 +4,17 @@ Un ítem sin clave de proveedor es un **pedido**. El proveedor —hoy Jira, vía
 
 ## Qué es un pedido
 
-Un id de ítem es base-36, `[0-9a-z]`, nunca con mayúscula ni guión. Una clave de proveedor tiene las dos cosas. La partición la garantiza el alfabeto: nada escrito a mano puede colisionar con algo que asignó el proveedor.
+**Un pedido es un ítem cuyo id lleva `@` adelante, y eso es todo lo que lo distingue.** La marca la pone quien escribe el ítem y la saca el servidor al asignarle su id — el alfabeto y el significado de la marca están en [`item.md`](item.md) § "La marca `@`".
 
 ```
-is_unassigned(slug) := no matchea ^[A-Z]+-\d+$
+is_unassigned(slug) := slug empieza con `@`
 ```
+
+**La partición no la infiere el alfabeto: la declara la marca.** La regla anterior era *"es local todo lo que no parece una clave de Jira"* —`^[A-Z]+-\d+$`—, o sea la forma de un proveedor adentro de la función que decide qué se crea del otro lado, qué se renombra, qué dependencia se puede traducir y qué entra a `changed_keys`.
+
+Y no era una inferencia que se pudiera arreglar eligiendo mejor el alfabeto local. Los ids base-36 son muchos de puros dígitos —**68 de los 243** del panorama, medido—, y GitHub, GitLab y Taiga identifican un issue con un entero pelado: con cualquiera de los tres, `10.task.md` es el pedido local `10` o el issue `10` del proveedor, y **no hay forma de saber cuál**. Cada proveedor nuevo obliga a revisar si su forma de clave choca con la nuestra.
+
+**Marcar lo propio no obliga a conocer la forma de nadie**, y es lo que vuelve a `is_unassigned` una función sin ningún proveedor adentro.
 
 ## El renombre y la reescritura son un solo commit
 

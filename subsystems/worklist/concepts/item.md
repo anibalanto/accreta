@@ -45,6 +45,50 @@ worklist show 3
 worklist show 1f
 ```
 
+### El alfabeto de un id
+
+> **Un id es `[A-Za-z0-9_-]+`. Si todavía no cruzó al proveedor, lleva `@` adelante: `@[A-Za-z0-9_-]+`.**
+
+El alfabeto es más ancho que el del contador —`[0-9a-z]`— y no es lo mismo: el contador dice qué se **genera**, el alfabeto dice qué se puede **escribir**. Una clave de proveedor trae mayúsculas y un guión, y un id que alguien escribe a mano puede traer los dos.
+
+**No es una restricción nueva: es la que ya estaba y nadie declaraba.** La implementación la asume en siete lugares —el borde que evita que renombrar `4h` toque a `4h1`, el `parent:` del frontmatter, y los extractores de `relation.*` y de `items`— y ninguna spec la decía. Un id con un carácter afuera de ese conjunto no falla al crearse: falla más tarde, cuando el renombre no lo encuentra o lo parte por la mitad. Escribirlo acá **saca** una restricción de la sombra en vez de agregar una.
+
+Dos caracteres quedan afuera por lo que rompen, y no por gusto:
+
+| | |
+|---|---|
+| **`.`** | es el separador de tipo. `worklist show 1` es el ítem y `worklist show 1.sprint` es el sprint; con un punto adentro del id, `@a.sprint` es el ítem `@a.sprint` o el sprint `@a`, y nada puede decidir cuál |
+| **`/`** | ya estaba prohibido sin decirlo: el parseo del nombre descarta cualquier stem que lo lleve, y de eso depende que `_sprints/17.sprint.md` no se lea como un ítem de la raíz |
+
+### La marca `@`: lo local se declara, no se infiere
+
+> **Todo id local que un proveedor pueda reemplazar lleva `@` adelante. Lo que no lo lleva, es del proveedor.**
+
+```
+@arreglar-el-hook.task.md   →   ACC-347.task.md
+parent: @arreglar-el-hook   →   parent: ACC-347
+```
+
+**La marca va del lado local porque es el único lado que controlamos.** No se le puede exigir una forma a lo que devuelve un proveedor —Jira da `ACC-347`, GitHub da `1234`, el que venga dará lo suyo—, y no hace falta: la pregunta a contestar es siempre *"¿esto ya cruzó?"*, y para eso alcanza con marcar lo que generamos nosotros.
+
+**Y es positiva en vez de inferida.** *"Es local porque no matchea el patrón de Jira"* obliga a conocer el formato de clave de todos los proveedores para no equivocarse con ninguno; *"es local porque empieza con `@`"* no obliga a conocer ninguno. Esa es la diferencia entre una definición y una conjetura, y es lo que le saca el proveedor de adentro a la función que decide qué es un pedido — ver [`sync.md`](sync.md) § "Qué es un pedido".
+
+#### La marca es transitoria, y significa una sola cosa
+
+`@` quiere decir **"esto existe sólo de este lado"**, y nada más. Lo lleva un ítem entre que se escribe y que sincroniza; lo lleva una vista dinámica mientras exista. Los dos lo pierden en el mismo momento: **cuando la cosa pasa a existir del otro lado.**
+
+**No es una marca de persona.** `@julio` se lee como alguien en cualquier otra herramienta, y acá no lo es: el día que haya una dimensión de asignación, se escribe de otra forma. Un formato donde un caracter significa dos cosas obliga a mirar el contexto para leer un nombre.
+
+**Y es legal donde tiene que serlo.** Un id nombra archivos y también ramas —una vista se llama como lo que recorta—, y git acepta `@` en un refname: `refs/heads/@mia` y `refs/heads/vista/@mia` se crean, se checkoutean y se resuelven. Lo único que git reserva es `@` solo —es `HEAD`— y la secuencia `@{` —es la sintaxis de reflog—, y **las dos caen fuera del alfabeto por construcción**: `@[A-Za-z0-9_-]+` exige al menos un caracter después de la marca y no admite `{`. No hace falta ninguna regla extra.
+
+#### Un sprint nunca lleva `@`
+
+No porque se lo exceptúe: porque la marca dice *"esto todavía puede ser reemplazado"* y el nombre de un sprint no lo es, ni al cruzar ni después. El proveedor le da una clave, pero esa clave no es un nombre —en su interfaz no se muestra, no se puede buscar y nadie la escribe—, así que vive en el frontmatter como una **coordenada** y no compite con nada.
+
+> **Un ítem tiene un id. Un sprint tiene un nombre y una coordenada.**
+
+Queda **fuera del alcance** de la regla, que es distinto de estar exento de ella.
+
 ## Formato del archivo
 
 ```markdown
@@ -114,13 +158,13 @@ Una relación la declara **un** extremo. Para padre/hijo ese extremo es el hijo,
 
 Qué forma tiene esa clave es **configuración del proyecto**, no del formato: un proyecto la define y el resto se verifica contra ella.
 
-**El invariante rige sobre lo publicado.** Un ítem que el proveedor todavía no creó no tiene clave, y poder nombrarlo por su nombre provisorio es la única forma de que algo pueda ordenar las creaciones. Así que una copia local puede llevar una referencia sin clave, y **lo publicado no**.
+**El invariante rige sobre lo publicado.** Un ítem que el proveedor todavía no creó no tiene clave, y poder nombrarlo por su id local —el que lleva `@`— es la única forma de que algo pueda ordenar las creaciones. Así que una copia local puede llevar una referencia marcada, y **lo publicado no**: una referencia con `@` en una rama publicada es un ítem que no cruzó.
 
 **Los ciclos se rechazan.** Una dependencia circular no tiene orden de trabajo ni orden de creación.
 
 ## Invariantes
 
-1. El nombre del archivo es `<id>.<tipo>.md`, con un ID base-36 válido asignado por el servidor.
+1. El nombre del archivo es `<id>.<tipo>.md`, con un id del alfabeto `[A-Za-z0-9_-]+` —sin `.` y sin `/`— y con `@` adelante si todavía no cruzó al proveedor.
 2. El tipo es `epic`, `user-story`, `task` o `sprint`.
 3. Todo ítem vive en la raíz de `worklist/`; los sprints, en `_sprints/`. No hay carpetas por ítem.
 4. `parent` lleva el id de un ítem que existe, o está ausente. Ningún ítem es su propio ancestro.
@@ -129,3 +173,4 @@ Qué forma tiene esa clave es **configuración del proyecto**, no del formato: u
 7. El frontmatter no contiene `source_bilink`. La asociación con bilinks se declara desde el bilink.
 8. El frontmatter no contiene `relation.children` ni ningún otro campo que reescriba lo que `parent` ya declara.
 9. Todo valor de un `relation.<tipo>` publicado es la clave, con la forma del proveedor, de un ítem que existe. El grafo que forman no tiene ciclos.
+10. Que un id sea local o del proveedor se lee de la marca `@` y nunca del formato de la clave. Nada en el worklist conoce la forma de clave de ningún proveedor para decidirlo.
