@@ -20,12 +20,26 @@ worklist bootstrap --project <clave> [--ref <rama>] [--base <url>] [--dry-run]
 
 ## Qué hace, y sobre todo qué no
 
-1. Lista los `*.md` del árbol cuyo nombre **no** es una clave de proveedor: ésos son los pedidos. Los `_sprints/*.sprint.md` no entran — un sprint no es un issue.
+1. Lista los `*.md` del árbol cuyo nombre **no** es una clave de proveedor: ésos son los pedidos.
 2. Los ordena topológicamente por `parent`, para que una épica exista antes que lo que cuelga de ella.
 3. Por cada uno: [`create-or-find`](create-or-find.md), el renombre con su reescritura, y el `--parent` de su épica ancestro.
 4. Y el cuerpo, **sólo donde el issue se creó**.
 
-**Y nada más.** Ni vínculos, ni sprint, ni actualizar lo que ya tenía clave: todo eso es sincronización, y sincronizar es lo que esta operación explícitamente no promete. Las cinco pasadas de [`assign-keys`](assign-keys.md) son para una ventana, que sí lo promete.
+5. Y los **sprints sin `key`**, al final: se crean del otro lado y se les meten adentro los issues de sus ítems.
+
+**Y nada más.** Ni vínculos, ni actualizar lo que ya tenía clave: eso es sincronización, y sincronizar es lo que esta operación explícitamente no promete. Las cinco pasadas de [`assign-keys`](assign-keys.md) son para una ventana, que sí lo promete.
+
+### El sprint entra, y lo que cambia es la llamada
+
+Decía que *"los `_sprints/*.sprint.md` no entran — un sprint no es un issue"*, y la conclusión no se seguía de la premisa. Es cierto que no es un issue: se pide con `create_or_find_sprint` y no con [`create-or-find`](create-or-find.md). **Pero la operación es la misma** — darle identidad del proveedor a lo que no la tiene, sin prometer que la rama se verifique— y un sprint sin `key` es exactamente eso.
+
+Dejarlo afuera producía el agujero que el board mostró: **22 sprints en el worklist y 17 en Jira**, y entre los que faltaban, el que estaba en curso.
+
+> **Va al final, y no es preferencia.** Meter los issues adentro del sprint necesita que sus ítems ya tengan clave. Es la misma restricción topológica que ordena a la épica antes que sus tasks, un escalón más arriba.
+
+### Y no hay bandera para pedir sólo los sprints
+
+Elegirlos de antemano obligaría a saber qué falta antes de mirar, y **el estado ya lo dice**: lo que no tiene clave es lo que se pide. `--limit` alcanza para ir de a poco, y cuando no queda nada la corrida contesta que no hay nada que hacer.
 
 ### Encontrado no es creado
 
