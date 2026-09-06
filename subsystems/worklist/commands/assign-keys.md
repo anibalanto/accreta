@@ -1,4 +1,4 @@
-# Comando: `worklist assign-keys`
+# Comando: `worklist-server assign-keys`
 
 Resuelve los pedidos que un push dejó en una ventana: les pide una clave al proveedor, los renombra y reescribe lo que los nombraba. Pensado para correr desde `hooks/post-receive`.
 
@@ -7,7 +7,7 @@ Resuelve los pedidos que un push dejó en una ventana: les pide una clave al pro
 ## Firma
 
 ```
-worklist assign-keys --project <clave> --board <id>
+worklist-server assign-keys --project <clave> --board <id>
                      [--stdin | --window <id>… | --all-windows] [--dry-run]
 ```
 
@@ -53,7 +53,7 @@ Y después, **cinco pasadas** — ver [`concepts/sync.md`](../concepts/sync.md#n
 
 Al final mueve la ref al commit resultante, y **sube al panorama lo que quedó** — ver [`concepts/propagation.md`](../concepts/propagation.md) y [`propagate`](propagate.md).
 
-**La propagación va última y no antes**, porque lo que más falta arriba son las claves y las acaba de escribir la pasada 1. Y **que falle no deshace lo resuelto**: la ventana queda adelantada del panorama, que es un estado del que se sale reintentando con `worklist propagate`. Por eso se informa como una línea más y no como un error del comando.
+**La propagación va última y no antes**, porque lo que más falta arriba son las claves y las acaba de escribir la pasada 1. Y **que falle no deshace lo resuelto**: la ventana queda adelantada del panorama, que es un estado del que se sale reintentando con `worklist-server propagate`. Por eso se informa como una línea más y no como un error del comando.
 
 **La pasada 5 corre aunque no haya nada que asignar.** Una ventana ya resuelta no tiene pedidos ni cambios, y es justamente la que tiene sus issues creados y su sprint sin existir. Ver [`concepts/sync.md`](../concepts/sync.md#corre-aunque-no-haya-nada-que-asignar).
 
@@ -82,7 +82,7 @@ No le preguntó a nadie: decir `0` sería afirmar sobre el board sin haberlo mir
 No hay flag para decirle cuál: es el del `cwd`. En una máquina con el clon del worklist y el bare de sincronización a un `cd` de distancia, **equivocarse de directorio es el único modo de equivocarse**, así que el error lo dice:
 
 ```
-$ worklist assign-keys --project ACC --board 701 --all-windows
+$ worklist-server assign-keys --project ACC --board 701 --all-windows
 error: no hay ninguna ventana en /home/…/Workspace/accreta: refs/heads/secure/** esta vacio
 
   este comando corre sobre el repo del directorio actual. Si ese no es
@@ -100,7 +100,7 @@ Un hook de recepción no tiene árbol de trabajo, y los pasos 4 y 5 necesitan un
 ## Salida
 
 ```
-$ worklist assign-keys --project ACC --board 701 --window 10
+$ worklist-server assign-keys --project ACC --board 701 --window 10
 refs/heads/secure/sprint/10: 2 pedido(s)
   orden: agregar-b, agregar-a
   agregar-b -> ACC-101

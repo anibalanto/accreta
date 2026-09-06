@@ -1,4 +1,4 @@
-# Comando: `worklist propagate`
+# Comando: `worklist-server propagate`
 
 Sube al panorama lo que una ventana resolvió. Es la dirección de ida de [la propagación](../concepts/propagation.md); la de vuelta es regenerar la ventana, y ésa la hace [`window open`](window-open.md).
 
@@ -7,7 +7,7 @@ Sube al panorama lo que una ventana resolvió. Es la dirección de ida de [la pr
 ## Firma
 
 ```
-worklist propagate [--window <id>]… | [--all-windows] | [--stdin] [--dry-run]
+worklist-server propagate [--window <id>]… | [--all-windows] | [--stdin] [--dry-run]
 ```
 
 | Argumento | Descripción |
@@ -32,7 +32,7 @@ Lo que la ventana tiene y el panorama todavía no: desde `refs/worklist/propagat
 **El corte nunca sube.** Es un commit que borra los ítems que el recorte dejó afuera; aplicado al panorama, le borraría los 233 que esa ventana no tiene. Por eso el comando se niega cuando no lo encuentra, en vez de propagar desde la base:
 
 ```
-$ worklist propagate --window 1
+$ worklist-server propagate --window 1
 error: no encuentro el corte de esta ventana: el primer commit sobre el panorama es
   a2b035d edito o
 
@@ -49,7 +49,7 @@ Ver [`concepts/propagation.md`](../concepts/propagation.md#el-renombre-es-el-ún
 ## Salida
 
 ```
-$ worklist propagate --window 10
+$ worklist-server propagate --window 10
 refs/heads/secure/sprint/10: sube 3 commit(s) al panorama
   rename agregar-b -> ACC-101  (rehecho)  (4 refs reescritas en el panorama)
   9z8y7x6 normalize: ACC-101
@@ -74,7 +74,7 @@ Un commit que el panorama ya tenía por otra vía **no es un error**: se informa
 **El panorama no avanza, y la marca no se mueve.** Las dos cosas juntas son lo que hace que el reintento vuelva a pasar por lo mismo en vez de saltearlo.
 
 ```
-$ worklist propagate --window 10
+$ worklist-server propagate --window 10
 error: el panorama no recibe a2b035d edito ACC-14
   choca en: ACC-14.epic.md
 

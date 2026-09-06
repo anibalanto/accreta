@@ -1,4 +1,4 @@
-# Comando: `worklist reconcile`
+# Comando: `worklist-server reconcile`
 
 Adopta los issues que ya existen del otro lado y el panorama no registró. Es la primera pasada de [`bootstrap`](bootstrap.md) **sin la creación**.
 
@@ -15,7 +15,7 @@ Y en el caso general se degrada solo: si reparar es *"corré otra vez lo que se 
 ## Firma
 
 ```
-worklist reconcile --project <clave> [--ref <rama>] [--dry-run]
+worklist-server reconcile --project <clave> [--ref <rama>] [--dry-run]
 ```
 
 | Argumento | Descripción |
@@ -40,7 +40,7 @@ El orden es topológico por `parent`, por la misma razón que en `bootstrap`: el
 > **Un total no sirve acá.** Quien corre esto está reparando, y necesita saber *cuáles* quedaron afuera para decidir si es lo esperado o es otro problema.
 
 ```
-$ worklist reconcile --project ACC
+$ worklist-server reconcile --project ACC
 refs/heads/insecure/all: adopto 23 de 109 item(s)
   11 -> ACC-182  (4 refs reescritas)  [parent ACC-14]
   12 -> ACC-183  (1 refs reescritas)

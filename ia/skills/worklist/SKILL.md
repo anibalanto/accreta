@@ -78,6 +78,8 @@ git fetch srv && git merge --ff-only srv/$(git rev-parse --abbrev-ref HEAD)
 
 Y no alcanza con que `git status` diga *"limpio"*: una vista atrasada se ve limpia. Medido: las 16 ventanas estuvieron un commit atrás durante horas y ninguna se veía pendiente.
 
+**Esta receta es para una ventana y sólo para una ventana.** El panorama no se refresca así, porque no tiene camino automático en ninguna de las dos direcciones — ver § "El panorama se sincroniza a mano, y en las dos direcciones".
+
 **4 · El ítem está `in-progress`, no `open`.** `open` quiere decir *"nadie lo tomó"*, y arrancar sin moverlo deja el trabajo invisible para todo lo demás — el board, el sprint, y cualquiera que pregunte qué se está haciendo. Se cambia **en la vista**, con el resto del trabajo, así que viaja al proveedor por el mismo camino.
 
 ### El orden que evita los cuatro
@@ -89,6 +91,54 @@ crear el ítem  →  sincronizar  →  cortar o refrescar la vista  →  pasarlo
 Es el que el método ya pedía —*primero hay una tarea*— con lo que faltaba: **la tarea no está lista cuando se escribe, está lista cuando tiene id, está en tu vista y dice que la estás haciendo.**
 
 **Los tres comandos que van a hacer esto solos están decididos y no existen todavía**: `worklist is-secure`, `worklist status` y `worklist sync`. Mientras tanto, los chequeos son los de arriba.
+
+### El panorama se sincroniza a mano, y en las dos direcciones
+
+> **Antes de correrle al servidor cualquier comando que hable con Jira, subile el panorama.** El servidor corre contra *su* copia, y esa copia no es la que acabás de editar.
+
+El panorama vive en dos lados —el clon, donde se escriben los ítems, y el bare del servidor, donde corren los comandos que hablan con el proveedor— y **ninguna de las dos direcciones tiene camino automático**:
+
+| | |
+|---|---|
+| hacia arriba | `insecure/**` rechaza el push del cliente, así que el clon no puede empujar |
+| hacia abajo | el servidor nunca empuja — lo que escribe vive en sus ramas hasta que alguien lo trae |
+
+Es el mismo agujero que el chequeo 3 describe para una ventana, con la diferencia de que acá **la receta del chequeo 3 no sirve**: `git push` está cerrado de un lado, y del otro el `--ff-only` se niega casi siempre.
+
+**Subir — lo corre el servidor, tirando del clon:**
+
+```bash
+SRV=~/.local/share/accreta/worklist-sync/worklist.git
+git -C $SRV fetch "$(git -C $(stratum '*')/.worklist/insecure/all rev-parse --git-common-dir --path-format=absolute)" insecure/all
+git -C $SRV update-ref refs/heads/insecure/all FETCH_HEAD
+```
+
+**Y es un `fetch` del servidor y no un push del cliente**, que es lo que lo vuelve legítimo y no un atajo: lo que `insecure/**` rechaza es *el push del cliente*, no la escritura del servidor. Un `fetch` corrido desde el bare no levanta `receive-pack`, así que no pasa por ningún hook y no hay ninguna excepción que enunciar. La regla queda intacta.
+
+**Bajar — parado en el panorama, y primero subiste, así que es un fast-forward:**
+
+```bash
+cd $(stratum '*')/.worklist/insecure/all
+git fetch srv && git merge --ff-only srv/insecure/all
+```
+
+En ese orden el clon es ancestro de lo que el servidor escribió encima, y baja limpio. **El orden es lo que evita el problema**, no una precaución de más.
+
+#### Si ya divergiste, se replanta — no se resetea
+
+Pasa apenas escribís en el clon después de haber subido: el clon tiene commits propios y el servidor tiene los suyos encima. Ahí el `--ff-only` se niega, y **la respuesta no es `reset --hard`**, que descarta sin preguntar justo lo que el clon tiene y el servidor no.
+
+Lo que hay que hacer es **replantar los commits propios sobre los del servidor**:
+
+```bash
+git fetch srv && git rebase srv/insecure/all
+```
+
+El `rebase` hace las tres cosas a mano en una: guarda lo propio, se para en lo del servidor, y lo vuelve a aplicar encima. **Y saltea solo lo que el servidor ya tiene** —lo que subió el `fetch` de arriba vuelve con el mismo contenido y git lo reconoce—, así que lo que queda replantado es exactamente lo que el clon tenía de nuevo. Medido: replantó diez commits sin perder ninguno.
+
+Si el rebase se para en un conflicto, **eso es el dato**, igual que la negativa del `--ff-only`: alguien editó el mismo ítem de los dos lados.
+
+> **Todo esto es provisorio.** Existe porque el panorama es una rama insegura en un repo cuya única escritura legítima es la del servidor, y eso se decide de nuevo cuando se defina la topología —de qué lado vive el panorama y quién lo sincroniza—, que es lo que trae `ACC-279`. El día que exista `worklist sync`, esta sección se borra.
 
 ### Cómo saber si la vista es segura, hoy
 

@@ -99,3 +99,7 @@ flowchart LR
 ```
 
 `done`: el trabajo está completo. `removed`: el ítem ya no aplica — el fragmento que lo originó cambió o fue eliminado.
+
+## Cliente y servidor son dos binarios
+
+`worklist` en la máquina de quien trabaja, `worklist-server` en el servidor git. Quién se queda con qué subcomando, y por qué el cliente no puede tener credenciales del proveedor: [el corte entre el cliente y el servidor](concepts/distribution.md).

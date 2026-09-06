@@ -1,11 +1,11 @@
-# Comando: `worklist create-or-find`
+# Comando: `worklist-server create-or-find`
 
 La integración real con el proveedor: [`concepts/sync.md`](../concepts/sync.md#asignar-una-clave-crear-o-encontrar) — busca un issue por título antes de crear, para que un reintento después de una falla nunca duplique.
 
 ## Firma
 
 ```
-worklist create-or-find --project <clave> --type <tipo> --source <ruta> <título> [--dry-run]
+worklist-server create-or-find --project <clave> --type <tipo> --source <ruta> <título> [--dry-run]
 ```
 
 | Argumento | Descripción |
@@ -30,10 +30,10 @@ worklist create-or-find --project <clave> --type <tipo> --source <ruta> <título
 ## Salida
 
 ```
-$ worklist create-or-find --project ACC --type task --source 50.task.md "Migrar dependencias a relation.depends"
+$ worklist-server create-or-find --project ACC --type task --source 50.task.md "Migrar dependencias a relation.depends"
 ACC-101
 
-$ worklist create-or-find --project ACC --type task --source 50.task.md "Migrar dependencias a relation.depends" --dry-run
+$ worklist-server create-or-find --project ACC --type task --source 50.task.md "Migrar dependencias a relation.depends" --dry-run
 would search: project = ACC AND summary ~ "Migrar dependencias a relation.depends"
 would create: --project ACC --type Tarea --summary "Migrar dependencias a relation.depends" --description "Fuente: 50.task.md"
 ```

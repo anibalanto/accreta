@@ -1,16 +1,16 @@
-# Comando: `worklist check-push`
+# Comando: `worklist-server check-push`
 
 El compare-and-swap de [`concepts/sync.md`](../concepts/sync.md#la-ventana-y-el-compare-and-swap), pensado para correr desde `hooks/pre-receive`. No mira el contenido que llega: compara el estado en vivo del proveedor contra lo que el tip actual de la rama —el del servidor, antes de este push— tiene escrito.
 
 ## Firma
 
 ```
-worklist check-push (--provider-file <archivo> | --project <clave>) [--stdin]
+worklist-server check-push (--provider-file <archivo> | --project <clave>) [--stdin]
 ```
 
 | Argumento | Descripción |
 |---|---|
-| `--provider-file` | El proveedor **de prueba**: un archivo `clave -> status`. Ver [`worklist provider set-status`](provider-set-status.md). |
+| `--provider-file` | El proveedor **de prueba**: un archivo `clave -> status`. Ver [`worklist-server provider set-status`](provider-set-status.md). |
 | `--project` | El proveedor **real**, por `acli`. |
 | `--stdin` | Lee `<viejo> <nuevo> <ref>` por línea — el protocolo de un `pre-receive`. Sin esto, toma el rango de la rama actual. |
 
@@ -45,7 +45,7 @@ No rechaza el push: informa. Que el panorama no esté del lado del servidor es u
 ## Salida
 
 ```
-$ worklist check-push --provider-file provider.json --stdin <<< "a1b2c3d e4f5g6h refs/heads/sprint/10"
+$ worklist-server check-push --provider-file provider.json --stdin <<< "a1b2c3d e4f5g6h refs/heads/sprint/10"
 reject: ACC-101 status era "open" en el tip, el proveedor dice "done"
 ```
 
