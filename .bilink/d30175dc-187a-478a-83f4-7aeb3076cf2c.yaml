@@ -1,7 +1,7 @@
 kind: governs
 endpoint:
   0:
-    link: capture c2c02606899a966445be8ec6f2eba89a
+    link: capture f671afd07728effd7ef996f93fa9420b
     accepted:
     - agree:
       - Anibal
