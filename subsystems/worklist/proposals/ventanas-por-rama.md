@@ -87,6 +87,8 @@ desacuerdo-como-entrada.task.md   →   ACC-235.task.md
 
 ### Y un pedido no se distingue por prefijo conocido, sino por el alfabeto
 
+> **Esta sección quedó revertida.** La partición por alfabeto vale para un proveedor de claves `PROJ-123` y se rompe con uno de enteros pelados; lo que decide hoy es la marca `@`, que se declara en vez de inferirse. El principio —*no una lista de prefijos*— es el que sobrevivió. Ver [`concepts/item.md`](../concepts/item.md) § "La marca `@`".
+
 Un id base-36 es `[0-9a-z]` y ya está fijado que **nunca lleva guión**. Una clave de proveedor tiene mayúsculas y un guión, y ninguna de las dos cosas cabe en un id. Así que *"esto es un pedido"* no se decide contra una lista de prefijos: lo decide una partición que el alfabeto garantiza, y nada que alguien nombre a mano puede colisionar con algo que asignó el proveedor.
 
 **De ahí sale el bootstrap, y es gratis.** Los 153 ítems que hoy tiene el worklist de accreta no llevan clave de proveedor, así que **son todos pedidos**. La migración no es un script: es empujar el repo como está y recibir 153 moves de vuelta.
