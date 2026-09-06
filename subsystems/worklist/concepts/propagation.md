@@ -31,6 +31,7 @@ El panorama recibe el rango entero que el push dejó en la ventana — **el comm
 | `provider: <clave> …` | cherry-pick |
 | **`rename <slug> -> <clave>`** | **se rehace**, no se copia |
 | **`normalize: <clave>`** | **se rehace**, no se copia |
+| **`sprint: <id> -> <clave>`** | **se rehace**, no se copia |
 
 ### Lo que depende del árbol que lo vio no se copia, y el motivo es de alcance
 
@@ -61,6 +62,19 @@ Que sean ocho parciales incompatibles y no dos ediciones en disputa importa, por
 
 Y el orden es el que ya estaba: primero el renombre rehecho, que deja los 243 nombres finales, y recién después la normalización sobre ellos.
 
+#### Y el tercero es la clave del sprint, por un motivo que no es de alcance sino de autoría
+
+La pasada 5 escribe **un campo** —`key`— sobre el `.sprint.md` de la ventana. Copiarlo como parche arrastra sus líneas de contexto, y ahí está el problema: **el `.sprint.md` del panorama es el que se planifica.** Se cierra el sprint, se mueven ítems al backlog, se corrige el `items`. Así que el contexto difiere por trabajo legítimo, y el parche choca sobre algo que no estaba tratando de cambiar.
+
+```
+ventana:    status: in-progress   items: [ACC-94, ACC-95, ACC-96]
+panorama:   status: done          items: [4h, 4j]        ← el sprint cerró y `4i` se fue al backlog
+```
+
+> **Sube la clave, no el `.sprint.md`.** `status` e `items` no viajan hacia arriba: la ventana no los sabe mejor que el panorama, y la clave es lo único que la ventana tiene y el panorama no.
+
+Es la primera vez que la asimetría se dice en un campo y no en una regla: **la planificación se edita arriba y baja regenerando; lo que el proveedor arbitra se escribe abajo y sube.** El `.sprint.md` es el único archivo que las dos direcciones tocan, y por eso es el único donde había que partirlo.
+
 ### Hasta dónde subió se anota en una ref, no se deduce
 
 ```
@@ -81,7 +95,9 @@ Dos ventanas que editan el mismo ítem **no llegan a chocar en el panorama**, po
 
 > El panorama era el único lugar donde dos ventanas se cruzaban. Desde que el cuerpo viaja, **el proveedor también es uno** — y llega primero.
 
-Así que el conflicto que queda es el de lo que **no tiene contraparte allá**: el `.sprint.md`, que no es un issue, y un pedido todavía sin clave. Y el `.sprint.md` de cada ventana es suyo, así que en la práctica queda un solo caso.
+Así que el conflicto que queda es el de lo que **no tiene contraparte allá**: el `.sprint.md`, que no es un issue, y un pedido todavía sin clave.
+
+Del `.sprint.md` se decía que *"el de cada ventana es suyo"*, y no alcanzaba: es suyo el archivo, no el campo. La ventana escribe `key` y el panorama escribe `status` e `items`, así que [la clave se rehace](#y-el-tercero-es-la-clave-del-sprint-por-un-motivo-que-no-es-de-alcance-sino-de-autoría) y el resto no sube. Con eso, el caso que queda es el de abajo.
 
 ### El que queda es el ancestro que nadie protege
 
