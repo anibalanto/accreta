@@ -15,6 +15,7 @@ worklist bootstrap --project <clave> [--ref <rama>] [--base <url>] [--dry-run]
 | `--project` | El proyecto del proveedor: `ACC`. |
 | `--ref` | Sobre qué rama. Por defecto `refs/heads/insecure/all`, que es donde vive todo. |
 | `--base` | Base del proveedor, para traducir los links a otros ítems al convertir el cuerpo. |
+| `--limit` | Crea sólo los primeros N y para. Sin él, todos. |
 | `--dry-run` | Dice a qué le pediría clave, sin hablar con nadie ni mover ninguna ref. |
 
 ## Qué hace, y sobre todo qué no
@@ -93,6 +94,28 @@ Mover la ref puede fallar —otro proceso la movió, el `update-ref` no pudo esc
 ### Parado en la rama no hace falta
 
 Ahí cada commit del renombre **ya la mueve**. El ancla existe para el caso del worktree temporal, que es donde la ref no se entera hasta el final — y es el caso del servidor.
+
+## De a lotes, con `--limit`
+
+> **Un lote no necesita ser una transacción. Sólo un corte.**
+
+Que una caída no pierda nada ya lo resuelve el ancla de arriba. `--limit` resuelve otra cosa: **poder mirar**. Noventa y un issues en un board real es una escritura que conviene ver a la décima, no a la nonagésima primera.
+
+```
+worklist bootstrap --project ACC --limit 10
+```
+
+Toma los **primeros N del orden topológico** y para. Los que quedan siguen sin clave, así que la corrida siguiente los toma **sin ninguna contabilidad extra**: lo que falta es lo que no tiene clave, y eso se lee del árbol.
+
+**No hay archivo de progreso ni marca de "iba por acá".** Guardar una posición sería una segunda fuente de la verdad para algo que ya se calcula, y una que puede diferir de la primera.
+
+### El corte respeta el orden, y por eso es seguro
+
+Un lote puede dejar una épica creada y sus tasks sin crear: es un estado válido, porque el `--parent` se le pone a cada task **al crearse** y la épica ya tiene clave. Al revés no puede pasar — el orden topológico lo impide.
+
+**Y para que eso sea cierto, el ancestro se busca en el árbol y no entre los pedidos.** Quién tiene clave decide qué se *pide*, no qué se puede *nombrar*: una épica ya resuelta sigue siendo la épica ancestro de sus tasks, y es la clave que va en el `--parent`. Buscarla sólo entre los pedidos de la corrida la vuelve invisible en cuanto cruzó, y el issue se crea suelto — con `--limit` a partir del segundo lote, y sin él en cuanto el panorama tiene claves de antes.
+
+Con `--dry-run`, `--limit` recorta el listado: sirve para ver cuál sería el próximo lote sin pedir nada.
 
 ## Salida
 

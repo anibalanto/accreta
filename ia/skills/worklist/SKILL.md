@@ -269,3 +269,5 @@ No es de estilo. **El título es el string con el que el proveedor identifica al
 | `` `--no-n1` se ignora cuando hay proveedor `` | el flag que baja el nivel 1 se ignora cuando hay proveedor |
 
 Y la razón no es el guión: **la lista de lo que rompe ese parser no la controlamos**, y ya creció una vez. Un título en prosa no depende de ella.
+
+**No se aplica hacia atrás.** Un ítem que ya tiene clave se identifica por la clave, no por el título, así que el `--` ahí es inerte — y cambiárselo deja el título local diciendo una cosa y el `summary` del board otra, porque lo único que empuja un título es la pasada 4 sobre un push de su ventana. Sobre un sprint cerrado eso no vuelve a pasar. La regla vale para lo que se escribe y para lo que todavía no cruzó.
