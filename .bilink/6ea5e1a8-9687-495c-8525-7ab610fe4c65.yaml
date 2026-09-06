@@ -6,7 +6,7 @@ endpoint:
     - agree:
       - Anibal
       link: capture 9101efae04835c2d6d114a7c59564908
-      hash: f6d79304173257bc1ba90c3897e0cdd755eb22facdc9f6d618095dade239cd7b
+      hash: 7bc0c610a153c5c1260806ced209191193eed23aedaa7f15ca2c3355ed579464
     name: la-spec
   1:
     link: path subsystems/stratum>impl
