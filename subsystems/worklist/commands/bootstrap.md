@@ -1,4 +1,4 @@
-# Comando: `worklist bootstrap`
+# Comando: `worklist-server bootstrap`
 
 Le da clave del proveedor a lo que no la tiene, sobre el panorama, **sin prometer que la rama se verifique**. Es el camino que el backlog no tenía.
 
@@ -7,7 +7,7 @@ Es la operación que separa las dos cosas que el modelo trataba como una — ver
 ## Firma
 
 ```
-worklist bootstrap --project <clave> [--ref <rama>] [--base <url>] [--dry-run]
+worklist-server bootstrap --project <clave> [--ref <rama>] [--base <url>] [--dry-run]
 ```
 
 | Argumento | Descripción |
@@ -81,7 +81,7 @@ Y dónde está parado quien lo corre decide cómo se escribe:
 **Lo que no hace es mover una rama que otro worktree tiene abierta.** Es el defecto que [`window open`](window-open.md#y-no-se-mueve-una-rama-que-alguien-tiene-abierta) ya evita: `update-ref` la mueve igual y deja ese worktree con el índice del árbol anterior — y acá serían ciento y pico de renombres. Sobre eso no hay `--force` que valga.
 
 ```
-$ worklist bootstrap --project ACC
+$ worklist-server bootstrap --project ACC
 error: refs/heads/insecure/all esta checkouteada en otro worktree y no se puede mover:
   /home/…/.worklist/insecure/all
 
@@ -132,7 +132,7 @@ Ahí cada commit del renombre **ya la mueve**. El ancla existe para el caso del 
 Que una caída no pierda nada ya lo resuelve el ancla de arriba. `--limit` resuelve otra cosa: **poder mirar**. Noventa y un issues en un board real es una escritura que conviene ver a la décima, no a la nonagésima primera.
 
 ```
-worklist bootstrap --project ACC --limit 10
+worklist-server bootstrap --project ACC --limit 10
 ```
 
 Toma los **primeros N del orden topológico** y para. Los que quedan siguen sin clave, así que la corrida siguiente los toma **sin ninguna contabilidad extra**: lo que falta es lo que no tiene clave, y eso se lee del árbol.
@@ -150,7 +150,7 @@ Con `--dry-run`, `--limit` recorta el listado: sirve para ver cuál sería el pr
 ## Salida
 
 ```
-$ worklist bootstrap --project ACC
+$ worklist-server bootstrap --project ACC
 refs/heads/insecure/all: resolvio 126 item(s)
   51 -> ACC-205  (7 refs reescritas)  [parent ACC-14]
   5e -> ACC-206  (1 refs reescritas)  [parent ACC-14]

@@ -83,6 +83,8 @@ Lo que hace que una rama insegura no acepte escrituras es lo segundo: crece sin 
 
 La objeción obvia: si `insecure/all` no acepta pushes, ¿dónde aterrizan esas claves? En el panorama mismo, y no hace falta ninguna excepción — **lo que `insecure/**` rechaza es el push del cliente, no la escritura del servidor.** [La propagación](propagation.md) ya escribe ahí por el mismo camino.
 
+Y de ahí sale el segundo criterio del corte entre los dos binarios: **quien commitea en el panorama es el servidor, tenga credencial o no** — ver [el corte entre el cliente y el servidor](distribution.md).
+
 El comando es [`bootstrap`](../commands/bootstrap.md), y hace **sólo la primera pasada**: clave y renombre. Ni vínculos, ni sprint, ni actualización de lo que ya existía — todo eso es sincronización, y sincronizar es lo que esta operación explícitamente no promete.
 
 ### El cuerpo viaja sólo donde el issue se creó
