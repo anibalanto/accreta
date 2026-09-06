@@ -14,6 +14,14 @@ link.1: issue 3a                            ← ítem del worklist
 
 El tipo no se escribe en el endpoint: los ids son únicos, así que `3a` alcanza y el archivo se encuentra por prefijo en un solo directorio. Es lo que permite que `issue 3a` siga resolviendo cuando `3a` se recuelga de otra user story — recolgar cambia un campo, no el nombre del archivo.
 
+### Un ítem que todavía no cruzó se nombra igual, y el endpoint se repunta cuando cruza
+
+Un endpoint puede apuntar a un ítem marcado —`issue @arreglar-el-hook`— porque si no, no habría forma de asociarle un bilink a algo recién escrito. Lo que pasa después es lo esperable y conviene tenerlo a la vista:
+
+> **En el primer push el ítem se renombra, el endpoint se repunta y queda `RELOCATED`.** Se cierra con `accept --place`, y no es una vez: es cada vez que un ítem nuevo cruza.
+
+Hoy no se paga porque no hay ningún endpoint `issue` en el proyecto — medido. Este documento existe para que sean muchos, así que **el churn se decide antes de crearlos**, no después: se acepta, se automatiza, o se evita creando el bilink recién cuando el ítem ya tiene su id.
+
 > **`link.0` todavía no se puede expresar.** Un endpoint que apunta a otro `.bilink` es el endpoint de tipo bilink, que está especificado y no implementado — vive en [`proposals/bilink-endpoint.md`](../../bilinker/proposals/bilink-endpoint.md). Todo lo de este documento espera a que vuelva.
 
 `bilinker check` detecta cambios en ambos extremos:
@@ -56,6 +64,6 @@ link.1: issue 3b   ← subtarea en worklist
 
 ## Invariantes
 
-1. El ID en `issue <id>` es un ID base-36 que corresponde a un ítem en `<project-root>/.worklist/insecure/all/<id>.<tipo>.md`, cualquiera sea su tipo.
+1. El ID en `issue <id>` es el id de un ítem que existe en `<project-root>/.worklist/insecure/all/<id>.<tipo>.md`, cualquiera sea su tipo — y **siempre contra el panorama**, nunca contra una ventana: si resolviera contra la rama abierta, el mismo `issue <id>` resolvería o no según qué sprint esté cortado.
 2. El bilink de tarea vive en la capa donde se debe ejecutar la tarea.
 3. No existe archivo `source_bilink` en el ítem ni archivo `<uuid>.tasks` separado — la asociación vive en el bilink de tarea.

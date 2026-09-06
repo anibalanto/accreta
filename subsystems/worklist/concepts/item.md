@@ -17,32 +17,77 @@ Un ítem es la unidad de trabajo en worklist. Representa algo que hay que hacer 
 
 El costo es que `1` deja de identificar una sola cosa. Se desambigua con el sufijo, que ya está en el nombre del archivo: `worklist show 1` es el ítem, `worklist show 1.sprint` es el sprint.
 
-El nombre del archivo es `<id>.<tipo>.md`, y vive en la raíz de `worklist/`. El **ID base-36 corto** lo asigna el servidor al crear el ítem; el tipo va en el medio; la extensión es siempre `.md`:
+El nombre del archivo es `<id>.<tipo>.md`, y vive en la raíz de `worklist/`. El tipo va en el medio y la extensión es siempre `.md`.
+
+### Un ítem tiene un solo id a la vez
+
+> **Nace con `@<slug>`, y al sincronizar el servidor le da el suyo.** El `@<slug>` deja de existir: no hay dos ids vivos, ni un campo que guarde el otro.
 
 ```
-1.epic.md
-2.user-story.md
-3.task.md
-a.task.md
-1f.task.md
-2z.epic.md
+@arreglar-el-hook.task.md   escrito y todavía sin sincronizar
+8y.task.md                  sincronizado, sin proveedor configurado
+ACC-347.task.md             sincronizado, con Jira configurado
 ```
 
-El ID es base-36 con el alfabeto `[0-9a-z]`, empezando en `1`. El servidor mantiene el contador e incrementa al procesar cada creación:
+**Un worklist se puede usar al 100% sin ningún proveedor**, y el día que se adopta uno los ids migran — ver [`adopt`](../commands/adopt.md). La alternativa era que el id local fuera la identidad para siempre y la clave un campo; se descartó porque le da al ítem **dos nombres a la vez**, y entonces todo lo que lo nombra tiene que elegir cuál usa.
+
+### Y lo que va después del `@` es un slug descriptivo, no un contador
+
+> **Un id no se puede asignar a mano.** Tomar *"el siguiente base-36 libre"* es leer un contador del filesystem, y dos personas trabajando a la vez toman **el mismo**.
+
+Y es lo peor que puede colisionar: colisiona exactamente cuando dos personas trabajan al mismo tiempo —el caso normal— y sobre ítems que no tienen nada que ver entre sí.
+
+| | Colisiona | Cuesta |
+|---|---|---|
+| contador leído del filesystem | cuando dos trabajan a la vez — **siempre** | nada de escribir |
+| aleatorio o uuid | nunca | no se puede escribir ni referenciar mientras redactás |
+| **slug descriptivo** | sólo si dos nombran lo mismo igual | hay que nombrarlo |
+
+```
+@user-story-de-la-creacion-y-eliminacion.user-story.md
+@tarea-de-creacion.task.md          parent: @user-story-de-la-creacion-y-eliminacion
+@tarea-de-eliminacion.task.md
+```
+
+**Y el slug no necesita ser único entre personas.** El renombre es lo primero que hace el servidor y la propagación es lo último, así que **el `@<slug>` nunca llega al panorama**: es local a la vista donde se escribió.
+
+```
+A empuja  @arreglar-el-hook  →  el servidor le da 8y   →  sube 8y
+B empuja  @arreglar-el-hook  →  el servidor le da 8z   →  sube 8z
+```
+
+Al servidor los pedidos le llegan **en orden**, y cada uno se lleva el siguiente id libre. Son dos ítems distintos con dos ids distintos, y ninguno de los dos vio nunca el nombre del otro. Alcanza con que el slug sea único dentro de lo que sube junto, y eso lo garantiza el filesystem: dos archivos no comparten nombre.
+
+**Lo que sí puede chocar es el título**, porque un pedido se reconoce del otro lado buscando por `summary`. Eso no es de esta decisión —está igual con contadores— y es la identidad implícita por título, que se arregla aparte.
+
+### El contador base-36 sigue existiendo, y es del servidor
+
+Sin proveedor configurado, el id que reemplaza al `@<slug>` sale de un contador base-36 con el alfabeto `[0-9a-z]`, empezando en `1`:
 
 ```
 1, 2, 3, …, 9, a, b, …, z, 10, 11, …, 1a, 1b, …, 1z, 20, …
 ```
 
+**Lo que se descartó no fue el contador sino asignarlo a mano**, y son dos cosas distintas: al servidor los pedidos le llegan de a uno, así que su contador **no puede colisionar por construcción** — por la misma razón por la que dos `@arreglar-el-hook` empujados a la vez terminan con dos ids distintos.
+
+| La instalación tiene | El `@<slug>` pasa a ser |
+|---|---|
+| sólo worklist | un **id base-36**, del contador del servidor |
+| un proveedor | la **clave del proveedor** |
+
+**Y no depende del clima sino de la configuración.** Un proveedor caído no da un id base-36 de consuelo: rechaza, como cualquier escritura que no puede probar lo que promete.
+
+**Nada registra el nombre viejo** — ni el frontmatter, ni el nombre del archivo, ni un campo. Lo único que queda es el historial del remoto, donde el hook escribió `rename @arreglar-el-hook -> ACC-347`. Ver [`sync.md`](sync.md) § "El renombre y la reescritura son un solo commit".
+
 **El sprint agrupa distinto que los demás.** Una épica agrupa por descomposición y lo expresa con carpetas: sus user stories viven adentro. Un sprint agrupa por tiempo, y lo expresa con **links en su cuerpo**: los ítems que se lleva siguen viviendo donde estaban. Un mismo sprint puede tomar ítems de épicas distintas, y una user story no deja de pertenecer a su épica por entrar en uno.
 
 **La extensión es `.md` a propósito.** El contenido de un ítem es markdown —frontmatter más descripción— y los ítems se editan a mano, a diferencia de los archivos de bilinker. Un `.epic` a secas no lo abre ningún editor con resaltado, ningún visor lo previsualiza, y las herramientas que indexan una carpeta por extensión —Obsidian entre ellas— no lo ven. El tipo sigue estando en el nombre, que es lo que permite leerlo de un `ls` sin abrir el archivo.
 
-Se referencia directamente por ID:
+Se referencia directamente por ID, lleve marca o no:
 
 ```bash
 worklist show 3
-worklist show 1f
+worklist show @arreglar-el-hook
 ```
 
 ### El alfabeto de un id
@@ -164,7 +209,7 @@ Qué forma tiene esa clave es **configuración del proyecto**, no del formato: u
 
 ## Invariantes
 
-1. El nombre del archivo es `<id>.<tipo>.md`, con un id del alfabeto `[A-Za-z0-9_-]+` —sin `.` y sin `/`— y con `@` adelante si todavía no cruzó al proveedor.
+1. El nombre del archivo es `<id>.<tipo>.md`, con un id del alfabeto `[A-Za-z0-9_-]+` —sin `.` y sin `/`— y con `@` adelante mientras no haya sincronizado.
 2. El tipo es `epic`, `user-story`, `task` o `sprint`.
 3. Todo ítem vive en la raíz de `worklist/`; los sprints, en `_sprints/`. No hay carpetas por ítem.
 4. `parent` lleva el id de un ítem que existe, o está ausente. Ningún ítem es su propio ancestro.
@@ -174,3 +219,4 @@ Qué forma tiene esa clave es **configuración del proyecto**, no del formato: u
 8. El frontmatter no contiene `relation.children` ni ningún otro campo que reescriba lo que `parent` ya declara.
 9. Todo valor de un `relation.<tipo>` publicado es la clave, con la forma del proveedor, de un ítem que existe. El grafo que forman no tiene ciclos.
 10. Que un id sea local o del proveedor se lee de la marca `@` y nunca del formato de la clave. Nada en el worklist conoce la forma de clave de ningún proveedor para decidirlo.
+11. Un ítem tiene **un** id: el `@<slug>` lo escribe quien crea el ítem, el que lo reemplaza lo asigna el servidor al sincronizar, y ninguno de los dos sobrevive al otro. Ningún campo del frontmatter guarda un id.

@@ -34,30 +34,32 @@ Cualquier tipo puede estar en la raíz del árbol. Un task puede ser hijo direct
 
 ## Identificación
 
-Cada ítem tiene un ID base-36 corto asignado por el servidor al momento de creación. El contador vive en el servidor — no hay asignación local.
+Un ítem nace con un id local marcado —`@<slug>`, escrito por quien lo crea— y al sincronizar el servidor se lo reemplaza: por la clave del proveedor si hay uno configurado, o por el siguiente id de su contador base-36 si no lo hay. **Un id a la vez**, y ninguno de los dos sobrevive al otro.
 
 ```bash
-worklist show 3     # ítem con ID 3
-worklist show 1f    # ítem con ID 1f
+worklist show 3                   # ítem con ID 3
+worklist show @arreglar-el-hook   # todavía sin sincronizar
 ```
+
+El detalle —el alfabeto, por qué un slug descriptivo y no un contador leído del filesystem— está en [`concepts/item.md`](concepts/item.md) § "Identificación".
 
 ## Servidor git
 
-Worklist vive en un repositorio git central. Crear un ítem requiere conectividad: el cliente empuja una solicitud al servidor y hace fetch para recibir el ítem con su ID asignado.
+Worklist vive en un repositorio git central, y **crear un ítem no lo necesita**: es escribir un archivo con su `@<slug>`. El servidor entra cuando el trabajo se empuja, y ahí resuelve el id.
 
 ```mermaid
 sequenceDiagram
     participant C as cliente
     participant S as servidor worklist (git)
-    C->>S: push solicitud a .pending/
-    S->>S: asigna next ID base-36
-    S->>S: crea &lt;id&gt;.task.md
-    S->>S: commit "task &lt;id&gt;: título"
-    C->>S: git fetch worklist
+    C->>C: escribe @&lt;slug&gt;.task.md
+    C->>S: push de la vista
+    S->>S: asigna el id — clave del proveedor, o next base-36
+    S->>S: rename @&lt;slug&gt; -> &lt;id&gt;, y reescribe lo que lo nombraba
+    C->>S: git fetch
     S-->>C: &lt;id&gt;.task.md
 ```
 
-El historial de git del servidor es el log canónico de todos los ítems creados, en orden, con IDs legibles.
+**El historial de git del servidor es el log canónico**, y de paso es el único mapa entre un id local y el que lo reemplazó: los `rename @&lt;slug&gt; -> &lt;id&gt;` están todos ahí, en orden.
 
 ## Relación con bilinker
 

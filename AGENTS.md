@@ -62,4 +62,6 @@ Mensaje de una línea, sin trailer de co-autoría.
 
 **Un commit ejecuta un solo ítem.** Si un cambio ejecuta dos, son dos commits.
 
+**Y el prefijo envejece a propósito.** Un ítem se renombra cuando cruza al proveedor —`@arreglar-el-hook` pasa a `ACC-347`— y la historia no se reescribe, así que `git log --grep '^@arreglar-el-hook:'` encuentra commits que el árbol ya no nombra. **Se acepta, y siempre para adelante**: no hay tabla de equivalencias que mantener, porque el log del remoto del worklist ya la tiene —los `rename <viejo> -> <nuevo>` están todos ahí— y una segunda fuente sólo podría diferir de la primera. Lo que se pierde es el salto automático de un commit a su ítem, no entender qué se hizo.
+
 **Sin prefijo** sólo cuando el commit no ejecuta un ítem sino que **crea o anota varios** — ahí el ítem se nombra en la prosa, porque forzar un prefijo obligaría a elegir a uno como dueño de la creación de todos.

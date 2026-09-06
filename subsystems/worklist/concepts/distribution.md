@@ -25,17 +25,21 @@ El segundo sale entero de que [`insecure/all` sea una rama del servidor](sync.md
 | `assign-keys` | sí — crea, edita, vincula, mete en el sprint | sí | `worklist-server` |
 | `bootstrap` | sí — crea los issues del backlog | sí | `worklist-server` |
 | `reconcile` | sí — adopta lo que ya existe | sí | `worklist-server` |
+| `adopt` | sí — crea del otro lado todo un corpus | sí | `worklist-server` |
 | `create-or-find` | sí | no | `worklist-server` |
 | `propagate` | **no — es git puro** | sí, el panorama | `worklist-server` |
 | `install-hooks` | no | no — escribe `hooks/` del bare | `worklist-server` |
 | `provider set-status` | el de **prueba**, que es un archivo | no | `worklist-server` |
 | `window open` | no | no — lee `all`, escribe una rama local | `worklist` |
+| `new` | **no — es escribir un archivo** | no — escribe en la vista | `worklist` |
 
 **`provider set-status` no es de ninguno de los dos públicos: es de las pruebas.** Va igual en el servidor, porque el proveedor de prueba **sustituye al real en el lugar donde el real se usa** —`check-push --provider-file`—, y ese comando ya está de ese lado. Ponerlo en el cliente le daría a la máquina de desarrollo la única forma de manipular un proveedor que el sistema tiene; un tercer binario sería una instalación más para algo que sólo corre en pruebas.
 
 ### El cliente queda con un comando, y eso es un dato
 
-Hoy `worklist` tiene **un solo subcomando**, y no es un accidente del recorte: es dónde está el proyecto. Lo que va a llenarlo ya está decidido y sin implementar —`sync`, `view add`, `new`, `status`, `is-secure`—, y **todo eso nace del lado correcto sólo si el binario existe antes**. Es el motivo de que este corte se haga ahora y no después: lo que se escriba de acá en adelante es del servidor, y con un binario sin partir se escribe del lado del cliente y hay que mudarlo.
+Hoy `worklist` tiene **un solo subcomando**, y no es un accidente del recorte: es dónde está el proyecto. Lo que va a llenarlo ya está decidido y sin implementar —`sync`, `view add`, `new`, `status`, `is-secure`—, y **todo eso nace del lado correcto sólo si el binario existe antes**.
+
+**Y `new` es del cliente sin discusión**, que antes no era obvio: mientras el id salía de un contador del servidor, crear un ítem necesitaba conectividad y el comando quedaba a mitad de camino. Con un id local marcado, crear un ítem es escribir un archivo — ver [`commands/new.md`](../commands/new.md). Es el motivo de que este corte se haga ahora y no después: lo que se escriba de acá en adelante es del servidor, y con un binario sin partir se escribe del lado del cliente y hay que mudarlo.
 
 **Y `window open` está por cambiar de lado.** Se lo lleva la task que saca el panorama del cliente: sin `all` local no hay de dónde cortar, así que cortar una vista pasa a necesitar al servidor. Cuando eso pase, el cliente no se queda vacío — se queda con lo que le pide al servidor.
 
