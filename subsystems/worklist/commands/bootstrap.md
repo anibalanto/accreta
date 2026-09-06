@@ -62,9 +62,37 @@ error: refs/heads/insecure/all esta checkouteada en otro worktree y no se puede 
 
 Sólo en el primer caso, y por una razón mecánica: el renombre commitea con `add -A`, así que **lo que hubiera sin commitear se colaría adentro**. Se rechaza antes de pedirle nada al proveedor.
 
-### Por qué no dice "el servidor"
+### Y un bare nunca es "acá"
 
-Porque hoy el panorama no está del lado del servidor: el bare de sincronización tiene las dieciséis ventanas y ningún `insecure/all`. Hasta que eso se resuelva, **el único lugar donde este comando puede correr es el worktree del panorama**.
+Decía que el único lugar posible era el worktree del panorama, porque el servidor no tenía `insecure/all`. **Ya lo tiene**, así que corre ahí — y ahí aparece el caso que la pregunta por el `HEAD` no cubría.
+
+Un bare puede tener el `HEAD` apuntando a la rama y **no tener dónde escribir**. Preguntar sólo por el `HEAD` daba *"acá"* y mandaba el chequeo de árbol limpio a fallar con *"esta operación debe ser realizada en un árbol de trabajo"*.
+
+> **Sin árbol de trabajo no hay "acá".** Un repo bare va siempre por el worktree temporal, apunte su `HEAD` a donde apunte.
+
+## Cada clave conseguida se guarda a medida
+
+> **La unidad de atomicidad es el ítem, no la corrida.**
+
+Crear un issue es un efecto **afuera**: irreversible y pago. Una corrida que se cae después de haber creado ochenta y tres y antes de terminar no puede descartar el árbol entero — las claves quedarían **sólo del otro lado**, y el panorama no sabría que las pidió.
+
+Medido, y es de donde sale esta sección: una corrida contra el board real creó **23 issues** y se cortó en el ítem 24 de 109. El panorama no registró ninguno.
+
+Así que la ref se mueve **después de cada ítem**, no al final. Una caída deja arriba exactamente lo que se hizo, y la corrida siguiente arranca desde ahí.
+
+### Y no es lo mismo que la propagación, que sí descarta
+
+[`propagate`](propagate.md) hace lo contrario a propósito — *"si algo no aplica, el panorama no avanza"*— y ahí está bien: un cherry-pick que no se aplicó **no dejó rastro en ningún lado**, así que descartar devuelve al estado de antes.
+
+**La diferencia es si lo descartado salió del repo.** Acá salió.
+
+### Que el ancla falle no tira abajo la corrida
+
+Mover la ref puede fallar —otro proceso la movió, el `update-ref` no pudo escribir— y eso **no interrumpe nada**: se sigue, y el intento siguiente vuelve a probar. Un ancla que se pierde deja el estado que había sin ella, que es el de antes de esta sección; una que interrumpiera convertiría un problema de contabilidad local en la pérdida que esto viene a evitar.
+
+### Parado en la rama no hace falta
+
+Ahí cada commit del renombre **ya la mueve**. El ancla existe para el caso del worktree temporal, que es donde la ref no se entera hasta el final — y es el caso del servidor.
 
 ## Salida
 

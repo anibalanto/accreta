@@ -28,11 +28,12 @@ El panorama recibe el rango entero que el push dejó en la ventana — **el comm
 | Qué | Cómo sube |
 |---|---|
 | las ediciones del cliente | cherry-pick |
-| `normalize: <clave>` | cherry-pick |
 | `provider: <clave> …` | cherry-pick |
 | **`rename <slug> -> <clave>`** | **se rehace**, no se copia |
+| **`normalize: <clave>`** | **se rehace**, no se copia |
+| **`sprint: <id> -> <clave>`** | **se rehace**, no se copia |
 
-### El renombre es el único que no se copia, y el motivo es de alcance
+### Lo que depende del árbol que lo vio no se copia, y el motivo es de alcance
 
 [Renombrar y reescribir son un solo commit](sync.md#el-renombre-y-la-reescritura-son-un-solo-commit): el `git mv` va con la corrección de todo lo que nombraba al slug. **Esa reescritura recorre el árbol donde corre**, y el árbol de una ventana tiene 19 archivos donde el panorama tiene 243.
 
@@ -48,6 +49,31 @@ El commit no es incorrecto: es **correcto en su alcance**. Lo que no se puede es
 > **Sube la clave, no el commit que la escribió.** El renombre se vuelve a hacer en el panorama, con el mismo par `<slug> -> <clave>` y la reescritura recalculada sobre los 243.
 
 Es la misma invariante de siempre —o entran el `git mv` y la reescritura, o no entra ninguna— **sostenida en cada rama donde se aplica** en vez de una sola vez donde se originó.
+
+#### Y el renombre no es el único: `normalize:` es el mismo commit por otra puerta
+
+`normalize:` es la [pasada 2](../commands/assign-keys.md) — convierte el cuerpo a ADF *traduciendo los links a otros ítems*, y escribe de vuelta la forma canónica. Esa traducción lee los nombres del árbol donde corre, así que **el texto que deja es el renombre parcial de la ventana**, congelado como contenido.
+
+Cherry-pickeado al panorama vuelve a meter lo que el renombre acababa de arreglar. Medido sobre una épica que ocho ventanas normalizaron: las ocho versiones difieren, y **cada línea que difiere lleva un id** — la prosa es idéntica, lo único que cambia es cuántas referencias alcanzó a resolver cada recorte.
+
+Que sean ocho parciales incompatibles y no dos ediciones en disputa importa, porque **no hay nada que arbitrar**: no se elige una, se rehace la pasada arriba y sale la unión.
+
+> **Se rehace, no se copia** — la misma regla y el mismo motivo. `round_trip` es función pura del texto, así que recalcular la forma canónica sobre el árbol del panorama está tan bien definido como recalcular la reescritura del renombre.
+
+Y el orden es el que ya estaba: primero el renombre rehecho, que deja los 243 nombres finales, y recién después la normalización sobre ellos.
+
+#### Y el tercero es la clave del sprint, por un motivo que no es de alcance sino de autoría
+
+La pasada 5 escribe **un campo** —`key`— sobre el `.sprint.md` de la ventana. Copiarlo como parche arrastra sus líneas de contexto, y ahí está el problema: **el `.sprint.md` del panorama es el que se planifica.** Se cierra el sprint, se mueven ítems al backlog, se corrige el `items`. Así que el contexto difiere por trabajo legítimo, y el parche choca sobre algo que no estaba tratando de cambiar.
+
+```
+ventana:    status: in-progress   items: [ACC-94, ACC-95, ACC-96]
+panorama:   status: done          items: [4h, 4j]        ← el sprint cerró y `4i` se fue al backlog
+```
+
+> **Sube la clave, no el `.sprint.md`.** `status` e `items` no viajan hacia arriba: la ventana no los sabe mejor que el panorama, y la clave es lo único que la ventana tiene y el panorama no.
+
+Es la primera vez que la asimetría se dice en un campo y no en una regla: **la planificación se edita arriba y baja regenerando; lo que el proveedor arbitra se escribe abajo y sube.** El `.sprint.md` es el único archivo que las dos direcciones tocan, y por eso es el único donde había que partirlo.
 
 ### Hasta dónde subió se anota en una ref, no se deduce
 
@@ -69,13 +95,17 @@ Dos ventanas que editan el mismo ítem **no llegan a chocar en el panorama**, po
 
 > El panorama era el único lugar donde dos ventanas se cruzaban. Desde que el cuerpo viaja, **el proveedor también es uno** — y llega primero.
 
-Así que el conflicto que queda es el de lo que **no tiene contraparte allá**: el `.sprint.md`, que no es un issue, y un pedido todavía sin clave. Y el `.sprint.md` de cada ventana es suyo, así que en la práctica queda un solo caso.
+Así que el conflicto que queda es el de lo que **no tiene contraparte allá**: el `.sprint.md`, que no es un issue, y un pedido todavía sin clave.
+
+Del `.sprint.md` se decía que *"el de cada ventana es suyo"*, y no alcanzaba: es suyo el archivo, no el campo. La ventana escribe `key` y el panorama escribe `status` e `items`, así que [la clave se rehace](#y-el-tercero-es-la-clave-del-sprint-por-un-motivo-que-no-es-de-alcance-sino-de-autoría) y el resto no sube. Con eso, el caso que queda es el de abajo.
 
 ### El que queda es el ancestro que nadie protege
 
 Un ancestro viaja de sólo lectura para que la cadena `parent` cierre — y *"de sólo lectura"* no lo hace cumplir nadie: el archivo está en el árbol y se puede editar. Si dos ventanas editan la misma épica, **el cherry-pick es lo primero que se entera**.
 
 No es un defecto de la propagación: es el único detector que hay hoy de una regla que sólo estaba escrita. Que aparezca ahí es información, y el mensaje tiene que decir qué archivo y contra qué ventana, no *"conflicto"*.
+
+**Y se parece a un caso que no es éste.** Un ancestro normalizado por ocho ventanas también choca, y ahí no hay ninguna regla violada: nadie lo editó, dicen todas lo mismo con nombres distintos. La diferencia se lee en el conflicto — si cada línea en disputa lleva un id, es alcance y [se rehace](#y-el-renombre-no-es-el-único-normalize-es-el-mismo-commit-por-otra-puerta); si hay prosa distinta, alguien escribió.
 
 ### Y el panorama nunca guarda un conflicto
 

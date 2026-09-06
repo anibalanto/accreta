@@ -285,6 +285,17 @@ Board::create_or_find(titulo, tipo, descripcion, parent) -> Found(clave) | Creat
 
 `summary ~` de JQL no compara texto literal: es una búsqueda de texto completo, y algunos caracteres —`[` y `]`, confirmado— rompen su parser incluso adentro de comillas, sin que JQL tenga forma de escaparlos (`\[` es una secuencia inválida).
 
+**Y no todo lo que rompe es un carácter.** El guión es seguro y **dos guiones seguidos no**, medido:
+
+```
+graph --format json   ROMPE
+graph -format json    ok
+a --b                 ROMPE
+a -b                  ok
+```
+
+Así que la reducción no es sólo un conjunto de caracteres prohibidos: hay una **secuencia** que también cae. Importa más de lo que parece porque este proyecto nombra flags en los títulos — `--no-n1`, `--from-repo`, `--all-windows`—, y ahí `--` es la forma normal de escribir, no una rareza.
+
 > **No se escapa: se reduce.** No hay escapado que sirva, así que la búsqueda usa una versión del título **sin** esos caracteres — cada uno cae y deja un espacio, que después se colapsa.
 
 **Crear usa el título real, intacto** — `--summary` no pasa por JQL y no tiene ese problema. Y las dos formas de equivocarse no pesan lo mismo: un metacaracter que se cuele hace fallar la JQL y detiene el push; un carácter quitado de más trae falsos positivos, que la comparación exacta descarta. Buscar de más es el riesgo que vale correr; no buscar nada, por un carácter que rompe el parser, produce un duplicado seguro.

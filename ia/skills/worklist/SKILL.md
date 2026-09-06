@@ -256,3 +256,16 @@ No son dos gustos: un título en infinitivo **obliga a nombrar la solución**. S
 El vocabulario de categorías **se deja crecer**, no se inventa por adelantado.
 
 En los dos casos el **cuerpo** abre con el diagnóstico. Lo que cambia es el título.
+
+### Y el título no lleva sintaxis de comando
+
+> **Un título dice qué pasa, no cómo se escribe el comando.** Nada de `--flag` literal: el nombre del flag va en el cuerpo, que es donde hace falta la precisión.
+
+No es de estilo. **El título es el string con el que el proveedor identifica al ítem** —se busca por `summary` antes de crear— y dos guiones seguidos rompen el parser de JQL. Medido: una corrida de `bootstrap` se cortó en el ítem 24 de 109 por un `--format` en un título.
+
+| En vez de | Escribir |
+|---|---|
+| `` `graph --format json` no imprime nada `` | `` `graph` en formato JSON no imprime nada `` |
+| `` `--no-n1` se ignora cuando hay proveedor `` | el flag que baja el nivel 1 se ignora cuando hay proveedor |
+
+Y la razón no es el guión: **la lista de lo que rompe ese parser no la controlamos**, y ya creció una vez. Un título en prosa no depende de ella.
