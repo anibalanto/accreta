@@ -32,12 +32,16 @@ El segundo sale entero de que [`insecure/all` sea una rama del servidor](sync.md
 | `provider set-status` | el de **prueba**, que es un archivo | no | `worklist-server` |
 | `window open` | no | no — lee `all`, escribe una rama local | `worklist` |
 | `new` | **no — es escribir un archivo** | no — escribe en la vista | `worklist` |
+| `state change` | **no — propone, no consuma** | no — escribe en la vista | `worklist` |
+| `remove` | **no — propone `dropped`** | no — escribe en la vista | `worklist` |
 
 **`provider set-status` no es de ninguno de los dos públicos: es de las pruebas.** Va igual en el servidor, porque el proveedor de prueba **sustituye al real en el lugar donde el real se usa** —`check-push --provider-file`—, y ese comando ya está de ese lado. Ponerlo en el cliente le daría a la máquina de desarrollo la única forma de manipular un proveedor que el sistema tiene; un tercer binario sería una instalación más para algo que sólo corre en pruebas.
 
 ### El cliente queda con un comando, y eso es un dato
 
 Hoy `worklist` tiene **un solo subcomando**, y no es un accidente del recorte: es dónde está el proyecto. Lo que va a llenarlo ya está decidido y sin implementar —`sync`, `view add`, `new`, `status`, `is-secure`—, y **todo eso nace del lado correcto sólo si el binario existe antes**.
+
+**`state change` y `remove` son del cliente por el mismo criterio, y son el caso que lo pone a prueba**: los dos terminan en una operación del proveedor —una transición—, y aun así ninguno la ejecuta. Escriben la propuesta en la vista, y el servidor la consuma cuando el push llega. **Que el efecto final sea del proveedor no hace que el comando lo sea**; lo que decide el lado es quién habla, no en qué termina.
 
 **Y `new` es del cliente sin discusión**, que antes no era obvio: mientras el id salía de un contador del servidor, crear un ítem necesitaba conectividad y el comando quedaba a mitad de camino. Con un id local marcado, crear un ítem es escribir un archivo — ver [`commands/new.md`](../commands/new.md). Es el motivo de que este corte se haga ahora y no después: lo que se escriba de acá en adelante es del servidor, y con un binario sin partir se escribe del lado del cliente y hay que mudarlo.
 
