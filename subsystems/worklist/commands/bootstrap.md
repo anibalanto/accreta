@@ -25,7 +25,7 @@ worklist bootstrap --project <clave> [--ref <rama>] [--base <url>] [--dry-run]
 3. Por cada uno: [`create-or-find`](create-or-find.md), el renombre con su reescritura, y el `--parent` de su épica ancestro.
 4. Y el cuerpo, **sólo donde el issue se creó**.
 
-5. Y los **sprints sin `key`**, al final: se crean del otro lado y se les meten adentro los issues de sus ítems.
+5. Y **los sprints**, al final: el que no tiene `key` se crea del otro lado, y a todos se les meten adentro los issues que les falten.
 
 **Y nada más.** Ni vínculos, ni actualizar lo que ya tenía clave: eso es sincronización, y sincronizar es lo que esta operación explícitamente no promete. Las cinco pasadas de [`assign-keys`](assign-keys.md) son para una ventana, que sí lo promete.
 
@@ -36,6 +36,22 @@ Decía que *"los `_sprints/*.sprint.md` no entran — un sprint no es un issue"*
 Dejarlo afuera producía el agujero que el board mostró: **22 sprints en el worklist y 17 en Jira**, y entre los que faltaban, el que estaba en curso.
 
 > **Va al final, y no es preferencia.** Meter los issues adentro del sprint necesita que sus ítems ya tengan clave. Es la misma restricción topológica que ordena a la épica antes que sus tasks, un escalón más arriba.
+
+#### Y se miran **todos**, no sólo los que no tienen clave
+
+> **La clave se pide una vez; los miembros se reconcilian siempre.**
+
+Un sprint no es sólo una identidad: es también una **membresía**, y la membresía cambia mientras el sprint vive — eso es lo normal en el que está en curso, no la excepción. Filtrar por *"no tiene `key`"* trataba al sprint como a un ítem, y dejaba pasar el caso más frecuente.
+
+Medido: un ítem agregado veinte minutos después de que su sprint cruzara quedó en el worklist y no en el board, con el sprint mostrando cuatro donde había cinco.
+
+**La idempotencia no la da el filtro, la da la pasada**: lee qué hay adentro y manda sólo lo que falta, así que volver a correrlo cuesta una lectura por sprint y cero escrituras.
+
+##### Lo que sigue sin hacer: sacar
+
+Un ítem que **sale** del `items` de un sprint no se saca del otro lado. La pasada agrega lo que falta y nunca quita lo que sobra, así que un ítem movido entre sprints queda en los dos.
+
+No es un olvido: **quitar es una escritura destructiva sobre el board**, y merece su propio argumento antes que su propia línea de código.
 
 ### Y no hay bandera para pedir sólo los sprints
 
