@@ -5,13 +5,15 @@ Escribe los hooks del bare apuntando al binario que los está escribiendo. El co
 ## Firma
 
 ```
-worklist-server install-hooks --repo <bare> --project <clave> --board <id> [--base <url>] [--force] [--dry-run]
+worklist-server install-hooks --repo <bare> --project <clave> --board <id>
+                              [--provider-file <archivo>] [--base <url>] [--force] [--dry-run]
 ```
 
 | Argumento | Descripción |
 |---|---|
 | `--repo` | El bare del servidor. Los hooks van en `<repo>/hooks/`. |
-| `--project` | La clave del proyecto de Jira. Va escrita en los dos hooks, porque es lo que reciben como argumento. |
+| `--project` | La clave del proyecto de Jira. La usa el `post-receive`, que es el que crea y actualiza. |
+| `--provider-file` | El proveedor **de prueba** para el `pre-receive`. Sin él, el compare-and-swap se instala contra el proveedor real. Ver § "Con qué proveedor queda el `pre-receive`". |
 | `--board` | El id del board. **Obligatorio y sin default**, por lo mismo que en [`assign-keys`](assign-keys.md): una pasada que se saltea sola porque falta configuración es la peor forma de enterarse de que falta. |
 | `--base` | Base del proveedor, para traducir los links. Default `https://lamansys.atlassian.net`. |
 | `--force` | Sobrescribe un hook que ya existe. Sin él, un hook presente es un error. |
@@ -28,23 +30,33 @@ worklist-server install-hooks --repo <bare> --project <clave> --board <id> [--ba
 
 **Y un hook que ya existe no se pisa sin pedirlo.** Instalar sobre un servidor andando es la operación en la que menos conviene descubrir que había algo escrito a mano; `--force` es lo que vuelve la sobrescritura una decisión y no un efecto.
 
+### Con qué proveedor queda el `pre-receive`
+
+> **Contra el real, el compare-and-swap rechaza todas las ventanas de entrada.**
+
+No es un defecto del comando: el `status` del worklist y el del proveedor **no son el mismo campo**, así que compararlos difiere siempre. El mapeo es otra task, y mientras no exista, la instalación corre contra el proveedor de prueba — un archivo `clave -> status`.
+
+Por eso `--provider-file` existe acá y no es una opción de desarrollo: **es la configuración de hoy.** El día que el mapeo esté, se reinstala sin ese flag y el hook pasa a `--project`.
+
+Y es la mitad del problema que generar el path no resuelve: el path lo pone bien el binario, pero **el comando tiene que ser el que la instalación necesita**. Un generador que no sabe esto instala un hook que rechaza todo.
+
 ### Lo que quedan siendo los hooks
 
 ```sh
 #!/bin/sh
 # generado por worklist-server install-hooks — no editar
-exec /usr/local/bin/worklist-server check-push --stdin --project ACC
+exec /usr/local/bin/worklist-server check-push --stdin --provider-file /…/provider.json
 ```
 
 ```sh
 #!/bin/sh
 # generado por worklist-server install-hooks — no editar
-set -e
-/usr/local/bin/worklist-server assign-keys --stdin --project ACC --board 701 --base https://lamansys.atlassian.net
-/usr/local/bin/worklist-server propagate --stdin --base https://lamansys.atlassian.net
+exec /usr/local/bin/worklist-server assign-keys --stdin --project ACC --board 701 --base https://lamansys.atlassian.net
 ```
 
-El `post-receive` corre las dos cosas en orden y **para en la primera que falle**: propagar lo que `assign-keys` no llegó a resolver subiría al panorama un estado a medias.
+**El `post-receive` no llama a `propagate`, y no es un olvido**: [`assign-keys`](assign-keys.md) ya propaga al final, con el motivo escrito ahí — *"lo que más falta arriba son las claves y las acaba de escribir la pasada 1"*. Un `propagate` aparte correría la propagación dos veces.
+
+> **Un generador de hooks no puede saber menos que el hook que reemplaza.**
 
 ## Salida
 
