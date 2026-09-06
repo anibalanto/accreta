@@ -117,6 +117,8 @@ Provider::snapshot(keys) -> { clave -> (status, título, cuerpo) }
 
 El chequeo no mira el contenido que llega: compara lo que el proveedor tiene en vivo contra lo que el tip actual del servidor tiene escrito. Coincide → se acepta el push (recién ahí se aplica lo nuevo). Difiere → se rechaza, sin importar qué traiga el push.
 
+**El `status` se compara traducido.** El del tip está en el vocabulario del proyecto y el del proveedor en el suyo, así que compararlos crudos rechaza todo — que es exactamente lo que tenía a la instalación apuntando al proveedor de prueba. El mapeo traduce el del tip y recién ahí se comparan, y va en esa dirección y no en la otra porque el inverso no siempre es una función: dos estados del proyecto pueden mapear al mismo del proveedor. Ver [`states.md`](states.md).
+
 **Y el cuerpo se compara sin campo nuevo**, por lo mismo: el markdown del tip **es** lo que el proveedor tiene. Eso lo garantiza § "Lo que se guarda no es lo que empujaste" — lo guardado es la vuelta del round-trip, no lo que alguien escribió. Así que comparar es convertir el cuerpo que el proveedor devuelve y ponerlo al lado del archivo. Guardar un hash de lo último subido sería exactamente el archivo de estado aparte que esta sección evita.
 
 ### Dos alcances, porque son dos promesas
@@ -440,7 +442,11 @@ Y va **después** del compare-and-swap, que ya corrió: *"si git está actualiza
 |---|---|---|
 | el cuerpo | ✔ | por el mismo camino de siempre: `round_trip`, la poda de marks, los links traducidos |
 | el título | ✔ | es el `summary`, y es lo que se ve en el board |
-| el `status` | ✘ | **no es el mismo campo** que el del proveedor — ver § "La jerarquía entra hasta donde el proveedor la tiene" |
+| el `status` | ✔ | pero **no se escribe: se transiciona**, y el proveedor puede negarse — ver [`states.md`](states.md) |
+
+**El `status` es el único que no viaja como escritura.** Los otros dos pisan el valor viejo y no hay nada que discutir; una transición es una operación con reglas del otro lado, así que se pide y puede ser rechazada. De ahí sale que un cambio de estado sea [una propuesta](../commands/state-change.md) y no un hecho, y que el rechazo por regla se distinga del rechazo por deriva.
+
+**Y un archivo que el push borra es una transición a `dropped`.** La clave sale del nombre del archivo borrado y la intención de que ya no esté en el árbol nuevo: no hace falta ningún campo ni ningún commit especial. Ver [`remove`](../commands/remove.md).
 
 **Y subir el título tiene un costo que hay que decir.** La identidad de un ítem sin clave es su título: así lo encuentra `create_or_find` para no duplicar. Si el título cambia en el proveedor y alguien vuelve a cortar la ventana desde el panorama —que tiene el título viejo y sin clave—, la búsqueda no encuentra nada y **crea un issue nuevo**. Es el defecto de la búsqueda por título por otra puerta — ver § "Asignar una clave: crear o encontrar".
 

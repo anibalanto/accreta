@@ -14,6 +14,7 @@ worklist-server install-hooks --repo <bare> --project <clave> --board <id>
 | `--repo` | El bare del servidor. Los hooks van en `<repo>/hooks/`. |
 | `--project` | La clave del proyecto de Jira. La usa el `post-receive`, que es el que crea y actualiza. |
 | `--provider-file` | El proveedor **de prueba** para el `pre-receive`. Sin él, el compare-and-swap se instala contra el proveedor real. Ver § "Con qué proveedor queda el `pre-receive`". |
+| `--states-map` | El [mapeo de estados](../concepts/states.md) de esta instalación. **Es lo que permite instalar contra el proveedor real.** Va a los dos hooks: uno compara estados, el otro los mueve. |
 | `--board` | El id del board. **Obligatorio y sin default**, por lo mismo que en [`assign-keys`](assign-keys.md): una pasada que se saltea sola porque falta configuración es la peor forma de enterarse de que falta. |
 | `--base` | Base del proveedor, para traducir los links. Default `https://lamansys.atlassian.net`. |
 | `--force` | Sobrescribe un hook que ya existe. Sin él, un hook presente es un error. |
@@ -32,22 +33,29 @@ worklist-server install-hooks --repo <bare> --project <clave> --board <id>
 
 ### Con qué proveedor queda el `pre-receive`
 
-> **Contra el real, el compare-and-swap rechaza todas las ventanas de entrada.**
+> **Contra el real y sin mapeo, el compare-and-swap rechazaba todas las ventanas de entrada.**
 
-No es un defecto del comando: el `status` del worklist y el del proveedor **no son el mismo campo**, así que compararlos difiere siempre. El mapeo es otra task, y mientras no exista, la instalación corre contra el proveedor de prueba — un archivo `clave -> status`.
+No era un defecto del comando: el `status` del worklist y el del proveedor **no son el mismo campo**, así que compararlos crudos difiere siempre. Mientras el mapeo no existió, la instalación corrió contra el proveedor de prueba — un archivo `clave -> status` con valores de la forma del worklist, o sea con el mapeo identidad puesto sin decirlo.
 
-Por eso `--provider-file` existe acá y no es una opción de desarrollo: **es la configuración de hoy.** El día que el mapeo esté, se reinstala sin ese flag y el hook pasa a `--project`.
+**El mapeo existe**, así que hay dos configuraciones legítimas y una que ya no se puede armar:
 
-Y es la mitad del problema que generar el path no resuelve: el path lo pone bien el binario, pero **el comando tiene que ser el que la instalación necesita**. Un generador que no sabe esto instala un hook que rechaza todo.
+| | |
+|---|---|
+| `--provider-file` | el de prueba. Su mapeo es la identidad, así que no lleva `--states-map` |
+| `--project` **con** `--states-map` | el real, comparando traducido |
+| `--project` **sin** `--states-map` | `check-push` **se niega a arrancar** |
+
+**Y negarse es mejor que rechazar todo**, que es lo que hacía antes: un hook que rechaza cada push se lee como un problema del push, y el que lo sufre no tiene por dónde llegar a la causa. Uno que no arranca nombra el dato que le falta.
+
+Es la mitad del problema que generar el path no resuelve: el path lo pone bien el binario, pero **el comando tiene que ser el que la instalación necesita**. Un generador que no sabe esto instala un hook que rechaza todo.
 
 ### Lo que quedan siendo los hooks
 
 ```sh
 #!/bin/sh
 # generado por worklist-server install-hooks — no editar
-# Contra el proveedor de prueba: con el real, el status del worklist
-# y el de Jira no son el mismo campo, y el compare-and-swap rechaza
-# todas las ventanas de entrada.
+# Contra el proveedor de prueba: su archivo lleva valores con la
+# forma del worklist, asi que su mapeo de estados es la identidad.
 exec /usr/local/bin/worklist-server check-push --stdin --provider-file /…/provider.json
 ```
 

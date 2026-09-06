@@ -139,7 +139,7 @@ Queda **fuera del alcance** de la regla, que es distinto de estar exento de ella
 ```markdown
 ---
 title: <string>
-status: open | in-progress | done
+status: <uno de los estados declarados>   # ver states.md
 created_at: <iso8601-utc>
 updated_at: <iso8601-utc>
 parent: <id>                      # opcional — ausente en un ítem de raíz
@@ -153,14 +153,20 @@ Descripción opcional en Markdown.
 
 La asociación con bilinks se declara desde el bilink (endpoint `issue <id>`), no desde el ítem. Ver [asociación ítem ↔ bilink](bilink-tasks.md).
 
-## Estados y transiciones
+## Estados
 
-| Estado | Significado | Cómo se llega | Cómo se sale |
-|--------|-------------|---------------|--------------|
-| `open` | Pendiente, no iniciado | `worklist new` | `worklist start`, `worklist done`, `worklist remove` |
-| `in-progress` | En curso | `worklist start` | `worklist done`, `worklist remove` |
-| `done` | Completado | `worklist done` | — |
-| `removed` | Ya no aplica | `worklist remove` | — |
+> **Cuáles existen no lo dice este formato.** El vocabulario es del proyecto y vive en `.metadata/states.yaml`; el formato sólo exige que el `status` sea uno de los declarados. Ver [`states.md`](states.md).
+
+El que worklist trae por defecto:
+
+| Estado | Significado |
+|--------|-------------|
+| `open` | pendiente, nadie lo tomó |
+| `in-progress` | en curso |
+| `done` | hecho |
+| `dropped` | se decidió no hacerlo — **no es `done`**, porque no se hizo nada, y **no es `open`**, porque no hay nada que hacer |
+
+**Y las transiciones no están acá tampoco.** `worklist` no decide si de `open` se puede pasar a `done`: eso lo dice el workflow del proveedor, que puede negarse. Un cambio de estado es una propuesta — ver [`state change`](../commands/state-change.md).
 
 ## Jerarquía
 
@@ -220,3 +226,4 @@ Qué forma tiene esa clave es **configuración del proyecto**, no del formato: u
 9. Todo valor de un `relation.<tipo>` publicado es la clave, con la forma del proveedor, de un ítem que existe. El grafo que forman no tiene ciclos.
 10. Que un id sea local o del proveedor se lee de la marca `@` y nunca del formato de la clave. Nada en el worklist conoce la forma de clave de ningún proveedor para decidirlo.
 11. Un ítem tiene **un** id: el `@<slug>` lo escribe quien crea el ítem, el que lo reemplaza lo asigna el servidor al sincronizar, y ninguno de los dos sobrevive al otro. Ningún campo del frontmatter guarda un id.
+12. El `status` es uno de los estados que el proyecto declara. Este formato no enumera cuáles son ni qué transiciones entre ellos son legales.
