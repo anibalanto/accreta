@@ -169,6 +169,18 @@ Acá decía que un ítem que está en el sprint del board y no en el `items` *se
 
 **Y entrar a un sprint es salir del anterior**, que es como el proveedor lo modela: un issue está en un sprint a la vez. Así que el alta lo saca de cualquier otro `items` y del backlog.
 
+#### Y un ítem sin clave no se compara
+
+> **Un `@<slug>` no puede estar en el sprint del board**, así que su ausencia no dice nada: es una tarea nueva que todavía no cruzó.
+
+Comparar sin filtrarla la trataba como una baja y **la sacaba del `items`**: crear una tarea y correr `pull` la hacía desaparecer del sprint. Es la misma regla que el resto —*no se preguntó* no es *no está*— y acá el costo era perder trabajo recién escrito.
+
+Se reporta, para que se vea que hay algo esperando cruzar:
+
+```
+  @la-tarea-nueva  todavia no cruzo — esperando clave para el sprint 21
+```
+
 #### Salvo que no haya archivo, y eso no es una elección
 
 Un issue que el board tiene en el sprint y **no es un ítem de este lado** no entra: el `items` nombraría algo que no está, y el próximo recorte falla. Es el caso de un issue creado directamente en Jira.
