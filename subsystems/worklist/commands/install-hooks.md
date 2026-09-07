@@ -6,7 +6,8 @@ Escribe los hooks del bare apuntando al binario que los está escribiendo. El co
 
 ```
 worklist-server install-hooks --repo <bare> --project <clave> --board <id>
-                              [--provider-file <archivo>] [--base <url>] [--force] [--dry-run]
+                              [--provider-file <archivo>] [--states-map <archivo>]
+                              [--base <url>] [--account <email>] [--force] [--dry-run]
 ```
 
 | Argumento | Descripción |
@@ -16,7 +17,8 @@ worklist-server install-hooks --repo <bare> --project <clave> --board <id>
 | `--provider-file` | El proveedor **de prueba** para el `pre-receive`. Sin él, el compare-and-swap se instala contra el proveedor real. Ver § "Con qué proveedor queda el `pre-receive`". |
 | `--states-map` | El [mapeo de estados](../concepts/states.md) de esta instalación. **Es lo que permite instalar contra el proveedor real.** Va a los dos hooks: uno compara estados, el otro los mueve. |
 | `--board` | El id del board. **Obligatorio y sin default**, por lo mismo que en [`assign-keys`](assign-keys.md): una pasada que se saltea sola porque falta configuración es la peor forma de enterarse de que falta. |
-| `--base` | Base del proveedor, para traducir los links. Default `https://lamansys.atlassian.net`. |
+| `--base` | Base del proveedor: traduce los links, y es la dirección de REST. Default `https://lamansys.atlassian.net`. |
+| `--account` | El email de la cuenta con la que REST autentica. **No es un secreto**, así que a diferencia del token no viaja por el entorno: queda escrito en los dos hooks, que es donde vive el resto de la configuración. Sin él, el arranque se niega diciendo que falta — y al instalar se avisa, porque enterarse al primer push es enterarse tarde. Ver [ADR-0001](../.stratum/impl/docs/adr/0001-rest-como-transporte-por-defecto.md) § 5. |
 | `--force` | Sobrescribe un hook que ya existe. Sin él, un hook presente es un error. |
 | `--dry-run` | Imprime los dos scripts y no escribe nada. |
 

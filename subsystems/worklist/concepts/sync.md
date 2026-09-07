@@ -1,6 +1,6 @@
 # Sincronización con el proveedor
 
-Un ítem marcado con `@` es un **pedido**: nació de este lado y todavía no tiene su id definitivo. El proveedor —hoy Jira, vía `acli`— asigna la clave real; git es el transporte. Sin proveedor configurado el que asigna es el contador del servidor, y el resto de esta página no aplica — ver [`item.md`](item.md) § "El contador base-36 sigue existiendo, y es del servidor". Ver [`proposals/ventanas-por-rama.md`](../proposals/ventanas-por-rama.md) para el razonamiento completo; esta página es la spec de lo ya decidido.
+Un ítem marcado con `@` es un **pedido**: nació de este lado y todavía no tiene su id definitivo. El proveedor —hoy Jira— asigna la clave real; git es el transporte. Sin proveedor configurado el que asigna es el contador del servidor, y el resto de esta página no aplica — ver [`item.md`](item.md) § "El contador base-36 sigue existiendo, y es del servidor". Ver [`proposals/ventanas-por-rama.md`](../proposals/ventanas-por-rama.md) para el razonamiento completo; esta página es la spec de lo ya decidido.
 
 ## Qué es un pedido
 
@@ -157,6 +157,8 @@ La detección no puede ser buscar ese texto: es de una herramienta ajena y está
 
 Y de ahí sale una regla para cualquier proveedor futuro: **el puerto devuelve el resultado de la operación, no el de haberla intentado.** Un `Creator` que no distingue las dos cosas no sirve, por más que el comando que corra por debajo salga con 0.
 
+**Por REST la regla se cumple sola, y conviene decir por qué no es una excepción.** Ahí el resultado de la operación **es** la respuesta: el código HTTP no es el de un proceso que envolvió la llamada, es el de la llamada. Lo que esta sección combate es la envoltura —un binario que sale con 0 después de que el servidor dijo que no—, y sin binario en el medio no hay envoltura que mienta. El tercer transporte no relaja la regla: le saca el caso.
+
 ## El puerto son las operaciones, no los comandos
 
 > **Quien llama dice *"poné este sprint"*. Con qué se hace es del puerto.**
@@ -177,6 +179,8 @@ Y lo que falta del lado de editar es exactamente lo que hace falta para **reconc
 
 Un segundo transporte los toma por lo que son: **un `set` sobre un campo**, cuyo resultado no depende del estado previo. Y la membresía de sprint es de **lote** —un sprint recibe sus issues de a decenas—, así que pesa que los tome de a muchos y no de a uno.
 
+> **Hoy son tres.** Esta sección dice por qué hizo falta el segundo, y esa razón no cambió. La del tercero es otra y está abajo, en § "Y el tercero llegó, por una razón que no era la prevista".
+
 ### El reparto, escrito una vez
 
 | Operación | Transporte | Por qué |
@@ -192,36 +196,72 @@ Un segundo transporte los toma por lo que son: **un `set` sobre un campo**, cuyo
 | crear el sprint | `acli` | `sprint create --board`, que devuelve el id nuevo con `--json` |
 | **listar los sprints del board** | **`jira-cli`** | `acli` no tiene con qué: sus comandos de sprint son `create`, `update`, `view`, `list-workitems` y `delete`, y ninguno lista los del board |
 | qué issues tiene un sprint | `acli` | `sprint list-workitems --board --sprint` |
+| **mover de estado** | **REST** | la transición se pide por id, y el id sale de la fila de abajo |
+| **listar las transiciones disponibles** | **REST** | **ningún CLI puede**: `acli jira workitem` no tiene el subcomando, y `jira issue move` sin estado abre un selector interactivo |
 
 **Escrita, y no decidida caso por caso.** Sin la tabla, cada operación nueva elige sola y nadie ve el mapa; con ella, agregar una es ubicarla en una fila y decir por qué.
+
+> **Las dos últimas filas llegaron tarde, y eso es el aviso.** Las operaciones de estado se implementaron sin agregarlas acá, así que durante un tiempo el puerto tuvo dos operaciones que la tabla no listaba — justo lo que el párrafo de abajo dice que no puede pasar. Y una de las dos estaba asignada en el código a un transporte que **no la puede hacer**, cosa que la tabla habría obligado a justificar en su columna.
 
 **Y la tabla es también la lista de operaciones del puerto**: no hay ninguna que no esté. Un llamador que necesita algo que no figura no tiene que elegir transporte — tiene que agregar una fila.
 
 El segundo transporte podría ser REST, y no lo es. Los dos necesitan **la misma credencial**, así que la elección no fue por ahí: fue entre escribir un cliente HTTP y administrar un binario más, y la membresía de sprint es de lote, que es donde un cliente propio la haría de a una — 154 llamadas contra 16.
 
-**La jerarquía no gana nada de eso, y conviene decirlo.** En un proyecto *next-gen* `jira epic add` itera y manda un `PUT` por issue: exactamente lo que haría un cliente propio. Ahí el transporte ahorra el cliente HTTP y nada más. La fila se justifica sola —`acli` no puede—, pero no por lote. Lo que REST sigue cubriendo y `jira-cli` no es **editar un campo custom cualquiera**: su `--custom` es sólo al crear, igual que `acli`. El día que haga falta escribir un campo que no sea sprint ni épica, la tabla gana una fila y un tercer transporte.
+**La jerarquía no gana nada de eso, y conviene decirlo.** En un proyecto *next-gen* `jira epic add` itera y manda un `PUT` por issue: exactamente lo que haría un cliente propio. Ahí el transporte ahorra el cliente HTTP y nada más. La fila se justifica sola —`acli` no puede—, pero no por lote. Lo que REST sigue cubriendo y `jira-cli` no es **editar un campo custom cualquiera**: su `--custom` es sólo al crear, igual que `acli`.
 
-### La credencial es del segundo transporte, y es nueva
+### Y el tercero llegó, por una razón que no era la prevista
 
-Un **API token** de Atlassian. `jira-cli` lo lee de `JIRA_API_TOKEN` en el entorno; por REST habría sido el mismo token en `Basic base64(email:token)`. **La credencial era inevitable**: lo que la elección de transporte ahorró es el cliente HTTP, no el secreto.
+El párrafo de arriba lo anticipó: *"el día que haga falta escribir un campo que no sea sprint ni épica, la tabla gana una fila y un tercer transporte"*. **Llegó por otro lado**, y la diferencia importa.
+
+No hizo falta escribir nada: hizo falta **leer** las transiciones que el workflow admite para un issue, y ahí los dos CLIs se acaban al mismo tiempo. Medido el 2026-09-07:
+
+| | listar transiciones | mover de estado |
+|---|---|---|
+| `acli` | **no existe el subcomando** — `acli jira workitem` tiene `transition`, no `transitions` | sí |
+| `jira-cli` | **no existe el subcomando** — `jira issue move` sin estado abre un selector interactivo | sí |
+| REST | sí, y devuelve los ids | sí, por id |
+
+Un selector interactivo no es *"casi"*: § "Los argumentos van completos" ya dice que un hook no tiene terminal donde contestar, así que preguntar es colgarse.
+
+> **De acá en adelante, una operación nueva del puerto se implementa contra REST.**
+
+Y lo que ya está medido andando por `acli` o `jira-cli` **se queda donde está**. No es una migración: mover una fila que funciona cuesta una medición nueva y no compra nada.
+
+**La regla es asimétrica a propósito.** Los dos CLIs entraron por lo que sabían hacer, y cada fila suya es un agujero del otro; REST no tiene agujeros, así que es el único que puede ser el default sin que la próxima operación vuelva a abrir la pregunta. La tabla deja de crecer por descarte.
+
+#### Y pedir por id es lo que saca una ambigüedad, no sólo una llamada
+
+**El nombre de una transición no es el del status al que lleva.** Medido en este board: la transición se llama `Listo` y deja el ítem en `Finalizada`. `acli` pide `--status` y `jira issue move` pide un `STATE`, y ninguno de los dos documenta cuál de los dos nombres quiere — así que elegir uno es apostar.
+
+Por REST no hay nada que elegir: se listan las transiciones, se busca la que tiene ese status **de destino**, y se pide por su id. El [mapeo de la instalación](states.md#el-vocabulario-está-en-git-el-mapeo-en-la-instalación) sigue escrito con nombres de status, que es lo que un humano puede leer del board; el id lo resuelve el código en el momento.
+
+De ahí sale que **listar deja de ser opcional** — ver [`states.md`](states.md#un-rechazo-por-regla-informa-siempre-porque-listar-ya-pasó).
+
+### La credencial es de los transportes que no son `acli`, y es una sola
+
+Un **API token** de Atlassian, y **el mismo para los dos**: `jira-cli` lo lee de `JIRA_API_TOKEN` en el entorno, y REST lo manda en `Basic base64(email:token)`. **La credencial era inevitable**: lo que la elección de transporte ahorró es el cliente HTTP, no el secreto — y al llegar el tercero, ese ahorro se terminó sin que el secreto cambiara.
+
+**Lo que REST agrega no es un secreto: es el email de la cuenta.** El token solo no autentica — `Basic` lleva el par. Y el email **no es secreto**, así que no viaja por el entorno con el token: es un dato de la instalación, del mismo lado que la URL base y el id del board. Leerlo del config de `jira-cli` sería atar el tercer transporte al segundo justo cuando la regla dice lo contrario.
 
 `acli` no sirve de fuente: guarda su sesión en el keyring del sistema y no la expone. Así que el servidor necesita una credencial propia, que es la misma decisión que la instalación ya tenía que tomar: **todo lo que el hook escriba en el proveedor va a figurar como esa cuenta**, no como quien empujó.
 
-**Se configura en un solo lugar, y hay dos formas de estar mal configurado.** Los dos transportes autentican distinto —`acli` por su sesión del keyring, `jira-cli` por la variable— así que *"no hay credencial"* no es una condición sola. El arranque las verifica y **dice cuál falta**, porque un mensaje que dice *"falta la credencial"* sobre un sistema con dos manda a mirar la que ya estaba bien.
+**Se configura en un solo lugar, y hay más de una forma de estar mal configurado.** Los transportes autentican distinto —`acli` por su sesión del keyring, `jira-cli` por la variable, REST por el par email más token— así que *"no hay credencial"* no es una condición sola. El arranque las verifica y **dice cuál falta**, porque un mensaje que dice *"falta la credencial"* sobre un sistema con tres manda a mirar la que ya estaba bien.
 
 Y esa verificación **es de arranque**, no de la primera vez que haga falta: sin token, las operaciones de la mitad de abajo de la tabla no existen, y descubrirlo en el medio de una ventana a medio resolver es la peor forma de enterarse.
 
-### Dos transportes, dos formas de mentir, una sola respuesta
+### Tres transportes, dos formas de mentir, una sola respuesta
 
-§ "El éxito se lee de la salida" vale para los dos, y **mienten en lados opuestos**:
+§ "El éxito se lee de la salida" vale para los tres, y los dos CLIs **mienten en lados opuestos**:
 
-| | `acli` | `jira-cli` |
-|---|---|---|
-| al fallar | **sale con 0** y escribe el fracaso en `stdout` | **sale con 1**, y el motivo va a `stderr` |
-| al andar | `✓` en `stdout` | `✓` en `stdout` |
-| a medias | el `status` de cada entrada lo dice | **imprime `✓` y sale con 1** |
+| | `acli` | `jira-cli` | REST |
+|---|---|---|---|
+| al fallar | **sale con 0** y escribe el fracaso en `stdout` | **sale con 1**, y el motivo va a `stderr` | el código HTTP, y el cuerpo dice qué campo |
+| al andar | `✓` en `stdout` | `✓` en `stdout` | `2xx`, y el cuerpo es el dato |
+| a medias | el `status` de cada entrada lo dice | **imprime `✓` y sale con 1** | no hay: una llamada es un efecto |
 
-> **De `acli` no se puede leer el código de salida. De `jira-cli` no se puede leer el mensaje de éxito.**
+> **De `acli` no se puede leer el código de salida. De `jira-cli` no se puede leer el mensaje de éxito. De REST se lee el código, que es lo que un código de salida quiso ser.**
+
+**Y la columna de REST no está medida como las otras dos.** Las de los CLIs salieron de correrlos y de leerles el código; ésta sale de lo que la API documenta. Vale lo mismo que valía la de `jira-cli` antes de que se la mirara: se escribe para que la primera corrida tenga contra qué compararse, no para creerle.
 
 Y eso **se averiguó leyendo su código, no empujando** — que es la única ventaja concreta de que sea open source para este caso. `main` imprime el error en `stderr` y sale con 1; `ExitIfError` hace lo mismo para cualquier error que suba; y la capa de API devuelve error ante cualquier respuesta que no sea la esperada. La cadena cierra: **el código de salida es fiel.**
 

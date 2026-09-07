@@ -5,7 +5,7 @@ La integración real con el proveedor: [`concepts/sync.md`](../concepts/sync.md#
 ## Firma
 
 ```
-worklist-server create-or-find --project <clave> --type <tipo> --source <ruta> <título> [--dry-run]
+worklist-server create-or-find --project <clave> --type <tipo> --source <ruta> [--base <url>] [--account <email>] <título> [--dry-run]
 ```
 
 | Argumento | Descripción |
@@ -14,7 +14,9 @@ worklist-server create-or-find --project <clave> --type <tipo> --source <ruta> <
 | `--type` | `task`, `user-story` o `epic`. El vocabulario del worklist, nunca el de Jira: la traducción la hace quien habla con el proveedor, ver [`concepts/sync.md`](../concepts/sync.md#el-tipo-es-del-worklist-no-de-jira). |
 | `--source` | La ruta del ítem en el repo del worklist. Arma la descripción: `Fuente: <ruta>`. |
 | `<título>` | El título del ítem. Viaja **intacto** al crear, y reducido al buscar. |
-| `--dry-run` | No llama a `acli`. Imprime qué buscaría y qué crearía. |
+| `--base` | La URL del proveedor. Por defecto la de esta instalación. |
+| `--account` | El email de la cuenta con la que REST autentica. Ver [`install-hooks`](install-hooks.md). |
+| `--dry-run` | No habla con el proveedor. Imprime qué buscaría y qué crearía — y **por eso tampoco pide credencial**: exigir configuración para planificar es lo que la corrida en seco existe para no necesitar. |
 
 **No hay `--parent`, y no es un olvido.** Este comando resuelve **un ítem suelto**, y la jerarquía no se puede calcular sobre uno solo: hay que subir la cadena de ancestros hasta la épica, que es lo que [`assign-keys`](assign-keys.md) hace sobre la ventana entera. El puerto sí recibe un padre —`Board::create_or_find(título, tipo, descripción, parent)`—; este comando le pasa `None`.
 

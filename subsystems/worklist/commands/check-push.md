@@ -5,14 +5,20 @@ El compare-and-swap de [`concepts/sync.md`](../concepts/sync.md#la-ventana-y-el-
 ## Firma
 
 ```
-worklist-server check-push (--provider-file <archivo> | --project <clave>) [--stdin]
+worklist-server check-push (--provider-file <archivo> | --project <clave> [--base <url>] [--account <email>])
+                           [--states-map <archivo>] [--stdin]
 ```
 
 | Argumento | Descripción |
 |---|---|
 | `--provider-file` | El proveedor **de prueba**: un archivo `clave -> status`. Ver [`worklist-server provider set-status`](provider-set-status.md). |
-| `--project` | El proveedor **real**, por `acli`. |
+| `--project` | El proveedor **real**. |
+| `--states-map` | El [mapeo de estados](../concepts/states.md) de esta instalación. **Obligatorio con `--project`**: sin él el comando se niega a arrancar, en vez de rechazar todas las ventanas. |
+| `--base` | La URL del proveedor. Con `--project` se le piden por REST las transiciones que el workflow admite, que es lo que decide un rechazo por regla. |
+| `--account` | El email de la cuenta con la que REST autentica. Ver [`install-hooks`](install-hooks.md). |
 | `--stdin` | Lee `<viejo> <nuevo> <ref>` por línea — el protocolo de un `pre-receive`. Sin esto, toma el rango de la rama actual. |
+
+**El proveedor real habla por dos transportes, y esto no es un detalle de adentro.** El estado en vivo se lee con `acli`; las transiciones que el workflow admite se piden por REST, porque [ningún CLI puede listarlas](../concepts/sync.md#y-el-tercero-llegó-por-una-razón-que-no-era-la-prevista). De ahí que `--project` traiga `--base` y `--account` de la mano: son la dirección y la mitad no secreta de la credencial.
 
 **Uno de los dos, y no los dos.** El de prueba sólo informa el `status`, así que con él **el título y el cuerpo no se comparan** — el paso 4 de abajo se achica a una tercera parte. Es lo que hoy tiene la instalación, porque el `status` del worklist y el de Jira no son el mismo campo y compararlos rechazaría todas las ventanas. La task `74` es ese mapeo.
 
