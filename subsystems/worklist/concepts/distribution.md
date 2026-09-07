@@ -27,6 +27,7 @@ El segundo sale entero de que [`insecure/all` sea una rama del servidor](sync.md
 | `reconcile` | sí — adopta lo que ya existe | sí | `worklist-server` |
 | `adopt` | sí — crea del otro lado todo un corpus | sí | `worklist-server` |
 | `create-or-find` | sí | no | `worklist-server` |
+| `absorb` | sí — `snapshot` de las claves de una ventana | **sí — escribe en la rama de la ventana** | `worklist-server` |
 | `propagate` | **no — es git puro** | sí, el panorama | `worklist-server` |
 | `install-hooks` | no | no — escribe `hooks/` del bare | `worklist-server` |
 | `provider set-status` | el de **prueba**, que es un archivo | no | `worklist-server` |
@@ -80,6 +81,8 @@ Y deja al descubierto lo que falta: **el único canal cliente→servidor es `git
 `window open` es el que corrige el título de esta sección. No necesita una credencial ni una consulta a Jira: necesita **el panorama**, que también está de un solo lado. Así que lo que el cliente le pide al servidor no es *"preguntale al proveedor por mí"* — es *"hacé esto, que sólo vos podés hacer"*, y la credencial era una de las razones y no la razón.
 
 **Hoy no hace falta ningún canal, y eso es una casualidad de la instalación**: el bare está en la misma máquina, así que recortar una ventana es correr el comando parado ahí y traerla con un `fetch`. **El día que el servidor sea un GitLab, los tres comandos se quedan sin cómo pedir.** Se acepta a sabiendas, porque el canal es una pieza propia y no un rincón de ninguno de los tres.
+
+**Y es lo que deja a [`absorb`](../commands/absorb.md) del lado correcto sin que el cliente cambie.** Traer lo que cambió en el board parece del cliente —es él quien quiere la ventana al día— y cae del servidor por los dos criterios: habla con el proveedor, y escribe en una rama que es artefacto suyo. Lo que le queda al cliente es pedirlo y bajarlo, que es lo que ya hacía.
 
 **Y [`pull`](../commands/pull.md) es el cuarto, con la diferencia de que ya no es hipotético**: no espera un canal para existir, lo **usa** — su paso 1 invoca `window open` en el bare porque el bare está a mano. Así que es el primero que se rompe el día de la mudanza, y el que convierte al canal de una anotación en una dependencia con nombre.
 
