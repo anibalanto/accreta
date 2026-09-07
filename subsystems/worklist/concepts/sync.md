@@ -132,6 +132,8 @@ No es una optimización: son dos afirmaciones distintas. Una es *"esta rama sigu
 
 > **Un push que no toca un ítem no puede pisarlo, así que no hace falta probar nada sobre él.**
 
+**Y el recorte es del rechazo, no de la comparación.** Lo que la regla acota es qué puede vetar una escritura; mirar un ítem que nadie está escribiendo no rompe nada, sólo cuesta. Por eso una corrida que compara sin rechazar —[`check-push --dry-run`](../commands/check-push.md#comparar-sin-rechazar)— toma el tip entero: ahí no hay push que proteger, y lo que se quiere saber es cuánto difiere el inventario completo.
+
 ### Y por qué recién ahora
 
 Mientras el cuerpo no viajaba, un push **no podía** pisar una descripción editada en el proveedor: no la tocaba. La task que hizo viajar el cuerpo abrió el hueco, y esta comparación es lo que lo cierra. El daño que evita es concreto: alguien mejora la descripción en el board, alguien más empuja cualquier cambio del mismo ítem, y esa edición desaparece sin que nada lo diga.
