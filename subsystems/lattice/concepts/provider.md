@@ -65,6 +65,8 @@ Los dos son **derivados** del lado de bilinker: `state` vive en su cache y `comm
 
 Consulta a [`lspd`](../../lspd/overview.md) (`callees`, `callers`) por su socket local. Implementa `edges_from`, no `edges`: el call graph no se enumera, se expande.
 
+**Y el socket es el de su workspace**, que [se deriva de él](../../lspd/concepts/transport.md#el-nombre-no-puede-ser-el-folder-tal-cual): quien pregunta pasa la raíz que le va a preguntar. Con una puerta por sistema, dos proyectos abiertos se pisaban el daemon y el segundo recibía *una negación* en vez de *no sé*.
+
 Requiere resolver el anclaje del nodo antes de preguntar — ver [node.md](node.md) § "Anclaje".
 
 Es el único proveedor cuya ausencia es esperable en operación normal. Si el daemon no responde, lo arranca (ver [commands/daemon.md](../commands/daemon.md) § "Auto-start") y queda `Degraded` mientras el language server indexa. Que el ejecutable no esté instalado o que el lenguaje no tenga soporte sí son `Unavailable`, con razones distintas que le importan al consumidor.

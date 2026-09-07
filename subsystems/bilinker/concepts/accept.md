@@ -240,7 +240,19 @@ Así que la regla es la que este documento ya tiene, aplicada a un caso que no c
 | **es de otro workspace** | **`None`**, y se dice cuál sirve |
 | es de éste | se le pregunta |
 
-**Que `bilinker` levante el daemon cuando no hay ninguno, y qué hacer con la puerta única, son otra pregunta** — la segunda es de `lspd` y no de acá. Lo que este documento fija es que **no se le cree al que no sirve**, que es lo que hace honesto al tercer valor.
+**Lo que este documento fija es que no se le cree al que no sirve**, que es lo que hace honesto al tercer valor.
+
+##### Y con una puerta por workspace, la pregunta se borra
+
+La deducción del `cwd` era **una costura y estaba dicho**: el daemon no informaba su workspace, y `/proc` es de Linux.
+
+Desde que [la ruta del socket se deriva del workspace](../../lspd/concepts/transport.md#el-nombre-no-puede-ser-el-folder-tal-cual), no hay a quién verificar: **el que contesta en mi puerta es el mío por construcción.** El chequeo se borra, y no porque se haya arreglado — porque el caso no se puede representar.
+
+> Es lo que este proyecto prefiere en todos lados: que lo inválido no exista, en vez de detectarlo.
+
+**Y ahí sí bilinker levanta el suyo.** Con una puerta por sistema, arrancar era desalojar a quien estuviera trabajando en otro proyecto, así que la política era *no levantar nunca y degradar*. Con una puerta propia, levantar no le cuesta nada a nadie.
+
+Lo que **no** cambia es el tercer valor: si el daemon no arranca, sigue siendo `None`. Levantarlo es una comodidad, no una garantía — y un `check` que fracasara porque un daemon no arrancó estaría convirtiendo una falla de infraestructura en una reducción de cobertura, que es lo que la regla de más arriba prohíbe.
 
 ### Cuándo se adquiere el vecindario
 

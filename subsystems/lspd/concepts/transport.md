@@ -6,10 +6,40 @@ Un socket local, y **nada que configurar**.
 
 | Sistema | Dónde |
 |---|---|
-| Unix — Linux, Mac | `~/.lspd/daemon.sock` |
-| Windows | `\\.\pipe\lspd` |
+| Unix — Linux, Mac | `~/.lspd/<workspace>.sock` |
+| Windows | `\\.\pipe\lspd-<workspace>` |
 
 No hay flag, ni variable de entorno, ni archivo de configuración. Quien quiera hablarle al daemon calcula la ruta con la misma regla y llega.
+
+**Y se deriva de dos cosas, no de una.** Acá había **una sola puerta** —`daemon.sock`, del `HOME` y nada más— y de eso salía que hubiera **un daemon a la vez, con un workspace**.
+
+> **La puerta única no era una decisión sobre concurrencia: era una consecuencia de haber derivado la ruta de una sola cosa.**
+
+Medido el 2026-09-07: `bilinker check` en una capa de accreta falló con `file not found` sobre un archivo que existe, porque el daemon vivo estaba indexando otro proyecto — y ése tenía `jdtls` con **1544 consultas**, o sea alguien trabajando. Preguntarle a un daemon ajeno no devuelve *"no sé"*: devuelve **una negación**.
+
+Con una puerta por workspace eso no se detecta: **no se puede representar.** El que contesta en mi puerta es el mío por construcción.
+
+### El nombre no puede ser el folder tal cual
+
+`sun_path` son **108 bytes** en Linux, y un workspace real ya son 64 — `/home/anibal/Workspace/accreta/subsystems/worklist/.stratum/impl`. Más `~/.lspd/` y `.sock` queda en ~90: entra por poco, y **uno más profundo lo rompe**.
+
+> **El basename para leerlo, un hash corto para distinguirlo.**
+
+```
+~/.lspd/impl-a3f9c1.sock
+```
+
+El hash sale del **path canónico**, así que dos rutas que apuntan al mismo lugar dan la misma puerta — un symlink no parte el daemon en dos.
+
+Y el basename no es decoración: sin él `~/.lspd/` es un directorio de hashes, y **un directorio de hashes no se puede mirar**. Con él, `ls` contesta de qué proyecto es cada puerta.
+
+**El `daemon.pid` va por el mismo camino**, y por el mismo motivo: es lo que permite decir *qué* proceso atiende esta puerta.
+
+### Quién calcula el workspace, y por qué no el cliente
+
+**El que llama.** Es el único que lo sabe: es la raíz que le va a preguntar, y es lo mismo que el daemon ya recibe en `--workspace`.
+
+Derivarlo adentro del cliente sería adivinar desde dónde se lo invocó — y el `cwd` de quien pregunta no tiene por qué ser su workspace. Es justo el error que esto viene a borrar, cometido del otro lado del puerto.
 
 **Que no haya configuración es el criterio con que se eligió el transporte**, no una consecuencia. Un socket local es lo único que se puede derivar de nada: existe en un lugar fijo del sistema de archivos, y ese lugar es el mismo para el que escucha y para el que llama.
 
