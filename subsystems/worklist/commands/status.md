@@ -68,6 +68,26 @@ El costo de la pregunta tiene que ser proporcional a lo que se va a hacer — el
 
 Es el mismo apoyo que usa el paso 1 de [`pull`](pull.md#y-el-paso-1-supone-que-el-servidor-está-a-mano): hoy el bare está en esta máquina. El día que sea un GitLab, esto necesita el canal cliente→servidor que todavía no existe.
 
+#### Y los argumentos no se inventan: salen del hook
+
+Contra qué proveedor pregunta esta instalación, con qué mapeo de estados y con qué cuenta es **configuración**, y hoy no tiene casa propia: vive en el `hooks/pre-receive` que [`install-hooks`](install-hooks.md) genera. `status --verify` lo lee de ahí y le agrega `--dry-run --ref`.
+
+> **Si `--verify` armara sus propios argumentos, mediría contra un proveedor que puede no ser el que rechaza los pushes.** Sería una segunda fuente, y las dos fuentes difieren el día que alguien reinstala los hooks con otra cosa.
+
+Es la misma razón por la que [`--dry-run` no es un comando aparte](check-push.md#y-no-es-un-comando-aparte-a-propósito): lo que hay que medir es exactamente lo que va a rechazar.
+
+**Es una costura y se sabe.** Leer argumentos de un `sh` generado no es una interfaz; es el único lugar donde esa configuración es autoritativa hoy. El día que tenga casa propia, esto la lee de ahí y esta sección se borra.
+
+#### Y con el proveedor de prueba, `coincide` sería afirmar de más
+
+El de prueba **sólo informa el `status`**, así que el título y el cuerpo no se comparan. La salida lo dice:
+
+```
+  proveedor    coincide el status     → el titulo y el cuerpo no se comparan con el proveedor de prueba
+```
+
+Que la instalación siga apuntando ahí es una decisión escrita, con su número al lado: cruzar hoy encendería un rechazo que en su mayoría no informa nada. Pero **eso no autoriza a que `status` redondee para arriba** — es el mismo *"`sin verificar` no es `coincide`"* un nivel más adentro.
+
 ## El código de retorno informa si se pudo contestar, no la respuesta
 
 **`status` sale con cero aunque las cuatro líneas estén en rojo.** Es la misma regla que [`concepts/sync.md`](../concepts/sync.md#el-éxito-se-lee-de-la-salida-nunca-del-código-de-retorno) le pide al proveedor y que [`check-push --dry-run`](check-push.md#códigos-de-salida) ya aplica: lo que el retorno dice es si la medición se pudo hacer.
