@@ -66,6 +66,21 @@ El commit de la ventana es además el registro de **qué llevaba el sprint**, y 
 
 Que quede no la vuelve autoritativa: sigue siendo **derivada**, y se puede volver a cortar. Y borrar una a mano sigue siendo posible, como con cualquier rama — lo que se descarta es que el cierre lo haga solo.
 
+## Una vista sólo puede aportar ediciones
+
+> **Ni sustracción ni movimiento.** Lo que una vista le lleva al panorama son ediciones de archivos que ya están, y nada más.
+
+La tabla de arriba dice **a qué rama** se puede empujar. Ésta dice **qué** puede llevar el push, que es otra pregunta y se contesta de otra manera: no es una política que el `pre-receive` haga cumplir, es que el gesto que produciría lo otro no existe de este lado.
+
+| | Por qué ya es cierto, o cuándo lo va a ser |
+|---|---|
+| **movimiento** | los renombres son del servidor —`rename <slug> -> <clave>`—, y [se rehacen arriba](propagation.md#lo-que-depende-del-árbol-que-lo-vio-no-se-copia-y-el-motivo-es-de-alcance). El cliente nunca mueve un archivo |
+| **sustracción** | hoy hay **una excepción**: [`remove`](../commands/remove.md) borra el archivo y eso *significa* una transición a `dropped`. Es una edición disfrazada de borrado |
+
+**La excepción se cierra cuando la membresía viva en la composición del producto y no en qué archivos tiene la rama.** Ahí que un archivo desaparezca de una vista pasa a ser **consecuencia de regenerar** y no un commit que alguien hace, y la invariante deja de ser una regla que respetar para ser la forma del sistema.
+
+Y lo que se apoya en esto es que empujar no necesite comando propio: sin sustracción no hay borrado huérfano, que era lo único que pedía atomicidad entre varias ramas. Ver [`commands/pull.md`](../commands/pull.md#empujar-es-una-invariante-y-por-eso-no-necesita-comando).
+
 ## El panorama vive en un solo lado, y la ventana en los dos
 
 > **La tabla de arriba dice qué se le puede empujar a una rama. No dice dónde está, y ésa resultó ser otra pregunta.**
@@ -667,4 +682,4 @@ Así que un ítem que sale de un `items` y no entra en ningún otro se queda don
 
 ## Dos pasos, no uno
 
-`pre-receive` sólo puede aceptar o rechazar lo que llega — no puede reescribirlo. El compare-and-swap vive ahí. El renombre y la reescritura son un commit *nuevo*, agregado después de aceptar: viven en `post-receive`. El cliente que empujó tiene que hacer `fetch` para ver los ids reales.
+`pre-receive` sólo puede aceptar o rechazar lo que llega — no puede reescribirlo. El compare-and-swap vive ahí. El renombre y la reescritura son un commit *nuevo*, agregado después de aceptar: viven en `post-receive`. El cliente que empujó los trae con [`worklist pull`](../commands/pull.md), que es lo que vuelve accionable esa asimetría: **decir *"hacé `fetch`"* era una instrucción a medias**, porque bajar el tip nuevo sin recalcular el corte deja la ventana al día contra una foto vieja del panorama.

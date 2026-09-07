@@ -114,7 +114,7 @@ Y el segundo árbitro:
 
 ```
 reject: a2b035d edito ACC-14 no entra al panorama — choca en ACC-14.epic.md
-        alguien mas escribio eso desde otra ventana. Regenera la tuya y volve a aplicarlo.
+        alguien mas escribio eso desde otra ventana. Corre `worklist pull` y volve a aplicarlo.
 ```
 
 ## Códigos de salida

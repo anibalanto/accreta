@@ -87,6 +87,23 @@ Deducirlo comparando los árboles sería preguntar *"¿este cambio ya está?"* s
 
 Va en `refs/worklist/**` y no en una rama: es contabilidad del servidor, no contenido. Nadie la clona y nadie la mira.
 
+#### Y la contabilidad se mueve con la rama, o el próximo push re-propaga todo
+
+Regenerar **reescribe la historia de la ventana**, así que la ref se queda apuntando a un commit que ya no es ancestro de nada. Y es el piso del rango: `log <ref>..<tip>` con el piso afuera de la rama devuelve **la ventana entera**.
+
+> **Una marca que quedó afuera de su rama no dice "hasta acá subí": dice "no subió nada".**
+
+Así que [`window open`](../commands/window-open.md) la mueve al recortar, y a dónde la mueve sale del mismo criterio de siempre:
+
+| | La marca queda en |
+|---|---|
+| la ventana estaba **propagada entera** | el **tip nuevo** — el corte la contiene, así que todo subió |
+| subió a medias | el **corte nuevo** — lo que sale del panorama está propagado por construcción, y lo que se replantó encima es justamente lo que falta |
+
+**Dejar la marca en el corte de una ventana recién cortada no es un caso nuevo**: es lo que ya pasaba, dicho explícitamente. Sin ref, el rango arrancaba en el corte de todos modos — la diferencia es que ahora *"todavía no subió nada"* está escrito en vez de deducido de una ausencia.
+
+**Y no era hipotético desde que [`pull`](../commands/pull.md) regenera en cada invocación.** Mientras recortar de nuevo era algo que alguien hacía a mano cada tanto, la marca vencida era un accidente raro; con un comando que recorta cada vez que alguien se pone al día, pasa a ser el caso común.
+
 ## Qué pasa cuando el cherry-pick no aplica
 
 ### Casi todo el conflicto ya lo previno el compare-and-swap
@@ -135,6 +152,8 @@ Y no es un caso de borde: **cada ítem que se cree en el panorama se filtra a to
 
 > **El corte se recalcula. Lo que está encima del corte se re-aplica.**
 
+Los dos pasos tienen dueños distintos —recalcular es del servidor, replantar es del cliente— y del lado del cliente son **un** comando: [`worklist pull`](../commands/pull.md).
+
 ```
 antes:    all(viejo) ─▶ corte(viejo) ─▶ W1 ─▶ W2
 después:  all(nuevo) ─▶ corte(nuevo) ─▶ W1' ─▶ W2'
@@ -150,7 +169,17 @@ Un cherry-pick pregunta contra el árbol que tiene delante, que es el único lug
 
 ### Y el descarte deja de ser una promesa
 
-En el caso sano no hay nada que replantar: `W1` y `W2` **ya subieron al panorama** en el paso 3, así que el corte nuevo los contiene, el cherry-pick queda vacío y se deja caer. Nadie tiene que acordarse de propagar antes de regenerar — **si se propagó, el replante es vacío; si no, replanta y no se pierde nada.**
+En el caso sano no hay nada que replantar: `W1` y `W2` **ya subieron al panorama** en el paso 3, así que el corte nuevo los contiene. Nadie tiene que acordarse de propagar antes de regenerar — **si se propagó, no hay replante; si no, replanta y no se pierde nada.**
+
+#### Y quien lo contesta es la marca, no el patch-id
+
+Acá decía que el cherry-pick quedaba vacío **solo**, y medido el 2026-09-07 sobre las siete ventanas eso es falso: arriba el cuerpo quedó guardado en su forma canónica y abajo como se tipeó, así que el patch-id **no reconoce ni uno solo** de los commits de una ventana larga y el replante los va chocando de a uno.
+
+> **Si [la marca](#hasta-dónde-subió-se-anota-en-una-ref-no-se-deduce) dice que la ventana subió entera, el corte la contiene por construcción — y no hay nada que preguntar commit por commit.**
+
+Es el mismo trato que la marca ya recibía subiendo, aplicado bajando: *un dato que alguien tiene que sostener se guarda, no se busca.* Pedirle a git que lo redescubra comparando parches es lo que la ref existe para evitar, y acá encima **no lo puede contestar**.
+
+Del lado del cliente la pregunta es la misma y la fuente también: [`pull`](../commands/pull.md) se la hace al servidor, que es quien la anota. **No a `refs/remotes/srv/**`**, aunque esté a mano — esa ref dice *lo último que traje*, que es otra cosa, y la mueve cualquier `fetch`, incluido el de un `--dry-run`. Una fuente que la propia consulta desplaza no puede contestar esto.
 
 Es una sola operación cubriendo los dos casos, y es lo que le da un mecanismo a lo que hasta acá era una advertencia: la guarda de [`window open --force`](../commands/window-open.md#y---force-baja-de-categoría) decía *"descartar es correcto sólo si el trabajo se propagó"* y le pedía a quien corre el comando que lo supiera.
 
@@ -158,12 +187,37 @@ Es una sola operación cubriendo los dos casos, y es lo que le da un mecanismo a
 
 **Y el replante conflictúa por una razón sola**: el trabajo toca un ítem que el `items` de hoy ya no lleva, así que el corte nuevo no lo tiene y el parche no encuentra dónde apoyarse. Es información, no un accidente — dice que alguien trabajó sobre algo que se fue de la ventana.
 
+#### Salvo que primero hay que descontar la normalización, y eso no es un conflicto
+
+Medido el 2026-09-07: el replante de la ventana 21 chocó, y la causa **no era la del párrafo de arriba**. El commit del cliente y el corte nuevo dicen lo mismo con distinto formato —`_"…"_` contra `*"…"*`, el padding de una tabla—, porque el panorama guarda la vuelta del round-trip que [`normalize:` rehace](#y-el-renombre-no-es-el-único-normalize-es-el-mismo-commit-por-otra-puerta) y el commit guarda lo que se tipeó.
+
+> **Un commit ya contenido en el corte módulo normalización se deja caer, no se replanta.** No hay dos versiones que reconciliar: hay una superada y una vigente, y la vigente es la del panorama.
+
+Recién después de descontar ésos, un conflicto que quede significa lo que la razón única dice. Mientras no se descuenten, el mensaje **manda a mirar el `items` en un caso donde el `items` no tiene nada que ver** — que es peor que no decir nada, porque el diagnóstico que ofrece es falso. Ver [`commands/pull.md`](../commands/pull.md#el-paso-3-deja-caer-lo-que-ya-fue-superado).
+
+#### Y hay un tercero, que es el `.sprint.md` y se resuelve solo a favor del corte
+
+> **Un conflicto que cae entero sobre `_sprints/**` lo gana el corte, y el commit de la ventana se deja caer.**
+
+No es una excepción: es [la asimetría de la clave del sprint](#y-el-tercero-es-la-clave-del-sprint-por-un-motivo-que-no-es-de-alcance-sino-de-autoría) leída para el otro lado. Allá se dijo que el `.sprint.md` del panorama es el que se planifica y que copiarle un parche arrastra líneas de contexto que difieren **por trabajo legítimo**; bajando pasa exactamente lo mismo, con los papeles cambiados.
+
+Medido el 2026-09-07 sobre la ventana 21:
+
+```
+el commit de la ventana   status: open -> in-progress    y de contexto, items: [… 6 ítems]
+el corte de hoy           status: in-progress            items: [… 17 ítems]
+```
+
+El commit **ya está arriba** —el panorama dice `in-progress`— y choca por el `items`, sobre el que no proponía nada. Replantarlo no puede aportar y su conflicto no informa: lo único que diría es que la planificación siguió, que es lo que se espera que haga.
+
+**Y por eso no vive adentro del cherry-pick**, que las dos direcciones comparten: hacia arriba las ediciones que la ventana le hace al `.sprint.md` **sí viajan**. La regla es de la bajada, y sólo de la bajada.
+
 ## Cuándo se dispara
 
 | Dirección | Quién | Cuándo |
 |---|---|---|
 | **arriba** | el servidor | al final del `post-receive`, después de sus propios commits |
-| **abajo** | quien tiene la ventana | **a pedido**, nunca solo |
+| **abajo** | quien tiene la ventana | **a pedido**, nunca solo — con [`worklist pull`](../commands/pull.md) |
 
 **Arriba es en cada push aceptado, y no al cerrar el sprint.** Propagar una sola vez al final evitaría la segunda vuelta —era una de las tres salidas que `64` enumeró— y evitaría también lo único que la propagación existe para dar: que dos ventanas se vean. Al cerrar el sprint ya es tarde por definición.
 

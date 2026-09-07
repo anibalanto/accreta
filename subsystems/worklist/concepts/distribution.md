@@ -31,15 +31,18 @@ El segundo sale entero de que [`insecure/all` sea una rama del servidor](sync.md
 | `install-hooks` | no | no — escribe `hooks/` del bare | `worklist-server` |
 | `provider set-status` | el de **prueba**, que es un archivo | no | `worklist-server` |
 | `window open` | no | **sí — lee el panorama y escribe la rama de la ventana** | `worklist-server` |
+| `pull` | **no — le pide el corte al servidor** | no — escribe la rama local y el worktree | `worklist` |
 | `new` | **no — es escribir un archivo** | no — escribe en la vista | `worklist` |
 | `state change` | **no — propone, no consuma** | no — escribe en la vista | `worklist` |
 | `remove` | **no — propone `dropped`** | no — escribe en la vista | `worklist` |
 
 **`provider set-status` no es de ninguno de los dos públicos: es de las pruebas.** Va igual en el servidor, porque el proveedor de prueba **sustituye al real en el lugar donde el real se usa** —`check-push --provider-file`—, y ese comando ya está de ese lado. Ponerlo en el cliente le daría a la máquina de desarrollo la única forma de manipular un proveedor que el sistema tiene; un tercer binario sería una instalación más para algo que sólo corre en pruebas.
 
-### El cliente queda con dos comandos, y los dos escriben una propuesta
+### El cliente escribe propuestas, y desde `pull` también su propia rama
 
-Hoy `worklist` tiene **dos subcomandos** —`state change` y `remove`—, y no es un accidente del recorte: es dónde está el proyecto. Lo que va a llenarlo ya está decidido y sin implementar —`sync`, `view add`, `new`, `status`, `is-secure`—, y **todo eso nace del lado correcto sólo si el binario existe antes**.
+Hoy `worklist` tiene **tres subcomandos** —`state change`, `remove` y `pull`—, y no es un accidente del recorte: es dónde está el proyecto. Lo que va a llenarlo ya está decidido y sin implementar —`view add`, `new`, `status`, `is-secure`—, y **todo eso nace del lado correcto sólo si el binario existe antes**.
+
+**Y `pull` es el que rompe el título de esta sección**, que decía *"los dos escriben una propuesta"*. No escribe ninguna: escribe la rama local y el worktree, que es la otra cosa que el cliente posee. Ver [`commands/pull.md`](../commands/pull.md#son-dos-actores-no-dos-comandos).
 
 **Y los dos que hay hacen lo mismo con el push**: escriben en la vista y esperan. Es la forma que le queda al cliente cuando no tiene ni el panorama ni la credencial — proponer en un archivo, y que el servidor lo consuma cuando el push llega.
 
@@ -73,6 +76,8 @@ Y deja al descubierto lo que falta: **el único canal cliente→servidor es `git
 `window open` es el que corrige el título de esta sección. No necesita una credencial ni una consulta a Jira: necesita **el panorama**, que también está de un solo lado. Así que lo que el cliente le pide al servidor no es *"preguntale al proveedor por mí"* — es *"hacé esto, que sólo vos podés hacer"*, y la credencial era una de las razones y no la razón.
 
 **Hoy no hace falta ningún canal, y eso es una casualidad de la instalación**: el bare está en la misma máquina, así que recortar una ventana es correr el comando parado ahí y traerla con un `fetch`. **El día que el servidor sea un GitLab, los tres comandos se quedan sin cómo pedir.** Se acepta a sabiendas, porque el canal es una pieza propia y no un rincón de ninguno de los tres.
+
+**Y [`pull`](../commands/pull.md) es el cuarto, con la diferencia de que ya no es hipotético**: no espera un canal para existir, lo **usa** — su paso 1 invoca `window open` en el bare porque el bare está a mano. Así que es el primero que se rompe el día de la mudanza, y el que convierte al canal de una anotación en una dependencia con nombre.
 
 ## La lib se parte también, y no es lo mismo que partir los binarios
 
