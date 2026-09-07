@@ -224,7 +224,7 @@ $ worklist pull
 secure/sprint/21: al dia con git; el proveedor: …
 ```
 
-Los seis archivos salieron de la ventana **sin ningún mecanismo nuevo**: se editó una línea del `items` en el panorama y el recorte hizo el resto.
+Los seis archivos salieron de la ventana **sin ningún mecanismo nuevo**: se editó una línea del `items` en el panorama y el recorte hizo el resto. Y cuando uno volvió al sprint en Jira, el `pull` siguiente lo trajo de vuelta por el mismo camino.
 
 #### Son dos hooks, con dos configuraciones
 
