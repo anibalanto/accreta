@@ -67,7 +67,10 @@ Un commit que el panorama ya tenía por otra vía **no es un error**: se informa
 
 ```
   9z8y7x6 normalize: ACC-101  (el panorama ya lo tenia)
+  a1b2c3d edito la descripcion de ACC-101  (el panorama ya lo dice, normalizado)
 ```
+
+**Son dos casos y se dicen distinto**, porque se averiguan distinto. El primero lo contesta git: el parche no aporta nada. El segundo no puede — el panorama guarda la vuelta del round-trip y el commit guarda lo que se tipeó, así que **chocan en bytes y dicen lo mismo**. Se compara en [forma canónica](../concepts/propagation.md#salvo-que-primero-hay-que-descontar-la-normalización-y-eso-no-es-un-conflicto), que se contesta en una pasada porque la conversión converge.
 
 ## Cuando algo no aplica
 
