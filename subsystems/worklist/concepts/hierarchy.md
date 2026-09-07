@@ -61,24 +61,26 @@ Los IDs no codifican la jerarquía — un ítem hijo puede tener un ID posterior
 
 Un sprint no contiene: referencia. Y **vive en `_sprints/`, fuera del árbol de descomposición**, porque no participa de él: puede llevarse ítems de épicas distintas, y tiene su propio contador.
 
-### La membresía es un campo, no sólo un link en la prosa
+### La membresía es un campo, y el campo no vive en un ítem
+
+**Un sprint no es un archivo del árbol.** Su composición —qué ítems, `key`, `status`— vive en [`.metadata/product.yaml`](composition.md), en el panorama, y su prosa en `*>graviton/sprints/`.
 
 ```yaml
----
-title: <string>
-status: open | in-progress | done
-items: [<id>, …]
-key: <id del proveedor>       # opcional — lo escribe el servidor
-created_at: <iso8601-utc>
-updated_at: <iso8601-utc>
----
+sprints:
+  - id: 21
+    name: "El worklist se muda"
+    status: in-progress
+    key: 6525
+    items: [ACC-315, ACC-316, …]
 ```
+
+`items` lleva los ids que el sprint referencia directamente, y ni uno más: la [regla del ancestro](#la-regla-del-ancestro) dice que un ítem entra con su subárbol entero, así que **nunca nombra una task cuya user story ya está en la lista**. Eso no cambió al mudarse.
 
 `key` es el único campo que **no** escribe una persona: lo pone el servidor cuando el sprint existe del otro lado, y su ausencia significa que todavía no. Ver [`sync.md`](sync.md#la-correspondencia-con-el-sprint-del-proveedor-se-guarda-no-se-busca).
 
-`items` lleva los ids que el sprint referencia directamente — los mismos que antes sólo estaban como link en el cuerpo, y ni uno más: la [regla del ancestro](#la-regla-del-ancestro) dice que un ítem entra con su subárbol entero, así que `items` nunca nombra una task cuya user story ya está en la lista.
+**Y la prosa no desapareció, se mudó.** Por qué esos ítems son un sprint, en qué orden, qué quedó afuera, cómo cerró: eso es conocimiento y va donde se acumula el conocimiento. Lo que se separó son **tres cosas con tres dueños** — ver [`composition.md`](composition.md#el-sprintmd-era-tres-cosas-mezcladas).
 
-**El cuerpo sigue siendo prosa**, y sigue siendo dónde va todo lo que no es membresía: por qué esos ítems son un sprint, en qué orden, qué quedó afuera, cómo cerró. `items` reemplaza al link que declaraba pertenencia — no reemplaza al texto que explica por qué. Un sprint recién abierto puede tener dos líneas de cuerpo; uno que ya cerró puede tener una retrospectiva entera, y las dos formas son válidas con el mismo frontmatter.
+> **Un ítem está en un sprint porque una lista lo nombra**, y ya no porque su archivo esté en una rama. Ver [§ la membresía deja de ser una propiedad de la rama](composition.md#y-la-membresía-deja-de-ser-una-propiedad-de-la-rama).
 
 ### Los directorios llevan `_`
 

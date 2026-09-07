@@ -21,8 +21,9 @@ worklist-server window open <sprint-id> [--from <rama>] [--dry-run] [--force]
 
 ## Qué entra
 
-1. **El `.sprint.md`**, que vive en su propia ventana: es el plan de esa iteración.
-2. **Los ítems que su `items` declara**, y para cada uno **todo su subárbol** — los hijos van con el padre, porque [lo que entra a un sprint es un subárbol entero](../concepts/hierarchy.md#la-regla-del-ancestro).
+1. **Los ítems que el `items` del sprint declara**, y para cada uno **todo su subárbol** — los hijos van con el padre, porque [lo que entra a un sprint es un subárbol entero](../concepts/hierarchy.md#la-regla-del-ancestro).
+
+   El `items` sale de [`.metadata/product.yaml`](../concepts/composition.md), que está en el panorama de donde se corta. **No entra a la ventana**: es del servidor, y una copia de la composición del lado del cliente es una fuente de verdad que sólo puede quedarse vieja — el mismo motivo por el que el panorama tampoco baja.
 3. **Los ancestros de cada uno, de sólo lectura** — en la práctica la épica, que [no entra a un sprint](../concepts/hierarchy.md#épicas) y viaja para que la cadena `parent` cierre adentro de la ventana.
 4. **El vocabulario de estados**, `.metadata/states.yaml`, si el proyecto lo declara — por lo mismo que la épica: [la ventana tiene que cerrar adentro](../concepts/states.md#y-el-vocabulario-viaja-con-el-recorte), y el cliente ya no tiene el panorama de donde leerlo.
 
