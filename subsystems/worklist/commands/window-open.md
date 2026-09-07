@@ -62,7 +62,7 @@ secure/sprint/10: 5 archivo(s)
 recortado desde insecure/all (a1b2c3d) -> 9z8y7x6
 ```
 
-## Abrir dos veces sobre lo mismo no hace nada
+## Recortar sobre lo mismo no produce un corte nuevo
 
 > **El corte es derivado. Si re-derivarlo da el mismo árbol, el que ya está sigue siendo válido y la rama no se mueve.**
 
@@ -86,7 +86,9 @@ La pregunta se hace en dos pasos, del barato al exacto:
 
 El sha no sirve para esto, porque lleva la hora y el padre adentro; el árbol es exactamente *"qué archivos, con qué contenido"*, que es lo que el recorte decide.
 
-## Y cuando sí cambió, regenera: el corte se recalcula y el trabajo se replanta
+## Abrir dos veces regenera: el corte se recalcula y el trabajo se replanta
+
+**Todo lo que sigue es para cuando sí cambió algo** — si no cambió nada, la sección de arriba ya contestó y no se llega hasta acá.
 
 > **Recortar de nuevo no reemplaza la ventana: la pone al día.**
 
