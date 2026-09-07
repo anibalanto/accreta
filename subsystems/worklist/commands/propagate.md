@@ -94,3 +94,13 @@ error: el panorama no recibe a2b035d edito ACC-14
 |--------|-----------|
 | `0` | el panorama recibió lo que faltaba, o ya lo tenía |
 | `1` | algo no aplicó, o la ventana no tiene corte — ninguna ref se movió |
+
+## Dónde escribe, y por qué un bare puede engañarlo
+
+Propagar cherry-pickea sobre el panorama, así que necesita un árbol. **Si el panorama está checkouteado acá se trabaja acá; si no, va un worktree temporal.**
+
+Y decidirlo mirando sólo el `HEAD` no alcanza: **un bare puede tener el `HEAD` apuntando al panorama y no tener dónde escribir**, que es exactamente lo que deja un `git clone --bare`. Ahí el comando se cree en un árbol y `git status` falla con *"esta operación debe ser realizada en un árbol de trabajo"* — un mensaje que no dice nada de propagación.
+
+> Es el mismo defecto que [`assign-keys`](assign-keys.md) ya tenía arreglado, y que acá nunca se aplicó.
+
+**En la instalación de hoy no se ve**, y eso es lo que lo hacía difícil de encontrar: su bare quedó con el `HEAD` sin nacer, que es una casualidad de cómo se creó y no una propiedad del diseño. Apareció al montar una instalación de prueba de la forma más natural —`git clone --bare`— para probar el ciclo con el servidor.

@@ -30,6 +30,19 @@ Los tres existen. Lo que no existe es que sean **uno**, y que alguien los corra 
 
 **El paso 1 no es opcional y es el que más se olvida.** Sin él se baja el corte de la última vez que alguien recortó, que puede ser de hace tres semanas: la ventana queda al día con una foto vieja del panorama, que es la peor forma de estar al día — se ve idéntica a estarlo de verdad.
 
+### Y no es opcional, pero es gratis cuando no hay nada
+
+> **`pull` sobre una vista que no cambió no toca nada.** Ni el servidor, ni la rama, ni el worktree.
+
+Es la otra mitad de que el paso 1 sea incondicional. Preguntar siempre está bien; **escribir siempre no**, y las dos puntas escribían de más por el mismo motivo — un commit lleva la hora adentro del hash, así que rehacer lo mismo produce un objeto distinto:
+
+| | Escribía de más | Ahora |
+|---|---|---|
+| el paso 1 | recortaba en cada corrida, y la rama se movía para decir lo que ya decía | [`window open` compara el árbol](window-open.md#abrir-dos-veces-sobre-lo-mismo-no-hace-nada) y no escribe si es el mismo |
+| el paso 3 | cherry-pickeaba mi trabajo sobre su propio padre, cambiándole el sha | si mi HEAD **ya contiene** la punta del servidor, estoy adelantado y no divergido: no hay nada que replantar |
+
+**Estar adelantado no es estar divergido**, y confundirlos es lo que hacía que ponerse al día reescribiera trabajo que estaba bien donde estaba.
+
 ## Son dos actores, no dos comandos
 
 Rearmar una vista son dos operaciones con dueños distintos, y confundirlas es lo que hacía difícil el comando:
@@ -114,7 +127,15 @@ Hacerlo del lado del cliente necesitaría el panorama para probar contra qué, y
 
 > **Un chequeo previo contra una copia del panorama es un verde falso**, y es exactamente la clase de error que sacar el panorama del cliente evitó: leer una copia que se quedó vieja y actuar como si fuera la verdad. Allá escribía en el proveedor; acá diría *"subí tranquilo"*.
 
-Así que el bucle es el de git, y se explica solo: **`push` rechazado → `pull` → resolver → `push`.** Lo único que le faltaba al rechazo era decir esa palabra.
+Así que el bucle es el de git: **`push` rechazado → `pull` → resolver → `push`.**
+
+### Pero *"se explica solo"* era falso, y por eso `push` existe igual
+
+Acá decía que el bucle *"se explica solo"*, y medido el 2026-09-07 **ni siquiera arranca**: las vistas nacen sin upstream —`git worktree add` no lo configura— así que `git push` a secas falla, y `git status` no tiene contra qué compararse y nunca dice *"ahead by 1"*.
+
+> **Se confundió *"no necesita garantías propias"* con *"no necesita comando"*.**
+
+Las tres invariantes de la tabla de arriba se quedan enteras: no hace falta atomicidad, el chequeo previo no puede ser local, y prohibir `git push` no compra nada. Lo que se cae es la conclusión. [`worklist push`](push.md) no agrega ninguna garantía — sabe el refspec, configura el upstream la primera vez, nombra lo que el servidor escribió encima, y traduce el rechazo a `worklist pull`.
 
 ## Lo que no promete, dicho
 

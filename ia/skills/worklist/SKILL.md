@@ -67,39 +67,77 @@ git fetch srv && git worktree add secure/sprint/<id> secure/sprint/<id>
 
 ### Antes de escribir una línea de código
 
-> **Cuatro cosas, y las cuatro se contestan sin ningún comando del worklist.** Las dos primeras son banderas rojas: no se avanza, se arregla.
+> **Corré `worklist status` antes de tocar nada.** Si dice que la vista está atrás, ponela al día primero. Si no se puede, **decilo antes de trabajar**, no después.
+
+No es una recomendación: es verificable, y por eso `status` sale con 1 cuando algo necesita atención.
+
+```bash
+worklist status --exit-code && …
+```
+
+Contesta cuatro preguntas por separado, porque no cuestan lo mismo — las tres baratas corren siempre, la del proveedor se pide con `--verify`:
+
+```
+  vista        secure/sprint/21       ventana
+  servidor     al dia
+  sin empujar  5 commit(s)            → worklist push
+  local        limpio
+  proveedor    sin verificar          → worklist status --verify
+```
+
+**`sin verificar` no es `coincide`.** Ocupa un renglón en vez de callarse, porque dar por bueno lo que nadie miró es el mismo error que el resto de estas reglas evita.
+
+Y lo que sigue es qué significa cada renglón, y qué hacer con él.
+
+> **Cinco cosas.** Las dos primeras son banderas rojas: no se avanza, se arregla.
 
 **1 · La vista es segura.** Si no, lo que escribas no se puede empujar, no se verifica y no cruza al proveedor. No es una advertencia sobre después: es que el trabajo no tiene dónde ir. Ver § "Cómo saber si la vista es segura".
 
 **2 · El ítem no lleva `@`.** Un `@<slug>` es un id que el servidor todavía no reemplazó, así que **no hay con qué prefijar el commit** — y `AGENTS.md` § Commits pide que arranque con el id del ítem. La salida es sincronizar, no inventar un id.
 
-**3 · La vista está al día.** El servidor **commitea encima** de lo que empujaste —los `rename`, los `normalize:`, el `key` del sprint— y eso no está en tu worktree hasta que lo traigas:
+**3 · La vista está al día**, y eso es el renglón `servidor`. El servidor **commitea encima** de lo que empujaste —los `rename`, los `normalize:`, el `key` del sprint— y eso no está en tu worktree hasta que lo traigas:
 
 ```bash
-git fetch srv && git merge --ff-only srv/$(git rev-parse --abbrev-ref HEAD)
+worklist pull            # esta vista
+worklist pull --all      # las veinte
 ```
 
-`--ff-only` y no un merge común: el caso sano es siempre un fast-forward, y **que no lo sea quiere decir que la rama divergió** — alguien más la empujó, o se re-cortó. Un merge automático ahí escondería justo lo que hay que mirar.
+**Recorta antes de bajar**, que es el paso que más se olvida: sin él bajás el corte de la última vez que alguien recortó, y la ventana queda al día contra una foto vieja del panorama — que se ve idéntica a estarlo de verdad.
 
-**Y no un `reset --hard`**, aunque en el caso sano aterrice en el mismo commit: `reset --hard` **descarta sin preguntar**, y `--ff-only` **se niega**. La negativa es el dato. Un `reset --hard` es lo que se usa cuando ya decidiste tirar lo local — es un `--force`, no un `pull`.
+**Y es idempotente.** Correrlo de más no cuesta nada y no mueve nada: si no cambió nada arriba, no hay corte nuevo ni replante. Así que ante la duda, corrélo.
 
-**Y refrescar es una vista por vez**, porque cada una es una rama checkouteada en su propio worktree y git mueve de a una. Traer las dieciséis es un `fetch` y dieciséis merges: eso es lo que `worklist sync` existe para volver un comando.
+Acá había una receta a mano —`git fetch` y un `merge --ff-only`, una vista por vez— con la advertencia de que **`git status` diciendo *"limpio"* no alcanza**: una vista atrasada se ve limpia. Eso sigue siendo cierto y ahora lo contesta `status`.
 
-Y no alcanza con que `git status` diga *"limpio"*: una vista atrasada se ve limpia. Medido: las 16 ventanas estuvieron un commit atrás durante horas y ninguna se veía pendiente.
+**4 · No tenés trabajo sin empujar**, que es el renglón `sin empujar`, y es el que ningún comando de git contesta. Las vistas nacen sin upstream —`git worktree add` no lo configura— así que `git status` **no tiene contra qué compararse** y nunca dice *"ahead by 1"*.
 
-**Esta receta es para una ventana**, que es lo único que tenés checkouteado. El panorama no se refresca porque no está: es del servidor, y ahí no hay nada que traer.
+> **Una vista con trabajo sin empujar se ve limpia**, y es peor que una atrasada: lo que no se nota no es que falte bajar algo, es que hay trabajo hecho que nadie más tiene.
 
-**4 · El ítem está `in-progress`, no `open`.** `open` quiere decir *"nadie lo tomó"*, y arrancar sin moverlo deja el trabajo invisible para todo lo demás — el board, el sprint, y cualquiera que pregunte qué se está haciendo. Se cambia **en la vista**, con el resto del trabajo, así que viaja al proveedor por el mismo camino.
+Medido el 2026-09-07: cinco commits en una ventana, `git status` diciendo *"el árbol de trabajo está limpio"*.
 
-### El orden que evita los cuatro
+```bash
+worklist push
+```
+
+**El bucle es `push` → `pull` → `push`**, y el `pull` del medio no es opcional: el servidor commitea encima de *cada* push que acepta —el `rename`, el `normalize:`, la clave del sprint—, así que tu segundo push choca contra eso si no lo trajiste. El comando lo dice cuando pasa.
+
+**Y la primera vez configura el upstream**, así que a partir de ahí `git status` sí dice *"ahead by N"* sin que haga falta ningún comando del worklist.
+
+**5 · El ítem está `in-progress`, no `open`.** `open` quiere decir *"nadie lo tomó"*, y arrancar sin moverlo deja el trabajo invisible para todo lo demás — el board, el sprint, y cualquiera que pregunte qué se está haciendo. Se cambia **en la vista**, con el resto del trabajo, así que viaja al proveedor por el mismo camino.
+
+### El orden que evita los cinco
 
 ```
-crear el ítem  →  sincronizar  →  cortar o refrescar la vista  →  pasarlo a in-progress  →  trabajar
+crear el ítem  →  empujar  →  worklist pull  →  pasarlo a in-progress  →  trabajar
+                                                                          ↑
+                                                    worklist status ──────┘
+                                                    y si algo falta, no se arranca
 ```
 
 Es el que el método ya pedía —*primero hay una tarea*— con lo que faltaba: **la tarea no está lista cuando se escribe, está lista cuando tiene id, está en tu vista y dice que la estás haciendo.**
 
-**Los tres comandos que van a hacer esto solos están decididos y no existen todavía**: `worklist is-secure`, `worklist status` y `worklist sync`. Mientras tanto, los chequeos son los de arriba.
+**Tres de los cinco los contesta `worklist status`**, y el que los pone al día es `worklist pull`. Los dos que quedan afuera son de leer: que la rama sea `secure/**` y que el ítem no lleve `@`.
+
+De los comandos que faltaban acá, **`sync` no va a existir**: era *"poner las dieciséis al día de una"*, y eso es `worklist pull --all`. Queda `worklist is-secure`, que es derivar la clase de la rama en vez de creerle al nombre.
 
 ### Y el panorama ya no se sincroniza a mano
 

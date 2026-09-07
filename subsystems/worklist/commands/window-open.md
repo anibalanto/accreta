@@ -62,7 +62,33 @@ secure/sprint/10: 5 archivo(s)
 recortado desde insecure/all (a1b2c3d) -> 9z8y7x6
 ```
 
+## Recortar sobre lo mismo no produce un corte nuevo
+
+> **El corte es derivado. Si re-derivarlo da el mismo árbol, el que ya está sigue siendo válido y la rama no se mueve.**
+
+No es una optimización, y hay que decir por qué: **recortar escribe un commit, y un commit lleva la hora adentro del hash.** Así que recortar igual produce un objeto nuevo para decir lo que ya decía, y todo el que tenga la rama clonada se queda sin poder fast-forwardear — por nada. Medido el 2026-09-07, tres recortes seguidos sobre un panorama quieto:
+
+```
+66a671d  padre=4ed96b0  tree=62b15c4   08:26
+9e4aba8  padre=4ed96b0  tree=62b15c4   08:34
+```
+
+Mismo padre, mismo árbol, dos shas. **Son el mismo corte con otra lectura del reloj.**
+
+Y pasó a importar cuando [`pull`](pull.md) empezó a recortar en cada invocación: mientras recortar era algo que alguien hacía a mano cada tanto, reescribir la rama de más era un accidente raro; con un comando que recorta cada vez que alguien se pone al día, sería lo normal.
+
+La pregunta se hace en dos pasos, del barato al exacto:
+
+| | |
+|---|---|
+| **el panorama no se movió** desde que se hizo el corte | no hay de dónde salga una diferencia — ni el `items`, que vive arriba. Se contesta sin construir nada |
+| **se movió, pero no para esta ventana** | cualquier push a cualquiera de las otras adelanta el panorama. Se compara **el árbol** del recorte nuevo contra el del corte que está, que es lo que el corte significa |
+
+El sha no sirve para esto, porque lleva la hora y el padre adentro; el árbol es exactamente *"qué archivos, con qué contenido"*, que es lo que el recorte decide.
+
 ## Abrir dos veces regenera: el corte se recalcula y el trabajo se replanta
+
+**Todo lo que sigue es para cuando sí cambió algo** — si no cambió nada, la sección de arriba ya contestó y no se llega hasta acá.
 
 > **Recortar de nuevo no reemplaza la ventana: la pone al día.**
 

@@ -32,6 +32,8 @@ El segundo sale entero de que [`insecure/all` sea una rama del servidor](sync.md
 | `provider set-status` | el de **prueba**, que es un archivo | no | `worklist-server` |
 | `window open` | no | **sí — lee el panorama y escribe la rama de la ventana** | `worklist-server` |
 | `pull` | **no — le pide el corte al servidor** | no — escribe la rama local y el worktree | `worklist` |
+| `status` | **no — y con `--verify` se lo pide al servidor** | **no — no escribe nada** | `worklist` |
+| `push` | **no — el que habla es el `pre-receive`, del otro lado** | no — escribe la config del remoto local | `worklist` |
 | `new` | **no — es escribir un archivo** | no — escribe en la vista | `worklist` |
 | `state change` | **no — propone, no consuma** | no — escribe en la vista | `worklist` |
 | `remove` | **no — propone `dropped`** | no — escribe en la vista | `worklist` |
@@ -40,7 +42,9 @@ El segundo sale entero de que [`insecure/all` sea una rama del servidor](sync.md
 
 ### El cliente escribe propuestas, y desde `pull` también su propia rama
 
-Hoy `worklist` tiene **tres subcomandos** —`state change`, `remove` y `pull`—, y no es un accidente del recorte: es dónde está el proyecto. Lo que va a llenarlo ya está decidido y sin implementar —`view add`, `new`, `status`, `is-secure`—, y **todo eso nace del lado correcto sólo si el binario existe antes**.
+Hoy `worklist` tiene **cinco subcomandos** —`state change`, `remove`, `pull`, `status` y `push`—, y no es un accidente del recorte: es dónde está el proyecto. Lo que va a llenarlo ya está decidido y sin implementar —`view add`, `new`, `is-secure`—, y **todo eso nace del lado correcto sólo si el binario existe antes**.
+
+**`push` es el caso que más pone a prueba el criterio**, y lo pasa: termina en una escritura del proveedor —el hook mueve estados y crea issues— y aun así **no habla con él**. Lo que hace es un `git push`; el que habla es el `pre-receive`, que está del otro lado. Es la misma forma que `state change`: *lo que decide el lado es quién habla, no en qué termina*.
 
 **Y `pull` es el que rompe el título de esta sección**, que decía *"los dos escriben una propuesta"*. No escribe ninguna: escribe la rama local y el worktree, que es la otra cosa que el cliente posee. Ver [`commands/pull.md`](../commands/pull.md#son-dos-actores-no-dos-comandos).
 
