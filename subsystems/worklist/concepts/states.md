@@ -92,6 +92,22 @@ El primero es el [compare-and-swap](sync.md#la-ventana-y-el-compare-and-swap) de
 
 Jira devuelve las transiciones disponibles para un issue, y usarlas es la diferencia entre un error y una respuesta. Es la misma preferencia que [el éxito se lee de la salida](sync.md#el-éxito-se-lee-de-la-salida-nunca-del-código-de-retorno): un mensaje que no permite decidir qué hacer después no informó nada.
 
+#### Un rechazo por regla informa siempre, porque listar ya pasó
+
+La primera forma de esto trataba el listado como un extra: se pedía **sólo tras un rechazo**, porque preguntarlo siempre era una llamada por ítem para un dato que casi nunca se usa. Y de ahí salía una degradación — si el listado fallaba, el rechazo decía *"no se pudieron listar"*, que es honesto y no sirve para nada.
+
+**Con la transición pedida por id, ese orden se da vuelta.** El id sale de listar, así que para intentar la transición **ya hubo que listar**. Ver [`sync.md`](sync.md#y-pedir-por-id-es-lo-que-saca-una-ambigüedad-no-sólo-una-llamada).
+
+| | antes | ahora |
+|---|---|---|
+| cuándo se lista | tras un rechazo | antes de intentar, siempre |
+| qué cuesta | una llamada por rechazo | una llamada por ítem **que cambia de estado** |
+| qué informa un rechazo por regla | las disponibles, **o nada** | las disponibles, siempre |
+
+**El costo no creció como parece.** No es una llamada por ítem: es una por ítem cuyo estado cambió, que en un push típico son unos pocos. Lo que se pagaba antes por rechazo se paga ahora por cambio, y a cambio la degradación desaparece.
+
+> **Y desaparece de verdad, no se vuelve improbable.** Si el listado falla, no hay id, así que no hay transición que intentar: el fracaso pasa a ser *"no se pudo preguntar"* antes de tocar nada, en vez de un rechazo que no supo explicarse.
+
 ## Qué se compara, y contra qué se compara
 
 El compare-and-swap mira el `status` de **todas** las claves del tip. Hasta que existió el mapeo eso no podía correr contra Jira:
@@ -113,5 +129,5 @@ proveedor:  "In Progress"                  → coincide, el push entra
 1. El `status` de un ítem es uno de los estados que `.metadata/states.yaml` declara. No hay estados implícitos.
 2. Todo estado declarado tiene entrada en el mapeo de la instalación, o la instalación no se configura.
 3. `worklist` no evalúa la legalidad de una transición. La propone y el proveedor decide.
-4. Un rechazo informa cuál de las dos clases es, y uno por regla informa qué transiciones sí están disponibles.
+4. Un rechazo informa cuál de las dos clases es, y uno por regla informa **siempre** qué transiciones sí están disponibles — no puede no saberlo, porque listarlas es lo que precede al intento.
 5. La traducción de estados va del proyecto al proveedor. El mapeo no se usa al revés.
