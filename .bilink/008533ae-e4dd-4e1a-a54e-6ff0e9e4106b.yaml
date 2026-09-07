@@ -1,0 +1,12 @@
+kind: governs
+endpoint:
+  0:
+    link: capture 5705de675a1f1374c6a097944e841801
+    accepted:
+    - agree:
+      - Anibal
+      link: capture 5705de675a1f1374c6a097944e841801
+      hash: b22b4b3b49ad9c1e9824c875874cd00c8c98e733227a8d73f9e744bcee9dd069
+    name: absorber-no-decide-solo
+  1:
+    link: path subsystems/worklist>impl

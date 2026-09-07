@@ -1,0 +1,6 @@
+file: subsystems/worklist/commands/absorb.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "Los tres campos no se absorben igual"))
+    (section
+    (atx_heading (inline) @n1 (#eq? @n1 "El `status` no siempre se puede volver, y no es un defecto del comando"))) @target)
