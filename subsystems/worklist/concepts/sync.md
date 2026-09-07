@@ -157,6 +157,8 @@ La detección no puede ser buscar ese texto: es de una herramienta ajena y está
 
 Y de ahí sale una regla para cualquier proveedor futuro: **el puerto devuelve el resultado de la operación, no el de haberla intentado.** Un `Creator` que no distingue las dos cosas no sirve, por más que el comando que corra por debajo salga con 0.
 
+**Por REST la regla se cumple sola, y conviene decir por qué no es una excepción.** Ahí el resultado de la operación **es** la respuesta: el código HTTP no es el de un proceso que envolvió la llamada, es el de la llamada. Lo que esta sección combate es la envoltura —un binario que sale con 0 después de que el servidor dijo que no—, y sin binario en el medio no hay envoltura que mienta. El tercer transporte no relaja la regla: le saca el caso.
+
 ## El puerto son las operaciones, no los comandos
 
 > **Quien llama dice *"poné este sprint"*. Con qué se hace es del puerto.**
@@ -176,6 +178,8 @@ El puerto se llamó `Provider` y `Creator` y quedó dibujado por lo que `acli` s
 Y lo que falta del lado de editar es exactamente lo que hace falta para **reconciliar**, que es lo único que sirve cuando alguien tocó el board a mano. Poner un campo sólo al crear no converge: sirve una vez.
 
 Un segundo transporte los toma por lo que son: **un `set` sobre un campo**, cuyo resultado no depende del estado previo. Y la membresía de sprint es de **lote** —un sprint recibe sus issues de a decenas—, así que pesa que los tome de a muchos y no de a uno.
+
+> **Hoy son tres.** Esta sección dice por qué hizo falta el segundo, y esa razón no cambió. La del tercero es otra y está abajo, en § "Y el tercero llegó, por una razón que no era la prevista".
 
 ### El reparto, escrito una vez
 
