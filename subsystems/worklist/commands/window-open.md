@@ -104,6 +104,22 @@ error: el corte nuevo esta, pero un commit de la ventana no se pudo replantar:
 
 **El motivo del choque es siempre el mismo**, y por eso el mensaje lo nombra: el trabajo toca un ítem que el `items` de hoy no lleva, así que el corte nuevo no lo tiene y el parche no encuentra dónde apoyarse. Con `--force` el replante no corre, y la salida dice cuántos commits quedan afuera.
 
+**Y había un caso que el mensaje diagnosticaba mal**, medido el 2026-09-07: el commit chocaba por la normalización del round-trip —el panorama guarda la vuelta, el commit guarda lo que se tipeó— y ahí el `items` no tenía nada que ver. **Un diagnóstico falso es peor que ninguno**: manda a mirar un `items` que está bien.
+
+Un commit ya contenido en el corte **módulo normalización** se deja caer antes de llamarlo conflicto, y se dice:
+
+```
+  dejado caer: 980d772 — ya esta en el corte modulo normalizacion
+```
+
+Es la misma decisión que el caso vacío —lo que la ventana hizo ya está arriba— con la diferencia de que git no la puede tomar solo: el patch-id compara bytes. Ver [`commands/pull.md`](pull.md#el-paso-3-deja-caer-lo-que-ya-fue-superado), que es donde está el argumento, y [`concepts/propagation.md`](../concepts/propagation.md#salvo-que-primero-hay-que-descontar-la-normalización-y-eso-no-es-un-conflicto).
+
+**Y lo mismo con el `.sprint.md`**, por otro motivo: `status` e `items` se editan en el panorama y bajan regenerando, así que un choque que cae entero sobre `_sprints/**` lo gana el corte.
+
+```
+  dejado caer: a680093 — la planificacion del sprint es del panorama
+```
+
 ### Y no se mueve una rama que alguien tiene abierta
 
 `git branch -f` **se niega** a mover una rama con worktree activo. `update-ref` no: la mueve, y deja ese worktree con el índice del árbol anterior.
@@ -128,10 +144,10 @@ El chequeo mira los worktrees **del repo donde el comando corre**, y desde que e
 Lo que queda no es un agujero nuevo, es lo de siempre con una rama reescrita: regenerar cambia la historia de la ventana, así que el clon que la tenga no va a poder fast-forwardear. Se pone al día como cualquier rama replantada, **y con un comando que se niega en vez de descartar**:
 
 ```
-git fetch srv && git rebase srv/secure/sprint/10
+worklist pull
 ```
 
-El rebase saltea solo lo que el corte nuevo ya trae —el servidor replantó todo lo que le habían empujado—, así que lo que queda encima es exactamente lo que el clon tenía sin empujar. **Que se pare en un conflicto es el dato**, igual que antes lo era el error: el trabajo local toca un ítem que el `items` de hoy ya no lleva.
+Que es este comando y las dos mitades del cliente en uno solo — ver [`commands/pull.md`](pull.md). El rebase que hace adentro saltea solo lo que el corte nuevo ya trae —el servidor replantó todo lo que le habían empujado—, así que lo que queda encima es exactamente lo que el clon tenía sin empujar. **Que se pare en un conflicto es el dato**, igual que antes lo era el error: el trabajo local toca un ítem que el `items` de hoy ya no lleva.
 
 ## Códigos de salida
 
