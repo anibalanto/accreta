@@ -92,6 +92,29 @@ La línea es lo que **todavía no subió**: el rango entre [la marca de propagac
 | el ítem no fue tocado desde la marca | **se absorbe** — no hay nada de este lado que pisar |
 | el ítem cambió después de la marca | **se reporta y no se toca**: los dos lados escribieron |
 
+## Una clave que el proveedor no informa se cuenta aparte
+
+> **Cero absorbidos sobre veinte claves no es *"todo coincide"*.**
+
+Es la misma regla que [`check-push`](check-push.md#el-resumen-es-el-número-que-decide) y [`push-states`](push-states.md) ya aplican, y **este comando la rompió el día que se escribió**. Medido el 2026-09-07, contra la instalación real:
+
+```
+refs/heads/secure/sprint/21: 20 clave(s)
+resumen: 0 absorbido(s), 0 reportado(s)          ← se leía como "está todo bien"
+```
+
+Las veinte claves habían caído en el mismo `else { continue }`: el proveedor de esta instalación es [el de prueba](check-push.md), y su archivo está **vacío**, así que no informó ni una. El comando calló, y callar convirtió *"nadie miró"* en *"coincide"*.
+
+```
+refs/heads/secure/sprint/21: 20 clave(s)
+  sin informar (20): ACC-259, ACC-263, ACC-268, ACC-275, ACC-302, …
+resumen: 0 absorbido(s), 0 reportado(s), 20 sin informar
+```
+
+**Y la cuenta sube.** [`pull`](pull.md) sólo cierra diciendo *"al día"* si además el proveedor informó todo; con una sola sin informar dice qué no miró. Lo mismo [`status --verify`](status.md), que ya no dice `coincide` sino `el proveedor no informo`.
+
+**Una clave informada sin ningún campo cuenta igual**, porque es lo mismo: el de prueba sólo lleva `status`, así que sobre título y cuerpo no vio nada.
+
 ## Salida
 
 ```
