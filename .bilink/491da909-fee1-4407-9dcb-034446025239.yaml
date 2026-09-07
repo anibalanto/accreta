@@ -10,3 +10,13 @@ endpoint:
     name: la-vuelta-no-es-una-funcion
   1:
     link: path subsystems/worklist>impl
+    accepted:
+    - agree:
+      - Anibal
+      link: capture 12c73936910aafa0ce2f55eda29b6a9e
+      hash: 45b5f053914b9972018d7aa19a4becc7a65c31e975c4a8b05e476a84e32feabe
+      hash_ast: 16e70b73d0c78243b718fbacc24bad0e966fb8ffd68320c2dd59dac9fbc2a91d
+      n:
+        1:
+          hash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+          hash_ast: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
