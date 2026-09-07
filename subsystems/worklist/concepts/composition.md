@@ -66,6 +66,18 @@ Con el nombre bajo 20, `<id> <nombre>` da **23 como máximo**: el recorte no ocu
 
 El título largo no se pierde: pasa a ser la primera línea del documento del sprint en graviton, que es donde la prosa vive.
 
+## La mudanza es en dos mitades, y hoy está la primera
+
+**El `items` ya sale de acá.** El recorte lee la composición, el renombre la mantiene, y la clave del sprint se anota acá cuando el servidor la consigue.
+
+**El `.sprint.md` todavía viaja en la ventana**, porque las pasadas que sincronizan sprints —resolver el sprint del proveedor, anotarle la clave— lo leen de ahí. Se va con ellas.
+
+> **La composición es la fuente de la membresía desde hoy. El archivo es una copia que todavía se lee para otra cosa.**
+
+Y el orden no es arbitrario: mover la lectura del `items` no toca el proveedor, y mover las pasadas de sprint sí — son las que crean sprints y meten issues en el board. La primera mitad se puede hacer con la suite como única red; la segunda necesita medirse contra un board.
+
+**Y el renombre necesitó una regla propia.** En un `.md` una referencia a un ítem es un link —`](@o.task.md)`— y se reescribe con el texto. Acá es una **entrada de una lista**, sin sintaxis alrededor: un renombre que sólo mire markdown deja el sprint nombrando un slug que ya no existe, y el próximo recorte falla con *"la composición nombra a `@o`, y no está"*. Se reescribe sobre la estructura, porque `@o` como texto también aparece adentro de `@otro`.
+
 ## Lo que no contesta
 
 **Dónde está el archivo de un ítem.** El YAML dice **en qué sprint está**, que es otra pregunta — y es la que un endpoint `issue` de bilinker necesita.
