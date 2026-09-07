@@ -32,6 +32,7 @@ El segundo sale entero de que [`insecure/all` sea una rama del servidor](sync.md
 | `provider set-status` | el de **prueba**, que es un archivo | no | `worklist-server` |
 | `window open` | no | **sí — lee el panorama y escribe la rama de la ventana** | `worklist-server` |
 | `pull` | **no — le pide el corte al servidor** | no — escribe la rama local y el worktree | `worklist` |
+| `status` | **no — y con `--verify` se lo pide al servidor** | **no — no escribe nada** | `worklist` |
 | `new` | **no — es escribir un archivo** | no — escribe en la vista | `worklist` |
 | `state change` | **no — propone, no consuma** | no — escribe en la vista | `worklist` |
 | `remove` | **no — propone `dropped`** | no — escribe en la vista | `worklist` |
@@ -40,7 +41,7 @@ El segundo sale entero de que [`insecure/all` sea una rama del servidor](sync.md
 
 ### El cliente escribe propuestas, y desde `pull` también su propia rama
 
-Hoy `worklist` tiene **tres subcomandos** —`state change`, `remove` y `pull`—, y no es un accidente del recorte: es dónde está el proyecto. Lo que va a llenarlo ya está decidido y sin implementar —`view add`, `new`, `status`, `is-secure`—, y **todo eso nace del lado correcto sólo si el binario existe antes**.
+Hoy `worklist` tiene **cuatro subcomandos** —`state change`, `remove`, `pull` y `status`—, y no es un accidente del recorte: es dónde está el proyecto. Lo que va a llenarlo ya está decidido y sin implementar —`push`, `view add`, `new`, `is-secure`—, y **todo eso nace del lado correcto sólo si el binario existe antes**.
 
 **Y `pull` es el que rompe el título de esta sección**, que decía *"los dos escriben una propuesta"*. No escribe ninguna: escribe la rama local y el worktree, que es la otra cosa que el cliente posee. Ver [`commands/pull.md`](../commands/pull.md#son-dos-actores-no-dos-comandos).
 
