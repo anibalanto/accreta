@@ -14,7 +14,7 @@ worklist-server push-states --project <clave> --states-map <archivo>
 |---|---|
 | `--project` | La clave del proyecto de Jira. |
 | `--states-map` | El [mapeo de estados](../concepts/states.md) de esta instalación. **Obligatorio, y no un aviso**: sin traducir no hay nada que comparar, así que sin él el comando no tiene trabajo que hacer — no uno más chico. |
-| `--ref` | Sobre qué rama. Por defecto el panorama. |
+| `--ref` | Sobre qué rama. Por defecto el panorama, que es del repo donde el comando corre. |
 | `--base`, `--account` | La dirección de REST y el email de la cuenta. Ver [`install-hooks`](install-hooks.md). |
 | `--limit` | Mueve sólo las primeras N y para. |
 | `--dry-run` | Imprime el plan y no escribe nada. |
@@ -65,6 +65,21 @@ Cada ítem que se mueve cuesta **dos llamadas** — listar sus transiciones y pe
 `--ref` apunta por defecto a la rama insegura, y eso **no contradice** que a una insegura no se le empuje: este comando no escribe en git. Lee el árbol y escribe en el proveedor.
 
 Es la misma forma que [`bootstrap`](bootstrap.md), y por la misma razón: el panorama es el único que tiene el inventario completo, y un recorte contestaría sobre sus ítems callando el resto.
+
+### Y el panorama es el del servidor, que es donde este comando corre
+
+> **No alcanzaba con decir "el panorama": había dos, y este comando leyó el equivocado.**
+
+El 2026-09-07, corrido desde el clon, leyó un worktree con dos commits de atraso y **devolvió un ítem al estado viejo en el board**. El plan que imprimió era consistente con lo que esa copia decía, así que no había nada que mirar y sospechar. Es el caso entero de [§ El panorama vive en un solo lado](../concepts/sync.md#el-panorama-vive-en-un-solo-lado-y-la-ventana-en-los-dos), y lo que lo cierra no es un guardia adentro de este comando: es que **la copia que se podía quedar vieja ya no existe**.
+
+Lo que queda es esto, y se dice para que no se lea como una promesa más grande:
+
+| | |
+|---|---|
+| sin `--ref` | lee el panorama del bare donde corre, que es **la autoridad** — no hay copia de la que dudar |
+| con `--ref` a una ventana | lee un recorte, y un recorte **puede estar atrasado**: la propagación va de la ventana al panorama, nunca al revés |
+
+**El segundo caso sigue abierto y se acepta**, porque es un gesto y no un default: nombrar una ventana es escribir su nombre. Lo que se sacó fue el camino que no pedía ningún gesto.
 
 ## Salida
 

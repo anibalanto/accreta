@@ -22,7 +22,7 @@ Antes decían *cuándo* aplicaba cada una — *"si la tarea toca bilinks"*, *"si
 
 ## Dónde está el trabajo
 
-En `.worklist/insecure/all/` — épicas, user stories, tasks y sprints. Para saber qué sigue: el sprint con `status: in-progress` en `_sprints/` —o, si no hay ninguno, el próximo `open` por número—, y de ahí a los ítems que referencia.
+En `.worklist/secure/sprint/<id>/` — épicas, user stories, tasks y sprints, uno por ventana. Para saber qué sigue: el sprint con `status: in-progress` en `_sprints/` —o, si no hay ninguno, el próximo `open` por número—, y de ahí a los ítems que referencia.
 
 **No es una capa de stratum**: es el aparato de seguimiento del proyecto, más pariente de `.bilink/` que de `subsystems/`. Vive en `.worklist/`, que es un **contenedor de worktrees** de su repo propio — un clon de accreta no lo trae, y `stratum pull` tampoco: es un `git clone` aparte.
 
@@ -30,13 +30,15 @@ En `.worklist/insecure/all/` — épicas, user stories, tasks y sprints. Para sa
 
 `insecure/all` es el panorama, con todos los ítems; una ventana —`secure/sprint/<id>`— lleva sólo los de ese sprint. El path dice la capacidad: a una rama insegura no se le puede empujar. Ver [`subsystems/worklist/concepts/sync.md`](subsystems/worklist/concepts/sync.md).
 
+**Y el panorama no está de este lado**: vive en el bare del servidor y el clon ni siquiera lo trae — lo que hay en `.worklist/` son las ventanas. Se lee con `git -C <bare> show insecure/all:<archivo>`, y la razón de que no baje es que una copia que se queda vieja es una fuente de verdad falsa a la que algo automático le cree. Ver [§ El panorama vive en un solo lado](subsystems/worklist/concepts/sync.md#el-panorama-vive-en-un-solo-lado-y-la-ventana-en-los-dos).
+
 Spec completa: `subsystems/worklist/`.
 
 Las decisiones que ese trabajo ejecuta viven en `docs/adr/` de la capa impl del subsistema correspondiente.
 
 ## Cómo se trabaja acá
 
-0. **Primero hay una tarea.** Ninguna modificación al repo empieza sin un ítem en `.worklist/insecure/all/`.
+0. **Primero hay una tarea.** Ninguna modificación al repo empieza sin un ítem en el worklist.
 1. Se toca **la spec**, nunca el código primero.
 2. `bilinker check .` reporta los endpoints que quedaron no-OK.
 3. Cada no-OK es un puntero al fragmento de código que implementaba esa spec. Se sigue con `bilinker get`.

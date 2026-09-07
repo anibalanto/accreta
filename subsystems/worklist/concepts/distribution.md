@@ -30,28 +30,49 @@ El segundo sale entero de que [`insecure/all` sea una rama del servidor](sync.md
 | `propagate` | **no — es git puro** | sí, el panorama | `worklist-server` |
 | `install-hooks` | no | no — escribe `hooks/` del bare | `worklist-server` |
 | `provider set-status` | el de **prueba**, que es un archivo | no | `worklist-server` |
-| `window open` | no | no — lee `all`, escribe una rama local | `worklist` |
+| `window open` | no | **sí — lee el panorama y escribe la rama de la ventana** | `worklist-server` |
 | `new` | **no — es escribir un archivo** | no — escribe en la vista | `worklist` |
 | `state change` | **no — propone, no consuma** | no — escribe en la vista | `worklist` |
 | `remove` | **no — propone `dropped`** | no — escribe en la vista | `worklist` |
 
 **`provider set-status` no es de ninguno de los dos públicos: es de las pruebas.** Va igual en el servidor, porque el proveedor de prueba **sustituye al real en el lugar donde el real se usa** —`check-push --provider-file`—, y ese comando ya está de ese lado. Ponerlo en el cliente le daría a la máquina de desarrollo la única forma de manipular un proveedor que el sistema tiene; un tercer binario sería una instalación más para algo que sólo corre en pruebas.
 
-### El cliente queda con un comando, y eso es un dato
+### El cliente queda con dos comandos, y los dos escriben una propuesta
 
-Hoy `worklist` tiene **un solo subcomando**, y no es un accidente del recorte: es dónde está el proyecto. Lo que va a llenarlo ya está decidido y sin implementar —`sync`, `view add`, `new`, `status`, `is-secure`—, y **todo eso nace del lado correcto sólo si el binario existe antes**.
+Hoy `worklist` tiene **dos subcomandos** —`state change` y `remove`—, y no es un accidente del recorte: es dónde está el proyecto. Lo que va a llenarlo ya está decidido y sin implementar —`sync`, `view add`, `new`, `status`, `is-secure`—, y **todo eso nace del lado correcto sólo si el binario existe antes**.
+
+**Y los dos que hay hacen lo mismo con el push**: escriben en la vista y esperan. Es la forma que le queda al cliente cuando no tiene ni el panorama ni la credencial — proponer en un archivo, y que el servidor lo consuma cuando el push llega.
 
 **`state change` y `remove` son del cliente por el mismo criterio, y son el caso que lo pone a prueba**: los dos terminan en una operación del proveedor —una transición—, y aun así ninguno la ejecuta. Escriben la propuesta en la vista, y el servidor la consuma cuando el push llega. **Que el efecto final sea del proveedor no hace que el comando lo sea**; lo que decide el lado es quién habla, no en qué termina.
 
 **Y `new` es del cliente sin discusión**, que antes no era obvio: mientras el id salía de un contador del servidor, crear un ítem necesitaba conectividad y el comando quedaba a mitad de camino. Con un id local marcado, crear un ítem es escribir un archivo — ver [`commands/new.md`](../commands/new.md). Es el motivo de que este corte se haga ahora y no después: lo que se escriba de acá en adelante es del servidor, y con un binario sin partir se escribe del lado del cliente y hay que mudarlo.
 
-**Y `window open` está por cambiar de lado.** Se lo lleva la task que saca el panorama del cliente: sin `all` local no hay de dónde cortar, así que cortar una vista pasa a necesitar al servidor. Cuando eso pase, el cliente no se queda vacío — se queda con lo que le pide al servidor.
+### Y `window open` cambió de lado
+
+Estaba anunciado acá mismo —*"se lo lleva la task que saca el panorama del cliente"*— y ya pasó: **el cliente no tiene `all`**, así que no tiene de dónde cortar.
+
+Y cruza por los dos criterios a la vez, que es lo que lo vuelve un caso limpio y no una excepción:
+
+| | |
+|---|---|
+| **lee el panorama** | que existe en un solo lado |
+| **escribe la rama de la ventana** | que es un artefacto del servidor, igual que el panorama del que sale |
+
+> **Recortar es derivar un artefacto de otro. Las dos puntas son del servidor, y el cliente no era ninguna de las dos.**
+
+Lo que le queda al cliente no es un comando más chico: es `git fetch` y un worktree. **La ventana baja y el panorama no**, y esa asimetría es la que define a cada uno — ver [`sync.md`](sync.md#el-panorama-vive-en-un-solo-lado-y-la-ventana-en-los-dos).
 
 ## Lo que el cliente necesita del proveedor, se lo pide al servidor
 
 `view add assigned/julio` necesita saber quién está asignado, y eso es una consulta al proveedor. Con este corte el cliente no puede hacerla, y **la salida no es darle credenciales**: es que le pregunte al servidor, igual que `sync` pide verificación en vez de verificar.
 
 Y deja al descubierto lo que falta: **el único canal cliente→servidor es `git push`.** Dos comandos independientes pidiendo el mismo canal es la señal de que el canal es la pieza.
+
+### Y el tercero no pide nada del proveedor
+
+`window open` es el que corrige el título de esta sección. No necesita una credencial ni una consulta a Jira: necesita **el panorama**, que también está de un solo lado. Así que lo que el cliente le pide al servidor no es *"preguntale al proveedor por mí"* — es *"hacé esto, que sólo vos podés hacer"*, y la credencial era una de las razones y no la razón.
+
+**Hoy no hace falta ningún canal, y eso es una casualidad de la instalación**: el bare está en la misma máquina, así que recortar una ventana es correr el comando parado ahí y traerla con un `fetch`. **El día que el servidor sea un GitLab, los tres comandos se quedan sin cómo pedir.** Se acepta a sabiendas, porque el canal es una pieza propia y no un rincón de ninguno de los tres.
 
 ## La lib se parte también, y no es lo mismo que partir los binarios
 

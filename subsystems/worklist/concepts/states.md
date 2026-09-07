@@ -34,6 +34,16 @@ states: [open, in-progress, done, dropped]
 
 **Y va en `.metadata/`**, que es el espacio de lo que el worklist sabe de sí mismo y no es un ítem — ahí va también la composición de los sprints y del backlog. Es la misma señal que el `_` de `_sprints/`, y por la misma razón: [ninguno de los dos puede ser un id](item.md#el-alfabeto-de-un-id), así que un directorio no se confunde nunca con un ítem.
 
+### Y el vocabulario viaja con el recorte
+
+> **Vive en el panorama, y el cliente no tiene el panorama.** Así que `.metadata/states.yaml` entra en cada ventana, como un archivo más del corte.
+
+Se leía del panorama —*"los worktrees comparten refs, así que `insecure/all` está a mano incluso parado en una ventana"*— y eso dejó de ser cierto cuando el panorama [se fue del cliente](sync.md#el-panorama-vive-en-un-solo-lado-y-la-ventana-en-los-dos).
+
+Y lo que se perdía era exactamente lo que esta página promete: `state change` es del cliente **porque validar un estado no necesita al proveedor**, y sin el vocabulario la validación cae al que worklist trae por defecto. **Un proyecto que declara `review` vería su propio estado rechazado**, y por una razón que no tiene nada que ver con el estado.
+
+Es el mismo argumento que hace viajar a la épica de sólo lectura: **la ventana tiene que cerrar adentro.** La cadena `parent` cierra con los ancestros; el vocabulario cierra con este archivo. Y cuesta un archivo por recorte.
+
 ### Un estado sin mapeo no arranca
 
 > **Si el vocabulario declara un estado que el mapeo de la instalación no cubre, la instalación falla al configurarse.**

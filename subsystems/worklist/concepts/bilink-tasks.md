@@ -10,7 +10,7 @@ link.0: .bilink/<uuid-estructural>.bilink   ← bilink estructural como archivo
 link.1: issue 3a                            ← ítem del worklist
 ```
 
-`link.0` apunta al archivo `.bilink` del bilink estructural (tratado como endpoint estructural — se hashea su contenido). `link.1` apunta al ítem `3a`, que vive en `<project-root>/.worklist/insecure/all/3a.<tipo>.md`.
+`link.0` apunta al archivo `.bilink` del bilink estructural (tratado como endpoint estructural — se hashea su contenido). `link.1` apunta al ítem `3a`, que vive en el panorama como `3a.<tipo>.md`.
 
 El tipo no se escribe en el endpoint: los ids son únicos, así que `3a` alcanza y el archivo se encuentra por prefijo en un solo directorio. Es lo que permite que `issue 3a` siga resolviendo cuando `3a` se recuelga de otra user story — recolgar cambia un campo, no el nombre del archivo.
 
@@ -64,6 +64,8 @@ link.1: issue 3b   ← subtarea en worklist
 
 ## Invariantes
 
-1. El ID en `issue <id>` es el id de un ítem que existe en `<project-root>/.worklist/insecure/all/<id>.<tipo>.md`, cualquiera sea su tipo — y **siempre contra el panorama**, nunca contra una ventana: si resolviera contra la rama abierta, el mismo `issue <id>` resolvería o no según qué sprint esté cortado.
+1. El ID en `issue <id>` es el id de un ítem del panorama, cualquiera sea su tipo — y **siempre contra el panorama**, nunca contra una ventana: si resolviera contra la rama abierta, el mismo `issue <id>` resolvería o no según qué sprint esté cortado.
+
+> **Y hoy eso no resuelve.** La invariante decía `<project-root>/.worklist/insecure/all/<id>.<tipo>.md`, y ese árbol ya no existe del lado del cliente: el panorama [vive de un solo lado](sync.md#el-panorama-vive-en-un-solo-lado-y-la-ventana-en-los-dos), y es la ref de un bare sin worktree. **Contra qué resuelve un `issue` entonces está sin decidir**, y se acepta roto a sabiendas por una razón medida: el 2026-09-06 no había **ningún** endpoint `issue` en el proyecto, así que lo que queda sin resolver no es nada todavía. Lo que sí queda es que este documento describe un camino que hoy no se puede recorrer.
 2. El bilink de tarea vive en la capa donde se debe ejecutar la tarea.
 3. No existe archivo `source_bilink` en el ítem ni archivo `<uuid>.tasks` separado — la asociación vive en el bilink de tarea.

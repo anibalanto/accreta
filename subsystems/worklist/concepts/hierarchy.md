@@ -16,7 +16,7 @@ La jerarquía de worklist es flexible. Cualquier tipo puede estar en la raíz de
 ## Estructura de ejemplo
 
 ```
-accreta/.worklist/insecure/all/
+insecure/all — el panorama, y en una ventana lo mismo con menos archivos
   1.epic.md                        ← sin parent: raíz del árbol
   2.user-story.md                  ← parent: 1
   3.task.md                        ← parent: 2
@@ -132,6 +132,14 @@ De ahí sale una asimetría deliberada: **lo que se hizo se consulta a máquina*
 Un ítem que no está referenciado por ningún sprint está en el backlog **por definición**, y lo lista un comando. Mantenerlo como archivo obligaría a editar dos lugares para mover algo, y los dos podrían divergir.
 
 El cálculo va sobre el subárbol, que es lo que un sprint referencia: **un ítem está en el backlog si el tope de su rama no lo nombra ningún sprint.** Las tasks de una user story planificada no se cuentan aparte —están donde está su user story— y una user story que ningún sprint nombra está en el backlog con todas sus tasks, sin importar cuántas de ellas alguien haya querido adelantar.
+
+#### Y el que lo calcula es el servidor
+
+*"Ningún sprint lo nombra"* es una afirmación sobre **todos** los sprints y sobre todos los ítems, así que sólo la puede hacer quien tiene el tronco entero — y desde que [el panorama vive de un solo lado](sync.md#el-panorama-vive-en-un-solo-lado-y-la-ventana-en-los-dos), ése es el servidor.
+
+> **Un backlog calculado sobre una ventana no es un backlog más chico: es uno equivocado.**
+
+Diría que está sin planificar todo lo que ese recorte no nombra, que es casi todo el corpus. Es la misma razón por la que [`bootstrap`](../commands/bootstrap.md) y [`push-states`](../commands/push-states.md) corren sobre el panorama y no sobre lo que uno tenga cortado: **una pregunta que se contesta recorriendo todo no se puede contestar con una parte, ni siquiera mal.**
 
 ### Épicas
 

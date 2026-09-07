@@ -10,7 +10,7 @@ worklist show <id>
 
 ## Comportamiento
 
-1. Localiza el item por ID en todo el árbol de `accreta/.worklist/insecure/all/`.
+1. Localiza el item por ID en el árbol donde se lo corre — una vista, no el corpus: el panorama [vive del lado del servidor](../concepts/sync.md#el-panorama-vive-en-un-solo-lado-y-la-ventana-en-los-dos), así que un ítem de otro sprint no está.
 2. Imprime el frontmatter formateado, el cuerpo Markdown y el fragmento
    de la capa superior al que apunta el bilink origen.
 3. Lista los hijos directos con su estado.

@@ -5,9 +5,9 @@ description: "Cómo leer y mover el trabajo de este proyecto — épicas, user s
 
 Los ítems viven en `<project-root>/.worklist/`, que es el repo propio del worklist — no una capa de stratum, así que un clon de accreta no lo trae y `stratum pull` tampoco. Spec completa en [`subsystems/worklist/`](../../../subsystems/worklist/concepts/item.md) — acá va lo operativo.
 
-**Están todos en `insecure/all`, y ahí no se trabaja.** El panorama es de donde se lee y contra lo que se consulta; para tocar algo se corta una vista segura. Es la primera regla y está abajo.
+**Lo que tenés en `.worklist/` son las ventanas.** El panorama —`insecure/all`, donde están todos los ítems— **no baja al clon**: vive en el bare del servidor y se lee de ahí. No es que no se trabaje en él: es que no está.
 
-**El proyecto lo nombra el directorio y no la rama**, porque el worklist es de accreta y la herramienta no; `insecure/all` es el panorama y se llama igual en todos, porque lo nombra la spec de sincronización. Así lo resuelve `bilinker` un endpoint `issue`, y **siempre contra el panorama, nunca contra una ventana**: si resolviera contra la rama abierta, el mismo `issue <id>` resolvería o no según qué sprint tengas cortado.
+**El proyecto lo nombra el directorio y no la rama**, porque el worklist es de accreta y la herramienta no; `insecure/all` es el panorama y se llama igual en todos, porque lo nombra la spec de sincronización.
 
 ## Hay dos repos, y los dos son bare
 
@@ -16,7 +16,7 @@ Es lo que más se confunde, y con razón: están los dos en la misma máquina y 
 | | Dónde | Qué es |
 |---|---|---|
 | **el servidor** | `~/.local/share/accreta/worklist-sync/worklist.git` | recibe los push. **Es el único con hooks** |
-| **tu clon** | `<project-root>/.worklist/` | de donde cuelgan los diecisiete worktrees en los que trabajás. En él, el servidor se llama `srv` |
+| **tu clon** | `<project-root>/.worklist/` | de donde cuelgan los dieciséis worktrees en los que trabajás — uno por ventana, **ninguno del panorama**. En él, el servidor se llama `srv` |
 
 > **Lo que los distingue no es dónde están: es que uno tiene hooks y el otro no.** Que el servidor sea local es una casualidad de hoy — mañana es un GitLab y nada cambia.
 
@@ -31,16 +31,25 @@ tu vista  ──push──▶  el servidor  ──resuelve, y commitea encima─
 
 ## Se trabaja en una vista segura. El panorama es para leer
 
-> **`insecure/all` no se toca.** Toda modificación de un ítem se hace parado en una vista segura — `secure/…`.
+> **`insecure/all` no se toca, y ya no se puede.** Toda modificación de un ítem se hace parado en una vista segura — `secure/…`.
 
-No es una convención: una rama insegura **no se puede verificar** —crece sin techo— así que no acepta escrituras, y no hay forma de empujarle. Lo que se escriba ahí no cruza al proveedor y no pasa por ningún chequeo. **Trabajar en el panorama es escribir en el único lugar del que nada sale.**
+No es una convención: una rama insegura **no se puede verificar** —crece sin techo— así que no acepta escrituras, y no hay forma de empujarle. Y desde que el panorama no baja al clon, tampoco hay dónde equivocarse: **el único árbol que tenés a mano es una ventana.**
 
-El panorama es lo que se **consulta**: qué sigue, dónde está un ítem, qué lleva un sprint, y contra qué resuelve un endpoint `issue`. Para eso es, y para eso lo tiene todo.
-
-Para trabajar se corta la vista, y se edita ahí:
+El panorama es lo que se **consulta**, y se consulta en el servidor:
 
 ```bash
-worklist window open <sprint-id>          # produce secure/sprint/<id>
+SRV=~/.local/share/accreta/worklist-sync/worklist.git
+git -C $SRV show insecure/all:ACC-3.task.md          # un ítem
+git -C $SRV ls-tree --name-only insecure/all         # el inventario
+```
+
+Para trabajar se corta la vista, **y el que corta es el servidor** —el panorama del que sale está de ese lado—; el clon la trae con `fetch` y un worktree:
+
+```bash
+cd $SRV && worklist-server window open <sprint-id>   # recorta, parado en el bare
+
+cd $(stratum '*')/.worklist
+git fetch srv && git worktree add secure/sprint/<id> secure/sprint/<id>
 ```
 
 **El nombre es provisorio.** El comando que corta tiene tres candidatos —`window open`, `view add`, `window new`— y no son sinónimos: uno de ellos ya significa *ampliar un recorte que existe*, no cortar uno nuevo. Está sin decidir, así que lo de arriba es lo que hay hoy, no la forma final.
@@ -52,9 +61,9 @@ worklist window open <sprint-id>          # produce secure/sprint/<id>
 | | |
 |---|---|
 | el ítem pertenece a un sprint | se crea y se edita **adentro de su ventana** |
-| no pertenece a ninguno | hoy no hay dónde, y hacerlo en el panorama es una excepción a la vista |
+| no pertenece a ninguno | nace igual en una ventana y sube al panorama con ella; lo que falta es la vista para **trabajarlo**, no un lugar donde escribirlo |
 
-Decirlo así y no dar una regla que a veces no se puede cumplir: la excepción existe, y lo que importa es que **se note al hacerla** en vez de que sea el camino por defecto.
+**Y la excepción de antes ya no existe.** Decía que un ítem de backlog se escribía en el panorama sabiendo que era una excepción a la vista; el panorama no está de este lado, así que no hay dónde hacerla. Lo que queda es lo de siempre: un ítem nace en una vista y viaja con ella.
 
 ### Antes de escribir una línea de código
 
@@ -78,7 +87,7 @@ git fetch srv && git merge --ff-only srv/$(git rev-parse --abbrev-ref HEAD)
 
 Y no alcanza con que `git status` diga *"limpio"*: una vista atrasada se ve limpia. Medido: las 16 ventanas estuvieron un commit atrás durante horas y ninguna se veía pendiente.
 
-**Esta receta es para una ventana y sólo para una ventana.** El panorama no se refresca así, porque no tiene camino automático en ninguna de las dos direcciones — ver § "El panorama se sincroniza a mano, y en las dos direcciones".
+**Esta receta es para una ventana**, que es lo único que tenés checkouteado. El panorama no se refresca porque no está: es del servidor, y ahí no hay nada que traer.
 
 **4 · El ítem está `in-progress`, no `open`.** `open` quiere decir *"nadie lo tomó"*, y arrancar sin moverlo deja el trabajo invisible para todo lo demás — el board, el sprint, y cualquiera que pregunte qué se está haciendo. Se cambia **en la vista**, con el resto del trabajo, así que viaja al proveedor por el mismo camino.
 
@@ -92,53 +101,13 @@ Es el que el método ya pedía —*primero hay una tarea*— con lo que faltaba:
 
 **Los tres comandos que van a hacer esto solos están decididos y no existen todavía**: `worklist is-secure`, `worklist status` y `worklist sync`. Mientras tanto, los chequeos son los de arriba.
 
-### El panorama se sincroniza a mano, y en las dos direcciones
+### Y el panorama ya no se sincroniza a mano
 
-> **Antes de correrle al servidor cualquier comando que hable con Jira, subile el panorama.** El servidor corre contra *su* copia, y esa copia no es la que acabás de editar.
+Acá había una receta de dos direcciones —el servidor tirando del clon para subir, un `--ff-only` o un rebase para bajar— y **se borró entera**: el clon no tiene panorama, así que no hay dos copias que reconciliar.
 
-El panorama vive en dos lados —el clon, donde se escriben los ítems, y el bare del servidor, donde corren los comandos que hablan con el proveedor— y **ninguna de las dos direcciones tiene camino automático**:
+> **Lo que se sacó no fue la receta: fue la segunda copia.** La receta existía porque había una, y era justamente la que un comando automático leía cuando se quedaba vieja.
 
-| | |
-|---|---|
-| hacia arriba | `insecure/**` rechaza el push del cliente, así que el clon no puede empujar |
-| hacia abajo | el servidor nunca empuja — lo que escribe vive en sus ramas hasta que alguien lo trae |
-
-Es el mismo agujero que el chequeo 3 describe para una ventana, con la diferencia de que acá **la receta del chequeo 3 no sirve**: `git push` está cerrado de un lado, y del otro el `--ff-only` se niega casi siempre.
-
-**Subir — lo corre el servidor, tirando del clon:**
-
-```bash
-SRV=~/.local/share/accreta/worklist-sync/worklist.git
-git -C $SRV fetch "$(git -C $(stratum '*')/.worklist/insecure/all rev-parse --git-common-dir --path-format=absolute)" insecure/all
-git -C $SRV update-ref refs/heads/insecure/all FETCH_HEAD
-```
-
-**Y es un `fetch` del servidor y no un push del cliente**, que es lo que lo vuelve legítimo y no un atajo: lo que `insecure/**` rechaza es *el push del cliente*, no la escritura del servidor. Un `fetch` corrido desde el bare no levanta `receive-pack`, así que no pasa por ningún hook y no hay ninguna excepción que enunciar. La regla queda intacta.
-
-**Bajar — parado en el panorama, y primero subiste, así que es un fast-forward:**
-
-```bash
-cd $(stratum '*')/.worklist/insecure/all
-git fetch srv && git merge --ff-only srv/insecure/all
-```
-
-En ese orden el clon es ancestro de lo que el servidor escribió encima, y baja limpio. **El orden es lo que evita el problema**, no una precaución de más.
-
-#### Si ya divergiste, se replanta — no se resetea
-
-Pasa apenas escribís en el clon después de haber subido: el clon tiene commits propios y el servidor tiene los suyos encima. Ahí el `--ff-only` se niega, y **la respuesta no es `reset --hard`**, que descarta sin preguntar justo lo que el clon tiene y el servidor no.
-
-Lo que hay que hacer es **replantar los commits propios sobre los del servidor**:
-
-```bash
-git fetch srv && git rebase srv/insecure/all
-```
-
-El `rebase` hace las tres cosas a mano en una: guarda lo propio, se para en lo del servidor, y lo vuelve a aplicar encima. **Y saltea solo lo que el servidor ya tiene** —lo que subió el `fetch` de arriba vuelve con el mismo contenido y git lo reconoce—, así que lo que queda replantado es exactamente lo que el clon tenía de nuevo. Medido: replantó diez commits sin perder ninguno.
-
-Si el rebase se para en un conflicto, **eso es el dato**, igual que la negativa del `--ff-only`: alguien editó el mismo ítem de los dos lados.
-
-> **Todo esto es provisorio.** Existe porque el panorama es una rama insegura en un repo cuya única escritura legítima es la del servidor, y eso se decide de nuevo cuando se defina la topología —de qué lado vive el panorama y quién lo sincroniza—, que es lo que trae `ACC-279`. El día que exista `worklist sync`, esta sección se borra.
+Un comando del servidor que necesita el panorama lo lee de sus propias refs, que son la autoridad. Ver [`subsystems/worklist/concepts/sync.md`](../../../subsystems/worklist/concepts/sync.md) § "El panorama vive en un solo lado, y la ventana en los dos".
 
 ### Cómo saber si la vista es segura, hoy
 
@@ -246,7 +215,7 @@ Las referencias ya escritas **se corrigen al tocarlas**, no de una barrida.
 
 No es prolijidad: son las dos promesas, y **son excluyentes**. El panorama eligió estar completo, y por eso mismo *"no puede prometer que estén actualizados"*. Preguntarle si algo está al día es preguntarle lo único que declaró no poder contestar.
 
-**Paso 1 — el panorama, para el inventario:**
+**Paso 1 — el panorama, para el inventario.** Está en el servidor, así que se lee con `git -C $SRV show` o `ls-tree`:
 
 1. Buscar el sprint con `status: in-progress`. Si no hay, el próximo `open` por número.
 2. Sus `items` son el compromiso de la iteración. Bajar a la US y de ahí a sus tasks.
@@ -264,13 +233,13 @@ Pasa seguido, y hoy pasa con todo lo que no sea de los sprints ya subidos. Enton
 
 Decirlo **es** el paso. La alternativa es presentar como actual algo que nadie verificó, que es el mismo error de forma que el resto de las reglas de acá evitan.
 
-**El backlog no es un archivo.** Se calcula, no se mantiene: tenerlo escrito obligaría a editar dos lugares al mover algo. Y el cálculo va sobre el subárbol, que es lo que un sprint referencia — **un ítem está en el backlog si el tope de su rama no lo nombra ningún sprint**. Las tasks de una user story planificada no se cuentan aparte, y una user story que ningún sprint nombra está en el backlog con todas sus tasks, sin importar cuántas alguien haya querido adelantar.
+**El backlog no es un archivo.** Se calcula, no se mantiene: tenerlo escrito obligaría a editar dos lugares al mover algo. **Y se calcula donde está el todo**, que es el servidor: sobre una ventana la misma cuenta da mal, no da menos. Y el cálculo va sobre el subárbol, que es lo que un sprint referencia — **un ítem está en el backlog si el tope de su rama no lo nombra ningún sprint**. Las tasks de una user story planificada no se cuentan aparte, y una user story que ningún sprint nombra está en el backlog con todas sus tasks, sin importar cuántas alguien haya querido adelantar.
 
 ## Al crear o mover
 
 Los ítems **se escriben a mano hoy**: `worklist new` está especificado pero no implementado, y además delega la asignación de ids a un servidor que no existe. Al crear uno, tomar el siguiente id base-36 libre del contador que corresponda, y escribirlo en la raíz de la vista con su `parent`.
 
-**Y en la vista donde se va a trabajar** — ver § "Se trabaja en una vista segura". Si el ítem pertenece a un sprint, en su ventana; si no pertenece a ninguno, hoy no hay dónde y se hace en el panorama sabiendo que es la excepción.
+**Y en la vista donde se va a trabajar** — ver § "Se trabaja en una vista segura". Si el ítem pertenece a un sprint, en su ventana; si no pertenece a ninguno, se escribe igual en una ventana y sube con ella, porque el panorama ya no es un lugar donde se pueda escribir.
 
 Mover un ítem es editar **un solo campo o un solo link**, nunca un archivo:
 

@@ -1,19 +1,21 @@
-# Comando: `worklist window open`
+# Comando: `worklist-server window open`
 
 Recorta una ventana: produce la rama `secure/sprint/<id>` con **sólo los ítems de ese sprint y sus ancestros**, cortada desde el panorama.
 
 Sin esto, una rama segura no puede prometer lo que su nombre dice. Nacida de un `git checkout -b` sobre `insecure/all`, se trae todos los ítems, y *"me hago responsable de verificarme entera"* deja de ser sostenible — ver [`concepts/sync.md`](../concepts/sync.md#dos-clases-de-rama-y-el-nombre-dice-qué-se-puede-hacer).
 
+**Es del servidor**, y por los dos criterios a la vez: lee el panorama, que [vive de un solo lado](../concepts/sync.md#el-panorama-vive-en-un-solo-lado-y-la-ventana-en-los-dos), y escribe la rama de la ventana, que es un artefacto. Ver [el corte entre el cliente y el servidor](../concepts/distribution.md#y-window-open-cambió-de-lado).
+
 ## Firma
 
 ```
-worklist window open <sprint-id> [--from <rama>] [--dry-run] [--force]
+worklist-server window open <sprint-id> [--from <rama>] [--dry-run] [--force]
 ```
 
 | Argumento | Descripción |
 |---|---|
 | `<sprint-id>` | El id del sprint: recorta `_sprints/<id>.sprint.md` y lo que declara. |
-| `--from` | De dónde cortar. Por defecto `insecure/all`, el panorama. |
+| `--from` | De dónde cortar. Por defecto `insecure/all`, el panorama — que existe sólo acá. |
 | `--dry-run` | Lista qué entraría, sin escribir la rama. |
 | `--force` | No replanta: el corte nuevo reemplaza a la ventana, **descartando** lo que tenía encima. |
 
@@ -22,23 +24,35 @@ worklist window open <sprint-id> [--from <rama>] [--dry-run] [--force]
 1. **El `.sprint.md`**, que vive en su propia ventana: es el plan de esa iteración.
 2. **Los ítems que su `items` declara**, y para cada uno **todo su subárbol** — los hijos van con el padre, porque [lo que entra a un sprint es un subárbol entero](../concepts/hierarchy.md#la-regla-del-ancestro).
 3. **Los ancestros de cada uno, de sólo lectura** — en la práctica la épica, que [no entra a un sprint](../concepts/hierarchy.md#épicas) y viaja para que la cadena `parent` cierre adentro de la ventana.
+4. **El vocabulario de estados**, `.metadata/states.yaml`, si el proyecto lo declara — por lo mismo que la épica: [la ventana tiene que cerrar adentro](../concepts/states.md#y-el-vocabulario-viaja-con-el-recorte), y el cliente ya no tiene el panorama de donde leerlo.
 
 Y nada más. **Lo que no es de la ventana no está**, que es el punto: parado adentro, un ítem ajeno no puede confundirse con uno tuyo, porque no está.
 
 ## Para leer algo que no es de la ventana
 
-El panorama lo tiene todo:
+El panorama lo tiene todo, y está donde este comando corre:
 
 ```
-git show insecure/all:ACC-3.task.md
+git -C <bare> show insecure/all:ACC-3.task.md
 ```
 
-O su worktree, si está materializado. Traerlo a la ventana sería ensanchar el conjunto que la ventana promete verificar — exactamente lo que el recorte evita.
+Traerlo a la ventana sería ensanchar el conjunto que la ventana promete verificar — exactamente lo que el recorte evita.
+
+## La rama nace acá, y el cliente la trae
+
+El comando escribe `refs/heads/secure/sprint/<id>` en el repo del servidor. Del otro lado son dos comandos de git y ninguno del worklist:
+
+```
+git fetch srv
+git worktree add .worklist/secure/sprint/10 secure/sprint/10
+```
+
+> **La ventana baja; el panorama no.** Es la asimetría que separa un artefacto de un tronco, y acá es lo único que el cliente necesita saber.
 
 ## Salida
 
 ```
-$ worklist window open 10
+$ worklist-server window open 10
 secure/sprint/10: 5 archivo(s)
   _sprints/10.sprint.md
   ACC-2.task.md        ← de items
@@ -69,7 +83,7 @@ después:  all(nuevo) ─▶ corte(nuevo) ─▶ W1' ─▶ W2'
 El corte es lo que dice dónde empieza el trabajo de la ventana. Una rama `secure/**` nacida de un `checkout -b` no lo tiene, y sin él no hay forma de separar su trabajo del árbol que arrastró:
 
 ```
-$ worklist window open 7
+$ worklist-server window open 7
 error: no encuentro el corte de esta ventana: el primer commit sobre el panorama es
   a2b035d edito ACC-93
 ```
@@ -79,7 +93,7 @@ error: no encuentro el corte de esta ventana: el primer commit sobre el panorama
 Ya no es el flujo del `items` que cambió —eso ahora es regenerar y ya—: **es tirar lo local a sabiendas** cuando el replante no entra.
 
 ```
-$ worklist window open 7
+$ worklist-server window open 7
 error: el corte nuevo esta, pero un commit de la ventana no se pudo replantar:
   a2b035d edito ACC-93
   choca en: ACC-93.task.md
@@ -97,7 +111,7 @@ error: el corte nuevo esta, pero un commit de la ventana no se pudo replantar:
 El síntoma no dice la causa. `git status` muestra archivos *"modificados"* que nadie tocó, y un `git merge` se niega a seguir por cambios locales que no existen. Costó una vuelta entera de diagnóstico averiguar que el trabajo perdido no era trabajo, sino un índice desactualizado.
 
 ```
-$ worklist window open 10
+$ worklist-server window open 10
 error: secure/sprint/10 está checkouteada en un worktree y no se puede mover:
   /home/…/.worklist/secure/sprint/10
 
@@ -106,6 +120,18 @@ error: secure/sprint/10 está checkouteada en un worktree y no se puede mover:
 ```
 
 **Ni con `--force`**: forzar es para descartar commits a sabiendas, no para dejar un checkout inconsistente. Son dos cosas distintas y el flag sólo autoriza una. Y el chequeo corre **antes de escribir nada**, para que un error no deje un corte a medio hacer.
+
+#### Pero el worktree del cliente no se ve desde acá
+
+El chequeo mira los worktrees **del repo donde el comando corre**, y desde que el comando es del servidor eso es un bare: ahí normalmente no hay ninguno, así que el error de arriba deja de dispararse por el caso para el que se escribió. **El worktree que alguien tiene abierto está en otro repo, y ningún chequeo local lo puede ver.**
+
+Lo que queda no es un agujero nuevo, es lo de siempre con una rama reescrita: regenerar cambia la historia de la ventana, así que el clon que la tenga no va a poder fast-forwardear. Se pone al día como cualquier rama replantada, **y con un comando que se niega en vez de descartar**:
+
+```
+git fetch srv && git rebase srv/secure/sprint/10
+```
+
+El rebase saltea solo lo que el corte nuevo ya trae —el servidor replantó todo lo que le habían empujado—, así que lo que queda encima es exactamente lo que el clon tenía sin empujar. **Que se pare en un conflicto es el dato**, igual que antes lo era el error: el trabajo local toca un ítem que el `items` de hoy ya no lleva.
 
 ## Códigos de salida
 

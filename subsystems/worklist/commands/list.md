@@ -1,6 +1,8 @@
 # Comando: `worklist list`
 
-Lista los items de `accreta/.worklist/insecure/all/` con su estado y jerarquía.
+Lista los items del árbol donde se lo corre, con su estado y jerarquía.
+
+**Y eso es una vista, no el corpus.** El cliente no tiene el panorama —[vive de un solo lado](../concepts/sync.md#el-panorama-vive-en-un-solo-lado-y-la-ventana-en-los-dos)—, así que parado en una ventana este comando contesta sobre sus ítems y no sobre todos. La pregunta por el corpus entero es del servidor, que es el que tiene el tronco.
 
 ## Uso
 

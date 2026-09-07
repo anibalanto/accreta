@@ -67,9 +67,11 @@ Crear un issue con su descripción escribe sobre algo que no existía: no hay na
   5e -> ACC-207  (ya existia: el cuerpo no se toco)
 ```
 
-## Se corre donde el panorama vive, y hoy eso es tu worktree
+## Se corre donde el panorama vive, y eso es el bare del servidor
 
 `insecure/**` [rechaza el push](../concepts/sync.md#dos-clases-de-rama-y-el-nombre-dice-qué-se-puede-hacer) — **del cliente.** Escribir en el árbol donde uno está parado es otra cosa, y no pasa por ningún hook.
+
+**Y ya no hay dos lugares donde pueda vivir.** El título decía *"y hoy eso es tu worktree"*, que era cierto mientras el panorama estuviera checkouteado en el clon; [ya no lo está](../concepts/sync.md#el-panorama-vive-en-un-solo-lado-y-la-ventana-en-los-dos). Lo de abajo se queda porque es genérico —vale para cualquier `--ref`— y no porque al panorama le queden dos caminos: le queda uno.
 
 Y dónde está parado quien lo corre decide cómo se escribe:
 

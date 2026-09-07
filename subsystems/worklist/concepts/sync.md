@@ -66,6 +66,54 @@ El commit de la ventana es además el registro de **qué llevaba el sprint**, y 
 
 Que quede no la vuelve autoritativa: sigue siendo **derivada**, y se puede volver a cortar. Y borrar una a mano sigue siendo posible, como con cualquier rama — lo que se descarta es que el cierre lo haga solo.
 
+## El panorama vive en un solo lado, y la ventana en los dos
+
+> **La tabla de arriba dice qué se le puede empujar a una rama. No dice dónde está, y ésa resultó ser otra pregunta.**
+
+De `insecure/all` se decía *"rama del servidor"*, que describe dónde vive y **no prohíbe nada**: durante meses estuvo además checkouteado en el clon, en `.worklist/insecure/all`, sin contradecir una sola línea de esta página.
+
+| | Dónde vive | Por qué |
+|---|---|---|
+| **el panorama** | **sólo el servidor** | nadie le empuja y nadie lo trabaja: bajarlo es hacer una copia que sólo puede quedarse vieja |
+| **una ventana** | **las dos puntas** | se trabaja adentro y se empuja — es lo único que cruza en los dos sentidos |
+| **una vista dinámica** | **sólo el cliente** | no se empuja, así que no hay nada que el servidor tenga que saber de ella |
+
+**Y lo que lo decidió no fue el hábito.** El argumento primero era que el panorama es donde uno se cae cuando no hay otro lugar —estaba disponible, así que se usaba—, y eso se contesta con disciplina. Lo que apareció el 2026-09-07 no:
+
+```
+servidor  ACC-317: in-progress          ← lo autoritativo
+clon      ACC-317: open                 ← el worktree del panorama, dos commits atrás
+resultado ACC-317 -> Tareas por hacer   ← escrito en el proveedor
+```
+
+[`push-states`](../commands/push-states.md) leyó la copia del clon y **devolvió el ítem al estado viejo en el board**, deshaciendo lo que el hook había puesto bien minutos antes. El plan que imprimió se leía perfectamente razonable, porque *era* consistente con lo que esa copia decía.
+
+> **No es que la gente caiga en el panorama: es que una copia que se puede quedar vieja es una fuente de verdad falsa, y algo automático le cree.**
+
+Un comando que lee datos viejos y no encuentra nada es molesto; éste encuentra algo que ya no existe y lo escribe afuera. Y el modo de falla no avisa: desde adentro, una copia atrasada y una al día se ven igual — que es lo mismo que *"una vista atrasada se ve limpia"*, con el costo subido de leer mal a escribir mal.
+
+**Así que el panorama no se sincroniza mejor: no se tiene.** Es la misma preferencia que gobierna [el corte entre el cliente y el servidor](distribution.md) —que lo inválido no se pueda representar— y acá sale barata, porque el panorama es para consultar y consultarlo es una operación del que lo tiene.
+
+### Que el clon no lo traiga es una línea de configuración
+
+El refspec del remoto **no incluye `insecure/**`**:
+
+```
++refs/heads/secure/*:refs/remotes/srv/secure/*
+```
+
+Con el refspec por defecto, un `git fetch` deja `srv/insecure/all` en el clon otra vez. **Una ref remota que nadie mira es exactamente el estado del que salió el error**, con la única diferencia de que no tiene worktree: sigue siendo una copia que se queda vieja y que cualquier comando puede nombrar.
+
+### Para leer un ítem que no está en tu ventana
+
+Se lee del panorama, que es del servidor:
+
+```
+git -C <bare> show insecure/all:ACC-3.task.md
+```
+
+Hoy el bare es de la misma máquina y eso alcanza. **El día que el servidor sea un GitLab deja de alcanzar**, y ahí se cobra lo que ya está anotado en [el corte](distribution.md#lo-que-el-cliente-necesita-del-proveedor-se-lo-pide-al-servidor): el único canal cliente→servidor es `git push`.
+
 ## Tener clave es del ítem; verificarse es de la rama
 
 > **El modelo tenía un solo concepto donde hacen falta dos.**
