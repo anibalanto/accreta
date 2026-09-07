@@ -114,6 +114,14 @@ Acá había una receta a mano —`git fetch` y un `merge --ff-only`, una vista p
 
 Medido el 2026-09-07: cinco commits en una ventana, `git status` diciendo *"el árbol de trabajo está limpio"*.
 
+```bash
+worklist push
+```
+
+**El bucle es `push` → `pull` → `push`**, y el `pull` del medio no es opcional: el servidor commitea encima de *cada* push que acepta —el `rename`, el `normalize:`, la clave del sprint—, así que tu segundo push choca contra eso si no lo trajiste. El comando lo dice cuando pasa.
+
+**Y la primera vez configura el upstream**, así que a partir de ahí `git status` sí dice *"ahead by N"* sin que haga falta ningún comando del worklist.
+
 **5 · El ítem está `in-progress`, no `open`.** `open` quiere decir *"nadie lo tomó"*, y arrancar sin moverlo deja el trabajo invisible para todo lo demás — el board, el sprint, y cualquiera que pregunte qué se está haciendo. Se cambia **en la vista**, con el resto del trabajo, así que viaja al proveedor por el mismo camino.
 
 ### El orden que evita los cinco

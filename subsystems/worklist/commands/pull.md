@@ -127,7 +127,15 @@ Hacerlo del lado del cliente necesitaría el panorama para probar contra qué, y
 
 > **Un chequeo previo contra una copia del panorama es un verde falso**, y es exactamente la clase de error que sacar el panorama del cliente evitó: leer una copia que se quedó vieja y actuar como si fuera la verdad. Allá escribía en el proveedor; acá diría *"subí tranquilo"*.
 
-Así que el bucle es el de git, y se explica solo: **`push` rechazado → `pull` → resolver → `push`.** Lo único que le faltaba al rechazo era decir esa palabra.
+Así que el bucle es el de git: **`push` rechazado → `pull` → resolver → `push`.**
+
+### Pero *"se explica solo"* era falso, y por eso `push` existe igual
+
+Acá decía que el bucle *"se explica solo"*, y medido el 2026-09-07 **ni siquiera arranca**: las vistas nacen sin upstream —`git worktree add` no lo configura— así que `git push` a secas falla, y `git status` no tiene contra qué compararse y nunca dice *"ahead by 1"*.
+
+> **Se confundió *"no necesita garantías propias"* con *"no necesita comando"*.**
+
+Las tres invariantes de la tabla de arriba se quedan enteras: no hace falta atomicidad, el chequeo previo no puede ser local, y prohibir `git push` no compra nada. Lo que se cae es la conclusión. [`worklist push`](push.md) no agrega ninguna garantía — sabe el refspec, configura el upstream la primera vez, nombra lo que el servidor escribió encima, y traduce el rechazo a `worklist pull`.
 
 ## Lo que no promete, dicho
 
