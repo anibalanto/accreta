@@ -18,15 +18,18 @@ worklist pull [<vista>] [--all] [--dry-run]
 | `--all` | Todas las vistas del clon. **Sólo bajada** — ver § "`--all` es sólo bajada". |
 | `--dry-run` | Dice qué traería y qué replantaría, sin mover ninguna rama. |
 
-## Son tres pasos, y ningún mecanismo nuevo
+## Son cuatro pasos, y ningún mecanismo nuevo
 
 ```
+worklist-server absorb --ref <rama>   lo que cambió en el board, adentro de la ventana
 worklist-server window open <n>       el corte de hoy, donde está el panorama
 git fetch srv                         baja
 git rebase srv/secure/sprint/<n>      lo que no se empujó, encima
 ```
 
-Los tres existen. Lo que no existe es que sean **uno**, y que alguien los corra por las dieciséis.
+Los cuatro existen. Lo que no existe es que sean **uno**, y que alguien los corra por las dieciséis.
+
+**El paso 0 es el que hace cierta la palabra *"al día"*.** Sin él, `pull` pone al día la mitad de lo que puede estar viejo —lo de git— y cierra diciendo *al día* igual, que es afirmar de más. Y no lo hace el cliente: [`absorb`](absorb.md) es del servidor, escribe en la rama, y de ahí baja como cualquier otra cosa que el servidor haya escrito.
 
 **El paso 1 no es opcional y es el que más se olvida.** Sin él se baja el corte de la última vez que alguien recortó, que puede ser de hace tres semanas: la ventana queda al día con una foto vieja del panorama, que es la peor forma de estar al día — se ve idéntica a estarlo de verdad.
 
@@ -139,9 +142,15 @@ Las tres invariantes de la tabla de arriba se quedan enteras: no hace falta atom
 
 ## Lo que no promete, dicho
 
-**No le pregunta a Jira.** La verificación contra el proveedor llega en el `push`, que es cuando importa porque es cuando se escribe; y para preguntarla sin escribir ya existe [`check-push --dry-run`](check-push.md#comparar-sin-rechazar). Meterla adentro de `pull` le pone el costo caro al comando barato.
+**No le pregunta a Jira**, y **no es por el costo, que estaba mal medido.**
 
-**Y si algún día la lleva, no antes de que el round-trip cierre**: hoy 113 de 149 cuerpos que difieren son del conversor y no deriva real, así que un `pull` que los reportara le mostraría al que lo corre una pila de diferencias que no existen.
+Acá decía que preguntarle *"le pone el costo caro al comando barato"*. El puerto tiene [una sola operación](../concepts/sync.md#tener-clave-es-del-ítem-verificarse-es-de-la-rama) y toma todas las claves juntas: para una ventana de 19 ítems es **una JQL**, no 19 llamadas. Lo caro es el panorama de 292 claves, que no es lo que `pull` mira.
+
+Lo que sí vale es que **el cliente no tiene credenciales**, y de ahí sale la forma: no pregunta él. [`absorb`](absorb.md) es del servidor y escribe en la rama de la ventana lo que el proveedor dice; `pull` lo invoca en su paso 0 y después lo trae como cualquier otra cosa que el servidor haya escrito.
+
+> **`pull` contiene la actualización de la ventana sin hablar con el proveedor**, que es lo que el corte cliente/servidor pedía.
+
+**Y el cuerpo no entra todavía**: hoy 113 de 149 cuerpos que difieren son del conversor y no deriva real, así que absorberlos reescribiría más de cien ítems con cambios que nadie hizo. Se reporta y no se escribe — ver [`absorb.md`](absorb.md#y-el-cuerpo-espera-con-un-número-al-lado).
 
 **Y el paso 1 supone que el servidor está a mano.** Hoy el bare está en la misma máquina, así que `pull` lo puede invocar. El día que sea un GitLab, este comando necesita el canal cliente→servidor que hoy no existe — el mismo que ya está anotado en [`concepts/distribution.md`](../concepts/distribution.md#lo-que-el-cliente-necesita-del-proveedor-se-lo-pide-al-servidor). No es una razón para no hacerlo: es la línea que la spec tiene que decir.
 
