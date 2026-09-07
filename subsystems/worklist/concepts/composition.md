@@ -54,17 +54,30 @@ De ahí salen tres cosas que estaban trabadas:
 
 **Y absorber un cambio de membresía deja de ser peligroso.** Traer *"el board sacó este ítem del sprint"* significaba sacar un archivo de una ventana —cambiar el recorte, con trabajo adentro— y pasa a significar editar una línea del YAML: lo que sigue es el recorte de siempre, que es idempotente y ya está probado.
 
-## Lo que el nombre corto borra
+## El nombre sale del título entero, y sin tope
 
-Los nombres van **bajo 20 caracteres**, y eso no es estética.
+> **El nombre de un sprint es su número y su título, en minúscula y con guiones medios.** Entero.
 
-Hoy el nombre del sprint en el proveedor se arma como `<id> <título>` y **se recorta a 29** porque Jira no acepta más, con la regla de *"se recorta el título y nunca el número, y se marca el recorte"*. Medido sobre los 22 de hoy, los títulos van de **6 a 62** caracteres y varios pasan los 37, así que el recorte ocurre de verdad.
+```
+21-la-estructura-del-worklist-se-muda-al-servidor
+```
 
-Con el nombre bajo 20, `<id> <nombre>` da **23 como máximo**: el recorte no ocurre nunca, y esa maquinaria se borra.
+Antes acá decía *"menos de 20 caracteres"*, con el argumento de que un nombre de 20 que sale de cortar uno de 62 no nombra nada. **El argumento era bueno y la conclusión no**: si recortar rompe el nombre, lo que sobra es el tope, no el título.
 
-> **El límite deja de ser un trim y pasa a ser estructural.**
+Y eso es lo que vuelve la migración de los 22 **mecánica** en vez de 22 decisiones a mano.
 
-El título largo no se pierde: pasa a ser la primera línea del documento del sprint en graviton, que es donde la prosa vive.
+### Y no es el nombre que ve el proveedor
+
+Son dos nombres, y confundirlos hacía parecer que el tope se podía borrar.
+
+| | |
+|---|---|
+| **el `name` del YAML** | el nombre de este lado, sin tope. Reemplaza al del archivo |
+| **el nombre del sprint en Jira** | `<id> <título>`, **y sigue recortándose a 29** porque Jira no acepta 30 |
+
+Así que la maquinaria del recorte **no se borra**: el nombre de acá se hizo más largo, no más corto. Lo que sí queda claro es de quién es cada límite — uno es del proveedor y el otro no existe.
+
+**Y el nombre del sprint no es su clave.** En la interfaz de Jira el id de un sprint no se muestra, no se puede buscar y nadie lo escribe: un sprint renombrado a `6524` queda imposible de encontrar justo para la persona que iba a usar ese nombre. La clave vive en el YAML como **coordenada**, que es lo que es.
 
 ## La mudanza es en dos mitades, y hoy está la primera
 
