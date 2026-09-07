@@ -159,11 +159,33 @@ Lo que los distingue es lo que la propia corrida asignó, que ella sabe. Con eso
 
 **Y `bootstrap` es el tercer caso**, que se dice aparte: resuelve sprints que **nunca tuvieron ventana**, así que su membresía no viajó nunca y la ausencia del board no es una baja. Ahí entran todas.
 
-### Y la baja al revés no se hace
+### Y el alta también, aunque primero se dijo que no
 
-Un ítem que está en el sprint del board y **no** en el `items` se reporta y no se agrega: entrar a un sprint es **planificar**, y eso se hace de este lado. Lo que el proveedor arbitra es la baja de lo que él ya no tiene.
+Acá decía que un ítem que está en el sprint del board y no en el `items` *se reporta y no se agrega*, con el argumento de que entrar a un sprint es **planificar** y eso se hace de este lado.
 
-Medido: `ACC-324` está en el sprint 21 del board y se descartó del worklist. Sacarla del board es otra dirección, y no la hace nadie todavía.
+**Era acotar la regla.** Si el proveedor manda, mover un ítem *hacia* un sprint es el proveedor moviendo algo igual que sacarlo — y quien lo movió allá espera que baje. Se descubrió del modo más directo: un ítem se devolvió al sprint en Jira y el `pull` no lo trajo.
+
+> **Una sola regla: la membresía es la del board.** Sale lo que él sacó y entra lo que él tiene.
+
+**Y entrar a un sprint es salir del anterior**, que es como el proveedor lo modela: un issue está en un sprint a la vez. Así que el alta lo saca de cualquier otro `items` y del backlog.
+
+#### Y un ítem sin clave no se compara
+
+> **Un `@<slug>` no puede estar en el sprint del board**, así que su ausencia no dice nada: es una tarea nueva que todavía no cruzó.
+
+Comparar sin filtrarla la trataba como una baja y **la sacaba del `items`**: crear una tarea y correr `pull` la hacía desaparecer del sprint. Es la misma regla que el resto —*no se preguntó* no es *no está*— y acá el costo era perder trabajo recién escrito.
+
+Se reporta, para que se vea que hay algo esperando cruzar:
+
+```
+  @la-tarea-nueva  todavia no cruzo — esperando clave para el sprint 21
+```
+
+#### Salvo que no haya archivo, y eso no es una elección
+
+Un issue que el board tiene en el sprint y **no es un ítem de este lado** no entra: el `items` nombraría algo que no está, y el próximo recorte falla. Es el caso de un issue creado directamente en Jira.
+
+Se reporta, y con eso queda a la vista lo que hoy no tiene camino: **un issue que nace del otro lado no se vuelve un ítem** — eso es adopción, y es otra pregunta.
 
 ### La guarda que más importa: un board vacío no vacía nada
 
