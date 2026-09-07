@@ -18,16 +18,17 @@ worklist pull [<vista>] [--all] [--dry-run]
 | `--all` | Todas las vistas del clon. **Sólo bajada** — ver § "`--all` es sólo bajada". |
 | `--dry-run` | Dice qué traería y qué replantaría, sin mover ninguna rama. |
 
-## Son cuatro pasos, y ningún mecanismo nuevo
+## Son cinco pasos, y ningún mecanismo nuevo
 
 ```
 worklist-server absorb --ref <rama>   lo que cambió en el board, adentro de la ventana
+worklist-server membership            la membresía del sprint, en la composición
 worklist-server window open <n>       el corte de hoy, donde está el panorama
 git fetch srv                         baja
 git rebase srv/secure/sprint/<n>      lo que no se empujó, encima
 ```
 
-Los cuatro existen. Lo que no existe es que sean **uno**, y que alguien los corra por las dieciséis.
+Los cinco existen. Lo que no existe es que sean **uno**, y que alguien los corra por las dieciséis.
 
 **El paso 0 es el que hace cierta la palabra *"al día"*.** Sin él, `pull` pone al día la mitad de lo que puede estar viejo —lo de git— y cierra diciendo *al día* igual, que es afirmar de más. Y no lo hace el cliente: [`absorb`](absorb.md) es del servidor, escribe en la rama, y de ahí baja como cualquier otra cosa que el servidor haya escrito.
 
