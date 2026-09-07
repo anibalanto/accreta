@@ -205,3 +205,28 @@ secure/sprint/21: al día
 | `1` | con `--all`, al menos una quedó a medias |
 
 **Con `--all` una vista que conflictúa no detiene a las demás**: las quince siguen, y el código de retorno dice que hubo una. Es la otra mitad de que no haya atomicidad entre ellas — si son independientes para avanzar, lo son también para fallar.
+
+### Y el paso 0 tiene dos mitades
+
+```
+worklist-server absorb --ref <rama>       los campos de cada ítem
+worklist-server membership                la membresía del sprint
+```
+
+**La membresía va antes del recorte**, y no es un detalle de orden: escribe el `items` de la composición, y el corte sale de ahí. Preguntarla después dejaría la ventana con ítems que el board ya no tiene en su sprint.
+
+Medido el 2026-09-07, después de que alguien sacara seis tareas del sprint 21 en Jira:
+
+```
+$ worklist pull
+  el board saco del sprint: 6 baja(s)
+secure/sprint/21: al dia con git; el proveedor: …
+```
+
+Los seis archivos salieron de la ventana **sin ningún mecanismo nuevo**: se editó una línea del `items` en el panorama y el recorte hizo el resto.
+
+#### Son dos hooks, con dos configuraciones
+
+`absorb` necesita el proveedor con el que se compara, que está en el `pre-receive`. `membership` necesita `--project` y `--board`, que están en el `post-receive`. **Leer del que no es devuelve los argumentos equivocados**, y eso es peor que no leer nada.
+
+**Y se saltean los comentarios.** El `post-receive` nombra `assign-keys` en un comentario **antes** de la línea que lo corre, así que *"la primera línea que lo mencione"* devolvía cero argumentos. Lo bueno fue que falló diciendo *"el servidor no tiene hooks con `--project` y `--board`"* en vez de callar.
