@@ -50,6 +50,18 @@ Cuando una conversación de diseño produce algo que vale escribir, **lo primero
 
 **El inventario de trabajo de un cambio *es* la lista de no-OK.** Buscar el código a mano produce una lista que envejece el mismo día que se escribe; los bilinks están vivos.
 
+## El código se escribe en dos idiomas, y el corte no es arbitrario
+
+> **Los identificadores van en inglés. Los comentarios y los doc-comments se quedan en castellano.**
+
+Identificador es todo lo que el compilador lee como nombre: tipos, funciones, métodos, campos, variantes, variables, módulos, features de `Cargo.toml`.
+
+**Un archivo de código de este proyecto tiene dos capas de texto, y sólo una es código.** El identificador es la parte que **sale del repo** —aparece en un `Result` que otro crate destructura, en el mensaje de un panic, en un stack trace—, así que se escribe en el idioma en el que se lee código. El comentario nunca sale de acá: es el mismo registro que una spec o un ADR, escrito donde se lee, y traducirlo sería reescribir el razonamiento del proyecto en un idioma en el que nadie lo pensó.
+
+**Aplica a lo nuevo.** Un identificador en castellano se traduce **cuando se lo toca por otra razón**, nunca de una barrida: un renombre de una pasada deja en `MOVED` todos los bilinks de la capa, y lo hace por un cambio que no arregla nada roto. Convive castellano e inglés por un tiempo largo, y eso es aceptado.
+
+**Y cuando el término es de la spec, gana la spec.** Si la spec dice *"el panorama"* o *"la ventana"*, el código los nombra así: un tipo en inglés ahí obliga a traducir en la cabeza en cada lectura. La regla fija el idioma por defecto, no una prohibición.
+
 ## Paths
 
 Los paths se escriben con tokens Stratum —`*` raíz, `<` subir, `>name` bajar— y se resuelven con `$(stratum '...')`. No hardcodear rutas absolutas.
