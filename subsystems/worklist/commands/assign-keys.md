@@ -126,3 +126,30 @@ Y la segunda corrida sobre lo mismo:
 |--------|-----------|
 | `0` | todos los pedidos resueltos, o no había ninguno |
 | `1` | un ciclo entre pedidos, o el proveedor falló — la ref queda como estaba |
+
+## Una clave que el board no tiene no puede llevarse el lote
+
+`jira sprint add` toma hasta 50 claves por llamada y **la rechaza entera si una no existe**. Medido el 2026-09-07 contra el board real:
+
+```
+jira sprint add 6525 ACC-268 ACC-303 ACC-305 ACC-320 ACC-321 ACC-322 ACC-323
+                     ^^^^^^^ borrada del board
+
+  - ACC-268: La incidencia no existe o no tienes permiso para verla.
+jira: Received unexpected response '400 Bad Request'.
+```
+
+`ACC-268` tiene clave en el worklist —el log muestra su `rename 6m -> ACC-268`— y el board no la tiene: existió y se borró. Y por esa una, **las otras seis no entraban, en cada push**, con un error que no decía cuál era la culpable.
+
+> **Perder seis por una es peor que decir cuál fue.**
+
+Así que las que el proveedor nombra se sacan del lote y se reintenta con el resto. La pasada no falla: **reporta**.
+
+```
+  ! el board rechazo ACC-268: el worklist las tiene y el no
+  sprint 21 -> 6525: 6 issue(s) agregados, 12 ya estaban
+```
+
+**Y va en su propia línea, no en la cuenta.** Una clave rechazada es *deriva* —el worklist la tiene y el proveedor no— y ésta es la única pasada que la ve. Sumarla a los agregados la taparía; restarla en silencio también.
+
+**Un fracaso que no nombra ninguna de las claves mandadas no es esto**: es otro error —una credencial, un board que no responde— y sube tal cual. Confundirlos dejaría el reintento en un bucle.
