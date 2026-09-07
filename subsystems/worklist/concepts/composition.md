@@ -133,3 +133,50 @@ Recrearlo automáticamente sería el sistema discutiéndole al board sobre algo 
 **Dónde está el archivo de un ítem.** El YAML dice **en qué sprint está**, que es otra pregunta — y es la que un endpoint `issue` de bilinker necesita.
 
 **Y la composición no baja al cliente**, por lo mismo que el panorama no baja: es del servidor, y una copia que se queda vieja es una fuente de verdad falsa. Lo que el cliente ve es su ventana, que sale de acá por el recorte.
+
+## La membresía la manda el proveedor
+
+> **Si el board sacó un ítem del sprint, sale del `items`.** El proveedor manda.
+
+Y hasta acá pasaba lo contrario, medido el 2026-09-07: alguien sacó varias tareas del sprint 21 en Jira y **volvieron en el push siguiente**.
+
+```
+sprint 21 -> 6525: 6 issue(s) agregados, 12 ya estaban
+```
+
+La pasada de sprint lee qué tiene el sprint allá para *"mandar sólo lo que falta"* — nunca para detectar que algo salió. Así que **una baja hecha del otro lado no sobrevivía a un push**, y el sistema le discutía a la persona.
+
+### Un ítem que el board no tiene no siempre falta
+
+Son dos casos, y hasta acá los dos se resolvían agregando:
+
+| | |
+|---|---|
+| **acaba de recibir su clave** en este push | **falta de verdad** — nunca estuvo allá |
+| **ya la tenía** | **el board lo sacó**, y eso es una decisión de alguien |
+
+Lo que los distingue es lo que la propia corrida asignó, que ella sabe. Con eso la pasada mete las nuevas y **reporta** las otras.
+
+**Y `bootstrap` es el tercer caso**, que se dice aparte: resuelve sprints que **nunca tuvieron ventana**, así que su membresía no viajó nunca y la ausencia del board no es una baja. Ahí entran todas.
+
+### Y la baja al revés no se hace
+
+Un ítem que está en el sprint del board y **no** en el `items` se reporta y no se agrega: entrar a un sprint es **planificar**, y eso se hace de este lado. Lo que el proveedor arbitra es la baja de lo que él ya no tiene.
+
+Medido: `ACC-324` está en el sprint 21 del board y se descartó del worklist. Sacarla del board es otra dirección, y no la hace nadie todavía.
+
+### La guarda que más importa: un board vacío no vacía nada
+
+Si el board contesta **cero** sobre un sprint que el `items` dice que tiene ítems, **no se toca ninguno**.
+
+> Sacar todos es de otra magnitud que sacar uno, y **una lista vacía no se distingue de una lectura que no anduvo**: un 200 con lista vacía se ve igual que un sprint que existe y está vacío de verdad.
+
+### Y el `status` no sigue esta regla, a propósito
+
+Que el proveedor mande vale para la membresía porque ahí **lo que difiere es que alguien movió algo allá**. Con el `status` no:
+
+```
+tip: done          el board: Tareas por hacer
+```
+
+Eso no es el board moviendo nada — es que **el push nunca llegó**, y es un defecto con ítem propio. Absorberlo escribiría el síntoma hacia adentro y daría un ítem `open` cuyo trabajo está hecho. Así que el `status` se reporta con las dos salidas, y no se elige.
