@@ -209,6 +209,39 @@ Lo que no puede es distinguirlo de *"el servidor de atrás todavía no indexó"*
 
 Del lado de `lspd` eso es [`-32001`](../../lspd/concepts/protocol.md#un-error-es-del-método-no-del-transporte), que el binario traduce a `None`. Un proveedor que ni siquiera pueda saber si está listo —porque el servidor de atrás no lo informa— devuelve lo que tenga: ahí la distinción no se puede dar en ningún lado, y eso es una propiedad del lenguaje, no un defecto que bilinker pueda tapar.
 
+#### Y un daemon de otro workspace es un `None`, no un fracaso
+
+**Medido el 2026-09-07:** `bilinker check` en la capa impl de worklist falló así.
+
+```
+Error: definition: file not found: …/crates/worklist-provider/src/absorb.rs
+```
+
+El archivo existe. Lo que había era un daemon **de otro proyecto**:
+
+```
+$ pgrep -a lspd          →  lspd --workspace .
+$ ls -l /proc/<pid>/cwd  →  /home/anibal/Workspace/hsi
+```
+
+> **Un daemon ajeno no contesta *"no sé"*: contesta *"ese archivo no existe"*.** Y eso llegaba como un error del árbol.
+
+Es el mismo defecto de forma que este documento persigue en el vacío —confundir *no pude mirar* con *la respuesta es no*— con la vuelta de que acá la respuesta falsa no es un vacío sino una negación, y sale por el canal de los errores.
+
+**Lo que se preguntaba era si algo contesta, y hace falta preguntar si contesta *el que sirve*.** El `ping` sólo dice que hay un daemon vivo; nada dice de qué workspace es.
+
+**Y hay una sola puerta.** El socket se deriva del `HOME` —`~/.lspd/`, sin nada que configurar— así que hay **un daemon a la vez, con un workspace**. Eso convierte *"levantar el que corresponde"* en un desalojo: medido, el daemon de ese momento tenía `jdtls` con 1544 consultas, o sea alguien trabajando.
+
+Así que la regla es la que este documento ya tiene, aplicada a un caso que no cubría:
+
+| El daemon | |
+|---|---|
+| no está | `None` — es lo que la política ya decía |
+| **es de otro workspace** | **`None`**, y se dice cuál sirve |
+| es de éste | se le pregunta |
+
+**Que `bilinker` levante el daemon cuando no hay ninguno, y qué hacer con la puerta única, son otra pregunta** — la segunda es de `lspd` y no de acá. Lo que este documento fija es que **no se le cree al que no sirve**, que es lo que hace honesto al tercer valor.
+
 ### Cuándo se adquiere el vecindario
 
 El puerto puede contestar `None` —*"no pude mirar"*— y ahí hay que decidir qué se escribe. **La regla es una: una falla de infraestructura no puede reducir la cobertura de un vínculo.**
