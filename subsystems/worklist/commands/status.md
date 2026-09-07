@@ -64,7 +64,15 @@ El costo de la pregunta tiene que ser proporcional a lo que se va a hacer — el
 
 ### Y la cara no la puede hacer el cliente
 
-`--verify` es una consulta al proveedor, y [el cliente no tiene credenciales](../concepts/distribution.md). Se la pide al servidor, que ya tiene el comando: [`check-push --dry-run --ref <rama>`](check-push.md#comparar-sin-rechazar), que compara y no rechaza.
+`--verify` es una consulta al proveedor, y [el cliente no tiene credenciales](../concepts/distribution.md). Se la pide al servidor: [`absorb --dry-run`](absorb.md), que dice qué traería y no escribe.
+
+#### Y `status` no absorbe, aunque tenga la respuesta en la mano
+
+> **`status` es el único comando que no escribe nada, y eso es su propiedad.**
+
+Un comando que te dice dónde estás parado y además te mueve **no se puede correr para averiguar**: nunca podrías mirar sin comprometerte. Es la misma razón por la que `check-push --dry-run` compara y no rechaza.
+
+**Pero pregunta con el comando que sí va a escribir**, en seco. Eso da dos cosas: el reporte separa *lo que se absorbe solo* de *lo que necesita a una persona*, y es **el mismo código que [`pull`](pull.md) va a ejecutar** — que es la regla que [`check-push`](check-push.md#y-no-es-un-comando-aparte-a-propósito) ya fija, porque una copia con la misma intención empieza igual y se separa después.
 
 Es el mismo apoyo que usa el paso 1 de [`pull`](pull.md#y-el-paso-1-supone-que-el-servidor-está-a-mano): hoy el bare está en esta máquina. El día que sea un GitLab, esto necesita el canal cliente→servidor que todavía no existe.
 
