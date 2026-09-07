@@ -54,17 +54,30 @@ De ahí salen tres cosas que estaban trabadas:
 
 **Y absorber un cambio de membresía deja de ser peligroso.** Traer *"el board sacó este ítem del sprint"* significaba sacar un archivo de una ventana —cambiar el recorte, con trabajo adentro— y pasa a significar editar una línea del YAML: lo que sigue es el recorte de siempre, que es idempotente y ya está probado.
 
-## Lo que el nombre corto borra
+## El nombre sale del título entero, y sin tope
 
-Los nombres van **bajo 20 caracteres**, y eso no es estética.
+> **El nombre de un sprint es su número y su título, en minúscula y con guiones medios.** Entero.
 
-Hoy el nombre del sprint en el proveedor se arma como `<id> <título>` y **se recorta a 29** porque Jira no acepta más, con la regla de *"se recorta el título y nunca el número, y se marca el recorte"*. Medido sobre los 22 de hoy, los títulos van de **6 a 62** caracteres y varios pasan los 37, así que el recorte ocurre de verdad.
+```
+21-la-estructura-del-worklist-se-muda-al-servidor
+```
 
-Con el nombre bajo 20, `<id> <nombre>` da **23 como máximo**: el recorte no ocurre nunca, y esa maquinaria se borra.
+Antes acá decía *"menos de 20 caracteres"*, con el argumento de que un nombre de 20 que sale de cortar uno de 62 no nombra nada. **El argumento era bueno y la conclusión no**: si recortar rompe el nombre, lo que sobra es el tope, no el título.
 
-> **El límite deja de ser un trim y pasa a ser estructural.**
+Y eso es lo que vuelve la migración de los 22 **mecánica** en vez de 22 decisiones a mano.
 
-El título largo no se pierde: pasa a ser la primera línea del documento del sprint en graviton, que es donde la prosa vive.
+### Y no es el nombre que ve el proveedor
+
+Son dos nombres, y confundirlos hacía parecer que el tope se podía borrar.
+
+| | |
+|---|---|
+| **el `name` del YAML** | el nombre de este lado, sin tope. Reemplaza al del archivo |
+| **el nombre del sprint en Jira** | `<id> <título>`, **y sigue recortándose a 29** porque Jira no acepta 30 |
+
+Así que la maquinaria del recorte **no se borra**: el nombre de acá se hizo más largo, no más corto. Lo que sí queda claro es de quién es cada límite — uno es del proveedor y el otro no existe.
+
+**Y el nombre del sprint no es su clave.** En la interfaz de Jira el id de un sprint no se muestra, no se puede buscar y nadie lo escribe: un sprint renombrado a `6524` queda imposible de encontrar justo para la persona que iba a usar ese nombre. La clave vive en el YAML como **coordenada**, que es lo que es.
 
 ## La mudanza es en dos mitades, y hoy está la primera
 
@@ -78,8 +91,92 @@ Y el orden no es arbitrario: mover la lectura del `items` no toca el proveedor, 
 
 **Y el renombre necesitó una regla propia.** En un `.md` una referencia a un ítem es un link —`](@o.task.md)`— y se reescribe con el texto. Acá es una **entrada de una lista**, sin sintaxis alrededor: un renombre que sólo mire markdown deja el sprint nombrando un slug que ya no existe, y el próximo recorte falla con *"la composición nombra a `@o`, y no está"*. Se reescribe sobre la estructura, porque `@o` como texto también aparece adentro de `@otro`.
 
+## Y lo que el proveedor perdió se saca, pero no se borra
+
+Un ítem puede tener clave acá y no existir del otro lado. Medido el 2026-09-07: `ACC-268` tenía su `rename 6m -> ACC-268` en el log y Jira contestaba **404**.
+
+Y hoy eso **traba el ítem para siempre**: `is_unassigned` es falso, así que ninguna pasada vuelve a mirarlo — no se recrea, no se corrige, y su clave muerta [se lleva el lote del sprint entero](../commands/assign-keys.md#una-clave-que-el-board-no-tiene-no-puede-llevarse-el-lote) en cada push.
+
+> **Sale del árbol y entra a `.metadata/removes/`, entero.**
+
+```
+.metadata/removes/ACC-268.task.md
+```
+
+El archivo se mueve, no se destruye: **el ítem deja de ser un ítem y su contenido queda a la vista.** No hay que reconstruir nada de la historia de git para saber qué decía, ni por qué no está.
+
+### Por qué lógico y no físico
+
+*"Se recupera de git"* es cierto y no alcanza. Un borrado físico deja una ausencia, y **una ausencia no dice por qué**: quien la encuentra tiene que sospechar que alguna vez hubo algo, y recién ahí buscar. Un archivo en `removes/` contesta las dos preguntas sin arqueología — qué era y por qué se fue.
+
+Y hace la vuelta barata: **devolverlo es moverlo de nuevo.** Si el 404 fue un error —alguien borró de más en el board— restaurar es un `git mv`, no un rescate.
+
+### Se decide por el código, nunca por el mensaje
+
+El proveedor contesta *"la incidencia no existe **o no tienes permiso para verla**"* — **una sola frase para dos casos que no se parecen en nada**. Sacar un ítem porque una credencial perdió permiso sería el mismo error de forma que confundir `sin verificar` con `coincide`, con el costo subido a destruir.
+
+|  |  |
+|---|---|
+| **404** | no existe → se saca |
+| **403** | no se puede ver → **no se toca**, y se reporta |
+
+Se decide por el status HTTP, que sí los distingue. La frase no.
+
+### Y no se libera la clave
+
+`ACC-268` queda muerta y no se reasigna. El ítem tampoco vuelve a nacer con clave nueva: **salió**, y si el trabajo hace falta se escribe uno nuevo, que es una decisión de una persona.
+
+Recrearlo automáticamente sería el sistema discutiéndole al board sobre algo que alguien borró a mano allá.
+
 ## Lo que no contesta
 
 **Dónde está el archivo de un ítem.** El YAML dice **en qué sprint está**, que es otra pregunta — y es la que un endpoint `issue` de bilinker necesita.
 
 **Y la composición no baja al cliente**, por lo mismo que el panorama no baja: es del servidor, y una copia que se queda vieja es una fuente de verdad falsa. Lo que el cliente ve es su ventana, que sale de acá por el recorte.
+
+## La membresía la manda el proveedor
+
+> **Si el board sacó un ítem del sprint, sale del `items`.** El proveedor manda.
+
+Y hasta acá pasaba lo contrario, medido el 2026-09-07: alguien sacó varias tareas del sprint 21 en Jira y **volvieron en el push siguiente**.
+
+```
+sprint 21 -> 6525: 6 issue(s) agregados, 12 ya estaban
+```
+
+La pasada de sprint lee qué tiene el sprint allá para *"mandar sólo lo que falta"* — nunca para detectar que algo salió. Así que **una baja hecha del otro lado no sobrevivía a un push**, y el sistema le discutía a la persona.
+
+### Un ítem que el board no tiene no siempre falta
+
+Son dos casos, y hasta acá los dos se resolvían agregando:
+
+| | |
+|---|---|
+| **acaba de recibir su clave** en este push | **falta de verdad** — nunca estuvo allá |
+| **ya la tenía** | **el board lo sacó**, y eso es una decisión de alguien |
+
+Lo que los distingue es lo que la propia corrida asignó, que ella sabe. Con eso la pasada mete las nuevas y **reporta** las otras.
+
+**Y `bootstrap` es el tercer caso**, que se dice aparte: resuelve sprints que **nunca tuvieron ventana**, así que su membresía no viajó nunca y la ausencia del board no es una baja. Ahí entran todas.
+
+### Y la baja al revés no se hace
+
+Un ítem que está en el sprint del board y **no** en el `items` se reporta y no se agrega: entrar a un sprint es **planificar**, y eso se hace de este lado. Lo que el proveedor arbitra es la baja de lo que él ya no tiene.
+
+Medido: `ACC-324` está en el sprint 21 del board y se descartó del worklist. Sacarla del board es otra dirección, y no la hace nadie todavía.
+
+### La guarda que más importa: un board vacío no vacía nada
+
+Si el board contesta **cero** sobre un sprint que el `items` dice que tiene ítems, **no se toca ninguno**.
+
+> Sacar todos es de otra magnitud que sacar uno, y **una lista vacía no se distingue de una lectura que no anduvo**: un 200 con lista vacía se ve igual que un sprint que existe y está vacío de verdad.
+
+### Y el `status` no sigue esta regla, a propósito
+
+Que el proveedor mande vale para la membresía porque ahí **lo que difiere es que alguien movió algo allá**. Con el `status` no:
+
+```
+tip: done          el board: Tareas por hacer
+```
+
+Eso no es el board moviendo nada — es que **el push nunca llegó**, y es un defecto con ítem propio. Absorberlo escribiría el síntoma hacia adentro y daría un ítem `open` cuyo trabajo está hecho. Así que el `status` se reporta con las dos salidas, y no se elige.

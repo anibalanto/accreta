@@ -138,3 +138,9 @@ absorb: refs/heads/secure/sprint/21 <- el proveedor  (1 commit)
 | `1` | no se pudo preguntar al proveedor, o la rama no existe |
 
 **Cero aunque haya diez reportados**, por lo mismo que en [`check-push --dry-run`](check-push.md#códigos-de-salida): lo que el retorno informa es si la medición se pudo hacer.
+
+## Y lo que el proveedor perdió lo saca otro comando
+
+[`worklist-server removes`](removes.md) — porque no es lo mismo. `absorb` reconcilia **campos** de ítems que existen de los dos lados; sacar un ítem del árbol es otra decisión, y se toma con otro dato: el código HTTP de una lectura por clave, no el `snapshot` del lote.
+
+Y corre sobre **el panorama**, no sobre una ventana: ahí están las dos cosas que hay que tocar —el archivo y el `items` que lo nombra— y las ventanas se regeneran.
