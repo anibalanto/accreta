@@ -121,6 +121,16 @@ El chequeo no mira el contenido que llega: compara lo que el proveedor tiene en 
 
 **Y el cuerpo se compara sin campo nuevo**, por lo mismo: el markdown del tip **es** lo que el proveedor tiene. Eso lo garantiza § "Lo que se guarda no es lo que empujaste" — lo guardado es la vuelta del round-trip, no lo que alguien escribió. Así que comparar es convertir el cuerpo que el proveedor devuelve y ponerlo al lado del archivo. Guardar un hash de lo último subido sería exactamente el archivo de estado aparte que esta sección evita.
 
+#### Pero el archivo del tip está de este lado del borde
+
+> **Comparar es cruzar el borde, y el borde traduce.** El cuerpo del tip no es lo que el proveedor tiene: es lo que el proveedor tiene **des**traducido.
+
+Lo traduce § "Un link a otro ítem se traduce en el borde": en el árbol un ítem cita a otro por su archivo, y allá eso es una URL. El round-trip aplica la traducción al subir y la inversa al guardar, así que las dos puntas son ciertas y ninguna es la otra. Comparar el archivo crudo contra lo que el proveedor devuelve pone `](ACC-78.task.md)` al lado de `](…/browse/ACC-78)` y las llama distintas.
+
+**Así que la comparación aplica la misma ida que aplica el que sube**, y recién ahí pone los dos cuerpos uno al lado del otro. Se traduce el del tip y no el del proveedor porque la vuelta necesita saber de qué tipo es cada ítem —lo mira en el árbol de la ventana— y la ida no necesita nada: es la dirección que se puede calcular sin buscar.
+
+**Medido el 2026-09-07**: sin la traducción, 248 de 295 ítems "diferían" en el cuerpo; con ella, 149. **Noventa y nueve eran el borde y no una deriva.** Es la clase de error que un rechazo vuelve caro sin volver visible — el hook corría contra el proveedor de prueba, que no informa cuerpo, así que esta comparación nunca se ejerció contra nada.
+
 ### Dos alcances, porque son dos promesas
 
 | Qué | Sobre qué claves | Por qué |

@@ -14,7 +14,7 @@ worklist-server check-push (--provider-file <archivo> | --project <clave> [--bas
 | `--provider-file` | El proveedor **de prueba**: un archivo `clave -> status`. Ver [`worklist-server provider set-status`](provider-set-status.md). |
 | `--project` | El proveedor **real**. |
 | `--states-map` | El [mapeo de estados](../concepts/states.md) de esta instalación. **Obligatorio con `--project`**: sin él el comando se niega a arrancar, en vez de rechazar todas las ventanas. |
-| `--base` | La URL del proveedor. Con `--project` se le piden por REST las transiciones que el workflow admite, que es lo que decide un rechazo por regla. |
+| `--base` | La URL del proveedor. Con `--project` se le piden por REST las transiciones que el workflow admite, que es lo que decide un rechazo por regla. **Y es la que traduce los links del borde** antes de comparar el cuerpo: ver [`concepts/sync.md`](../concepts/sync.md#pero-el-archivo-del-tip-está-de-este-lado-del-borde). |
 | `--account` | El email de la cuenta con la que REST autentica. Ver [`install-hooks`](install-hooks.md). |
 | `--stdin` | Lee `<viejo> <nuevo> <ref>` por línea — el protocolo de un `pre-receive`. Sin esto, toma el rango de la rama actual. |
 | `--dry-run` | Compara y **no rechaza**: reporta lo que difiere y sale con cero. Ver § "Comparar sin rechazar". |
