@@ -78,6 +78,43 @@ Y el orden no es arbitrario: mover la lectura del `items` no toca el proveedor, 
 
 **Y el renombre necesitó una regla propia.** En un `.md` una referencia a un ítem es un link —`](@o.task.md)`— y se reescribe con el texto. Acá es una **entrada de una lista**, sin sintaxis alrededor: un renombre que sólo mire markdown deja el sprint nombrando un slug que ya no existe, y el próximo recorte falla con *"la composición nombra a `@o`, y no está"*. Se reescribe sobre la estructura, porque `@o` como texto también aparece adentro de `@otro`.
 
+## Y lo que el proveedor perdió se saca, pero no se borra
+
+Un ítem puede tener clave acá y no existir del otro lado. Medido el 2026-09-07: `ACC-268` tenía su `rename 6m -> ACC-268` en el log y Jira contestaba **404**.
+
+Y hoy eso **traba el ítem para siempre**: `is_unassigned` es falso, así que ninguna pasada vuelve a mirarlo — no se recrea, no se corrige, y su clave muerta [se lleva el lote del sprint entero](../commands/assign-keys.md#una-clave-que-el-board-no-tiene-no-puede-llevarse-el-lote) en cada push.
+
+> **Sale del árbol y entra a `.metadata/removes/`, entero.**
+
+```
+.metadata/removes/ACC-268.task.md
+```
+
+El archivo se mueve, no se destruye: **el ítem deja de ser un ítem y su contenido queda a la vista.** No hay que reconstruir nada de la historia de git para saber qué decía, ni por qué no está.
+
+### Por qué lógico y no físico
+
+*"Se recupera de git"* es cierto y no alcanza. Un borrado físico deja una ausencia, y **una ausencia no dice por qué**: quien la encuentra tiene que sospechar que alguna vez hubo algo, y recién ahí buscar. Un archivo en `removes/` contesta las dos preguntas sin arqueología — qué era y por qué se fue.
+
+Y hace la vuelta barata: **devolverlo es moverlo de nuevo.** Si el 404 fue un error —alguien borró de más en el board— restaurar es un `git mv`, no un rescate.
+
+### Se decide por el código, nunca por el mensaje
+
+El proveedor contesta *"la incidencia no existe **o no tienes permiso para verla**"* — **una sola frase para dos casos que no se parecen en nada**. Sacar un ítem porque una credencial perdió permiso sería el mismo error de forma que confundir `sin verificar` con `coincide`, con el costo subido a destruir.
+
+|  |  |
+|---|---|
+| **404** | no existe → se saca |
+| **403** | no se puede ver → **no se toca**, y se reporta |
+
+Se decide por el status HTTP, que sí los distingue. La frase no.
+
+### Y no se libera la clave
+
+`ACC-268` queda muerta y no se reasigna. El ítem tampoco vuelve a nacer con clave nueva: **salió**, y si el trabajo hace falta se escribe uno nuevo, que es una decisión de una persona.
+
+Recrearlo automáticamente sería el sistema discutiéndole al board sobre algo que alguien borró a mano allá.
+
 ## Lo que no contesta
 
 **Dónde está el archivo de un ítem.** El YAML dice **en qué sprint está**, que es otra pregunta — y es la que un endpoint `issue` de bilinker necesita.
