@@ -23,15 +23,25 @@ Con una puerta por workspace eso no se detecta: **no se puede representar.** El 
 
 `sun_path` son **108 bytes** en Linux, y un workspace real ya son 64 — `/home/anibal/Workspace/accreta/subsystems/worklist/.stratum/impl`. Más `~/.lspd/` y `.sock` queda en ~90: entra por poco, y **uno más profundo lo rompe**.
 
-> **El basename para leerlo, un hash corto para distinguirlo.**
-
-```
-~/.lspd/impl-a3f9c1.sock
-```
+> **Un nombre legible para leerlo, un hash corto para distinguirlo.**
 
 El hash sale del **path canónico**, así que dos rutas que apuntan al mismo lugar dan la misma puerta — un symlink no parte el daemon en dos.
 
-Y el basename no es decoración: sin él `~/.lspd/` es un directorio de hashes, y **un directorio de hashes no se puede mirar**. Con él, `ls` contesta de qué proyecto es cada puerta.
+Y el nombre legible no es decoración: sin él `~/.lspd/` es un directorio de hashes, y **un directorio de hashes no se puede mirar**. Con él, `ls` contesta de qué proyecto es cada puerta.
+
+#### Y el basename solo no alcanza
+
+Acá decía *"el basename para leerlo"*, y **medido el 2026-09-08 cuatro de las cinco puertas de esta máquina se llamaban `impl-<hash>`**. El basename de toda capa de stratum es literalmente `impl` —`subsystems/worklist/.stratum/impl`— así que la parte que existía para distinguir proyectos era la misma en todas.
+
+> **El nombre se arma con los dos últimos segmentos que no estén ocultos.**
+
+```
+~/.lspd/worklist-impl-1c8540.sock
+```
+
+Saltear los ocultos es lo que saca `.stratum` del medio y deja pegados los dos segmentos que dicen algo: el subsistema y la capa. Son **dos y no más** porque dos entran, y el nombre legible se corta a 40 bytes — que es lo que vuelve al peor caso un número y no una esperanza: 40 más el hash y `.sock` son 52, contra los 108 de `sun_path`.
+
+**Y no hay lista de nombres genéricos que saltear.** Era la otra salida —tratar `impl` como un segmento que no informa— y se descartó: `impl` es vocabulario de stratum, y el transporte de `lspd` no tiene por qué conocerlo. Un segmento oculto, en cambio, es una convención del sistema de archivos: saltearlo no le pide al cliente que sepa de qué proyecto es el workspace que le pasaron.
 
 **El `daemon.pid` va por el mismo camino**, y por el mismo motivo: es lo que permite decir *qué* proceso atiende esta puerta.
 
