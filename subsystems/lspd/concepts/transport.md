@@ -11,6 +11,18 @@ Un socket local, y **nada que configurar**.
 
 No hay flag, ni variable de entorno, ni archivo de configuración. Quien quiera hablarle al daemon calcula la ruta con la misma regla y llega.
 
+### *"La misma regla"* dice más de lo que parece
+
+**Es la misma sólo si las dos puntas corren la misma versión de la regla**, y eso no está garantizado por nada: el daemon y el cliente se instalan por caminos distintos. `lspd` sale de esta capa; sus consumidores —`bilinker` y `lattice`— toman `lspd-client` **del remoto de git**, y el `Cargo.lock` que fija el commit no está versionado. Así que un clon nuevo resuelve la rama y coincide, y un checkout que ya existía se queda con el commit que resolvió la primera vez.
+
+Medido el 2026-09-08: la regla del nombre cambió acá, el commit quedó sin publicar unas horas, y en esa ventana el `lspd` instalado abría `worklist-impl-1c8540.sock` mientras el `bilinker` instalado buscaba `impl-1c8540.sock`. Los dos calculaban *"la misma regla"*, cada uno la suya.
+
+> **Un desfasaje de versión en la regla no se ve como un error: se ve como que no hay daemon.**
+
+Y ése es el costo real de haber elegido derivar en vez de configurar. Una ruta configurada es un dato que las dos puntas leen del mismo lugar, y puede estar mal pero está *escrita*. Una ruta derivada es **código**, así que versionarla mal la parte en dos sin que ninguna de las dos se entere — el cliente no encuentra la puerta, y no encontrarla es exactamente lo que pasa cuando el daemon no está.
+
+**No invalida el criterio, y no se cambia por configuración.** Lo que agrega es una condición que antes estaba implícita: la derivación vale mientras el nombre de la puerta sea una superficie versionada como cualquier otra. Cambiarlo es un cambio incompatible entre dos procesos, y el que lo hace tiene que publicar antes de que el otro lado lo necesite.
+
 **Y se deriva de dos cosas, no de una.** Acá había **una sola puerta** —`daemon.sock`, del `HOME` y nada más— y de eso salía que hubiera **un daemon a la vez, con un workspace**.
 
 > **La puerta única no era una decisión sobre concurrencia: era una consecuencia de haber derivado la ruta de una sola cosa.**
