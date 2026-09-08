@@ -216,6 +216,22 @@ worklist-server membership                la membresía del sprint
 
 **La membresía va antes del recorte**, y no es un detalle de orden: escribe el `items` de la composición, y el corte sale de ahí. Preguntarla después dejaría la ventana con ítems que el board ya no tiene en su sprint.
 
+#### Y pregunta por **su** sprint, no por los 22
+
+Medido el 2026-09-07, con `pull` de una sola ventana:
+
+```
+22 sprints × 1.364s por llamada  =  31s
+```
+
+`sprint_items` es una llamada **por sprint**, así que recorrer la composición entera cuesta el largo del proyecto — y un `pull` de una ventana necesita **un** sprint.
+
+> **`pull --all` lo multiplicaba**: veinte vistas por veintidós sprints son **440 requests**, para contestar veinte preguntas.
+
+El alcance sale de la vista: `secure/sprint/21` pregunta por el 21. Con eso son **1.4s** en vez de 31.
+
+**Y el comando suelto sigue pudiendo recorrer todo**, que es lo que hace falta para reconciliar el proyecto entero de una — eso es otra corrida, y quien la pide sabe lo que cuesta.
+
 Medido el 2026-09-07, después de que alguien sacara seis tareas del sprint 21 en Jira:
 
 ```

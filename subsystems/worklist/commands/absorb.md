@@ -49,8 +49,10 @@ El puerto tiene [una sola operación](../concepts/sync.md#tener-clave-es-del-ít
 | Campo | | Por qué |
 |---|---|---|
 | **título** | **se absorbe** | la vuelta es directa |
-| **`status`** | **sólo si la vuelta es única** | ver abajo |
-| **cuerpo** | **no, todavía** | ver abajo |
+| **`status`** | **se absorbe si la vuelta es única** | y si no, el board no dijo lo suficiente — ver abajo |
+| **cuerpo** | **no, todavía** | un defecto con número, no una decisión — ver abajo |
+
+> **El proveedor es la autoridad, y eso no se parte por campo.** Los dos límites de abajo son sobre **qué se puede saber**, no sobre quién manda: uno es que la vuelta del mapeo no siempre existe, y el otro es que el conversor todavía no cierra.
 
 ### El `status` no siempre se puede volver, y no es un defecto del comando
 
@@ -138,6 +140,37 @@ absorb: refs/heads/secure/sprint/21 <- el proveedor  (1 commit)
 | `1` | no se pudo preguntar al proveedor, o la rama no existe |
 
 **Cero aunque haya diez reportados**, por lo mismo que en [`check-push --dry-run`](check-push.md#códigos-de-salida): lo que el retorno informa es si la medición se pudo hacer.
+
+## Un issue que nace en el board baja como ítem
+
+**Medido el 2026-09-08:** se creó `ACC-330` directamente en el sprint 21 y `worklist pull` no trajo nada. El comando lo veía y el resumen no lo contaba, así que `pull` lo callaba — eso se arregló. Lo que faltaba era que **bajara**.
+
+> **Si el proveedor es la autoridad, un issue que existe allá y no acá es un ítem que falta**, no un intruso.
+
+Y hasta acá se llamó *"otra pregunta"*, con el argumento de que adoptarlo sería *"que el worklist deje de ser la fuente de la existencia"*. **Ese argumento era la premisa que [la spec ya había marcado como no decidida](../concepts/sync.md#asignar-una-clave-crear-o-encontrar)**: nunca fue la fuente.
+
+### Qué se trae, y de dónde
+
+| | De dónde sale | |
+|---|---|---|
+| **título** | `summary` | directo |
+| **tipo** | el issue type del board | `Tarea`→`task`, `Historia`→`user-story`, `Epica`→`epic` |
+| **`parent`** | el padre del issue | puede no tenerlo, y **ahí nace suelto** — que el formato admite |
+| **cuerpo** | la `description` en ADF | **espera a que el round-trip cierre** |
+
+**El nombre del archivo es la clave**, que ya la tiene: `ACC-330.task.md`. No hay `@<slug>` que asignar ni renombre que rehacer — es la única clase de ítem que **nace con clave**, y eso es consistente: la clave no se pide, ya está.
+
+### El cuerpo es lo único que espera, y no por autoría
+
+Hoy 113 de 149 cuerpos que difieren son del conversor y no deriva real, así que traerlo escribiría un cuerpo que el propio round-trip no reproduce. **Es un defecto con número, no una decisión sobre quién manda.**
+
+Así que el ítem nace con **el cuerpo vacío y una línea que dice de dónde vino**, y el cuerpo se absorbe cuando el conversor cierre — por el mismo camino que los otros campos.
+
+**Un ítem sin cuerpo es válido**: el formato pide frontmatter, y la prosa es opcional.
+
+### Y `reconcile` no es esto
+
+`reconcile` adopta la **correspondencia** —le pone la clave a un ítem que ya está de este lado— y esto crea el ítem. **Son dos cosas y comparten la palabra**, que es justamente por qué conviene decirlo: quien lea *"adoptar"* en los dos lugares tiene que saber cuál.
 
 ## Y lo que el proveedor perdió lo saca otro comando
 
