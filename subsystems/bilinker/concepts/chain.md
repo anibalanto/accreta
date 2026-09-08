@@ -22,6 +22,16 @@ flowchart LR
     TB <--> FB["fragmento B"]
 ```
 
+La abstracta de arriba no dice cómo se ve una cadena real. Esta es el caso mínimo — dos tips, cero mids — cruzando las dos capas que `subsystems/bilinker` ya tiene:
+
+![Cadena de un bilink cruzando dos capas Stratum](chain.svg)
+
+**El fuente vive junto a esta spec**, `chain.d2`, con el mismo criterio de siempre: la spec es la fuente de verdad, el diagrama es su ilustración. El render se versiona — `chain.svg` queda en git al lado del `.d2`, así que la spec se lee sin correr nada. Se regenera con:
+
+```bash
+d2 chain.d2 chain.svg
+```
+
 | Tipo de nodo | Endpoint 0 | Endpoint 1 | Posición en cadena |
 |---|---|---|---|
 | **tip** | estructural (`capture <uuid>`) | layer | extremo (siempre dos por cadena) |
