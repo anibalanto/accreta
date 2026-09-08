@@ -193,12 +193,14 @@ Si el board contesta **cero** sobre un sprint que el `items` dice que tiene íte
 
 > Sacar todos es de otra magnitud que sacar uno, y **una lista vacía no se distingue de una lectura que no anduvo**: un 200 con lista vacía se ve igual que un sprint que existe y está vacío de verdad.
 
-### Y el `status` no sigue esta regla, a propósito
+### Y el `status` sigue la misma regla
 
-Que el proveedor mande vale para la membresía porque ahí **lo que difiere es que alguien movió algo allá**. Con el `status` no:
+Acá decía que **no** la seguía, con el argumento de que un `status` que difiere no es *"el board moviendo algo"* sino que *"el push nunca llegó"*.
 
-```
-tip: done          el board: Tareas por hacer
-```
+**Ese argumento era la premisa de que el worklist es la fuente, otra vez.** [Y la spec ya la había marcado como una que nadie decidió](sync.md#asignar-una-clave-crear-o-encontrar): la propuesta que origina todo esto se titula *"el proveedor es la autoridad"*.
 
-Eso no es el board moviendo nada — es que **el push nunca llegó**, y es un defecto con ítem propio. Absorberlo escribiría el síntoma hacia adentro y daría un ítem `open` cuyo trabajo está hecho. Así que el `status` se reporta con las dos salidas, y no se elige.
+> **El proveedor es la autoridad, y eso no se parte por campo.** Si hay proveedor, el `status` que vale es el suyo.
+
+**Y el caso que motivaba la excepción sigue siendo real, con otro nombre.** Un ítem `done` de este lado que el board tiene en `Tareas por hacer` porque su transición nunca se propuso es [`ACC-323`](.) — **un defecto con número**, no una razón para invertir la autoridad. Lo que corresponde es arreglarlo, no protegerse de él absorbiendo menos.
+
+**Lo que sí queda afuera, y no por autoría:** cuando la vuelta del mapeo **no es una función** —`Finalizada` vuelve a `done` y a `dropped`— no hay qué absorber. Elegir sería inventar, y eso no es el worklist discutiéndole al board: es que el board no dijo lo suficiente.
