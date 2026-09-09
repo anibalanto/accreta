@@ -131,9 +131,9 @@ Y lo importante es lo que *no* está adentro:
 
 > El `.sprint.md` viaja a la ventana y ya no es de donde sale el `items`. La autoridad es `.metadata/product.yaml`, que está en el panorama y no baja.
 
-Es el error más fácil de cometer, porque la copia vieja es lo único que hay a mano: la ventana trae `_sprints/<id>.sprint.md` y no trae `.metadata/`. Medido el 2026-09-09 sobre el sprint 21, el `.sprint.md` nombraba 31 ítems y la composición 24: nueve estaban sólo en el archivo y dos sólo en el YAML.
+Es el error más fácil de cometer, porque la copia vieja es lo único que hay a mano: la ventana trae `_sprints/<id>.sprint.md` y no trae `.metadata/`.
 
-Y la divergencia no es ruido, tiene causa: siete de esos nueve son los que el board sacó del sprint, y el archivo siguió nombrándolos porque nadie lo lee para decidir nada.
+Y las dos listas divergen, con causa: cuando el board saca un ítem de un sprint, la composición se entera y el archivo no — nadie lo lee para decidir nada, así que nadie lo actualiza. Leerlo devuelve ítems que ese sprint ya no tiene.
 
 ```bash
 git -C $SRV show insecure/all:.metadata/product.yaml   # la que vale
