@@ -2,8 +2,10 @@ endpoint:
   0:
     link: capture c9f20e4ee3dcbfbff069b6a2b8bf45a3
     accepted:
-    - link: capture c9f20e4ee3dcbfbff069b6a2b8bf45a3
-      hash: dae9878a795b4b675e733809de1d5265add48dd98841e05bbfbc671963f143e2
+    - agree:
+      - anibal
+      link: capture c9f20e4ee3dcbfbff069b6a2b8bf45a3
+      hash: 9e75a0e82bd8e1d965994943a917700ab13aa59db638d63e1978632af105f78b
   1:
     link: path subsystems/bilinker>impl
     accepted:
