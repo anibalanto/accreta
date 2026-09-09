@@ -14,7 +14,7 @@ worklist-server window open <sprint-id> [--from <rama>] [--dry-run] [--force]
 
 | Argumento | Descripción |
 |---|---|
-| `<sprint-id>` | El id del sprint: recorta `_sprints/<id>.sprint.md` y lo que declara. |
+| `<sprint-id>` | El id del sprint: recorta lo que su `items` declara en [`.metadata/product.yaml`](../concepts/composition.md). |
 | `--from` | De dónde cortar. Por defecto `insecure/all`, el panorama — que existe sólo acá. |
 | `--dry-run` | Lista qué entraría, sin escribir la rama. |
 | `--force` | No replanta: el corte nuevo reemplaza a la ventana, **descartando** lo que tenía encima. |
@@ -54,8 +54,7 @@ git worktree add .worklist/secure/sprint/10 secure/sprint/10
 
 ```
 $ worklist-server window open 10
-secure/sprint/10: 5 archivo(s)
-  _sprints/10.sprint.md
+secure/sprint/10: 4 archivo(s)
   ACC-2.task.md        ← de items
   ACC-3.task.md        ← subárbol de ACC-2
   ACC-9.task.md        ← de items
@@ -140,12 +139,6 @@ Un commit ya contenido en el corte **módulo normalización** se deja caer antes
 ```
 
 Es la misma decisión que el caso vacío —lo que la ventana hizo ya está arriba— con la diferencia de que git no la puede tomar solo: el patch-id compara bytes. Ver [`commands/pull.md`](pull.md#el-paso-3-deja-caer-lo-que-ya-fue-superado), que es donde está el argumento, y [`concepts/propagation.md`](../concepts/propagation.md#salvo-que-primero-hay-que-descontar-la-normalización-y-eso-no-es-un-conflicto).
-
-**Y lo mismo con el `.sprint.md`**, por otro motivo: `status` e `items` se editan en el panorama y bajan regenerando, así que un choque que cae entero sobre `_sprints/**` lo gana el corte.
-
-```
-  dejado caer: a680093 — la planificacion del sprint es del panorama
-```
 
 ### Y no se mueve una rama que alguien tiene abierta
 

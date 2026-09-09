@@ -22,7 +22,7 @@ Antes decían *cuándo* aplicaba cada una — *"si la tarea toca bilinks"*, *"si
 
 ## Dónde está el trabajo
 
-En `.worklist/secure/sprint/<id>/` — épicas, user stories, tasks y sprints, uno por ventana. Para saber qué sigue: el sprint con `status: in-progress` en `_sprints/` —o, si no hay ninguno, el próximo `open` por número—, y de ahí a los ítems que referencia.
+En `.worklist/secure/sprint/<id>/` — épicas, user stories y tasks, uno por ventana. Para saber qué sigue: el sprint con `status: in-progress` en `.metadata/product.yaml` del panorama —o, si no hay ninguno, el próximo `open` por número—, y de ahí a los ítems que su `items` referencia. La composición no baja al clon —ver § siguiente—, así que se lee del servidor: `git -C <bare> show insecure/all:.metadata/product.yaml`.
 
 **No es una capa de stratum**: es el aparato de seguimiento del proyecto, más pariente de `.bilink/` que de `subsystems/`. Vive en `.worklist/`, que es un **contenedor de worktrees** de su repo propio — un clon de accreta no lo trae, y `stratum pull` tampoco: es un `git clone` aparte.
 

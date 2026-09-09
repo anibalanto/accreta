@@ -11,7 +11,8 @@ La jerarquía de worklist es flexible. Cualquier tipo puede estar en la raíz de
 | Epic | nada | user-stories, tasks |
 | User Story | nada, epic | tasks |
 | Task | nada, epic, user-story | nada |
-| Sprint | nada — vive en `_sprints/` | nada; **referencia** user stories y tasks |
+
+El sprint no entra en esta tabla: no es un tipo de ítem, así que no tiene padre ni hijo — **referencia** user stories y tasks desde `.metadata/product.yaml`, del servidor. Ver [§ Sprints](#sprints) más abajo.
 
 ## Estructura de ejemplo
 
@@ -25,8 +26,6 @@ insecure/all — el panorama, y en una ventana lo mismo con menos archivos
   6.user-story.md                  ← sin parent: story suelta
   7.task.md                        ← parent: 6
   8.task.md                        ← sin parent: task suelta
-  _sprints/
-    1.sprint.md
 ```
 
 El árbol no se ve en el `ls`: se deriva leyendo los `parent`. Es el precio de que la dirección de un ítem sea componible y estable, y se paga una vez —lo rinde un comando que lo dibuje— mientras que buscar un ítem por id se paga en cada uso.
@@ -59,16 +58,16 @@ Los IDs no codifican la jerarquía — un ítem hijo puede tener un ID posterior
 
 ## Sprints
 
-Un sprint no contiene: referencia. Y **vive en `_sprints/`, fuera del árbol de descomposición**, porque no participa de él: puede llevarse ítems de épicas distintas, y tiene su propio contador.
+Un sprint no contiene: referencia. Y **queda fuera del árbol de descomposición**, porque no participa de él: puede llevarse ítems de épicas distintas, y tiene su propio contador.
 
 ### La membresía es un campo, y el campo no vive en un ítem
 
-**Un sprint no es un archivo del árbol.** Su composición —qué ítems, `key`, `status`— vive en [`.metadata/product.yaml`](composition.md), en el panorama, y su prosa en `*>graviton/sprints/`.
+**Un sprint no es un archivo del árbol.** Su composición —qué ítems, `key`, `status`, `titulo`— vive en [`.metadata/product.yaml`](composition.md), en el panorama. Su prosa —por qué esos ítems, en qué orden, qué quedó afuera, cómo cerró— no tiene dueño nuevo: se descartó con el `.sprint.md` que la llevaba, y los 22 que existían se borraron sin migrarla.
 
 ```yaml
 sprints:
   - id: 21
-    name: "El worklist se muda"
+    titulo: "El worklist se muda"
     status: in-progress
     key: 6525
     items: [ACC-315, ACC-316, …]
@@ -78,27 +77,27 @@ sprints:
 
 `key` es el único campo que **no** escribe una persona: lo pone el servidor cuando el sprint existe del otro lado, y su ausencia significa que todavía no. Ver [`sync.md`](sync.md#la-correspondencia-con-el-sprint-del-proveedor-se-guarda-no-se-busca).
 
-**Y la prosa no desapareció, se mudó.** Por qué esos ítems son un sprint, en qué orden, qué quedó afuera, cómo cerró: eso es conocimiento y va donde se acumula el conocimiento. Lo que se separó son **tres cosas con tres dueños** — ver [`composition.md`](composition.md#el-sprintmd-era-tres-cosas-mezcladas).
+**Y la prosa se descartó, no se mudó.** Guardarla habría pedido un lugar nuevo —de una persona, no del servidor— que todavía no existe; hasta que exista, lo que un `.sprint.md` decía sobre por qué y en qué orden no se recupera. Ver [`composition.md`](composition.md#el-sprintmd-era-cuatro-cosas-mezcladas).
 
 > **Un ítem está en un sprint porque una lista lo nombra**, y ya no porque su archivo esté en una rama. Ver [§ la membresía deja de ser una propiedad de la rama](composition.md#y-la-membresía-deja-de-ser-una-propiedad-de-la-rama).
 
-### Los directorios llevan `_`
+### Los directorios reservados llevan punto adelante
 
-> **Todo directorio dentro de `worklist/` empieza con `_`.**
+> **Todo directorio dentro de `worklist/` empieza con `.`.**
 
-Los ítems son archivos sueltos en la raíz, así que un directorio nunca es un ítem — es un espacio de nombres para otra cosa, como `_sprints/`.
+Los ítems son archivos sueltos en la raíz, así que un directorio nunca es un ítem — es un espacio de nombres para otra cosa: `.metadata/`, `.bilink/`.
 
-**Lo que lo garantiza es el `/`, que no es un caracter de id**: el stem de `_sprints/17.sprint.md` es `_sprints/17`, y eso no es un id se llame como se llame el directorio. Ver [`item.md`](item.md) § "El alfabeto de un id".
+**Lo que garantiza que no choquen es el alfabeto de un id, y no una convención de lectura.** `.` ya está excluido de `[A-Za-z0-9_-]+` —ver [`item.md`](item.md) § "El alfabeto de un id"— así que ningún id puede nombrarse como uno de estos directorios ni empezar como ellos. La clase de colisión es vacía, no vigilada.
 
-**Y el `_` lo hace visible antes de tener que razonarlo.** La garantía es estructural y la convención es de lectura: un `ls` contesta *"esto es un espacio de nombres"* sin que nadie tenga que acordarse de qué caracteres forman un id. Las dos hacen falta, y no son la misma cosa — apoyar la garantía en el `_` era lo que hacía que dependiera de una convención que cualquiera puede romper sin que nada falle.
+**No siempre fue así.** Mientras `_sprints/` existió, `_` — que sí es un carácter de id legal — necesitaba una segunda garantía: el `/` del stem, que el parseo del nombre ya descarta. `.metadata/removes/ACC-268.task.md` sigue dependiendo de esa misma garantía —su stem lleva `/` y por eso no se lee como un ítem de la raíz—, pero ya no hace falta el prefijo `_` para nombrar un espacio de nombres nuevo: alcanza con el punto.
 
 ```
 1.epic.md                     ← épica 1
 n.user-story.md               ← parent: 1
 8.task.md                     ← parent: n
 o.task.md                     ← parent: n
-_sprints/
-  1.sprint.md                 ← sprint 1; referencia a ../n.user-story.md
+.metadata/
+  product.yaml                ← composición: sprints, backlog — ver composition.md
 ```
 
 ### La regla del ancestro
@@ -121,13 +120,11 @@ Dos consecuencias, y las dos son deliberadas:
 
 > **Un sprint cerrado dice lo que se hizo. Lo que quedó vuelve al backlog.**
 
-El ítem sin terminar se saca de `items`, y el cuerpo del sprint anota que quedó afuera.
+El ítem sin terminar se saca de `items`.
 
 **Dejarlo adentro lo haría desaparecer.** El backlog se calcula sobre *"ningún sprint lo nombra"* —no *"ningún sprint abierto"*—, así que un ítem en un sprint cerrado no está en el backlog **ni** en un sprint en curso: no aparece en ninguna de las dos preguntas que este formato sabe contestar, y se pierde de vista sin que nada lo reporte.
 
-Y lo que se querría conservar dejándolo —el registro de lo que se había comprometido— **no se pierde**: va en la prosa, que es donde ya va todo lo que no es membresía. `items` dice qué se terminó; el cuerpo dice qué se prometió y qué no se llegó a hacer.
-
-De ahí sale una asimetría deliberada: **lo que se hizo se consulta a máquina** —el backlog se calcula con eso— y **lo que se planificó lo lee una persona.**
+**Lo que se querría conservar dejándolo —el registro de lo que se había comprometido— hoy sí se pierde.** Mientras existió `.sprint.md`, el cuerpo anotaba qué quedó afuera y por qué; `.metadata/product.yaml` no tiene un campo de prosa, y nada lo reemplazó. No es una decisión: es un hueco que abrió `drop-sprint-files` y que sigue sin dueño.
 
 ### El backlog no es un archivo
 

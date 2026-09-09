@@ -15,11 +15,9 @@ accreta/
       5.user-story.md       ← parent: 1
       6.task.md             ← parent: 5
       7.task.md             ← sin parent
-      _sprints/
-        1.sprint.md
 ```
 
-Todos los ítems son archivos sueltos en la raíz. La jerarquía la declara el campo `parent`; ver [ítem](concepts/item.md) § "Jerarquía". El único directorio es `_sprints/`, y lleva `_` porque ningún directorio de `worklist/` puede ser un ítem.
+Todos los ítems son archivos sueltos en la raíz. La jerarquía la declara el campo `parent`; ver [ítem](concepts/item.md) § "Jerarquía". Los directorios reservados —`.metadata/`, `.bilink/`— llevan punto adelante, porque ningún directorio de `worklist/` puede ser un ítem; ver [jerarquía](concepts/hierarchy.md) § "Los directorios reservados llevan punto adelante".
 
 ## Tipos de ítem
 
@@ -28,7 +26,8 @@ Todos los ítems son archivos sueltos en la raíz. La jerarquía la declara el c
 | **Epic** | `.epic.md` | Objetivo de alto nivel. Agrupa user stories o tasks. |
 | **User Story** | `.user-story.md` | Funcionalidad desde la perspectiva del usuario. Agrupa tasks. |
 | **Task** | `.task.md` | Unidad de trabajo concreta y ejecutable. No tiene hijos. |
-| **Sprint** | `.sprint.md` | Iteración. Vive en `_sprints/` y agrupa por referencia. |
+
+El sprint no es un tipo de ítem: es una entrada de `.metadata/product.yaml`, del servidor — ver [`concepts/composition.md`](concepts/composition.md).
 
 Cualquier tipo puede estar en la raíz del árbol. Un task puede ser hijo directo de un epic sin story intermedia.
 

@@ -32,7 +32,7 @@ states: [open, in-progress, done, dropped]
 
 **El vocabulario de arriba es el que worklist trae por defecto**, no una lista cerrada. Un proyecto que declara otro reemplaza el archivo entero: no hay estados heredados que convivan con los declarados, porque un vocabulario a medias es peor que uno chico.
 
-**Y va en `.metadata/`**, que es el espacio de lo que el worklist sabe de sí mismo y no es un ítem — ahí va también la composición de los sprints y del backlog. Es la misma señal que el `_` de `_sprints/`, y por la misma razón: [ninguno de los dos puede ser un id](item.md#el-alfabeto-de-un-id), así que un directorio no se confunde nunca con un ítem.
+**Y va en `.metadata/`**, que es el espacio de lo que el worklist sabe de sí mismo y no es un ítem — ahí va también la composición de los sprints y del backlog. El punto adelante [no puede ser un id](item.md#el-alfabeto-de-un-id), así que el directorio no se confunde nunca con un ítem.
 
 ### Y el vocabulario viaja con el recorte
 

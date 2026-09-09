@@ -28,7 +28,7 @@ worklist-server reconcile --project <clave> [--ref <rama>] [--dry-run]
 
 ## Qué hace
 
-1. Lista los ítems del árbol cuyo nombre **no** es una clave de proveedor. Los `_sprints/*.sprint.md` no entran.
+1. Lista los ítems del árbol cuyo nombre **no** es una clave de proveedor.
 2. Por cada uno pregunta si existe un issue cuyo `summary` sea **exactamente** ese título — la misma búsqueda de [`create-or-find`](create-or-find.md), y la misma comparación literal después.
 3. Al que existe lo adopta: renombra el archivo a la clave y reescribe las referencias, igual que la pasada 1.
 4. Al que no existe **no le hace nada**, y lo nombra.
