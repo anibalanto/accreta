@@ -26,7 +26,7 @@ backlog:
 | **la prosa** — por qué esos ítems, en qué orden, qué quedó afuera, cómo cerró | se descarta: no es operativa para un sprint, y nada la preserva |
 | el archivo | **desaparece** |
 
-Y no es una mudanza por prolijidad: **la composición y el título tienen un dueño — el servidor —, y la prosa tiene otro — una persona.** Mezclarlas en un archivo hacía que las dos direcciones de la propagación se pelearan por el mismo texto — el `.sprint.md` era [el único archivo que las dos direcciones tocaban](propagation.md#y-el-tercero-es-la-clave-del-sprint-por-un-motivo-que-no-es-de-alcance-sino-de-autoría), y por eso el único donde hubo que partir la regla campo por campo.
+Y no es una mudanza por prolijidad: **la composición y el título tienen un dueño — el servidor —, y la prosa tiene otro — una persona.** Mezclarlas en un archivo hacía que las dos direcciones de la propagación se pelearan por el mismo texto — el `.sprint.md` era [el único archivo que las dos direcciones tocaban](propagation.md#la-clave-del-sprint-ya-no-viaja-por-acá), y por eso el único donde hubo que partir la regla campo por campo.
 
 ## Por qué en el servidor y no como campo del ítem
 

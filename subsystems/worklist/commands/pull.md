@@ -87,19 +87,9 @@ Es la normalización del round-trip, que [`propagate`](propagate.md) **rehace** 
 
 Por eso el paso 3 **no negocia**. Si el commit ya está contenido en el corte nuevo **módulo normalización**, se deja caer; se replanta sólo lo que el corte no tiene. Y se puede preguntar, porque la conversión converge en una pasada: normalizar las dos puntas y comparar contesta sí o no.
 
-### Y el `.sprint.md` lo gana el corte
-
-El segundo caso en que un choque no informa nada, y no es normalización.
-
-> **`status` e `items` se editan arriba y bajan regenerando.** Así que el commit de la ventana arrastra como contexto un `items` que ya quedó viejo, y choca sobre algo que no estaba tratando de cambiar.
-
-Medido sobre la ventana 21: un commit que pasaba el sprint de `open` a `in-progress` chocó contra un `items` que había crecido de 6 ítems a 17. El `status` que ese commit propone **ya está en el panorama**; lo que se deja caer es el commit, no el cambio.
-
-Es [la asimetría de la clave del sprint](../concepts/propagation.md#y-el-tercero-es-la-clave-del-sprint-por-un-motivo-que-no-es-de-alcance-sino-de-autoría) leída para el otro lado, y por eso vale **sólo bajando**: hacia arriba las ediciones que la ventana le hace al `.sprint.md` sí viajan.
-
 ### Lo que queda es el conflicto que sí informa
 
-**Un conflicto que quede después de descontar esos dos sí es el dato**: dice que el trabajo local toca un ítem que el `items` de hoy ya no lleva. Hasta acá el error decía **siempre** eso, incluso cuando la causa era una de las otras dos, y mandaba a mirar un `items` que no tenía nada que ver.
+**Un conflicto que quede después de descontar ese sí es el dato**: dice que el trabajo local toca un ítem que el `items` de hoy ya no lleva. Hasta acá el error decía **siempre** eso, incluso cuando la causa era la normalización, y mandaba a mirar un `items` que no tenía nada que ver.
 
 ### Y la versión fuerte de lo mismo queda anotada
 

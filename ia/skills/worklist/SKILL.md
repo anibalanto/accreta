@@ -178,8 +178,6 @@ Todos los ítems son **archivos sueltos en la raíz**. No hay carpetas por ítem
 n.user-story.md           parent: 1
 o.task.md                 parent: n
 q.task.md                 sin parent — suelta
-_sprints/                 el otro eje; el `_` garantiza que nunca sea un id
-  1.sprint.md … 7.sprint.md
 ```
 
 | Tipo | Sufijo | Puede tener de padre |
@@ -187,9 +185,10 @@ _sprints/                 el otro eje; el `_` garantiza que nunca sea un id
 | Epic | `.epic.md` | nada |
 | User Story | `.user-story.md` | nada, epic |
 | Task | `.task.md` | nada, epic, user story |
-| Sprint | `.sprint.md` | nada — vive en `_sprints/` |
 
-Ids **base-36** (`1…9, a…z, 10…`), de orden de creación, no de prioridad. Los sprints llevan **contador aparte**: `_sprints/1.sprint.md` es el sprint 1. Por eso `1` solo es ambiguo — desambiguar con el sufijo: `show 1` es el ítem, `show 1.sprint` es el sprint.
+**El sprint no es un tipo de ítem, ni un archivo.** Es una entrada de `.metadata/product.yaml`, del servidor — ver § "Dos formas de agrupar" más abajo. Lleva **contador aparte**, distinto del de los ítems: el sprint `21` y el ítem `21` no tienen nada que ver.
+
+Ids de ítem **base-36** (`1…9, a…z, 10…`), de orden de creación, no de prioridad.
 
 Frontmatter, cuatro campos obligatorios y uno opcional:
 
@@ -204,20 +203,18 @@ relation.<tipo>: [<id>, …] # opcional — `relation.depends` es el que se usa
 ---
 ```
 
-Un `.sprint.md` lleva además `items: [<id>, …]` en vez de `parent`: los ids que referencia directamente, y ni uno más — la regla del ancestro dice que un ítem entra con su subárbol entero, así que `items` nunca nombra una task cuya user story ya está en la lista.
-
 Nada más. El tipo lo dice la extensión, la pertenencia la dice `parent`, y la asociación con bilinks **se declara desde el bilink, no desde el ítem**.
 
 **Los hijos se calculan**: los hijos de `n` son los ítems cuyo `parent` es `n`. No hay lista que mantener, igual que el backlog.
 
 ## Dos formas de agrupar, y no se mezclan
 
-- **Épica → US → task** es *descomposición*: el campo `parent`.
-- **Sprint → ítems** es *planificación*: el campo `items` del `.sprint.md`.
+- **Épica → US → task** es *descomposición*: el campo `parent`, en el frontmatter del ítem, editable en tu ventana.
+- **Sprint → ítems** es *planificación*: el campo `items` de la entrada del sprint en `.metadata/product.yaml`, **del servidor y no de tu ventana** — ver [`composition.md`](../../../subsystems/worklist/concepts/composition.md).
 
-Las dos son campos y las dos se editan en un solo lugar. La diferencia es qué preguntan: `parent` dice de qué es parte un ítem, el sprint dice cuándo se hace.
+La diferencia no es sólo qué preguntan —`parent` dice de qué es parte un ítem, el sprint dice cuándo se hace—, es también quién la edita: `parent` lo editás vos, `items` lo arma el board.
 
-**El cuerpo del sprint sigue siendo prosa**, y es donde va todo lo que no es membresía: por qué esos ítems son un sprint, en qué orden, qué quedó afuera, cómo cerró. `items` reemplaza al link que declaraba pertenencia, no al texto que explica por qué.
+**La prosa de un sprint —por qué esos ítems, qué quedó afuera, cómo cerró— ya no tiene dónde escribirse.** Existía en el cuerpo de `.sprint.md`, y se descartó junto con el archivo: ningún campo de la composición la reemplaza. Es un hueco conocido, no una decisión que resolvió algo.
 
 **La regla del ancestro:** *lo que entra a un sprint es **un subárbol entero**.* Una user story entra con **todas** sus tasks, o no entra — sus tasks no se enumeran, van con ella. Y una task se nombra sola sólo cuando no cuelga de ninguna user story. La cadena de ancestros se lee siguiendo `parent` hasta que se acaba.
 
@@ -255,10 +252,14 @@ Las referencias ya escritas **se corrigen al tocarlas**, no de una barrida.
 
 No es prolijidad: son las dos promesas, y **son excluyentes**. El panorama eligió estar completo, y por eso mismo *"no puede prometer que estén actualizados"*. Preguntarle si algo está al día es preguntarle lo único que declaró no poder contestar.
 
-**Paso 1 — el panorama, para el inventario.** Está en el servidor, así que se lee con `git -C $SRV show` o `ls-tree`:
+**Paso 1 — el panorama, para el inventario.** Está en el servidor, en `.metadata/product.yaml`:
+
+```bash
+git -C $SRV show insecure/all:.metadata/product.yaml
+```
 
 1. Buscar el sprint con `status: in-progress`. Si no hay, el próximo `open` por número.
-2. Sus `items` son el compromiso de la iteración. Bajar a la US y de ahí a sus tasks.
+2. Sus `items` son el compromiso de la iteración. Bajar a la US y de ahí a sus tasks — con `git -C $SRV show insecure/all:<id>.<tipo>.md`.
 3. Cada task dice **qué specs toca**, no qué archivos de código: el código sale de los bilinks que se rompan.
 
 **Paso 2 — la vista segura del sprint, para constatar.** Cortada o refrescada, es la única que puede verificarse entera contra el proveedor. El `status` que vale es el de ahí.
@@ -281,7 +282,6 @@ Los ítems **se escriben a mano hoy**: `worklist new` está especificado pero no
 
 **Y en la vista donde se va a trabajar** — ver § "Se trabaja en una vista segura". Si el ítem pertenece a un sprint, en su ventana; si no pertenece a ninguno, se escribe igual en una ventana y sube con ella, porque el panorama ya no es un lugar donde se pueda escribir.
 
-Mover un ítem es editar **un solo campo o un solo link**, nunca un archivo:
+Mover de padre es editar **un solo campo**, nunca un archivo: cambia `parent`. El archivo no se mueve, así que su path no cambia y ningún bilink que lo apunte se entera.
 
-- de sprint: el link sale de un `.sprint.md` y entra en otro.
-- de padre: cambia `parent`. El archivo no se mueve, así que su path no cambia y ningún bilink que lo apunte se entera.
+**Mover de sprint no se hace en la ventana.** `items` es del servidor y lo arma comparando contra el board — ver § "Dos formas de agrupar" arriba —, así que mover un ítem de un sprint a otro es moverlo en el board; `worklist pull` trae el resultado. No hay un archivo ni un link que editar acá para lograrlo.

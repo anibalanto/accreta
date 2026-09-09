@@ -49,7 +49,7 @@ Y después, **cinco pasadas** — ver [`concepts/sync.md`](../concepts/sync.md#n
 | **2** | con todos los nombres finales puestos: convierte cada cuerpo a ADF —traduciendo los links a otros ítems— y lo manda como descripción. |
 | **3** | crea los vínculos que `relation.*` declara. |
 | **4** | los ítems que ya tenían clave y este push cambió: título y cuerpo se actualizan. |
-| **5** | el sprint de la ventana: lo crea si no existe, anota su id en el `.sprint.md`, y mete adentro los issues que le falten. |
+| **5** | el sprint de la ventana: lo crea si no existe, anota su `key` en la composición ([`.metadata/product.yaml`](../concepts/composition.md), en el panorama), y mete adentro los issues que le falten. |
 
 Al final mueve la ref al commit resultante, y **sube al panorama lo que quedó** — ver [`concepts/propagation.md`](../concepts/propagation.md) y [`propagate`](propagate.md).
 

@@ -62,18 +62,11 @@ Que sean ocho parciales incompatibles y no dos ediciones en disputa importa, por
 
 Y el orden es el que ya estaba: primero el renombre rehecho, que deja los 243 nombres finales, y recién después la normalización sobre ellos.
 
-#### Y el tercero es la clave del sprint, por un motivo que no es de alcance sino de autoría
+#### La clave del sprint ya no viaja por acá
 
-La pasada 5 escribe **un campo** —`key`— sobre el `.sprint.md` de la ventana. Copiarlo como parche arrastra sus líneas de contexto, y ahí está el problema: **el `.sprint.md` del panorama es el que se planifica.** Se cierra el sprint, se mueven ítems al backlog, se corrige el `items`. Así que el contexto difiere por trabajo legítimo, y el parche choca sobre algo que no estaba tratando de cambiar.
+Mientras existió `.sprint.md`, la pasada 5 escribía **un campo** —`key`— sobre el de la ventana, y copiarlo como parche arrastraba líneas de contexto que diferían por trabajo legítimo del panorama —el sprint cerrado, ítems movidos al backlog—, así que hacía falta subir el campo y no el commit. Era la primera vez que la asimetría se decía en un campo y no en una regla.
 
-```
-ventana:    status: in-progress   items: [ACC-94, ACC-95, ACC-96]
-panorama:   status: done          items: [4h, 4j]        ← el sprint cerró y `4i` se fue al backlog
-```
-
-> **Sube la clave, no el `.sprint.md`.** `status` e `items` no viajan hacia arriba: la ventana no los sabe mejor que el panorama, y la clave es lo único que la ventana tiene y el panorama no.
-
-Es la primera vez que la asimetría se dice en un campo y no en una regla: **la planificación se edita arriba y baja regenerando; lo que el proveedor arbitra se escribe abajo y sube.** El `.sprint.md` es el único archivo que las dos direcciones tocan, y por eso es el único donde había que partirlo.
+**Con la composición en `.metadata/product.yaml`, del servidor y nada más, el caso desaparece.** La pasada 5 lee y escribe la composición directamente ahí — ver [`composition.md`](composition.md) — así que no hay `.sprint.md` de ventana que cherry-pickear ni parche que choque. No es una regla que se mudó: es una que dejó de hacer falta.
 
 ### Hasta dónde subió se anota en una ref, no se deduce
 
@@ -83,7 +76,7 @@ refs/worklist/propagated/secure/sprint/17
 
 Apunta al último commit de esa ventana que el panorama ya tiene. La próxima propagación es el rango de ahí al tip nuevo, y **una que se cayó por la mitad se reintenta sin repetir nada**: la ref no se mueve hasta que el panorama avanzó.
 
-Deducirlo comparando los árboles sería preguntar *"¿este cambio ya está?"* sobre 243 archivos por cada push, y contestarlo mal en cuanto dos ventanas tocaran lo mismo. Es el mismo trato que [`key` en el `.sprint.md`](sync.md#la-correspondencia-con-el-sprint-del-proveedor-se-guarda-no-se-busca): un dato que alguien tiene que sostener se guarda, no se busca.
+Deducirlo comparando los árboles sería preguntar *"¿este cambio ya está?"* sobre 243 archivos por cada push, y contestarlo mal en cuanto dos ventanas tocaran lo mismo. Es el mismo trato que [`key` en la composición](sync.md#la-correspondencia-con-el-sprint-del-proveedor-se-guarda-no-se-busca): un dato que alguien tiene que sostener se guarda, no se busca.
 
 Va en `refs/worklist/**` y no en una rama: es contabilidad del servidor, no contenido. Nadie la clona y nadie la mira.
 
@@ -112,9 +105,7 @@ Dos ventanas que editan el mismo ítem **no llegan a chocar en el panorama**, po
 
 > El panorama era el único lugar donde dos ventanas se cruzaban. Desde que el cuerpo viaja, **el proveedor también es uno** — y llega primero.
 
-Así que el conflicto que queda es el de lo que **no tiene contraparte allá**: el `.sprint.md`, que no es un issue, y un pedido todavía sin clave.
-
-Del `.sprint.md` se decía que *"el de cada ventana es suyo"*, y no alcanzaba: es suyo el archivo, no el campo. La ventana escribe `key` y el panorama escribe `status` e `items`, así que [la clave se rehace](#y-el-tercero-es-la-clave-del-sprint-por-un-motivo-que-no-es-de-alcance-sino-de-autoría) y el resto no sube. Con eso, el caso que queda es el de abajo.
+Así que el conflicto que queda es el de lo que **no tiene contraparte allá**: un pedido todavía sin clave.
 
 ### El que queda es el ancestro que nadie protege
 
@@ -194,23 +185,6 @@ Medido el 2026-09-07: el replante de la ventana 21 chocó, y la causa **no era l
 > **Un commit ya contenido en el corte módulo normalización se deja caer, no se replanta.** No hay dos versiones que reconciliar: hay una superada y una vigente, y la vigente es la del panorama.
 
 Recién después de descontar ésos, un conflicto que quede significa lo que la razón única dice. Mientras no se descuenten, el mensaje **manda a mirar el `items` en un caso donde el `items` no tiene nada que ver** — que es peor que no decir nada, porque el diagnóstico que ofrece es falso. Ver [`commands/pull.md`](../commands/pull.md#el-paso-3-deja-caer-lo-que-ya-fue-superado).
-
-#### Y hay un tercero, que es el `.sprint.md` y se resuelve solo a favor del corte
-
-> **Un conflicto que cae entero sobre `_sprints/**` lo gana el corte, y el commit de la ventana se deja caer.**
-
-No es una excepción: es [la asimetría de la clave del sprint](#y-el-tercero-es-la-clave-del-sprint-por-un-motivo-que-no-es-de-alcance-sino-de-autoría) leída para el otro lado. Allá se dijo que el `.sprint.md` del panorama es el que se planifica y que copiarle un parche arrastra líneas de contexto que difieren **por trabajo legítimo**; bajando pasa exactamente lo mismo, con los papeles cambiados.
-
-Medido el 2026-09-07 sobre la ventana 21:
-
-```
-el commit de la ventana   status: open -> in-progress    y de contexto, items: [… 6 ítems]
-el corte de hoy           status: in-progress            items: [… 17 ítems]
-```
-
-El commit **ya está arriba** —el panorama dice `in-progress`— y choca por el `items`, sobre el que no proponía nada. Replantarlo no puede aportar y su conflicto no informa: lo único que diría es que la planificación siguió, que es lo que se espera que haga.
-
-**Y por eso no vive adentro del cherry-pick**, que las dos direcciones comparten: hacia arriba las ediciones que la ventana le hace al `.sprint.md` **sí viajan**. La regla es de la bajada, y sólo de la bajada.
 
 ## Cuándo se dispara
 

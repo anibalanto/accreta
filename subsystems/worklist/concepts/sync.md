@@ -30,9 +30,9 @@ Renombrar `<slug>.<tipo>.md` a `<clave>.<tipo>.md` rompe todo lo que lo nombraba
 
 Un slug es un string libre, así que `agregar-funcionalidad-1` es prefijo de `agregar-funcionalidad-10`: cada posición de arriba exige que el slug no siga con un carácter de identificador, para que renombrar el primero nunca toque al segundo.
 
-**Y la reescritura baja a los subdirectorios.** Recorre **todos** los `*.md` del repo, no sólo la raíz donde viven los ítems: un `.sprint.md` vive en `_sprints/` y referencia a los ítems de su iteración, así que quedarse en la raíz lo dejaba nombrando slugs que ya no existen. Lo único que el recorrido saltea es `.git`.
+**Y la reescritura baja a los subdirectorios.** Recorre **todos** los `*.md` del repo, no sólo la raíz donde viven los ítems: un ítem sacado del árbol sigue en `.metadata/removes/` con su `parent` y sus `relation.*` intactos, así que quedarse en la raíz lo dejaba nombrando slugs que ya no existen. Lo único que el recorrido saltea es `.git`.
 
-El destino de link conserva el `../` que lo trae: **lo que el renombre cambia es el nombre del archivo, no dónde está**. Un link de `_sprints/7.sprint.md` a `../<slug>.task.md` queda apuntando a `../<clave>.task.md`, y sigue subiendo un nivel.
+El destino de link conserva el `../` que lo trae: **lo que el renombre cambia es el nombre del archivo, no dónde está**. Un link desde `.metadata/removes/8.task.md` a `../../<slug>.task.md` queda apuntando a `../../<clave>.task.md`, con la misma cantidad de niveles.
 
 ## El orden es para el proveedor, no para los números
 
@@ -362,29 +362,27 @@ Es para **no afirmar sin mirar** — ver § "Pero decirlo no es afirmar sobre el
 
 ### La correspondencia con el sprint del proveedor se guarda, no se busca
 
-El sprint del worklist se llama por su número —`_sprints/17.sprint.md`— y el del proveedor por un id numérico suyo. Alguien tiene que sostener la correspondencia, y hay dos formas:
+El sprint del worklist se llama por su número —el `id` que le da su propio contador— y el del proveedor por un id numérico suyo. Alguien tiene que sostener la correspondencia, y hay dos formas:
 
 | | |
 |---|---|
 | **buscarlo por nombre** en cada corrida | el nombre pasa a ser la llave, y renombrar un sprint la rompe |
 | **guardar el id** | un dato del proveedor viviendo en git — que es lo que la clave de un ítem ya hace |
 
-> **Se guarda**, en un campo `key` del `.sprint.md`.
+> **Se guarda**, en el campo `key` de la composición.
 
-Es el mismo trato que un ítem: su clave está en git —en el nombre del archivo— y nadie la busca por título dos veces. Un sprint no puede llevarla en el nombre, porque ahí va su número, que es de otro contador y es parte de cómo se lo nombra. Así que va al frontmatter, y es el único campo que el proveedor escribe:
+Es el mismo trato que un ítem: su clave está en git —en el nombre del archivo— y nadie la busca por título dos veces. Un sprint no puede llevarla en el nombre de ese modo, porque no tiene archivo propio; lo que lo nombra es el `id` de su propio contador, que es otro eje. Así que `key` va como campo de su entrada en [`.metadata/product.yaml`](composition.md), y es el único que el proveedor escribe:
 
 ```yaml
----
-title: Los sprints en el board
-status: in-progress
-items: [ACC-106, …]
-key: 4127                    # el id del sprint en el proveedor, si ya existe
-created_at: …
-updated_at: …
----
+sprints:
+  - id: '17'
+    titulo: Los sprints en el board
+    status: in-progress
+    items: [ACC-106, …]
+    key: 4127                    # el id del sprint en el proveedor, si ya existe
 ```
 
-**Sin `key` el sprint todavía no existe del otro lado**, igual que un ítem cuyo archivo lleva slug. Y con `key` puesto, el nombre queda libre: cambiarle el título al sprint en cualquiera de los dos lados no rompe nada, porque la correspondencia no pasa por ahí.
+**Sin `key` el sprint todavía no existe del otro lado**, igual que un ítem cuyo archivo lleva slug. Y con `key` puesto, el `titulo` queda libre: cambiarle el título al sprint en cualquiera de los dos lados no rompe nada, porque la correspondencia no pasa por ahí.
 
 **El id del board va aparte**, en la configuración y no en git: es de la instalación, no del worklist. Es un argumento de [`assign-keys`](../commands/assign-keys.md), y **obligatorio**: `sprint create` y `sprint list-workitems` lo piden además del sprint, así que sin él la pasada del sprint no existe — y una pasada que se saltea sola porque falta un dato de configuración es la peor forma de enterarse de que falta.
 
@@ -547,7 +545,7 @@ Cierto en su propio vocabulario y engañoso donde importa: no había ítems sin 
 
 **Qué cambió lo dice el push**, no el proveedor: el diff entre el tip anterior y el que llega nombra los archivos tocados, y de ahí salen las claves. No hay que preguntarle nada a nadie, y **un push que no toca un ítem no lo re-sube** — actualizar uno no puede costar ochenta llamadas.
 
-Del diff se miran **sólo los `*.md` de la raíz**: ahí viven los ítems, y lo que cuelga de un subdirectorio no es uno. El único que hay es `_sprints/`, y un sprint no es un issue — viaja por su propio camino, ver § "El sprint viaja como sprint, no como issue".
+Del diff se miran **sólo los `*.md` de la raíz**: ahí viven los ítems, y lo que cuelga de un subdirectorio no es uno — `.metadata/` entre ellos, donde vive la composición de los sprints, y un sprint no es un issue: viaja por su propio camino, ver § "El sprint viaja como sprint, no como issue".
 
 Y va **después** del compare-and-swap, que ya corrió: *"si git está actualizado, puede ir al proveedor"* es una garantía cobrada un paso antes, sobre el mismo push.
 
@@ -588,7 +586,7 @@ Resolver una ventana son **cinco pasadas**, y el orden no es de estilo:
 | **2** | los cuerpos, convertidos y enviados | un cuerpo enviado antes lleva los nombres **previos** al renombre, y queda congelado así: el ítem ya tiene clave, así que ningún push posterior lo vuelve a mirar |
 | **3** | los vínculos entre ítems | un vínculo necesita que **las dos puntas** existan en el proveedor |
 | **4** | los ítems que ya tenían clave y este push cambió | ver § "Un ítem que ya tiene clave se actualiza, no se saltea" |
-| **5** | el sprint, con sus issues adentro | la membresía se lee del `items` del `.sprint.md`, y ahí los ids son slugs hasta que la pasada 1 los reescribe |
+| **5** | el sprint, con sus issues adentro | la membresía se lee del `items` de la composición, y ahí los ids son slugs hasta que la pasada 1 los reescribe |
 
 La pasada 2 sólo salía bien por accidente cuando la referencia estaba declarada en `relation.*` —el orden topológico ponía al referenciado primero—; una referencia que vive **sólo en la prosa** no participa de ese orden y quedaba vieja.
 
@@ -612,7 +610,7 @@ De vuelta, el tipo no está en la URL: se resuelve mirando qué `<clave>.*.md` e
 
 ## El sprint viaja como sprint, no como issue
 
-Hasta acá todo lo que cruzó la frontera fue un issue. Un sprint no lo es: es un objeto propio del proveedor, con su id, su estado y su lista de miembros. Por eso **no es un pedido** — `_sprints/17.sprint.md` tiene un `/` en el nombre y la búsqueda de pedidos descarta cualquier stem que lo tenga, deliberadamente — y por eso tiene su propia pasada.
+Hasta acá todo lo que cruzó la frontera fue un issue. Un sprint no lo es: es un objeto propio del proveedor, con su id, su estado y su lista de miembros. Por eso **no es un pedido** — no tiene archivo en el árbol que la búsqueda de pedidos pueda encontrar, y no lo necesita — y por eso tiene su propia pasada.
 
 Sin ella el board no tiene iteraciones: todos los issues quedan sueltos bajo la épica, y **qué se hizo cuándo** —lo único que un board agrega sobre una lista— se queda en git.
 
@@ -622,7 +620,7 @@ Las otras cuatro pasadas no tienen nada que hacer sobre una ventana ya resuelta:
 
 > **Que no haya nada que asignar no es que no haya nada que hacer.**
 
-Así que la ventana se abre igual mientras lleve un `.sprint.md`, y la pasada reconcilia contra lo que el proveedor tiene. Es lo mismo que se le pide a cualquier otra operación de esta frontera: converger desde cualquier estado, no sólo desde el estado nuevo.
+Así que la pasada corre igual, lea o no lea nada nuevo, y reconcilia contra lo que el proveedor tiene. Es lo mismo que se le pide a cualquier otra operación de esta frontera: converger desde cualquier estado, no sólo desde el estado nuevo.
 
 ### La membresía es el subárbol, no `items`
 

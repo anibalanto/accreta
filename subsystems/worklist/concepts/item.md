@@ -9,13 +9,10 @@ Un ítem es la unidad de trabajo en worklist. Representa algo que hay que hacer 
 | **Epic** | `.epic.md` | Objetivo de alto nivel. Agrupa user stories o tasks relacionados. |
 | **User Story** | `.user-story.md` | Funcionalidad desde la perspectiva del usuario. Agrupa tasks. |
 | **Task** | `.task.md` | Unidad de trabajo concreta y ejecutable. Sin hijos. |
-| **Sprint** | `.sprint.md` | Iteración. Agrupa por **referencia**, no por contención. Vive en `_sprints/`. |
+
+**El sprint no es un tipo de ítem.** Lo fue mientras existió `.sprint.md`; hoy es una entrada de `.metadata/product.yaml`, del servidor — ver [`composition.md`](composition.md). Tiene su propio índice numérico y su propia identidad frente al proveedor, pero ninguna de las dos vive acá: no hay archivo, no hay `@`, y nada de lo que sigue en esta página le aplica.
 
 ## Identificación
-
-**Los sprints llevan índice propio.** Su id no sale del contador de épicas, user stories y tasks: `_sprints/1.sprint.md` es el sprint 1. Son otro eje —tiempo, no descomposición— y su número es parte de cómo se los nombra, así que compartir contador daría `u.sprint.md` titulado "Sprint 1", dos nombres para lo mismo.
-
-El costo es que `1` deja de identificar una sola cosa. Se desambigua con el sufijo, que ya está en el nombre del archivo: `worklist show 1` es el ítem, `worklist show 1.sprint` es el sprint.
 
 El nombre del archivo es `<id>.<tipo>.md`, y vive en la raíz de `worklist/`. El tipo va en el medio y la extensión es siempre `.md`.
 
@@ -79,8 +76,6 @@ Sin proveedor configurado, el id que reemplaza al `@<slug>` sale de un contador 
 
 **Nada registra el nombre viejo** — ni el frontmatter, ni el nombre del archivo, ni un campo. Lo único que queda es el historial del remoto, donde el hook escribió `rename @arreglar-el-hook -> ACC-347`. Ver [`sync.md`](sync.md) § "El renombre y la reescritura son un solo commit".
 
-**El sprint agrupa distinto que los demás.** Una épica agrupa por descomposición y lo expresa con carpetas: sus user stories viven adentro. Un sprint agrupa por tiempo, y lo expresa con **links en su cuerpo**: los ítems que se lleva siguen viviendo donde estaban. Un mismo sprint puede tomar ítems de épicas distintas, y una user story no deja de pertenecer a su épica por entrar en uno.
-
 **La extensión es `.md` a propósito.** El contenido de un ítem es markdown —frontmatter más descripción— y los ítems se editan a mano, a diferencia de los archivos de bilinker. Un `.epic` a secas no lo abre ningún editor con resaltado, ningún visor lo previsualiza, y las herramientas que indexan una carpeta por extensión —Obsidian entre ellas— no lo ven. El tipo sigue estando en el nombre, que es lo que permite leerlo de un `ls` sin abrir el archivo.
 
 Se referencia directamente por ID, lleve marca o no:
@@ -102,8 +97,8 @@ Dos caracteres quedan afuera por lo que rompen, y no por gusto:
 
 | | |
 |---|---|
-| **`.`** | es el separador de tipo. `worklist show 1` es el ítem y `worklist show 1.sprint` es el sprint; con un punto adentro del id, `@a.sprint` es el ítem `@a.sprint` o el sprint `@a`, y nada puede decidir cuál |
-| **`/`** | ya estaba prohibido sin decirlo: el parseo del nombre descarta cualquier stem que lo lleve, y de eso depende que `_sprints/17.sprint.md` no se lea como un ítem de la raíz |
+| **`.`** | es el separador de tipo en `<id>.<tipo>.md`. Con un punto adentro del id, `@a.b.task.md` no dice si el id es `@a.b` con tipo `task` o `@a` con tipo `b.task`, y nada puede decidir cuál |
+| **`/`** | ya estaba prohibido sin decirlo: el parseo del nombre descarta cualquier stem que lo lleve, y de eso depende que `.metadata/removes/ACC-268.task.md` no se lea como un ítem de la raíz |
 
 ### La marca `@`: lo local se declara, no se infiere
 
@@ -125,14 +120,6 @@ parent: @arreglar-el-hook   →   parent: ACC-347
 **No es una marca de persona.** `@julio` se lee como alguien en cualquier otra herramienta, y acá no lo es: el día que haya una dimensión de asignación, se escribe de otra forma. Un formato donde un caracter significa dos cosas obliga a mirar el contexto para leer un nombre.
 
 **Y es legal donde tiene que serlo.** Un id nombra archivos y también ramas —una vista se llama como lo que recorta—, y git acepta `@` en un refname: `refs/heads/@mia` y `refs/heads/vista/@mia` se crean, se checkoutean y se resuelven. Lo único que git reserva es `@` solo —es `HEAD`— y la secuencia `@{` —es la sintaxis de reflog—, y **las dos caen fuera del alfabeto por construcción**: `@[A-Za-z0-9_-]+` exige al menos un caracter después de la marca y no admite `{`. No hace falta ninguna regla extra.
-
-#### Un sprint nunca lleva `@`
-
-No porque se lo exceptúe: porque la marca dice *"esto todavía puede ser reemplazado"* y el nombre de un sprint no lo es, ni al cruzar ni después. El proveedor le da una clave, pero esa clave no es un nombre —en su interfaz no se muestra, no se puede buscar y nadie la escribe—, así que vive en el frontmatter como una **coordenada** y no compite con nada.
-
-> **Un ítem tiene un id. Un sprint tiene un nombre y una coordenada.**
-
-Queda **fuera del alcance** de la regla, que es distinto de estar exento de ella.
 
 ## Formato del archivo
 
@@ -216,8 +203,8 @@ Qué forma tiene esa clave es **configuración del proyecto**, no del formato: u
 ## Invariantes
 
 1. El nombre del archivo es `<id>.<tipo>.md`, con un id del alfabeto `[A-Za-z0-9_-]+` —sin `.` y sin `/`— y con `@` adelante mientras no haya sincronizado.
-2. El tipo es `epic`, `user-story`, `task` o `sprint`.
-3. Todo ítem vive en la raíz de `worklist/`; los sprints, en `_sprints/`. No hay carpetas por ítem.
+2. El tipo es `epic`, `user-story` o `task`.
+3. Todo ítem vive en la raíz de `worklist/`. No hay carpetas por ítem.
 4. `parent` lleva el id de un ítem que existe, o está ausente. Ningún ítem es su propio ancestro.
 5. Un `task` no tiene hijos: ningún ítem lo declara como `parent`.
 6. El frontmatter siempre contiene `title`, `status`, `created_at` y `updated_at`.
