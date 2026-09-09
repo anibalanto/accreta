@@ -28,3 +28,23 @@ Se toca la spec (acá o en `docs/adr/`), `bilinker check .` reporta los endpoint
 ## Código: inglés entero, sin cita externa
 
 Es la decisión 11 del ADR, y se repite acá porque gobierna cada línea que se escriba: identificadores **y** comentarios en inglés, y un comentario documenta el código — nunca señala hacia un ADR, una spec o un ítem por nombre o número. Si hace falta decir por qué el código es así, se dice en términos del código.
+
+## Un identificador traduce el término de la spec, nunca inventa uno propio
+
+Si el ADR dice "vista", el código dice `view` en todos lados — no `workspace` en un módulo y `context` en otro. Si dice "canónico", es `canonical`; si dice `to-work`, el comando y la función se llaman así. La traducción es la única libertad: elegir un sinónimo distinto en cada lugar donde el ADR ya usó una palabra es la misma clase de error que tener dos nombres para el mismo concepto, con el costo de que acá ni siquiera se nota en el mismo idioma.
+
+## Commits
+
+Mensaje de una línea. Un commit hace una cosa — si un cambio hace dos, son dos commits.
+
+**Sin prefijo de ítem, porque no hay ítems todavía** (ver "Sin tarea previa" arriba). No inventar uno mientras tanto — el día que `muckpile` trackee su propio trabajo, ahí se decide cómo se prefija, con el sistema real delante y no a ciegas.
+
+## Pruebas: TDD, con un proveedor de prueba que nunca es el real
+
+Se escribe el test antes que el código, para todo lo que tenga un contrato verificable — que es casi todo: la canonicidad (decisión 10), el renombre y la reescritura de referencias (decisión 4), el escape de título para búsqueda, la categoría de un estado (decisión 8). Son funciones puras, con entrada y salida claras, y es exactamente lo que hace TDD barato acá.
+
+**La suite automatizada nunca llama a Jira real.** Antes de escribir nada que hable con el proveedor, existe un proveedor de prueba — la misma idea que ya tiene `worklist` — y es contra ése que corren los tests que se ejecutan en cada ciclo. Pegarle a la API real desde una suite que corre repetida no sólo puede romper por rate limit: puede tocar un board de una organización que no es la del que está probando.
+
+**Y aun así, la API real tiene su lugar: la exploración puntual, nunca la suite.** Cuando hay duda genuina sobre cómo se comporta un endpoint —qué trae `statusCategory`, cómo lista las transiciones un board con un workflow raro—, medirlo contra `ACC` (el board de accreta, no uno de una empresa) es el método correcto, el mismo que `sync.md` ya usa y documenta con fecha. Esa medición informa el test que se escribe contra el proveedor de prueba; no reemplaza al test, y no vive en el mismo lugar que corre en cada `cargo test`.
+
+**Se avanza de punta a punta y se para sólo por un hallazgo de riesgo, no por etapas fijas.** La sección "Lo que este ADR no decide" es el inventario de qué cuenta como riesgo: si aparece algo de esa lista, o algo con la misma forma —una decisión de diseño que el ADR no cerró, una escritura contra el board real fuera del caso de exploración de arriba—, es motivo de parada. Lo rutinario no necesita permiso: para eso está la suite.
