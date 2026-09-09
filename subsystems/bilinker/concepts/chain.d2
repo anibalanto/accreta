@@ -1,0 +1,23 @@
+# Cadena de un bilink cruzando dos capas Stratum.
+# Regenerar: d2 chain.d2 chain.svg
+
+spec: "capa spec\n(subsystems/bilinker)" {
+  bilink: ".bilink/" {
+    capture: "capture/<c0>.yaml\nfile + query — inmutable"
+    tip: "<uuid>.yaml — tip\nendpoint 0: capture <c0>\nendpoint 1: path >impl"
+  }
+}
+
+impl: "capa impl\n(subsystems/bilinker>impl)" {
+  bilink: ".bilink/" {
+    tip: "<uuid>.yaml — tip\nendpoint 0: path <\nendpoint 1: capture <c1>"
+    capture: "capture/<c1>.yaml\nfile + query — inmutable"
+  }
+}
+
+spec.bilink.capture -> spec.bilink.tip: "referencia\n(endpoint estructural)"
+impl.bilink.capture -> impl.bilink.tip: "referencia\n(endpoint estructural)"
+
+spec.bilink.tip -> impl.bilink.tip: "endpoint path\ncopia el accepted\nestructural del vecino\n(nunca el hash del archivo)" {
+  style.stroke-dash: 3
+}
