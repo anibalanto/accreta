@@ -6,7 +6,7 @@ Qué ítems lleva cada sprint, en qué orden está el backlog, y qué coordenada
 # .metadata/product.yaml
 sprints:
   - id: 21
-    name: "El worklist se muda"     # menos de 20 caracteres
+    titulo: "La estructura del worklist se muda al servidor"
     status: in-progress
     key: 6525
     items: [ACC-315, ACC-316, …]
@@ -17,15 +17,16 @@ backlog:
 
 `.metadata/` **con punto adelante** por lo mismo que `_sprints/` llevaba `_`: garantiza que nunca choque con un id. Y el panorama ya tiene `.bilink/` en su raíz, así que la forma no es nueva.
 
-## El `.sprint.md` era tres cosas mezcladas
+## El `.sprint.md` era cuatro cosas mezcladas
 
-|  | Dónde va ahora |
+|  | Dónde va |
 |---|---|
 | **la composición** — qué ítems, el orden del backlog, `key`, `status` | acá |
-| **la prosa** — por qué esos ítems, en qué orden, qué quedó afuera, cómo cerró | `*>graviton/sprints/` |
+| **el título** — lo que hace falta para nombrar el sprint del otro lado | acá, en `titulo` |
+| **la prosa** — por qué esos ítems, en qué orden, qué quedó afuera, cómo cerró | se descarta: no es operativa para un sprint, y nada la preserva |
 | el archivo | **desaparece** |
 
-Y no es una mudanza por prolijidad: **son tres cosas con tres dueños distintos.** La composición la arma el servidor, la prosa la escribe una persona, y mezclarlas en un archivo hacía que las dos direcciones de la propagación se pelearan por el mismo texto — el `.sprint.md` es hoy [el único archivo que las dos direcciones tocan](propagation.md#y-el-tercero-es-la-clave-del-sprint-por-un-motivo-que-no-es-de-alcance-sino-de-autoría), y por eso el único donde hubo que partir la regla campo por campo.
+Y no es una mudanza por prolijidad: **la composición y el título tienen un dueño — el servidor —, y la prosa tiene otro — una persona.** Mezclarlas en un archivo hacía que las dos direcciones de la propagación se pelearan por el mismo texto — el `.sprint.md` era [el único archivo que las dos direcciones tocaban](propagation.md#y-el-tercero-es-la-clave-del-sprint-por-un-motivo-que-no-es-de-alcance-sino-de-autoría), y por eso el único donde hubo que partir la regla campo por campo.
 
 ## Por qué en el servidor y no como campo del ítem
 
@@ -54,42 +55,32 @@ De ahí salen tres cosas que estaban trabadas:
 
 **Y absorber un cambio de membresía deja de ser peligroso.** Traer *"el board sacó este ítem del sprint"* significaba sacar un archivo de una ventana —cambiar el recorte, con trabajo adentro— y pasa a significar editar una línea del YAML: lo que sigue es el recorte de siempre, que es idempotente y ya está probado.
 
-## El nombre sale del título entero, y sin tope
+## El `titulo` es el que se tipeó, y no hay otro nombre
 
-> **El nombre de un sprint es su número y su título, en minúscula y con guiones medios.** Entero.
+> **`titulo` es el texto tal cual, sin normalizar.** No hay un segundo campo con una forma slugificada: guardar las dos sería guardar la misma información dos veces, y una de las copias quedaría vieja el día que alguien edite el título y no la otra.
 
-```
-21-la-estructura-del-worklist-se-muda-al-servidor
-```
+Antes esto proponía un `name` derivado —minúscula, con guiones medios, capado a 20 caracteres— para tener algo corto y sin acentos que mostrar. **Se descartó entero**: lo único que un `name` así resolvía era una limitación de `.sprint.md`, que necesitaba un nombre con forma de slug porque en algún momento fue candidato a nombre de archivo. `product.yaml` no tiene esa restricción — sus entradas son elementos de una lista, no nombres de archivo — así que no hay nada que el `titulo` crudo no pueda hacer.
 
-Antes acá decía *"menos de 20 caracteres"*, con el argumento de que un nombre de 20 que sale de cortar uno de 62 no nombra nada. **El argumento era bueno y la conclusión no**: si recortar rompe el nombre, lo que sobra es el tope, no el título.
-
-Y eso es lo que vuelve la migración de los 22 **mecánica** en vez de 22 decisiones a mano.
+Quien necesite una forma corta o slugificada para mostrar la deriva al vuelo con una función pura; no hace falta persistirla.
 
 ### Y no es el nombre que ve el proveedor
 
-Son dos nombres, y confundirlos hacía parecer que el tope se podía borrar.
-
 | | |
 |---|---|
-| **el `name` del YAML** | el nombre de este lado, sin tope. Reemplaza al del archivo |
-| **el nombre del sprint en Jira** | `<id> <título>`, **y sigue recortándose a 29** porque Jira no acepta 30 |
+| **`titulo`** | el texto tal cual, sin tope ni normalizar |
+| **el nombre del sprint en Jira** | `<id> <titulo>`, **recortado a 29** porque Jira no acepta 30 |
 
-Así que la maquinaria del recorte **no se borra**: el nombre de acá se hizo más largo, no más corto. Lo que sí queda claro es de quién es cada límite — uno es del proveedor y el otro no existe.
+La maquinaria del recorte es del proveedor, y sigue existiendo por eso — no porque `titulo` la necesite.
 
 **Y el nombre del sprint no es su clave.** En la interfaz de Jira el id de un sprint no se muestra, no se puede buscar y nadie lo escribe: un sprint renombrado a `6524` queda imposible de encontrar justo para la persona que iba a usar ese nombre. La clave vive en el YAML como **coordenada**, que es lo que es.
 
-## La mudanza es en dos mitades, y hoy está la primera
+## La mudanza terminó: `.sprint.md` se retira con `DropSprintFiles`
 
-**El `items` ya sale de acá.** El recorte lee la composición, el renombre la mantiene, y la clave del sprint se anota acá cuando el servidor la consigue.
+**El `items` sale de acá**, y también el `titulo` y el `key`: no queda ningún campo operativo que las pasadas de sprint —resolver el sprint del proveedor, anotarle la clave— necesiten leer de otro lado. Retirar el archivo es `worklist-server drop-sprint-files`: le agrega el `titulo` a cada sprint leyéndolo de su `.sprint.md` una última vez, y borra `_sprints/` entero.
 
-**El `.sprint.md` todavía viaja en la ventana**, porque las pasadas que sincronizan sprints —resolver el sprint del proveedor, anotarle la clave— lo leen de ahí. Se va con ellas.
+**Y edita, no reconstruye.** A diferencia de la migración original —que armaba `product.yaml` desde cero a partir de los `.sprint.md`—, esto parte de la composición que ya existe y le agrega un campo: `key`, `status` e `items` pueden haber divergido del `.sprint.md` desde que la composición es la que manda, y reconstruir los pisaría con la copia vieja.
 
-> **La composición es la fuente de la membresía desde hoy. El archivo es una copia que todavía se lee para otra cosa.**
-
-Y el orden no es arbitrario: mover la lectura del `items` no toca el proveedor, y mover las pasadas de sprint sí — son las que crean sprints y meten issues en el board. La primera mitad se puede hacer con la suite como única red; la segunda necesita medirse contra un board.
-
-**Y el renombre necesitó una regla propia.** En un `.md` una referencia a un ítem es un link —`](@o.task.md)`— y se reescribe con el texto. Acá es una **entrada de una lista**, sin sintaxis alrededor: un renombre que sólo mire markdown deja el sprint nombrando un slug que ya no existe, y el próximo recorte falla con *"la composición nombra a `@o`, y no está"*. Se reescribe sobre la estructura, porque `@o` como texto también aparece adentro de `@otro`.
+**Y el renombre necesitó una regla propia**, mientras `.sprint.md` convivió con la composición. En un `.md` una referencia a un ítem es un link —`](@o.task.md)`— y se reescribe con el texto. En la composición es una **entrada de una lista**, sin sintaxis alrededor: un renombre que sólo mire markdown deja el sprint nombrando un slug que ya no existe, y el próximo recorte falla con *"la composición nombra a `@o`, y no está"*. Se reescribe sobre la estructura, porque `@o` como texto también aparece adentro de `@otro`. Esa regla queda — es la que mantiene la composición renombrada, tenga o no `.sprint.md` al lado.
 
 ## Y lo que el proveedor perdió se saca, pero no se borra
 
