@@ -4,9 +4,9 @@ endpoint:
     link: capture 069c137b8253c75b6ee9840e20cf81ee
     accepted:
     - agree:
-      - Anibal
+      - anibal
       link: capture 069c137b8253c75b6ee9840e20cf81ee
-      hash: 2e565549a2e18f15d6e71f6dd0be333f122462455d6a80328a28345a1f3412e8
+      hash: 4c66d93e4f60552748643cf049b6b0a998ef1b8b67a32d219946bbf0acd7742a
   1:
     link: path subsystems/worklist>impl
     accepted:
