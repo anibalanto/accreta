@@ -39,6 +39,8 @@ Mensaje de una línea. Un commit hace una cosa — si un cambio hace dos, son do
 
 **Sin prefijo de ítem, porque no hay ítems todavía** (ver "Sin tarea previa" arriba). No inventar uno mientras tanto — el día que `muckpile` trackee su propio trabajo, ahí se decide cómo se prefija, con el sistema real delante y no a ciegas.
 
+**Nunca empujar accreta.** Este trabajo commitea y empuja en el repo del impl —tiene su propio `.git` y su propio remoto—; accreta es el checkout que lo contiene, no el destino del push. Si hace falta tocar algo del lado de accreta (este mismo archivo, la declaración de capa), el commit local es aceptable —así se hizo durante todo el diseño—, pero el `push` de accreta queda para una decisión humana aparte, nunca como paso de la implementación de punta a punta.
+
 ## Pruebas: TDD, con un proveedor de prueba que nunca es el real
 
 Se escribe el test antes que el código, para todo lo que tenga un contrato verificable — que es casi todo: la canonicidad (decisión 10), el renombre y la reescritura de referencias (decisión 4), el escape de título para búsqueda, la categoría de un estado (decisión 8). Son funciones puras, con entrada y salida claras, y es exactamente lo que hace TDD barato acá.
