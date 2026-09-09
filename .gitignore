@@ -9,3 +9,10 @@
 # El worklist es un repo aparte, con sus worktrees adentro. No es una capa,
 # asi que el glob de `.stratum/*/` no lo cubre.
 .worklist/
+
+# Notas de proceso de muckpile: se siguen committeando local (bilinker
+# necesita el commit para poder aceptar), pero no viajan si accreta vuelve
+# a empujarse. Sólo estos dos archivos puntuales — el resto de la spec de
+# muckpile sigue el camino normal.
+/AGENTS.md
+/subsystems/muckpile/GUIA-DESARROLLO.md
