@@ -13,6 +13,8 @@ El repo del impl es propio, hoy anidado en el checkout de accreta —`subsystems
 
 **No la herramienta `Skill`, el archivo.** `Skill` depende de que `.claude/skills` esté registrado en la raíz de la sesión, y `muckpile` puede clonarse y trabajarse solo, sin accreta alrededor — pedirle el nombre en vez del path lo ataría a que alguien más lo haya configurado. Leer el archivo funciona siempre que el checkout de accreta esté a mano; el día que no lo esté, esta sección entera deja de aplicar, porque `bilinker` y `stratum-paths` son de cómo accreta mantiene sus specs en línea con su código — no de lo que `muckpile` hace en producción.
 
+**Y ese path cae afuera de este repo — verificado, no es una hipótesis.** `stratum '*'` desde adentro de `subsystems/muckpile/.stratum/impl/` da la raíz de accreta, no la de este repo: `*` es "el ancestro git más externo", y accreta es un ancestro real de este checkout anidado. Es el lugar correcto para encontrar `ia/skills/` — y también donde vive el `AGENTS.md`/`CLAUDE.md` de accreta, con reglas que no son las de acá. **Ir a buscar el archivo de skill puntual no es leer nada más de esa raíz.** No cargar el `AGENTS.md` de accreta de paso porque esté ahí sentado: sus reglas —`worklist`, la tarea previa— son exactamente las que esta página ya dijo que no aplican.
+
 **Ninguna referencia a `worklist` ni a `item-writing`.** La primera es exactamente lo que este subsistema reemplaza — cargarla acá sería instrucción para el sistema que se está sacando. La segunda es sobre cómo se titula un ítem *del worklist*, y `muckpile` todavía no tiene una convención de ítems propia escrita en ningún lado.
 
 ## Sin tarea previa, por ahora
