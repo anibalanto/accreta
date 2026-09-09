@@ -245,6 +245,8 @@ Una spec que necesita justificar algo cita **el ADR**. Si la justificación sól
 
 **Un endpoint `issue <id>` es otra cosa** y sí referencia un ítem: es una referencia verificada y repuntable, que `bilinker` mantiene. La regla es sobre la prosa, no sobre el mecanismo que existe para esto.
 
+**Y vale igual para un comentario o doc-comment de código.** El argumento es el mismo —el id cambia por diseño, y una cita queda apuntando a algo que ya no existe— así que "ver `ACC-305`" o "es la segunda mitad de `ACC-332`" en un comentario tiene el mismo problema que tenerlo en una spec. La razón de un cambio va en el comentario en términos del código; el ítem que lo motivó vive en el prefijo del commit y en su propio archivo, no en el código.
+
 Las referencias ya escritas **se corrigen al tocarlas**, no de una barrida.
 
 ## Cómo contestar "qué sigue": dos pasos, y el orden es obligatorio
