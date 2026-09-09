@@ -15,10 +15,18 @@ Es lo que más se confunde, y con razón: están los dos en la misma máquina y 
 
 | | Dónde | Qué es |
 |---|---|---|
-| **el servidor** | `~/.local/share/accreta/worklist-sync/worklist.git` | recibe los push. **Es el único con hooks** |
-| **tu clon** | `<project-root>/.worklist/` | de donde cuelgan los dieciséis worktrees en los que trabajás — uno por ventana, **ninguno del panorama**. En él, el servidor se llama `srv` |
+| **el servidor** | lo dice `git remote get-url srv` | recibe los push. **Es el único con hooks** |
+| **tu clon** | `<project-root>/.worklist/` | de donde cuelga un worktree por ventana cortada, y **ninguno del panorama**. En él, el servidor se llama `srv` |
 
 > **Lo que los distingue no es dónde están: es que uno tiene hooks y el otro no.** Que el servidor sea local es una casualidad de hoy — mañana es un GitLab y nada cambia.
+
+Y por eso la ruta del servidor no se escribe a mano, se pregunta — es lo que hacen los binarios, que la sacan del remoto y no de una constante:
+
+```bash
+SRV=$(git -C $(stratum '*')/.worklist remote get-url srv)
+```
+
+Cuántas ventanas hay también es una pregunta, no un dato de esta página: `git -C $(stratum '*')/.worklist worktree list`. Hay una por ventana cortada y traída, que son menos que los sprints.
 
 Y el sentido es **de una sola dirección**:
 
@@ -38,21 +46,10 @@ No es una convención: una rama insegura **no se puede verificar** —crece sin 
 El panorama es lo que se **consulta**, y se consulta en el servidor:
 
 ```bash
-SRV=~/.local/share/accreta/worklist-sync/worklist.git
 git -C $SRV show insecure/all:ACC-3.task.md          # un ítem
 git -C $SRV ls-tree --name-only insecure/all         # el inventario
+git -C $SRV show insecure/all:.metadata/product.yaml # la composición
 ```
-
-Para trabajar se corta la vista, **y el que corta es el servidor** —el panorama del que sale está de ese lado—; el clon la trae con `fetch` y un worktree:
-
-```bash
-cd $SRV && worklist-server window open <sprint-id>   # recorta, parado en el bare
-
-cd $(stratum '*')/.worklist
-git fetch srv && git worktree add secure/sprint/<id> secure/sprint/<id>
-```
-
-**El nombre es provisorio.** El comando que corta tiene tres candidatos —`window open`, `view add`, `window new`— y no son sinónimos: uno de ellos ya significa *ampliar un recorte que existe*, no cortar uno nuevo. Está sin decidir, así que lo de arriba es lo que hay hoy, no la forma final.
 
 ### Y hay un hueco, que conviene saber antes de chocarlo
 
@@ -65,7 +62,92 @@ git fetch srv && git worktree add secure/sprint/<id> secure/sprint/<id>
 
 **Y la excepción de antes ya no existe.** Decía que un ítem de backlog se escribía en el panorama sabiendo que era una excepción a la vista; el panorama no está de este lado, así que no hay dónde hacerla. Lo que queda es lo de siempre: un ítem nace en una vista y viaja con ella.
 
-### Antes de escribir una línea de código
+## Abrir una ventana
+
+> Hay dos casos, y confundirlos es el error caro: si la ventana ya está cortada y traída, la abrís con `worklist pull` y nada más. Los dos comandos de abajo son para la que todavía no existe.
+
+Recortar es del servidor —lee el panorama, que vive de un solo lado— y el clon la trae con git. Son dos pasos, y el segundo es el que le da un worktree:
+
+```bash
+cd $SRV
+worklist-server window open <sprint-id>               # recorta, parado en el bare
+
+cd $(stratum '*')/.worklist
+git fetch srv
+git worktree add secure/sprint/<id> secure/sprint/<id>
+```
+
+El comando se llama `window open`, tiene [spec](../../../subsystems/worklist/commands/window-open.md) y está implementado. Acá decía que el nombre era provisorio y que había tres candidatos sin decidir; está decidido, y la duda sobraba: hacía dudar del único comando que ya no la tiene.
+
+Antes de escribir la rama se puede preguntar qué entraría:
+
+```bash
+worklist-server window open <sprint-id> --dry-run
+```
+
+| Flag | Para qué |
+|---|---|
+| `--dry-run` | lista los archivos que entrarían y no escribe la rama |
+| `--from <rama>` | de dónde cortar. Por defecto el panorama |
+| `--force` | tira a sabiendas lo local que no se pudo replantar. No es el camino normal |
+
+### Y para una ventana que ya existe, el comando es `pull`
+
+`worklist pull` recorta él mismo: su paso 1 invoca a `window open` en el bare, y después absorbe lo del board, trae y replanta lo tuyo encima. Correr el comando del servidor a mano antes de un `pull` es hacer dos veces lo mismo.
+
+```bash
+worklist pull            # esta ventana
+worklist pull --all      # todas las del clon; sólo bajada
+worklist pull --dry-run  # qué traería y qué replantaría
+```
+
+Y es idempotente por construcción, no por suerte: recortar dos veces sobre un panorama quieto produciría dos commits distintos —el sha lleva la hora adentro— así que `window open` compara el árbol y no mueve la rama si el corte es el mismo. Ante la duda, corrélo.
+
+### Si la ventana falta, se corta — no se declara inconstatable
+
+Es la salida para el caso de abajo, *"cuando la vista no está cortada"*: cortar una ventana que falta son las dos líneas de arriba, y decir *"no está constatado"* cuando el comando existe convierte en limitación permanente algo que se arregla en una invocación.
+
+Sigue habiendo un caso sin comando, y es otro: un ítem que no está en *ningún* sprint, porque no hay de dónde cortarle una ventana.
+
+## Leer una ventana
+
+Los ítems son archivos sueltos en la raíz, así que leer la ventana es `ls` y `cat`. No hay `worklist show` ni `worklist list`: están especificados y el binario no los tiene — los subcomandos que hay son `status`, `pull`, `push`, `state change` y `remove`.
+
+```bash
+ls *.md                                    # los ítems de esta ventana
+grep -m1 '^status:' ACC-343.task.md        # su estado
+```
+
+Y lo importante es lo que *no* está adentro:
+
+| | Dónde está | Por qué no baja |
+|---|---|---|
+| los ítems del sprint, con sus ancestros | en la ventana | es lo que la ventana promete verificar |
+| el vocabulario de estados, si el proyecto lo declara | en la ventana | la ventana tiene que cerrar adentro |
+| la composición — qué ítems lleva el sprint, el orden del backlog, el `key` | sólo en el panorama | una copia de la composición del lado del cliente es una fuente de verdad que sólo puede quedarse vieja |
+| cualquier ítem de otro sprint | sólo en el panorama | parado adentro, un ítem ajeno no puede confundirse con uno tuyo porque no está |
+
+### La composición no se lee del `.sprint.md`, aunque el archivo esté ahí
+
+> El `.sprint.md` viaja a la ventana y ya no es de donde sale el `items`. La autoridad es `.metadata/product.yaml`, que está en el panorama y no baja.
+
+Es el error más fácil de cometer, porque la copia vieja es lo único que hay a mano: la ventana trae `_sprints/<id>.sprint.md` y no trae `.metadata/`. Medido el 2026-09-09 sobre el sprint 21, el `.sprint.md` nombraba 31 ítems y la composición 24: nueve estaban sólo en el archivo y dos sólo en el YAML.
+
+Y la divergencia no es ruido, tiene causa: siete de esos nueve son los que el board sacó del sprint, y el archivo siguió nombrándolos porque nadie lo lee para decidir nada.
+
+```bash
+git -C $SRV show insecure/all:.metadata/product.yaml   # la que vale
+```
+
+El corte es el que ya está escrito en el método: `window_files` lee la composición con `product::leer`, y el `.sprint.md` viaja sólo porque las pasadas de sprint todavía lo leen de la ventana. Se va con ellas.
+
+### Y del board sí baja algo
+
+`absorb` es del servidor —tiene la credencial y la rama— y escribe en la ventana lo que el proveedor dice. No se invoca a mano: `pull` lo corre en su paso 0 y después lo trae como cualquier otra cosa que el servidor haya escrito.
+
+Así que *"el servidor nunca te empuja"* sigue siendo cierto del transporte, y no significa que del board no baje nada: baja, y baja por `pull`. Lo que todavía no baja es el *cuerpo* de un ítem, y está escrito por qué y con qué número.
+
+## Antes de escribir una línea de código
 
 > **Corré `worklist status` antes de tocar nada.** Si dice que la vista está atrás, ponela al día primero. Si no se puede, **decilo antes de trabajar**, no después.
 
@@ -99,12 +181,10 @@ Y lo que sigue es qué significa cada renglón, y qué hacer con él.
 
 ```bash
 worklist pull            # esta vista
-worklist pull --all      # las veinte
+worklist pull --all      # todas las del clon
 ```
 
-**Recorta antes de bajar**, que es el paso que más se olvida: sin él bajás el corte de la última vez que alguien recortó, y la ventana queda al día contra una foto vieja del panorama — que se ve idéntica a estarlo de verdad.
-
-**Y es idempotente.** Correrlo de más no cuesta nada y no mueve nada: si no cambió nada arriba, no hay corte nuevo ni replante. Así que ante la duda, corrélo.
+Y con eso alcanza: `pull` recorta, absorbe, trae y replanta. Acá decía *"recortá antes de bajar, que es el paso que más se olvida"*, y eso describía las tripas del comando como si fuera un paso de quien lo corre — ver § [Abrir una ventana](#abrir-una-ventana). Lo que sí es cierto y sigue valiendo es el motivo: sin recortar se baja el corte de la última vez que alguien recortó, y la ventana queda al día contra una foto vieja del panorama, que se ve idéntica a estarlo de verdad.
 
 Acá había una receta a mano —`git fetch` y un `merge --ff-only`, una vista por vez— con la advertencia de que **`git status` diciendo *"limpio"* no alcanza**: una vista atrasada se ve limpia. Eso sigue siendo cierto y ahora lo contesta `status`.
 
@@ -137,7 +217,7 @@ Es el que el método ya pedía —*primero hay una tarea*— con lo que faltaba:
 
 **Tres de los cinco los contesta `worklist status`**, y el que los pone al día es `worklist pull`. Los dos que quedan afuera son de leer: que la rama sea `secure/**` y que el ítem no lleve `@`.
 
-De los comandos que faltaban acá, **`sync` no va a existir**: era *"poner las dieciséis al día de una"*, y eso es `worklist pull --all`. Queda `worklist is-secure`, que es derivar la clase de la rama en vez de creerle al nombre.
+De los comandos que faltaban acá, **`sync` no va a existir**: era *"poner todas las ventanas al día de una"*, y eso es `worklist pull --all`. Queda `worklist is-secure`, que es derivar la clase de la rama en vez de creerle al nombre.
 
 ### Y el panorama ya no se sincroniza a mano
 
@@ -259,7 +339,7 @@ git -C $SRV show insecure/all:.metadata/product.yaml
 ```
 
 1. Buscar el sprint con `status: in-progress`. Si no hay, el próximo `open` por número.
-2. Sus `items` son el compromiso de la iteración. Bajar a la US y de ahí a sus tasks — con `git -C $SRV show insecure/all:<id>.<tipo>.md`.
+2. Sus `items` son el compromiso de la iteración. Bajar a la US y de ahí a sus tasks, que la composición no enumera —van con el padre por la regla del ancestro—, con `git -C $SRV show insecure/all:<id>.<tipo>.md`.
 3. Cada task dice **qué specs toca**, no qué archivos de código: el código sale de los bilinks que se rompan.
 
 **Paso 2 — la vista segura del sprint, para constatar.** Cortada o refrescada, es la única que puede verificarse entera contra el proveedor. El `status` que vale es el de ahí.
@@ -268,20 +348,31 @@ git -C $SRV show insecure/all:.metadata/product.yaml
 
 ### Cuando la vista no está cortada
 
-Pasa seguido, y hoy pasa con todo lo que no sea de los sprints ya subidos. Entonces el segundo paso no se puede dar, y la respuesta es:
+Lo primero es que casi siempre se puede cortar: son las dos líneas de § [Abrir una ventana](#abrir-una-ventana), y el segundo paso deja de faltar. Acá decía que la respuesta era *"esto es lo que hay, y no está constatado"* y punto — eso convertía en limitación permanente algo que se arregla en una invocación.
+
+La respuesta honesta sigue siendo necesaria en el caso que **no** tiene comando: un ítem que no está en ningún sprint, porque no hay de dónde cortarle una ventana. Ahí sí:
 
 > **"Esto es lo que hay, y no está constatado."**
 
-Decirlo **es** el paso. La alternativa es presentar como actual algo que nadie verificó, que es el mismo error de forma que el resto de las reglas de acá evitan.
+Decirlo **es** el paso. La alternativa es presentar como actual algo que nadie verificó, que es el mismo error de forma que el resto de las reglas de acá evitan. Lo que no vale es decirlo cuando cortar era una línea.
 
 **El backlog no es un archivo.** Se calcula, no se mantiene: tenerlo escrito obligaría a editar dos lugares al mover algo. **Y se calcula donde está el todo**, que es el servidor: sobre una ventana la misma cuenta da mal, no da menos. Y el cálculo va sobre el subárbol, que es lo que un sprint referencia — **un ítem está en el backlog si el tope de su rama no lo nombra ningún sprint**. Las tasks de una user story planificada no se cuentan aparte, y una user story que ningún sprint nombra está en el backlog con todas sus tasks, sin importar cuántas alguien haya querido adelantar.
 
 ## Al crear o mover
 
-Los ítems **se escriben a mano hoy**: `worklist new` está especificado pero no implementado, y además delega la asignación de ids a un servidor que no existe. Al crear uno, tomar el siguiente id base-36 libre del contador que corresponda, y escribirlo en la raíz de la vista con su `parent`.
+Los ítems **se escriben a mano hoy**: `worklist new` está especificado pero no implementado. No se les inventa un id: nacen con un nombre provisorio `@<slug>` y el servidor los renombra a su clave cuando cruzan al proveedor.
 
-**Y en la vista donde se va a trabajar** — ver § "Se trabaja en una vista segura". Si el ítem pertenece a un sprint, en su ventana; si no pertenece a ninguno, se escribe igual en una ventana y sube con ella, porque el panorama ya no es un lugar donde se pueda escribir.
+```
+@reescribir-la-parte-de-ventanas-de-la-skill.task.md    ← lo que escribís
+ACC-352.task.md                                         ← lo que el servidor deja
+```
+
+El renombre queda anotado en el log del servidor, así que el `@<slug>` es un id de verdad mientras dura — y por eso el chequeo 2 dice que un ítem con `@` todavía no puede prefijar un commit: la clave llega con el push.
+
+Y en la ventana donde se va a trabajar — ver § "Se trabaja en una vista segura". Si el ítem pertenece a un sprint, en su ventana; si no pertenece a ninguno, se escribe igual en una ventana y sube con ella, porque el panorama ya no es un lugar donde se pueda escribir.
 
 Mover de padre es editar **un solo campo**, nunca un archivo: cambia `parent`. El archivo no se mueve, así que su path no cambia y ningún bilink que lo apunte se entera.
 
 **Mover de sprint no se hace en la ventana.** `items` es del servidor y lo arma comparando contra el board — ver § "Dos formas de agrupar" arriba —, así que mover un ítem de un sprint a otro es moverlo en el board; `worklist pull` trae el resultado. No hay un archivo ni un link que editar acá para lograrlo.
+
+> Y eso vale también para un ítem recién nacido: el push le da clave y sube su archivo al panorama, pero la pasada de membresía le pregunta al board **y el issue nuevo todavía no está en el sprint de allá**. Así que queda en ningún sprint, y el recorte siguiente le saca el archivo de la ventana donde se escribió. Se vuelve a ver después de agregarlo al sprint en el board y correr `worklist pull`.
