@@ -115,11 +115,11 @@ Una task suelta, sin `parent`, tampoco lo lleva. Si el para qué de una task no 
 
 ### Cuándo está hecha
 
-Los criterios de cierre, y son la sección que más cuidado lleva. La razón está medida:
+Los criterios de cierre, y son la sección que más cuidado lleva.
 
-> El 2026-09-09, sobre el sprint 21: tres ítems que el board daba por `Finalizada` no cumplían lo que su propio archivo decía que había que cumplir — `graviton/sprints/` sin crear, `_sprints/` todavía en `AGENTS.md` y en siete specs, cero archivos `.d2` en el repo.
+> **El criterio de cierre es lo único que distingue *"está hecho"* de *"el proveedor dice que está hecho"*.**
 
-**Eso se pudo decir porque estaba escrito contra qué medir.** El criterio de cierre es lo único que distingue *"está hecho"* de *"el proveedor dice que está hecho"*, y sin él el estado del board no se puede constatar: se le cree.
+Sin él, el estado del board no se puede constatar: se le cree. Y un ítem que el board da por cerrado sin que nadie pueda mirar contra qué es un ítem que no se puede auditar después — que es justamente lo que el paso 0 del método existe para evitar.
 
 Tres propiedades, cada una con su falla:
 
@@ -143,11 +143,9 @@ Tres vínculos, y los tres tienen dirección obligatoria.
 
 ### El ítem dice qué tiene que ser cierto, no cómo se decidió
 
-Es la regla que más cuesta y la que más rinde, y tiene evidencia propia:
+Es la regla que más cuesta y la que más rinde.
 
-> Medido el 2026-09-09: las cinco tasks del modelo de vistas del sprint 22 van de 63 a 121 líneas, y buena parte es arqueología del propio ítem — *"acá decía X, y el argumento era bueno y la conclusión no"*. Una de ellas conservó cuatro días una premisa que otra del mismo sprint ya había matado, con la corrección escrita al lado, en otro archivo.
-
-Un ítem no se relee si releerlo cuesta lo que cuesta releer una spec. Y el que no se relee conserva premisas muertas, que es peor que no tener nada escrito: se le cree.
+Un ítem que lleva adentro la arqueología de sí mismo —*"acá decía X, y el argumento era bueno y la conclusión no"*— cuesta releerlo lo que cuesta releer una spec. Y un ítem que no se relee conserva premisas muertas, que es peor que no tener nada escrito: se le cree, y nadie mira si la premisa sigue en pie.
 
 | Va en el ítem | Va en el ADR |
 |---|---|
@@ -159,6 +157,6 @@ Un ítem no se relee si releerlo cuesta lo que cuesta releer una spec. Y el que 
 
 ## Lo que todavía no está escrito acá
 
-**La revisión por otro.** Un ítem escrito por una persona y ejecutado por la misma no tiene quién le encuentre el criterio que falta — y las tres del sprint 21 son el ejemplo. El día que haya dos, la revisión necesita un lugar en el ítem y no sólo en el proceso: quién lo revisó, contra qué, y qué pasa cuando el alcance cambia después de aprobado.
+**La revisión por otro.** Un ítem escrito por una persona y ejecutado por la misma no tiene quién le encuentre el criterio que falta. El día que haya dos, la revisión necesita un lugar en el ítem y no sólo en el proceso: quién lo revisó, contra qué, y qué pasa cuando el alcance cambia después de aprobado.
 
 Queda anotado para no redescubrirlo.
