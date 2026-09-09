@@ -1,6 +1,6 @@
 ---
 name: item-writing
-description: "Cómo se escribe un ítem del worklist — el título, y cómo se lo nombra desde otro texto. Son convenciones de esta organización y de su proveedor, no del formato: un equipo con otro board tiene otras. Cargar al escribir o retitular un ítem."
+description: "Cómo se escribe un ítem del worklist — el título, el cuerpo, y cómo se lo nombra desde otro texto. Son convenciones de esta organización y de su proveedor, no del formato: un equipo con otro board tiene otras. Cargar al escribir, retitular o revisar un ítem."
 ---
 
 Las convenciones de **redacción** de un ítem. La mecánica —dónde vive el trabajo, qué vista se corta, qué chequeos pasar, qué campos lleva el frontmatter— está en la skill `worklist`, y no se repite acá.
@@ -69,3 +69,96 @@ No es de estilo. **El título es el string con el que el proveedor identifica al
 Y la razón no es el guión: **la lista de lo que rompe ese parser no la controlamos**, y ya creció una vez. Un título en prosa no depende de ella.
 
 **No se aplica hacia atrás.** Un ítem que ya tiene clave se identifica por la clave, no por el título, así que el `--` ahí es inerte — y cambiárselo deja el título local diciendo una cosa y el `summary` del board otra, porque lo único que empuja un título es la pasada 4 sobre un push de su ventana. Sobre un sprint cerrado eso no vuelve a pasar. La regla vale para lo que se escribe y para lo que todavía no cruzó.
+
+### Y el prefijo del título puede nombrar el subsistema
+
+Un título ambiguo sin decir de qué se está hablando lleva adelante el subsistema: `bilinker`, `stratum`, `lattice`, `lspd`, `impact`, `worklist`. Es el mismo movimiento que el título diagnóstico —un prefijo que clasifica, después el contenido— y no reemplaza a ninguna de las dos formas de arriba: se usa cuando el título solo no dice de qué es.
+
+El separador es dos puntos o un guión medio suelto, nunca dos guiones seguidos: `Worklist -- cortar la vista` rompe el parser por la razón de la sección anterior.
+
+## El cuerpo
+
+Cuatro secciones, y el orden importa: el cuerpo **abre con el diagnóstico** —eso ya está dicho arriba— y después van éstas.
+
+| | Para qué |
+|---|---|
+| `## Precondiciones` | qué tiene que ser cierto para que el ítem se pueda ejecutar |
+| el *como / quiero / para* | el para qué, y va en la user story — no en cada task |
+| `## Cuándo está hecha` | contra qué se mide que terminó. Es la que decide |
+| las referencias | la spec, el ADR, y las dependencias |
+
+### Precondiciones
+
+Tres clases, y ninguna es el enunciado del trabajo:
+
+| | |
+|---|---|
+| la instalación | la capa que tiene que estar traída, el archivo de configuración que tiene que existir, la variable que tiene que estar exportada |
+| de qué lado corre | cliente o servidor, y si hace falta la credencial del proveedor |
+| lo que tiene que estar hecho antes | otro ítem |
+
+> Y una precondición que es otro ítem **no se escribe en prosa: va en `relation.depends`.**
+
+Es la distinción que más rinde de las tres. Lo que declara el frontmatter lo puede leer un comando —el orden topológico, el grafo de dependencias, el corte de una ventana— y lo que está en prosa no lo lee nadie. Un párrafo que dice *"depende de que la composición viva en el YAML"* sin el campo es una dependencia que existe para el que lee y no para el proyecto.
+
+Y las precondiciones se escriben **sin repetir el diagnóstico**. Si una precondición es la mitad del enunciado del ítem, sobra en uno de los dos lugares.
+
+### El *como / quiero / para* va en la user story, y una sola vez
+
+Es el título de la user story, que es donde ya se escribe:
+
+> Como quien abre el worklist, quiero cortar sólo las vistas que necesito, y que mover un archivo entre dos sea reasignar el ítem
+
+Una task que cuelga de una user story **no lo repite**. Repetirlo es reescribir el enunciado del padre en cada hijo, y con la regla del ancestro —una user story entra a un sprint con todas sus tasks— eso son cinco o siete copias del mismo párrafo que envejecen por separado.
+
+Una task suelta, sin `parent`, tampoco lo lleva. Si el para qué de una task no se puede leer del ítem del que cuelga, lo que falta es la user story.
+
+### Cuándo está hecha
+
+Los criterios de cierre, y son la sección que más cuidado lleva. La razón está medida:
+
+> El 2026-09-09, sobre el sprint 21: tres ítems que el board daba por `Finalizada` no cumplían lo que su propio archivo decía que había que cumplir — `graviton/sprints/` sin crear, `_sprints/` todavía en `AGENTS.md` y en siete specs, cero archivos `.d2` en el repo.
+
+**Eso se pudo decir porque estaba escrito contra qué medir.** El criterio de cierre es lo único que distingue *"está hecho"* de *"el proveedor dice que está hecho"*, y sin él el estado del board no se puede constatar: se le cree.
+
+Tres propiedades, cada una con su falla:
+
+| | |
+|---|---|
+| atómico | un criterio que dice dos cosas no se puede chequear a medias. Si se cumple una mitad, no hay respuesta — se parte en dos |
+| verificable | tiene que nombrar algo que se pueda mirar: un archivo que existe, un comando que sale con cero, una spec que dice tal cosa. *"Queda claro"* y *"funciona bien"* no se miden |
+| no redundante | dos criterios que se cumplen siempre juntos son uno, y el segundo hace parecer que hay más cerrado de lo que hay |
+
+Y una duda **no entra como criterio: entra como pregunta**, en `## Lo que hay que decidir`. Un criterio que en realidad es una duda no se puede cumplir, así que el ítem no cierra y nada dice por qué.
+
+### Referencias
+
+Tres vínculos, y los tres tienen dirección obligatoria.
+
+**La spec que el ítem toca.** El ítem cita la spec, y la spec **no cita al ítem** — es la regla de `AGENTS.md`, y el motivo es que el id de un ítem cambia por diseño cuando cruza al proveedor. Un endpoint `issue <id>` de bilinker es la excepción, porque es una referencia verificada y repuntable.
+
+**El ADR que decidió lo que el ítem ejecuta**, en `docs/adr/` de la capa impl del subsistema. Si la justificación de un ítem sólo existe adentro del ítem, lo que falta es el ADR.
+
+**Las dependencias, en `relation.depends`** y no en prosa, por lo dicho en § Precondiciones.
+
+### El ítem dice qué tiene que ser cierto, no cómo se decidió
+
+Es la regla que más cuesta y la que más rinde, y tiene evidencia propia:
+
+> Medido el 2026-09-09: las cinco tasks del modelo de vistas del sprint 22 van de 63 a 121 líneas, y buena parte es arqueología del propio ítem — *"acá decía X, y el argumento era bueno y la conclusión no"*. Una de ellas conservó cuatro días una premisa que otra del mismo sprint ya había matado, con la corrección escrita al lado, en otro archivo.
+
+Un ítem no se relee si releerlo cuesta lo que cuesta releer una spec. Y el que no se relee conserva premisas muertas, que es peor que no tener nada escrito: se le cree.
+
+| Va en el ítem | Va en el ADR |
+|---|---|
+| qué tiene que ser cierto cuando termine | por qué se decidió así |
+| contra qué se mide | qué alternativas se descartaron, y con qué argumento |
+| de qué depende | qué premisa cambió, y cuándo |
+
+**Y el registro de lo que cambió de opinión no se borra: se muda.** Va al ADR y a la prosa del sprint, que es donde ya vive, y ahí no le pone peso al ítem que alguien tiene que leer antes de trabajar.
+
+## Lo que todavía no está escrito acá
+
+**La revisión por otro.** Un ítem escrito por una persona y ejecutado por la misma no tiene quién le encuentre el criterio que falta — y las tres del sprint 21 son el ejemplo. El día que haya dos, la revisión necesita un lugar en el ítem y no sólo en el proceso: quién lo revisó, contra qué, y qué pasa cuando el alcance cambia después de aprobado.
+
+Queda anotado para no redescubrirlo.
