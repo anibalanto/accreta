@@ -10,9 +10,11 @@
 # asi que el glob de `.stratum/*/` no lo cubre.
 .worklist/
 
-# Notas de proceso de muckpile: se siguen committeando local (bilinker
-# necesita el commit para poder aceptar), pero no viajan si accreta vuelve
-# a empujarse. Sólo estos dos archivos puntuales — el resto de la spec de
+# Instrucciones de trabajo, no spec: ninguno de los dos se versiona, ni
+# siquiera local — no forzarlos con `git add -f`. `AGENTS.md` es la entrada
+# temporal de accreta mientras se reescribe (`CLAUDE.md`, que sí está, sólo
+# lo importa); la guía es cómo se trabaja en muckpile. Ninguno lleva bilinks,
+# así que bilinker no necesita verlos commiteados. El resto de la spec de
 # muckpile sigue el camino normal.
 /AGENTS.md
 /subsystems/muckpile/GUIA-DESARROLLO.md
