@@ -10,4 +10,9 @@ endpoint:
     name: dv-10
   1:
     link: capture b22a1178ecceaf8f10e7e6e79a318eec
+    accepted:
+    - agree:
+      - anibal
+      link: capture b22a1178ecceaf8f10e7e6e79a318eec
+      hash: af30864a2ec9ab273244753ed8da1cc0f26178bf153155430cba22bdeb34e033
     name: decision-records
