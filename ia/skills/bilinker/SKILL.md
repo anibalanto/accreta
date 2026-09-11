@@ -22,6 +22,8 @@ No hay archivo de configuración. La raíz se resuelve caminando hacia arriba de
   .gitignore             ← cache/ e index/
   index/index            ← lookup O(1) · no versionado
   head                   ← qué commit de la ref está materializado · no versionado
+  .<alias>.toml          ← un repo proveedor: su remote y su rama
+  <alias>/               ← su clon, superficial y con sparse · no versionado
 ```
 
 **Un capture es una ubicación y nada más** — `file` y `query`. Su nombre es el hash de esos campos, así que es inmutable por construcción: cambiarle la ubicación le cambiaría el nombre. Dos referencias a la misma ubicación son el mismo archivo, sin buscar duplicados.
@@ -95,8 +97,17 @@ El tipo va **adelante**, en un prefijo. Partir en el primer espacio y matchear. 
 | `capture <id>` | un capture de esta capa |
 | `path <stratum-path>` | una capa vecina — `path <`, `path >impl`, `path subsystems/bilinker>impl` |
 | `issue <id>` | un ítem del tracker — hoy resuelve contra `.worklist/`; va a pasar a `muckpile` (decisión `decisiones-vivas`) |
+| `repo <alias>` | un bilink de **otro repo**, con el mismo uuid; el alias se resuelve por `.bilink/.<alias>.toml` |
+| `abstract` | sin valor: la punta abierta que un repo publica para que otro la consuma |
 
-`repo <alias>` y `abstract` están especificados y no implementados (ADR-0005); `bilink <uuid>` también (`proposals/bilink-endpoint.md`).
+`bilink <uuid>` está especificado y no implementado (`proposals/bilink-endpoint.md`).
+
+### La frontera entre repos
+
+`repo` y `abstract` son la frontera del ADR-0005. El proveedor publica una punta con `chain new --tip <fragmento> --tip abstract`, y el consumidor la declara en `.bilink/.<alias>.toml` (`remote` y `branch`), la trae con `fetch`, la ve con `abstracts` y se cuelga con `chain new --from-repo <alias>:<uuid> --tip <su fragmento>`. El `.bilink` nunca lleva una URL, solo el alias.
+
+- **El clon sigue `refs/bilink/<branch>` del proveedor:** lo que el otro repo aceptó, no su copia de trabajo.
+- **`check` no hace red.** Un cambio que el proveedor re-aceptó llega como `CHAIN_DIRTY` recién después de `bilinker fetch`.
 
 ## Las dos dimensiones
 
@@ -130,7 +141,9 @@ La de ubicación son dos ids: no abre ningún archivo, y por eso se decide siemp
 | `ALTERED` | El fragmento cambió. | revisar + `accept` |
 | `UNRESOLVED` | El capture no resolvió. | resolver el capture |
 
-Propios de un endpoint `path`: `TODO` (la capa todavía no existe), `CHAIN_DIRTY` (el vecino re-aceptó), `BROKEN` (la capa o el bilink vecino desaparecieron).
+Propios de un endpoint `path`: `TODO` (la capa todavía no existe), `CHAIN_DIRTY` (el vecino re-aceptó), `BROKEN` (la capa o el bilink vecino desaparecieron), `LAYER_UNREACHABLE` (la capa está declarada y no clonada: `stratum pull`), `LAYER_UNCONFIGURED` (ni declarada ni presente, con aceptación previa).
+
+Propios de la frontera: `OPEN` (la punta `abstract`, siempre sana, y `accept .` no la toca), `REMOTE_UNREACHABLE` (el clon del proveedor no está: `bilinker fetch <alias>`), `REJECTED` (la otra punta dejó de ser `abstract`), y `CHAIN_DIRTY` como en `path`.
 
 ## Quién escribe qué
 
@@ -185,6 +198,10 @@ bilinker capture prune                        # borrar captures sin referentes
 bilinker chain new --tip <REF> --tip <REF>    # crear una cadena
 bilinker chain status <uuid>                  # todos los nodos de una cadena
 bilinker chain list
+
+bilinker fetch [<alias>]                      # traer un repo proveedor; sin alias, todos
+bilinker abstracts [<alias>]                  # qué publica el proveedor; sin alias, esta capa
+bilinker chain new --from-repo <alias>:<uuid> --tip <REF>   # consumir una punta abstract
 
 bilinker index --recursive                    # reconstruir el índice
 bilinker migrate --recursive                  # migrar el formato
@@ -241,3 +258,5 @@ Siempre unidireccional, desde el endpoint estructural hacia los `path`.
 ## Defectos conocidos
 
 Ninguno abierto sobre el formato. `subsystems/bilinker/proposals/` lleva lo especificado y no implementado: el endpoint de tipo `bilink`, y detectar el corrimiento con los hunks de git en vez de un escaneo.
+
+**`track` en un repo que todavía no tiene `.bilink/` deja una ref en la que `accept` no escribe nunca, y no falla.** `track` la crea con el árbol vacío. Después, cada `accept` escribe `accepted` en el `.bilink/` local, absorbe la rama, avisa que no está absorbida y que no escribió nada, y sale con 0. `check` dice `all clean`, pero la decisión no está en la ref, y `bilinker push` no la publica. Cada intento deja además un commit `absorb` más. Mientras no se arregle, un repo nuevo sigue el corte 005: primero `.bilink/` commiteado en la rama, después un commit que lo saca del índice, y recién ahí `init` y `track`.
