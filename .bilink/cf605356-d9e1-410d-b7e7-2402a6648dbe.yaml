@@ -10,4 +10,9 @@ endpoint:
     name: dv-3
   1:
     link: capture ae193f6300788e43c4ebce4830727346
+    accepted:
+    - agree:
+      - anibal
+      link: capture ae193f6300788e43c4ebce4830727346
+      hash: 1c22bcb3bb750255ff32c28583a34e392b6f86681dd54b9bd1f8b0f73a2c5138
     name: decision-records-ciclo
