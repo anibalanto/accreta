@@ -10,4 +10,9 @@ endpoint:
     name: dv-11
   1:
     link: capture 6b891cd1d7312bd909f26bc97a8d9342
+    accepted:
+    - agree:
+      - anibal
+      link: capture 6b891cd1d7312bd909f26bc97a8d9342
+      hash: 9a729d0ad2e0e14c13b3bc5c158ceeaded565bda31e2a5232cbc28d29cfe33eb
     name: decision-records-secciones
