@@ -9,4 +9,9 @@ endpoint:
       hash: a93f8a99e1ba2418497b26ff5175f96716f3be697e85bda08f784bbe8f8a4248
   1:
     link: capture b6441a9655f1ad76c356e34f6eaae975
+    accepted:
+    - agree:
+      - anibal
+      link: capture b6441a9655f1ad76c356e34f6eaae975
+      hash: ac630ca31bbc08ea1d8e1bbacafba3e5e282b8caa2effa32508097830d9e3b96
     name: track-corte
