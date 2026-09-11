@@ -6,7 +6,7 @@ endpoint:
     - agree:
       - anibal
       link: capture 7bab1cefb4498428cc79e4305cf381e5
-      hash: 4f41eb6e32ea1fbd2b1252eb69c60be1b51ef7726f7527c70f36a3f848d88956
+      hash: cfa5f65554ed9ef1fcee76c280ab75e8a7b7b8664057800d75fee772628d1417
     name: dv-16
   1:
     link: path subsystems/muckpile>impl
