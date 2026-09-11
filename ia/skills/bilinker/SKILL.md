@@ -20,6 +20,7 @@ No hay archivo de configuración. La raíz se resuelve caminando hacia arriba de
   version                ← la versión de formato
   .gitignore             ← cache/ e index/
   index/index            ← lookup O(1) · no versionado
+  head                   ← qué commit de la ref está materializado · no versionado
 ```
 
 **Un capture es una ubicación y nada más** — `file` y `query`. Su nombre es el hash de esos campos, así que es inmutable por construcción: cambiarle la ubicación le cambiaría el nombre. Dos referencias a la misma ubicación son el mismo archivo, sin buscar duplicados.
@@ -29,6 +30,37 @@ No hay archivo de configuración. La raíz se resuelve caminando hacia arriba de
 **Un bilink referencia captures y guarda decisiones.** No sabe dónde está su fragmento: sabe a qué capture preguntarle.
 
 **La cache no está en git.** Estar fría es normal — un clon fresco, otra rama, otra máquina.
+
+## Dónde viven: `refs/bilink/<branch>`
+
+**Ninguna rama del proyecto contiene `.bilink/`.** Los bilinks viven en `refs/bilink/<branch>`, una ref por rama: los de `main` están en `refs/bilink/main`. Cada commit de la ref es el árbol del proyecto más `.bilink/`. Una sola ref cubre todas las capas de un repo; un impl que es otro repo tiene la suya.
+
+- **`.bilink/` está en `.git/info/exclude` a propósito.** Lo pone `init`, junto con el refspec. Que `git status` no lo muestre no quiere decir que no esté versionado: está en la ref.
+- **`accept` y `apply` commitean en la ref como parte de su acto,** un commit por decisión. No hay "commit de bilinks" en la rama del proyecto. Si el proyecto avanzó desde la última vez, antes absorben su tip en un commit propio.
+- **La ref no se toca con git a mano.** Los refspecs los arma bilinker, y nadie los tipea.
+- **Cambiar de rama no pide nada:** cualquier comando ve que `head` no coincide con la rama y materializa el `.bilink/` de su ref.
+
+| Comando | Qué hace con la ref |
+|---|---|
+| `init` | Pone a punto el clon: el exclude, el refspec y el `.bilink/` materializado. Lo primero en un clon nuevo. |
+| `sync` | Absorbe el tip de la rama del proyecto, sin decidir nada. Casi nunca hace falta: `accept` y `apply` absorben solos. |
+| `push` | Publica `refs/bilink/<branch>` en el remoto. `git push` no la empuja. |
+| `pull` | Trae lo que otro aceptó en la misma rama, y lo une con lo propio. |
+| `track` | Crea la ref de una rama que no la tiene, heredando de la rama de la que sale. |
+| `adopt` | Trae las decisiones que aceptó otra rama, por ejemplo después de un rebase. |
+| `log` | El registro de decisiones: quién aceptó qué y cuándo. |
+| `diff` | `.bilink/` contra el commit de la ref del que salió. Vacío quiere decir que todo lo aceptado está en la ref. |
+
+**Publicar un repo son dos actos:** `git push` para la rama, y `bilinker push` para sus decisiones.
+
+**Una capa que todavía no cortó tiene `.bilink/` en la rama** y ninguna `refs/bilink/*`. Ahí `accept` no commitea nada, y los cambios se commitean a mano en la rama, como antes. El corte `005` la pasa a la ref, una sola vez:
+
+```
+1. un commit que saca .bilink/ del índice de la rama   → X   (se empuja antes de seguir)
+2. bilinker init                                        (exclude + refspec)
+3. bilinker track <branch>                              → la ref nace de X, con el .bilink/ del árbol
+4. el ledger registra 005
+```
 
 ## El archivo de bilink
 
