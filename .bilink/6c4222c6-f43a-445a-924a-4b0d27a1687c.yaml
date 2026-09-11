@@ -10,4 +10,9 @@ endpoint:
     name: dv-4
   1:
     link: capture 123f69cba72d1e0e6745e60ba4ca1429
+    accepted:
+    - agree:
+      - anibal
+      link: capture 123f69cba72d1e0e6745e60ba4ca1429
+      hash: 273150eaf63c3d59556d1cfa3925e233662e8e0f10441926e9bfc3f6751b32cc
     name: decision-records-cadena
