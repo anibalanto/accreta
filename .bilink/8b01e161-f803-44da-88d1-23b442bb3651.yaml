@@ -10,4 +10,9 @@ endpoint:
     name: dv-1
   1:
     link: capture 5814e1dfa93210b89a4c87510f8f3984
+    accepted:
+    - agree:
+      - anibal
+      link: capture 5814e1dfa93210b89a4c87510f8f3984
+      hash: dfded6fe9bdfe3e3b4235c61e72b98c617419bba51d1a3dc47ea2318c6c3799c
     name: decision-records-que-es
