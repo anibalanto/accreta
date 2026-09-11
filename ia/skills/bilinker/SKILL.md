@@ -61,7 +61,7 @@ El tipo va **adelante**, en un prefijo. Partir en el primer espacio y matchear. 
 |---|---|
 | `capture <id>` | un capture de esta capa |
 | `path <stratum-path>` | una capa vecina — `path <`, `path >impl`, `path subsystems/bilinker>impl` |
-| `issue <id>` | un ítem del worklist |
+| `issue <id>` | un ítem del tracker — hoy resuelve contra `.worklist/`; va a pasar a `muckpile` (decisión `decisiones-vivas`) |
 
 `repo <alias>` y `abstract` están especificados y no implementados (ADR-0005); `bilink <uuid>` también (`proposals/bilink-endpoint.md`).
 

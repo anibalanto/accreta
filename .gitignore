@@ -9,3 +9,7 @@
 # El worklist es un repo aparte, con sus worktrees adentro. No es una capa,
 # asi que el glob de `.stratum/*/` no lo cubre.
 .worklist/
+
+# La guía de desarrollo de muckpile no se versiona: se va, repartida entre la
+# decisión `decisiones-vivas` y el README de su impl.
+/subsystems/muckpile/GUIA-DESARROLLO.md
