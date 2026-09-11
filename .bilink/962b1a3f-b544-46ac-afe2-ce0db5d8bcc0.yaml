@@ -10,3 +10,8 @@ endpoint:
     name: dv-4-piloto
   1:
     link: path subsystems/muckpile>impl
+    accepted:
+    - agree:
+      - anibal
+      link: capture d5d155679a12da0431c73a3fcaa0e33d
+      hash: 471be6bd900682be0af0468506372cbf314e450953cdf0b8d8844131db4df5b3
