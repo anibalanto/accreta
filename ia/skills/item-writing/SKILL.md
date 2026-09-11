@@ -135,7 +135,7 @@ Y una duda **no entra como criterio: entra como pregunta**, en `## Lo que hay qu
 
 Tres vínculos, y los tres tienen dirección obligatoria.
 
-**La spec que el ítem toca.** El ítem cita la spec, y la spec **no cita al ítem** — es la regla de `AGENTS.md`, y el motivo es que el id de un ítem cambia por diseño cuando cruza al proveedor. Un endpoint `issue <id>` de bilinker es la excepción, porque es una referencia verificada y repuntable.
+**La spec que el ítem toca.** El ítem cita la spec, y la spec **no cita al ítem** — es la misma regla que `decision-records` aplica a las decisiones, y el motivo es que el id de un ítem cambia por diseño cuando cruza al proveedor. Un endpoint `issue <id>` de bilinker es la excepción, porque es una referencia verificada y repuntable.
 
 **La decisión que el ítem ejecuta**, en `docs/decisions/` —ver la skill `decision-records`—. Si la justificación de un ítem sólo existe adentro del ítem, lo que falta es la decisión.
 

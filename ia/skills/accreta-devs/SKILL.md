@@ -5,7 +5,7 @@ description: "El disparador del método de bilinker: cargar después de escribir
 
 Implementar algo que una spec de accreta ya describe no termina cuando el código compila y los tests pasan. Termina cuando queda un bilink conectando ese fragmento de spec con el fragmento de código, aceptado. Sin ese lazo, el próximo cambio a la spec no tiene cómo señalar que el código quedó atrás — es la misma clase de deuda silenciosa que el resto de accreta evita con esta herramienta en vez de a mano.
 
-**No es de un subsistema en particular.** Vale para todo accreta, porque el `AGENTS.md` de la raíz dice que el método es el de bilinker.
+**No es de un subsistema en particular.** Vale para todo accreta, porque la skill `accreta-method` dice que el método es el de bilinker.
 
 ## Cuándo
 
