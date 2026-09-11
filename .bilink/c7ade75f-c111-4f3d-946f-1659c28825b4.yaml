@@ -10,4 +10,9 @@ endpoint:
     name: dv-10
   1:
     link: capture b0ca304481d1de36c5522fd3e79b8fb9
+    accepted:
+    - agree:
+      - anibal
+      link: capture b0ca304481d1de36c5522fd3e79b8fb9
+      hash: 6b71c0aacdd3aa3d244bc6c50a26bd379f8dc41f67d95ec6e8e95e483f973036
     name: accreta-method
