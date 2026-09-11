@@ -6,7 +6,7 @@ endpoint:
     - agree:
       - anibal
       link: capture 5bfd51cfbe3adff012db08de59b42420
-      hash: 76692ec7aa85d4d1f25e97b35d489032488a7be97e9370552ece2c55b3c76e5b
+      hash: 69c47f2a7c331b5e2b117c54f1e5eabcac9251175982a55d69b376c2faf7b6e5
     name: dv-1
   1:
     link: capture ff7817bd899e848769811134fb72026c
