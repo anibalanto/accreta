@@ -10,4 +10,9 @@ endpoint:
     name: dv-2
   1:
     link: capture ff7817bd899e848769811134fb72026c
+    accepted:
+    - agree:
+      - anibal
+      link: capture ff7817bd899e848769811134fb72026c
+      hash: 4eef539e638171ca0a5d13fd066093f65633fae4d743de0f58513abe7900c29a
     name: decision-records-nombre
