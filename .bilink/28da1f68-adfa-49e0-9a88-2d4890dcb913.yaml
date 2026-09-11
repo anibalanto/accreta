@@ -14,5 +14,5 @@ endpoint:
     - agree:
       - anibal
       link: capture b22a1178ecceaf8f10e7e6e79a318eec
-      hash: ee705d491bbe47325910e71659b954a517496c92c1afecab760a31116c416ed6
+      hash: 9a53c690e1109508ddf191b8fe10928b745fa0e50eb93623b25f961758c30069
     name: decision-records
