@@ -1,6 +1,7 @@
 ---
 name: bilinker
-description: Referencias verificadas entre fragmentos de texto a través de capas Stratum. Cargar antes de cualquier tarea que toque bilinks — crear, revisar, aceptar, repuntar o seguir el inventario de un cambio.
+description: "Referencias verificadas entre fragmentos de texto a través de capas Stratum: captures, bilinks, sus estados, sus comandos, y dónde viven los bilinks, en refs/bilink/<branch>."
+when_to_use: "Antes de cualquier tarea que toque bilinks —crear, revisar, aceptar, repuntar, publicar o seguir el inventario de un cambio—, y antes de concluir que un bilink no está versionado."
 ---
 
 Bilinker mantiene referencias bidireccionales entre fragmentos a través de capas Stratum. La referencia apunta a un nodo del AST vía tree-sitter, no a un número de línea, así que sobrevive reformateos y movimientos.

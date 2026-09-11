@@ -1,6 +1,7 @@
 ---
 name: item-writing
-description: "Cómo se escribe un ítem — el título, el cuerpo, y cómo se lo nombra desde otro texto. Son convenciones de esta organización y de su proveedor, no del formato: un equipo con otro board tiene otras. Cargar al escribir, retitular o revisar un ítem."
+description: "Cómo se escribe un ítem: el título, el cuerpo, y cómo se lo nombra desde otro texto. Son convenciones de esta organización y de su proveedor, no del formato: un equipo con otro board tiene otras."
+when_to_use: "Al escribir, retitular o revisar un ítem, o al nombrar uno desde otro texto."
 ---
 
 Las convenciones de **redacción** de un ítem. La mecánica —dónde vive el trabajo, qué vista se abre, qué campos lleva el frontmatter— está en el README del impl de `muckpile`, y no se repite acá.

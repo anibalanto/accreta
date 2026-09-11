@@ -1,6 +1,7 @@
 ---
 name: accreta-method
-description: "Cómo se trabaja en accreta y en sus subsistemas: la cadena tarea ↔ decisión ↔ spec ↔ código, TDD, las reglas del código, los commits y dónde está cada cosa. Cargar al empezar cualquier trabajo en accreta, en uno de sus subsistemas o en una vista de muckpile, y siempre antes de escribir una spec o código y antes de commitear."
+description: "Cómo se trabaja en accreta y en sus subsistemas: la cadena tarea ↔ decisión ↔ spec ↔ código, TDD, la forma de la spec, las reglas del código, los commits y dónde está cada cosa."
+when_to_use: "Al empezar cualquier trabajo en accreta, en uno de sus subsistemas o en una vista de muckpile, y siempre antes de escribir una spec o código, y antes de commitear o empujar."
 ---
 
 Es cómo se trabaja hoy. El porqué está en las decisiones de `docs/decisions/`, en la raíz de accreta. Hoy hay una sola, `decisiones-vivas`, que todavía está en borrador: el método está en prueba, y esta skill la sigue mientras cambia. Cuando una decisión nueva cambia el método, el cambio se refleja acá.

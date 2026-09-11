@@ -1,6 +1,7 @@
 ---
 name: stratum-paths
-description: "Whenever you need to reference a filesystem path in a shell command, resolve it through `$(stratum '<path>')`. Never hardcode absolute paths. Load this skill when working with stratum path tokens (`*`, `<`, `>name`, etc.) or when composing Bash commands that navigate stratum layers."
+description: "How to reference filesystem paths in shell commands through `$(stratum '<path>')` and stratum path tokens (`*`, `<`, `>name`), instead of hardcoded absolute paths."
+when_to_use: "Whenever a Bash command references a file or directory path, or navigates stratum layers."
 ---
 
 Whenever you need to reference a filesystem path in a shell command, resolve it through `$(stratum '<path>')`. Never hardcode absolute paths.
