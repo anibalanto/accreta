@@ -10,4 +10,9 @@ endpoint:
     name: dv-8
   1:
     link: capture 982f6e298df6bf998d90d2cef4447745
+    accepted:
+    - agree:
+      - anibal
+      link: capture 982f6e298df6bf998d90d2cef4447745
+      hash: ecb6c0dae4a13c657d6a305f32e89760e041035d5e670df0b8ad10f65f68c112
     name: decision-records-tabla
