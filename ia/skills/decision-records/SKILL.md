@@ -3,7 +3,7 @@ name: decision-records
 description: "Cómo se escribe y se lleva una decisión: `docs/decisions/<AAAA-MM-DD>.<slug>.md`, viva mientras se desarrolla y congelada al aceptarse, atada con bilinks a su tarea, a la spec y al código. Cargar al tomar o registrar una decisión de diseño, al abrir o resolver una sección abierta, al actualizar la tabla de avance de una decisión y al aceptarla."
 ---
 
-Es la versión para máquinas de la decisión `decisiones-vivas`, que vive en `docs/decisions/2026-09-10.decisiones-vivas.md` de la raíz de accreta. **Si esta skill y esa decisión dicen cosas distintas, gana la decisión**, y hay que corregir la skill.
+Resume la decisión `decisiones-vivas`, que vive en `docs/decisions/2026-09-10.decisiones-vivas.md` de la raíz de accreta. **Esta skill se escribe a partir de esa decisión, y no al revés:** cuando la decisión cambia, se actualiza la skill.
 
 ## Qué es una decisión
 
@@ -77,7 +77,7 @@ Cada sección `### N.` termina con una tabla:
 - **Toda dimensión que no está cerrada tiene una tarea**, y el orden de las tareas en el board es el orden por riesgo.
 - **Un hallazgo entra en el momento en que aparece:** una fila en la tabla y una tarea. Si no se sabe a qué sección pertenece, probablemente falta una.
 - **La línea "Medido el … sobre `<commit>`"** se actualiza cada vez que se mide.
-- **Editar una tabla deja `EXPANDED` a los bilinks que capturan la sección entera.** Se revisa con `bilinker get <uuid>.<N> --diff` que lo único nuevo sea la tabla, y se re-aceptan.
+- **Editar una tabla deja `EXPANDED` a los bilinks que capturan la sección entera.** El diff lo da bilinker mismo (`bilinker get <uuid>.<N> --diff`): si lo único nuevo es la tabla, se re-aceptan.
 - **Mientras `muckpile` no pueda dejar tareas sin subir al proveedor, la tabla es el avance.** No se crean tareas de seguimiento en Jira: pueden molestar al PM, al funcional o al Scrum Master.
 
 ## La cadena

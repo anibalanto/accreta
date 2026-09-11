@@ -28,7 +28,7 @@ Cada subsistema tiene su implementación en `subsystems/<nombre>/.stratum/impl/`
 
 ## Cómo se trabaja
 
-**El método es el de la decisión `decisiones-vivas`** (`docs/decisions/2026-09-10.decisiones-vivas.md`), que todavía está en borrador: es un método en prueba. Si este archivo y esa decisión dicen cosas distintas, gana la decisión.
+**El método es el de la decisión `decisiones-vivas`** (`docs/decisions/2026-09-10.decisiones-vivas.md`), que todavía está en borrador: es un método en prueba. Este archivo se escribe a partir de esa decisión, y no al revés: cuando la decisión cambia, se actualiza este archivo.
 
 ```
 tarea ↔ decisión ↔ spec ↔ código        cada eslabón, un bilink
