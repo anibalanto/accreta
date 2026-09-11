@@ -86,6 +86,8 @@ Un camino menos que mantener, y uno que se ejercita cada vez que alguien abre un
 
 **El corte es el único commit de la ref sin ningún commit del proyecto absorbido por debajo**: nace de `X` como padre único, y ahí la fidelidad se lee contra `X` mismo.
 
+**Un repo que empieza sale sellado.** Si el árbol de trabajo no tiene ningún archivo de bilinks, `track` escribe antes del corte `.bilink/.gitignore` y `.bilink/version`, como cualquier comando que crea un `.bilink/`. Un commit de la ref se reconoce por llevar `.bilink/` en su árbol, y eso es lo que frena el recorrido hasta el commit absorbido ([la ref](../concepts/ref.md#la-correspondencia-con-el-proyecto-es-el-segundo-padre)). Un corte sin `.bilink/` haría que cada absorción pareciera un commit del proyecto, y ninguna decisión podría escribirse después.
+
 ## No es `sync`
 
 [`sync`](sync.md) no puede escribir el corte, y es correcto que no pueda: cuando no hay nada que absorber `sync` no escribe ningún commit, porque un merge con el mismo segundo padre y el mismo `.bilink/` no dice nada nuevo. En el corte no hay nada que absorber —`X` ya es el tip— y sin embargo hay un commit que escribir, porque el `.bilink/` del árbol todavía no está en ninguna parte.
