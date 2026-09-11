@@ -2,6 +2,11 @@ kind: governs
 endpoint:
   0:
     link: capture 962bfcf012e7f817fb70615db0924143
+    accepted:
+    - agree:
+      - anibal
+      link: capture 962bfcf012e7f817fb70615db0924143
+      hash: b2ef62d27eff63f5875f4699c12f37f0fc47f58868c47bc44653985155fbe56a
     name: dv-11
   1:
     link: capture 6b891cd1d7312bd909f26bc97a8d9342
