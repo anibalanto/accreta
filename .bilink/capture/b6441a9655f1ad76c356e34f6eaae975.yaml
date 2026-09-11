@@ -1,0 +1,6 @@
+file: subsystems/bilinker/commands/track.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "Especificación: comando `bilinker track`"))
+    (section
+    (atx_heading (inline) @n1 (#eq? @n1 "Sin candidato, la ref nace desde cero — y eso es el corte"))) @target)
