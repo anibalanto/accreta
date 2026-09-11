@@ -55,6 +55,12 @@ tarea ↔ decisión ↔ spec ↔ código        cada eslabón, un bilink
 | Spec de un subsistema que ya existía | `subsystems/<nombre>/`, hasta que se decida otra cosa |
 | El trabajo | `muckpile`: ver el README de su impl |
 
+## La spec
+
+- **`docs/specs/concepts/` tiene un archivo por concepto,** y `docs/specs/commands.md` la tabla de interfaz, con una fila por comando.
+- **Cada regla es un h3 cuyo título la nombra,** y el bilink al código ancla en ese h3, no en la sección entera.
+- **Se escribe en prosa y en presente:** dice lo que el sistema hace hoy. No cuenta cómo se llegó ahí, que es de la decisión, ni cita ítems. Un hecho medido que fija un comportamiento va con la fecha de la medición.
+
 ## Código
 
 - **Un identificador traduce el término de la spec, nunca inventa uno propio.** Si la spec dice "vista", el código dice `view` en todos lados.
