@@ -2,6 +2,11 @@ kind: governs
 endpoint:
   0:
     link: capture 029fa3ce5b84e64153cba05bef344449
+    accepted:
+    - agree:
+      - anibal
+      link: capture 029fa3ce5b84e64153cba05bef344449
+      hash: 1be3c899f782faa2fb9f3e730167995f9337acb7fb158d7a8ea798bab72ffa66
     name: dv-3
   1:
     link: capture ae193f6300788e43c4ebce4830727346
