@@ -10,3 +10,8 @@ endpoint:
     name: dv-16
   1:
     link: path subsystems/muckpile>impl
+    accepted:
+    - agree:
+      - anibal
+      link: capture 39d9cb75210c3e1535ca85b4f1d43d53
+      hash: acd6732d6bf622eb4748cfb4a6495db4aceb01c1a61b7bc0f650ad334b980a5b
