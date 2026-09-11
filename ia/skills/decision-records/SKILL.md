@@ -56,9 +56,11 @@ docs/decisions/<AAAA-MM-DD>.<slug>.md     la fecha es la de creación, y no camb
 
 ## La tabla de avance
 
-Cada sección `### N.` termina con una tabla:
+Cada sección `### N.` termina con un contador y una tabla:
 
 ```markdown
+**Avance: 1/1.**
+
 | Dimensión | Estado | Tarea | Evidencia |
 |---|---|---|---|
 | Un solo binario, sin hooks | `cerrada` | `ACC-362` | `main`, en `main.rs` ↔ esta sección |
@@ -74,6 +76,7 @@ Cada sección `### N.` termina con una tabla:
 | `abierta` | Todavía no está decidido. La columna `Tarea` lleva la question. |
 | `cumple` / `no cumple` | Para lo transversal, que no tiene un fragmento al que atar un bilink. |
 
+- **El contador es `N/M`:** `N` son las dimensiones `cerradas` y, en lo transversal, las que `cumple`, y `M` es el total de filas, con `falta spec` y `abierta` adentro. Se actualiza con la tabla, en el mismo cambio.
 - **Toda dimensión que no está cerrada tiene una tarea**, y el orden de las tareas en el board es el orden por riesgo.
 - **Un hallazgo entra en el momento en que aparece:** una fila en la tabla y una tarea. Si no se sabe a qué sección pertenece, probablemente falta una.
 - **La línea "Medido el … sobre `<commit>`"** se actualiza cada vez que se mide.
