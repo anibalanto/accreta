@@ -1,6 +1,7 @@
 ---
 name: decision-records
-description: "Cómo se escribe y se lleva una decisión: `docs/decisions/<AAAA-MM-DD>.<slug>.md`, viva mientras se desarrolla y congelada al aceptarse, atada con bilinks a su tarea, a la spec y al código. Cargar al tomar o registrar una decisión de diseño, al abrir o resolver una sección abierta, al actualizar la tabla de avance de una decisión y al aceptarla."
+description: "Cómo se escribe y se lleva una decisión: `docs/decisions/<AAAA-MM-DD>.<slug>.md`, viva mientras se desarrolla y congelada al aceptarse, con su tabla de avance, y atada con bilinks a su tarea, a la spec y al código."
+when_to_use: "Al tomar o registrar una decisión de diseño, al abrir o resolver una sección abierta, al actualizar la tabla de avance de una decisión y al aceptarla."
 ---
 
 Es cómo se escribe y se lleva una decisión hoy. El porqué está en la decisión `decisiones-vivas` (`docs/decisions/2026-09-10.decisiones-vivas.md`, en la raíz de accreta). Mientras esa decisión esté en borrador o en desarrollo, esta skill la sigue. Después, la regla vigente es la de la skill, y una decisión nueva que la cambie se refleja acá.

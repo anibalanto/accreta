@@ -1,6 +1,7 @@
 ---
 name: accreta-devs
-description: "El disparador del método de bilinker: cargar después de escribir o modificar código que implementa un fragmento de spec ya existente en cualquier subsistema de accreta (una sección de una decisión, una fila de tabla de interfaz, un fragmento de docs/specs/ o de concepts/*.md) — antes de dar la tarea por terminada, aunque nadie haya mencionado bilinker. La mecánica en sí vive en la skill `bilinker`; esta sólo dice cuándo no alcanza con haber escrito el código."
+description: "El disparador del método de bilinker: implementar algo que una spec ya dice no termina con el código, sino con el bilink aceptado entre el fragmento de spec y el de código. La mecánica vive en la skill `bilinker`; esta dice cuándo no alcanza con haber escrito el código."
+when_to_use: "Después de escribir o modificar código que implementa un fragmento de spec ya existente en cualquier subsistema de accreta —una sección de una decisión, una fila de tabla de interfaz, un fragmento de docs/specs/ o de concepts/*.md—, antes de dar la tarea por terminada, aunque nadie haya mencionado bilinker."
 ---
 
 Implementar algo que una spec de accreta ya describe no termina cuando el código compila y los tests pasan. Termina cuando queda un bilink conectando ese fragmento de spec con el fragmento de código, aceptado. Sin ese lazo, el próximo cambio a la spec no tiene cómo señalar que el código quedó atrás — es la misma clase de deuda silenciosa que el resto de accreta evita con esta herramienta en vez de a mano.
