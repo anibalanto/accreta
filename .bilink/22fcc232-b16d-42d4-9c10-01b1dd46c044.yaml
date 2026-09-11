@@ -1,0 +1,12 @@
+kind: governs
+endpoint:
+  0:
+    link: capture e94dc911ac14b4c088a8a3579ceaabaf
+    accepted:
+    - agree:
+      - anibal
+      link: capture e94dc911ac14b4c088a8a3579ceaabaf
+      hash: 8fe5de799fc0a56193b24827f9bdb48c5c7f12105272a98f544fa6fa97be6b11
+    name: dv-9
+  1:
+    link: path subsystems/muckpile>impl

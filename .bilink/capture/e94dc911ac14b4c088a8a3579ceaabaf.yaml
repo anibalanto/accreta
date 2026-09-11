@@ -1,0 +1,6 @@
+file: docs/decisions/2026-09-10.decisiones-vivas.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "Decisión"))
+    (section
+    (atx_heading (inline) @n1 (#eq? @n1 "9. Las tareas pueden no ir al proveedor, y eso se configura"))) @target)
