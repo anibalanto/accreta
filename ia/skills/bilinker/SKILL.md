@@ -258,5 +258,3 @@ Siempre unidireccional, desde el endpoint estructural hacia los `path`.
 ## Defectos conocidos
 
 Ninguno abierto sobre el formato. `subsystems/bilinker/proposals/` lleva lo especificado y no implementado: el endpoint de tipo `bilink`, y detectar el corrimiento con los hunks de git en vez de un escaneo.
-
-**`track` en un repo que todavía no tiene `.bilink/` deja una ref en la que `accept` no escribe nunca, y no falla.** `track` la crea con el árbol vacío. Después, cada `accept` escribe `accepted` en el `.bilink/` local, absorbe la rama, avisa que no está absorbida y que no escribió nada, y sale con 0. `check` dice `all clean`, pero la decisión no está en la ref, y `bilinker push` no la publica. Cada intento deja además un commit `absorb` más. Mientras no se arregle, un repo nuevo sigue el corte 005: primero `.bilink/` commiteado en la rama, después un commit que lo saca del índice, y recién ahí `init` y `track`.
