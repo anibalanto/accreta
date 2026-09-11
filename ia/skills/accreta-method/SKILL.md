@@ -76,6 +76,8 @@ Los paths se escriben con tokens de Stratum —`*` para la raíz, `<` para subir
 
 - **Un commit hace una sola cosa, y su mensaje ocupa una línea.**
 - **Arranca con el id de lo que ejecuta:** el slug de la decisión (`decisiones-vivas: …`) o el id del ítem (`@arreglar-el-hook: …`, o `ACC-347: …` cuando ya tiene clave). El prefijo `@` envejece a propósito: el ítem cambia de nombre cuando cruza al proveedor, y la historia no se reescribe.
-- **El orden es código, después spec y decisión, y después bilinks.** `accept` solo fija lo que ya está en la historia, así que nunca se acepta en una rama que se va a rebasar.
+- **El orden es código, después spec y decisión, y después se acepta.** `accept` solo fija lo que ya está en la historia, así que nunca se acepta en una rama que se va a rebasar.
+- **Los bilinks no se commitean a mano.** Viven en `refs/bilink/<branch>` de cada repo, y `accept` y `apply` commitean ahí solos: ver la skill `bilinker`, § "Dónde viven". Todo repo tiene sus bilinks en la ref, no en la rama.
 - **Cada repo commitea lo suyo:** accreta y cada impl son repos distintos.
+- **Empujar un repo es `git push` y `bilinker push`:** la rama, y sus decisiones.
 - **accreta se empuja solo por decisión humana.** El impl de `muckpile` se empuja al cerrar cada ciclo.
