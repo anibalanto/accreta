@@ -1,9 +1,9 @@
 ---
 name: item-writing
-description: "Cómo se escribe un ítem del worklist — el título, el cuerpo, y cómo se lo nombra desde otro texto. Son convenciones de esta organización y de su proveedor, no del formato: un equipo con otro board tiene otras. Cargar al escribir, retitular o revisar un ítem."
+description: "Cómo se escribe un ítem — el título, el cuerpo, y cómo se lo nombra desde otro texto. Son convenciones de esta organización y de su proveedor, no del formato: un equipo con otro board tiene otras. Cargar al escribir, retitular o revisar un ítem."
 ---
 
-Las convenciones de **redacción** de un ítem. La mecánica —dónde vive el trabajo, qué vista se corta, qué chequeos pasar, qué campos lleva el frontmatter— está en la skill `worklist`, y no se repite acá.
+Las convenciones de **redacción** de un ítem. La mecánica —dónde vive el trabajo, qué vista se abre, qué campos lleva el frontmatter— está en el README del impl de `muckpile`, y no se repite acá.
 
 > **Esto es lo que cambia si cambia la organización.** El vocabulario de categorías es de un equipo, y la regla del parser de abajo es de un proveedor. Una instalación con otro board hereda el formato y no hereda esta página.
 
@@ -137,7 +137,7 @@ Tres vínculos, y los tres tienen dirección obligatoria.
 
 **La spec que el ítem toca.** El ítem cita la spec, y la spec **no cita al ítem** — es la regla de `AGENTS.md`, y el motivo es que el id de un ítem cambia por diseño cuando cruza al proveedor. Un endpoint `issue <id>` de bilinker es la excepción, porque es una referencia verificada y repuntable.
 
-**El ADR que decidió lo que el ítem ejecuta**, en `docs/adr/` de la capa impl del subsistema. Si la justificación de un ítem sólo existe adentro del ítem, lo que falta es el ADR.
+**La decisión que el ítem ejecuta**, en `docs/decisions/` —ver la skill `decision-records`—. Si la justificación de un ítem sólo existe adentro del ítem, lo que falta es la decisión.
 
 **Las dependencias, en `relation.depends`** y no en prosa, por lo dicho en § Precondiciones.
 
@@ -147,13 +147,13 @@ Es la regla que más cuesta y la que más rinde.
 
 Un ítem que lleva adentro la arqueología de sí mismo —*"acá decía X, y el argumento era bueno y la conclusión no"*— cuesta releerlo lo que cuesta releer una spec. Y un ítem que no se relee conserva premisas muertas, que es peor que no tener nada escrito: se le cree, y nadie mira si la premisa sigue en pie.
 
-| Va en el ítem | Va en el ADR |
+| Va en el ítem | Va en la decisión |
 |---|---|
 | qué tiene que ser cierto cuando termine | por qué se decidió así |
 | contra qué se mide | qué alternativas se descartaron, y con qué argumento |
 | de qué depende | qué premisa cambió, y cuándo |
 
-**Y el registro de lo que cambió de opinión no se borra: se muda.** Va al ADR y a la prosa del sprint, que es donde ya vive, y ahí no le pone peso al ítem que alguien tiene que leer antes de trabajar.
+**Y el registro de lo que cambió de opinión no se borra: se muda.** Va a la decisión y a la prosa del sprint, que es donde ya vive, y ahí no le pone peso al ítem que alguien tiene que leer antes de trabajar.
 
 ## Lo que todavía no está escrito acá
 
