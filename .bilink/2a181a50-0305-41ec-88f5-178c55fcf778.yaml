@@ -1,0 +1,8 @@
+kind: governs
+endpoint:
+  0:
+    link: capture f68212216b5ea253025985f5cb74ba23
+    name: dv-8
+  1:
+    link: capture 982f6e298df6bf998d90d2cef4447745
+    name: decision-records-tabla
