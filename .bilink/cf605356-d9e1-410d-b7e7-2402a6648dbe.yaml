@@ -1,0 +1,8 @@
+kind: governs
+endpoint:
+  0:
+    link: capture 029fa3ce5b84e64153cba05bef344449
+    name: dv-3
+  1:
+    link: capture ae193f6300788e43c4ebce4830727346
+    name: decision-records-ciclo

@@ -1,0 +1,7 @@
+kind: governs
+endpoint:
+  0:
+    link: capture 7bab1cefb4498428cc79e4305cf381e5
+    name: dv-16
+  1:
+    link: path subsystems/muckpile>impl

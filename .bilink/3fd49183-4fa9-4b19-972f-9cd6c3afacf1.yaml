@@ -1,0 +1,8 @@
+kind: governs
+endpoint:
+  0:
+    link: capture 962bfcf012e7f817fb70615db0924143
+    name: dv-11
+  1:
+    link: capture 6b891cd1d7312bd909f26bc97a8d9342
+    name: decision-records-secciones

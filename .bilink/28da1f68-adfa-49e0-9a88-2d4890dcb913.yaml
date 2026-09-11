@@ -1,0 +1,13 @@
+kind: governs
+endpoint:
+  0:
+    link: capture e3b9cb855f26027fe7966c084a988a01
+    accepted:
+    - agree:
+      - anibal
+      link: capture e3b9cb855f26027fe7966c084a988a01
+      hash: 620cfe1dc8b2c6b32e4a51b18da846a00b6c3a2d854c1b3f5b9bd14fd7e849fa
+    name: dv-10
+  1:
+    link: capture b22a1178ecceaf8f10e7e6e79a318eec
+    name: decision-records

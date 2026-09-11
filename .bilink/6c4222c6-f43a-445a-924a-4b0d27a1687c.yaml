@@ -1,0 +1,8 @@
+kind: governs
+endpoint:
+  0:
+    link: capture 955b54bad70e82749b10a13d50583bd7
+    name: dv-4
+  1:
+    link: capture 123f69cba72d1e0e6745e60ba4ca1429
+    name: decision-records-cadena

@@ -1,0 +1,8 @@
+kind: governs
+endpoint:
+  0:
+    link: capture 955b54bad70e82749b10a13d50583bd7
+    name: dv-4
+  1:
+    link: capture 3f40d88b4af18264083f3308d5a5ecdd
+    name: accreta-method-cadena

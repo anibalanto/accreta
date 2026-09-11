@@ -1,0 +1,7 @@
+kind: governs
+endpoint:
+  0:
+    link: capture 955b54bad70e82749b10a13d50583bd7
+    name: dv-4-piloto
+  1:
+    link: path subsystems/muckpile>impl

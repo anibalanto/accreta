@@ -1,0 +1,8 @@
+kind: governs
+endpoint:
+  0:
+    link: capture b805a3c23e4e1a6866932a00441babfb
+    name: dv-14
+  1:
+    link: capture f8642c1bac90ea56fa97d15cca068e65
+    name: accreta-method-spec

@@ -1,0 +1,8 @@
+kind: governs
+endpoint:
+  0:
+    link: capture 5bfd51cfbe3adff012db08de59b42420
+    name: dv-1
+  1:
+    link: capture ff7817bd899e848769811134fb72026c
+    name: decision-records-nombre

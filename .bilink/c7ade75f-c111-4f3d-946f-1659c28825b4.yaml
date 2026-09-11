@@ -1,0 +1,8 @@
+kind: governs
+endpoint:
+  0:
+    link: capture e3b9cb855f26027fe7966c084a988a01
+    name: dv-10
+  1:
+    link: capture b0ca304481d1de36c5522fd3e79b8fb9
+    name: accreta-method

@@ -1,0 +1,7 @@
+kind: governs
+endpoint:
+  0:
+    link: capture 61aff0828780e58ce7a82b898304e81a
+    name: dv-5
+  1:
+    link: path subsystems/muckpile>impl

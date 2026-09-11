@@ -1,0 +1,4 @@
+file: ia/skills/accreta-method/SKILL.md
+query: |-
+  (section
+    (atx_heading (inline) @n0 (#eq? @n0 "La cadena"))) @target
