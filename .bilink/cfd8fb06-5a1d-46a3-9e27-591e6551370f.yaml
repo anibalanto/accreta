@@ -2,6 +2,11 @@ kind: governs
 endpoint:
   0:
     link: capture 61aff0828780e58ce7a82b898304e81a
+    accepted:
+    - agree:
+      - anibal
+      link: capture 61aff0828780e58ce7a82b898304e81a
+      hash: b2e32975c992dff51bf1f4628a73a9274efc2feb8f807aba0024a145426528cc
     name: dv-5
   1:
     link: path subsystems/muckpile>impl
