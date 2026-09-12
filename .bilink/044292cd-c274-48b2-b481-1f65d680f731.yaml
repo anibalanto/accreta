@@ -10,4 +10,9 @@ endpoint:
     name: decisiones-vivas-10
   1:
     link: capture 9b116e598a65f06d0be5dd4f8b9aa620
+    accepted:
+    - agree:
+      - anibal
+      link: capture 9b116e598a65f06d0be5dd4f8b9aa620
+      hash: 8b71df16f12bfaad21d1aa7c05790649d67a3825961c9df8570bb2f3f7ba5dc5
     name: spec-writing
