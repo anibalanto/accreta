@@ -53,4 +53,4 @@ Cuando la spec de un subsistema se muda de accreta a `docs/specs/` de su impl (`
 2. **Lo que era historia sale de la spec.** Si vale la pena conservarlo, va a una decisión del impl, no a la basura.
 3. **Los links que cruzaban de capa se vuelven prosa.**
 4. **Se crean los bilinks nuevos, anclados en la regla** —no en el archivo entero— y se aceptan.
-5. **La spec vieja se borra en accreta**, y sus bilinks siguen la decisión 6: no se re-aceptan, y su última aceptación queda como rastro.
+5. **La spec vieja se borra en accreta, y sus bilinks se borran con ella.** No es la decisión 6: ahí el fragmento sigue existiendo y el bilink queda `ALTERED` como rastro. Acá el fragmento ya no está en esa capa, el bilink queda `UNRESOLVED` para siempre y no puede decir nada de hoy. El rastro no se pierde: la última aceptación queda en la historia de `refs/bilink/<branch>`, que es donde vive toda decisión.
