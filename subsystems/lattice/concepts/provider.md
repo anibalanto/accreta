@@ -63,9 +63,9 @@ Los dos son **derivados** del lado de bilinker: `state` vive en su cache y `comm
 
 ### `lsp`
 
-Consulta a [`lspd`](../../lspd/overview.md) (`callees`, `callers`) por su socket local. Implementa `edges_from`, no `edges`: el call graph no se enumera, se expande.
+Consulta a `lspd` (`callees`, `callers`) por su socket local. Implementa `edges_from`, no `edges`: el call graph no se enumera, se expande.
 
-**Y el socket es el de su workspace**, que [se deriva de él](../../lspd/concepts/transport.md#el-nombre-no-puede-ser-el-folder-tal-cual): quien pregunta pasa la raíz que le va a preguntar. Con una puerta por sistema, dos proyectos abiertos se pisaban el daemon y el segundo recibía *una negación* en vez de *no sé*.
+**Y el socket es el de su workspace**, que se deriva de él: quien pregunta pasa la raíz que le va a preguntar. Con una puerta por sistema, dos proyectos abiertos se pisaban el daemon y el segundo recibía *una negación* en vez de *no sé*.
 
 Requiere resolver el anclaje del nodo antes de preguntar — ver [node.md](node.md) § "Anclaje".
 

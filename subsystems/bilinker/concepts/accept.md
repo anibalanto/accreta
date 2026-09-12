@@ -189,7 +189,7 @@ pub trait Neighbours {
 
 Hasta acá el vecindario era el único lugar del formato donde **una ubicación externa se hasheaba cruda**, y de esa anomalía salían tres cosas: que el hash cubriera el *nombre* del tipo y no su forma, que un DTO que cambia de archivo mueva el fold sin que nadie sepa por qué, y que no se pudiera preguntar **qué tipos son**. Con captures las tres se caen juntas.
 
-`None` es *"no pude mirar"* y no *"no hay vecinos"* — la distinción de la que sale el estado. El binario le pasa una implementación que le habla a [`lspd`](../../lspd/overview.md); la librería no lo menciona, y **no es para evitar un ciclo** —ya no hay— sino para que bilinker no quede atado a *ese* daemon: mañana puede ser SCIP, un índice propio, o un language server hablado directo.
+`None` es *"no pude mirar"* y no *"no hay vecinos"* — la distinción de la que sale el estado. El binario le pasa una implementación que le habla a `lspd`; la librería no lo menciona, y **no es para evitar un ciclo** —ya no hay— sino para que bilinker no quede atado a *ese* daemon: mañana puede ser SCIP, un índice propio, o un language server hablado directo.
 
 **El puerto recibe posiciones, no el rango del fragmento.** Es la división que importa: *dónde hay un tipo que preguntar* es gramática, y la gramática es de bilinker; *qué declara ese tipo* es del proveedor. Pasarle el rango lo obligaría a inventar dónde preguntar adentro, y un proveedor que adivina eso está haciendo trabajo que no es suyo con conocimiento que no tiene.
 
@@ -207,7 +207,7 @@ Lo que no puede es distinguirlo de *"el servidor de atrás todavía no indexó"*
 
 > **La distinción la tiene que dar quien la sabe.** Un proveedor que no puede contestar tiene que decirlo contestando `None`, no un vacío. Bilinker no tiene con qué adivinarlo: si pusiera una guarda contra el vacío, rompería el caso legítimo, y si no la pone, come el ilegítimo. **No hay una tercera opción de este lado del puerto** — es el motivo de que el puerto tenga tres respuestas y no dos.
 
-Del lado de `lspd` eso es [`-32001`](../../lspd/concepts/protocol.md#un-error-es-del-método-no-del-transporte), que el binario traduce a `None`. Un proveedor que ni siquiera pueda saber si está listo —porque el servidor de atrás no lo informa— devuelve lo que tenga: ahí la distinción no se puede dar en ningún lado, y eso es una propiedad del lenguaje, no un defecto que bilinker pueda tapar.
+Del lado de `lspd` eso es `-32001`, que el binario traduce a `None`. Un proveedor que ni siquiera pueda saber si está listo —porque el servidor de atrás no lo informa— devuelve lo que tenga: ahí la distinción no se puede dar en ningún lado, y eso es una propiedad del lenguaje, no un defecto que bilinker pueda tapar.
 
 #### Y un daemon de otro workspace es un `None`, no un fracaso
 
@@ -246,7 +246,7 @@ Así que la regla es la que este documento ya tiene, aplicada a un caso que no c
 
 La deducción del `cwd` era **una costura y estaba dicho**: el daemon no informaba su workspace, y `/proc` es de Linux.
 
-Desde que [la ruta del socket se deriva del workspace](../../lspd/concepts/transport.md#el-nombre-no-puede-ser-el-folder-tal-cual), no hay a quién verificar: **el que contesta en mi puerta es el mío por construcción.** El chequeo se borra, y no porque se haya arreglado — porque el caso no se puede representar.
+Desde que la ruta del socket se deriva del workspace, no hay a quién verificar: **el que contesta en mi puerta es el mío por construcción.** El chequeo se borra, y no porque se haya arreglado — porque el caso no se puede representar.
 
 > Es lo que este proyecto prefiere en todos lados: que lo inválido no exista, en vez de detectarlo.
 
@@ -270,7 +270,7 @@ Que un fragmento *tenga* vecindario se sabe por la gramática y no por el provee
 
 **La tercera es la que faltaba, y su ausencia era una mentira.** Escribirla como ausencia rompía la propiedad que este documento exige más abajo —que la ausencia sin marca tenga **un** significado— sin que nadie se enterara.
 
-Es la misma figura que la readiness de [`lspd`](../../lspd/concepts/language-servers.md#un-servidor-que-no-informa-su-estado-no-se-puede-esperar), y por el mismo motivo: **el tercer valor es el que hace honestos a los otros dos.** Un error que sale ahí tiene que decir *por qué* no se alcanza, porque quien lo lea no tiene cómo deducirlo:
+Es la misma figura que la readiness de `lspd`, y por el mismo motivo: **el tercer valor es el que hace honestos a los otros dos.** Un error que sale ahí tiene que decir *por qué* no se alcanza, porque quien lo lea no tiene cómo deducirlo:
 
 ```
 Error: el fragmento de crates/bilinker/src/check.rs es el archivo entero, y su
