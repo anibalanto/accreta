@@ -229,8 +229,10 @@ El fragmento tiene que estar commiteado: aceptar fija un contenido, y ese conten
 | Tipo de documento | Ánclas estables | Frágil |
 |---|---|---|
 | Código | función, método, clase, declaración con nombre | comentario, `use`/`import` |
-| Markdown | heading h1–h4, fila de tabla, bloque de código | párrafo libre |
+| Markdown | heading h2–h4, fila de tabla, bloque de código | párrafo libre, h1 |
 | YAML / TOML | clave de mapping, item con `id:` | valor string libre |
+
+**Qué anclar, y con qué grano, es otra decisión:** la skill [`bilink-anchors`](../bilink-anchors/SKILL.md). Acá está la mecánica.
 
 ## Propagación por la cadena
 
