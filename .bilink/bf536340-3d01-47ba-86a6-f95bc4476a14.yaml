@@ -10,4 +10,9 @@ endpoint:
     name: decisiones-vivas-10
   1:
     link: capture cfed0164acc18e18980558b8b6c58072
+    accepted:
+    - agree:
+      - anibal
+      link: capture cfed0164acc18e18980558b8b6c58072
+      hash: 15b243312b8c7d1508aca5778f39b80728c32c5c6d4fbdf9b7cb8f5ae6991818
     name: bilink-anchors
