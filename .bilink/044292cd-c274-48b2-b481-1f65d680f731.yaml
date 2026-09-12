@@ -1,0 +1,13 @@
+kind: governs
+endpoint:
+  0:
+    link: capture e3b9cb855f26027fe7966c084a988a01
+    accepted:
+    - agree:
+      - anibal
+      link: capture e3b9cb855f26027fe7966c084a988a01
+      hash: ee4e51eec76159aef54626b002b36751dc88ac9d45cf12e517db956f1259d28a
+    name: decisiones-vivas-10
+  1:
+    link: capture 9b116e598a65f06d0be5dd4f8b9aa620
+    name: spec-writing
