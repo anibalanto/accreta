@@ -25,6 +25,8 @@ Cada subsistema tiene su implementación en `subsystems/<nombre>/.stratum/impl/`
 | Skill | Cuándo |
 |---|---|
 | `bilinker` | siempre: las referencias verificadas son el método |
+| `bilink-anchors` | al elegir qué fragmento se ata con cuál, y con qué grano |
+| `spec-writing` | al escribir, corregir o mudar una spec |
 | `stratum-paths` | siempre: cualquier path se compone con ella |
 | `decision-records` | al tomar, escribir o resolver una decisión, o al llevar su avance |
 | `accreta-devs` | después de escribir código que implementa algo que una spec ya dice, antes de darlo por terminado |
@@ -61,6 +63,8 @@ tarea ↔ decisión ↔ spec ↔ código        cada eslabón, un bilink
 - **`docs/specs/concepts/` tiene un archivo por concepto,** y `docs/specs/commands.md` la tabla de interfaz, con una fila por comando.
 - **Cada regla es un h3 cuyo título la nombra,** y el bilink al código ancla en ese h3, no en la sección entera.
 - **Se escribe en prosa y en presente:** dice lo que el sistema hace hoy. No cuenta cómo se llegó ahí, que es de la decisión, ni cita ítems. Un hecho medido que fija un comportamiento va con la fecha de la medición.
+
+Cómo se escribe una, y cómo se muda, está en la skill `spec-writing`; qué fragmento se ata y con qué grano, en `bilink-anchors`.
 
 ## Código
 

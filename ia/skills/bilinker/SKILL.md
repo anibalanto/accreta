@@ -232,17 +232,7 @@ El fragmento tiene que estar commiteado: aceptar fija un contenido, y ese conten
 | Markdown | heading h2–h4, fila de tabla, bloque de código | párrafo libre, h1 |
 | YAML / TOML | clave de mapping, item con `id:` | valor string libre |
 
-### Qué tan fino: nunca un h1
-
-**Un h1 es el archivo entero.** Anclado ahí, cualquier edición a cualquier regla del archivo marca el bilink, y quien lo revisa no sabe si le tocaron la suya. Se ancla el **h3 de la regla** que gobierna ese fragmento de código. Medido el 2026-09-12: en accreta, 151 de 247 anclas de markdown son de archivo entero; en el impl de `muckpile`, que nació con la regla, 71 de 104 son de fragmento.
-
-**Se ancla entero lo que gobierna entero:** una decisión, un ADR, un README. Ahí no hay reglas sueltas que alguien toque por separado.
-
-**El título es el ancla, y se elige una vez.** Renombrarlo deja el capture `UNANCHORED`, y hay que recapturar. Cuando una spec se muda o se reordena, cambia la estructura —un `##` que es una regla pasa a `###`— y no las palabras del título.
-
-**Dos títulos iguales no son ancla.** `capture` se niega antes de escribir, y el error dice qué matcheó dos veces. Pasa entre el h1 y un `##` que se llaman igual, y en código entre dos `impl` del mismo tipo.
-
-**En código se apunta a la columna del nombre.** `archivo.rs:10:1` cae en la indentación y captura el nodo que lo contiene —el `impl` entero—; `archivo.rs:10:5`, sobre `pub fn`, captura la función. El ancla se verifica con `bilinker get <uuid>.<N>` antes de aceptar.
+**Qué anclar, y con qué grano, es otra decisión:** la skill [`bilink-anchors`](../bilink-anchors/SKILL.md). Acá está la mecánica.
 
 ## Propagación por la cadena
 
