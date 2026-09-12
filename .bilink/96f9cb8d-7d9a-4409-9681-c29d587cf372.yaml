@@ -14,5 +14,5 @@ endpoint:
     - agree:
       - anibal
       link: capture f8642c1bac90ea56fa97d15cca068e65
-      hash: 3c889268194958abda5c06a11cf8165b1e31473802a528faff39f7df7a3098b4
+      hash: c47d01e59e1e97097b7e0fe3930f5187201c9f22523370ef35cdc9bcf0ed8698
     name: accreta-method-spec
