@@ -2,7 +2,7 @@
 
 ## Propósito
 
-El ciclo de vida de [`lspd`](../../lspd/overview.md), con el nombre que los usuarios de lattice ya tenían.
+El ciclo de vida de `lspd`, con el nombre que los usuarios de lattice ya tenían.
 
 **No es un comando propio: es el mismo, reexportado.** `lattice daemon start` hace exactamente lo que `lspd start`, y existe porque el daemon salió de lattice y quitarle a la gente el comando que venía usando sería cobrarle a ella una reorganización que no pidió.
 
@@ -12,7 +12,7 @@ lattice daemon stop
 lattice daemon status
 ```
 
-Los tres delegan. Qué hacen, qué imprimen y con qué código salen está en [`lspd`](../../lspd/commands/lspd.md), y no se repite acá: dos specs del mismo comando divergen el día que alguien toca una.
+Los tres delegan. Qué hacen, qué imprimen y con qué código salen está en `lspd`, y no se repite acá: dos specs del mismo comando divergen el día que alguien toca una.
 
 ## Auto-start, que sí es de lattice
 

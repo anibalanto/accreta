@@ -115,7 +115,7 @@ Resolver un tipo hasta su declaración es trabajo de language server, no de tree
 
 | | Quién | Qué hace |
 |---|---|---|
-| encontrar los vecinos | **[`lspd`](../../lspd/overview.md)** | `definitions` sobre la firma. Un salto. No persiste nada. |
+| encontrar los vecinos | **`lspd`** | `definitions` sobre la firma. Un salto. No persiste nada. |
 | pedirlos | **bilinker**, por un puerto que no nombra a nadie | `Neighbours::of` — y `None` es *no pude mirar* |
 | hashear y escribir | **bilinker** | aplica el recorte de bordes, foldea, escribe `accepted` |
 | comparar en `check` | **bilinker** | compara lo guardado contra lo que le traen. Nunca resuelve un tipo. |
