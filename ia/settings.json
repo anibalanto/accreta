@@ -1,0 +1,24 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -e '.tool_input.command // \"\" | test(\"auto_(update|comment)\")' >/dev/null && printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"auto_update y auto_comment los cambia una persona, no una sesion: ningun comando de shell los nombra\"}}' || true"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -e '(.tool_input.file_path // \"\" | test(\"(^|/)muckpile\\\\.toml$\")) and ([.tool_input.new_string // \"\", .tool_input.content // \"\"] | join(\"\\n\") | test(\"auto_(update|comment)\"))' >/dev/null && printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"auto_update y auto_comment de muckpile.toml los cambia una persona, no una sesion\"}}' || true"
+          }
+        ]
+      }
+    ]
+  }
+}
