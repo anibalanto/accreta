@@ -136,7 +136,7 @@ Una consecuencia práctica: **la entrada en el ledger va cuando el paso terminó
 <herramienta> migrate [<path>] [--recursive] [--dry-run]
 ```
 
-Para bilinker, ver [commands/migrate.md](../subsystems/bilinker/commands/migrate.md).
+Para bilinker, ver la regla de `migrate` en la spec de su impl, en `docs/specs/concepts/migration.md`.
 
 Cada herramienta expone su propio subcomando y registra sus migraciones; el runner compartido aporta el ledger, el orden, el dry-run y el reporte. No hay un `accreta migrate` único: tendría que conocer el formato de todos los subsistemas, que además viven en repos separados.
 

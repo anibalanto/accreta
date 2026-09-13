@@ -22,7 +22,7 @@ Un endpoint puede apuntar a un ítem marcado —`issue @arreglar-el-hook`— por
 
 Hoy no se paga porque no hay ningún endpoint `issue` en el proyecto — medido. Este documento existe para que sean muchos, así que **el churn se decide antes de crearlos**, no después: se acepta, se automatiza, o se evita creando el bilink recién cuando el ítem ya tiene su id.
 
-> **`link.0` todavía no se puede expresar.** Un endpoint que apunta a otro `.bilink` es el endpoint de tipo bilink, que está especificado y no implementado — vive en [`proposals/bilink-endpoint.md`](../../bilinker/proposals/bilink-endpoint.md). Todo lo de este documento espera a que vuelva.
+> **`link.0` todavía no se puede expresar.** Un endpoint que apunta a otro `.bilink` es el endpoint de tipo bilink, que está especificado y no implementado — vive en la decisión `bilink-endpoint` del impl de bilinker. Todo lo de este documento espera a que vuelva.
 
 `bilinker check` detecta cambios en ambos extremos:
 - Si el bilink estructural fue re-aceptado con nuevo hash → `state.0: ALTERED`

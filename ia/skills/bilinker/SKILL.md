@@ -100,7 +100,7 @@ El tipo va **adelante**, en un prefijo. Partir en el primer espacio y matchear. 
 | `repo <alias>` | un bilink de **otro repo**, con el mismo uuid; el alias se resuelve por `.bilink/.<alias>.toml` |
 | `abstract` | sin valor: la punta abierta que un repo publica para que otro la consuma |
 
-`bilink <uuid>` está especificado y no implementado (`proposals/bilink-endpoint.md`).
+`bilink <uuid>` está especificado y no implementado: es la decisión `bilink-endpoint` en `docs/decisions/` del impl.
 
 ### La frontera entre repos
 
@@ -212,7 +212,7 @@ Cada `--tip` es un path Stratum con `:LINE:COL` opcional. Sin posición captura 
 
 ```bash
 bilinker chain new \
-  --tip 'subsystems/bilinker/concepts/capture.md:29:1' \
+  --tip 'subsystems/bilinker>impl/docs/specs/concepts/capture.md:29:1' \
   --tip 'subsystems/bilinker>impl/crates/bilinker/src/capture.rs:523:1'
 ```
 
@@ -259,4 +259,4 @@ Siempre unidireccional, desde el endpoint estructural hacia los `path`.
 
 ## Defectos conocidos
 
-Ninguno abierto sobre el formato. `subsystems/bilinker/proposals/` lleva lo especificado y no implementado: el endpoint de tipo `bilink`, y detectar el corrimiento con los hunks de git en vez de un escaneo.
+Ninguno abierto sobre el formato. Lo especificado y no implementado está en `docs/decisions/` del impl, como decisiones abiertas: el endpoint de tipo `bilink`, y detectar el corrimiento con los hunks de git en vez de un escaneo.
