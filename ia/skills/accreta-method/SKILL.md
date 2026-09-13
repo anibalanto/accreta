@@ -54,8 +54,7 @@ tarea ↔ decisión ↔ spec ↔ código        cada eslabón, un bilink
 |---|---|
 | Decisiones del método, o que cruzan subsistemas | `docs/decisions/` de la raíz de accreta |
 | Decisiones de un subsistema | `docs/decisions/` de su impl. Los ADR numerados de `docs/adr/` son historia. |
-| Spec de un subsistema nuevo | `docs/specs/` de su impl, al lado del código |
-| Spec de un subsistema que ya existía | `subsystems/<nombre>/`, hasta que se decida otra cosa |
+| Spec de un subsistema | `docs/specs/` de su impl, al lado del código. Solo la de `worklist` sigue en `subsystems/worklist/`, como historia. |
 | El trabajo | `muckpile`: ver el README de su impl |
 
 ## La spec
