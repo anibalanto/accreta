@@ -33,7 +33,7 @@ Una rama segura se hace responsable de poder verificarse entera contra el provee
 
 **El path espeja el nombre de la rama, y dice la capacidad.** Parado en un directorio sabés si podés empujar sin preguntarle a git, y una IA que trabaja ahí lo sabe por su `cwd` sin que nadie se lo diga.
 
-**Y son ramas, no un namespace propio de refs.** El worklist es un repo aparte, así que el argumento por el que [los bilinks viven fuera de `refs/heads/`](../../bilinker/concepts/ref.md#fuera-de-refsheads) —*que un clon del proyecto no los arrastre*— acá no aplica. Esto quiere branchear, mergear y diffear, que es la maquinaria de una rama.
+**Y son ramas, no un namespace propio de refs.** El worklist es un repo aparte, así que el argumento por el que los bilinks viven fuera de `refs/heads/` —*que un clon del proyecto no los arrastre*— acá no aplica. Esto quiere branchear, mergear y diffear, que es la maquinaria de una rama.
 
 ### Cada commit de una segura es también un commit de `insecure/all`
 

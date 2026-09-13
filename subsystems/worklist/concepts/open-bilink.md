@@ -16,7 +16,7 @@ endpoint:
     link: path >impl
 ```
 
-El endpoint 1 **no tiene `accepted`**, y eso *es* el estado pendiente: no hay que enunciarlo en ningún campo. `bilinker check` lo reporta como `TODO` —en vez de `PENDING`— cuando además la capa apuntada no existe todavía. Ese estado vive en [la cache](../../bilinker/concepts/cache.md), no en el archivo.
+El endpoint 1 **no tiene `accepted`**, y eso *es* el estado pendiente: no hay que enunciarlo en ningún campo. `bilinker check` lo reporta como `TODO` —en vez de `PENDING`— cuando además la capa apuntada no existe todavía. Ese estado vive en la cache de bilinker, no en el archivo.
 
 Una vez creada la capa y aceptado el endpoint, pasa a `OK`.
 
