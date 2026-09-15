@@ -40,6 +40,8 @@ No hay archivo de configuración. La raíz se resuelve caminando hacia arriba de
 
 - **`.bilink/` está en `.git/info/exclude` a propósito.** Lo pone `init`, junto con el refspec. Que `git status` no lo muestre no quiere decir que no esté versionado: está en la ref.
 - **`accept` y `apply` commitean en la ref como parte de su acto,** un commit por decisión. No hay "commit de bilinks" en la rama del proyecto. Si el proyecto avanzó desde la última vez, antes absorben su tip en un commit propio.
+- **Ese commit lleva su bilink y los captures nuevos que referencia, y nada más.** Otro cambio del `.bilink/` —un bilink borrado, un capture suelto— queda pendiente en `bilinker diff`. Un borrado se publica con `remove`, nunca esperando la próxima aceptación.
+- **Un capture no se borra a mano.** Sólo se agrega, y `verify-ref` rechaza un commit que lo borre. Los que quedan sin referentes los saca `capture prune`.
 - **La ref no se toca con git a mano.** Los refspecs los arma bilinker, y nadie los tipea.
 - **Cambiar de rama no pide nada:** cualquier comando ve que `head` no coincide con la rama y materializa el `.bilink/` de su ref.
 
@@ -50,7 +52,9 @@ No hay archivo de configuración. La raíz se resuelve caminando hacia arriba de
 | `push` | Publica `refs/bilink/<branch>` en el remoto. `git push` no la empuja. |
 | `pull` | Trae lo que otro aceptó en la misma rama, y lo une con lo propio. |
 | `track` | Crea la ref de una rama que no la tiene, heredando de la rama de la que sale. |
-| `adopt` | Trae las decisiones que aceptó otra rama, por ejemplo después de un rebase. |
+| `adopt` | Trae lo que decidió otra rama —`accepted`, la declaración `link` y `n`, los bilinks nuevos y sus captures—, por ejemplo después de un `merge --no-ff`. Lo que la otra rama borró se reporta y se queda. Con un conflicto no escribe nada. |
+| `remove` | Borra el bilink y commitea el borrado en la ref, en un commit propio. Publica también un borrado que sólo está en el árbol. |
+| `verify-ref` | Verifica que los commits de un rango tengan la forma de la ref, llegados por cualquier padre. Antes de empujar, sobre el rango nuevo. |
 | `log` | El registro de decisiones: quién aceptó qué y cuándo. |
 | `diff` | `.bilink/` contra el commit de la ref del que salió. Vacío quiere decir que todo lo aceptado está en la ref. |
 
@@ -154,6 +158,7 @@ Propios de la frontera: `OPEN` (la punta `abstract`, siempre sana, y `accept .` 
 | `accept` | `accepted` en el bilink. Lo único que escribe una decisión. |
 | `apply` | acuña captures y repunta un `link`. Nunca escribe `accepted`. |
 | `recapture` | repunta un `link` a mano. Tampoco acepta. |
+| `remove` | borra el bilink, y commitea el borrado en la ref. |
 
 **`apply` propone, `accept` dispone.** Un fix nunca cierra el ciclo solo: `apply` repunta y deja el endpoint en `RELOCATED`, porque mover un vínculo a otro fragmento es una decisión igual que aprobar un contenido.
 
@@ -167,6 +172,7 @@ Ningún comando modifica un capture existente. La única operación sobre el con
 2. `bilinker check .` reporta los endpoints no-OK.
 3. Cada no-OK es un puntero al fragmento de código que implementaba esa spec. Se sigue con `bilinker get`.
 4. Se cambia el código y se acepta.
+5. Si `accept` adquirió el vecindario de tipos, el endpoint queda `CONTRACT_RELOCATED` hasta declararlo: `bilinker apply <uuid>.<N> -y`, acotado a ese endpoint. Un `apply -y` de toda la capa propone además subir la cobertura de cada endpoint con el vecindario renunciado, y eso es otra decisión.
 
 **El inventario de trabajo de un cambio *es* la lista de no-OK.** Buscar el código a mano produce una lista que envejece el mismo día que se escribe.
 
@@ -184,6 +190,7 @@ bilinker get <file>                           # endpoints que referencian el arc
 
 bilinker apply --dry-run                      # qué repuntaría
 bilinker apply -y                             # repuntar sin confirmar
+bilinker apply <uuid>[.<N>] -y                # sólo los fixes de ese bilink o endpoint
 
 bilinker accept <uuid>.<N>                    # un endpoint
 bilinker accept <uuid>                        # los dos
@@ -205,7 +212,8 @@ bilinker chain new --from-repo <alias>:<uuid> --tip <REF>   # consumir una punta
 
 bilinker index --recursive                    # reconstruir el índice
 bilinker migrate --recursive                  # migrar el formato
-bilinker remove <uuid>                        # borrar un bilink de esta capa
+bilinker remove <uuid>                        # borrar un bilink de esta capa, y publicarlo en la ref
+bilinker verify-ref <viejo>..refs/bilink/<rama>   # la forma de los commits nuevos, antes de empujar
 ```
 
 Cada `--tip` es un path Stratum con `:LINE:COL` opcional. Sin posición captura el archivo entero. El path puede atravesar directorios comunes antes de bajar a una capa:
