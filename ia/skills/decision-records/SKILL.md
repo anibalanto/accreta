@@ -92,7 +92,7 @@ tarea ↔ decisión ↔ spec ↔ código
 
 **Cada eslabón es un bilink `governs`.** La spec vive en `docs/specs/` del repo del impl. Nada se muda: un cambio en la decisión deja la spec `ALTERED`, y corregir la spec deja el código `ALTERED`.
 
-**Un bilink que ya no se va a re-aceptar no se borra.** Pasa, por ejemplo, cuando una decisión posterior reescribió el fragmento, o cuando la tarea se cerró. Su última aceptación fija qué decía cada punta en ese momento, y es el rastro que permite ir desde una tarea vieja hasta el código de entonces.
+**Un bilink que ya no se va a re-aceptar se borra, con `bilinker remove`.** Pasa cuando una decisión posterior reescribió el fragmento, o cuando lo que gobernaba quedó como historia, como un ADR numerado. El rastro no se pierde: la última aceptación, que fija qué decía cada punta y en qué commit, queda en la historia de `refs/bilink/<branch>`, y `remove` publica el borrado en un commit propio. Dejarlo `ALTERED` haría que `check` no quede limpio nunca, y un aviso que nadie va a atender entrena a no mirar ninguno.
 
 La mecánica de bilinker —capturas, `chain new`, `accept`— está en la skill `bilinker`. Cuándo hay que cerrar el ciclo está en `accreta-devs`.
 
