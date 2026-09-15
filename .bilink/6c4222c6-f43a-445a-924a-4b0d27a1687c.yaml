@@ -14,5 +14,5 @@ endpoint:
     - agree:
       - anibal
       link: capture 123f69cba72d1e0e6745e60ba4ca1429
-      hash: 273150eaf63c3d59556d1cfa3925e233662e8e0f10441926e9bfc3f6751b32cc
+      hash: 3dcff2506b0eed1f53d78e274b3b06abfecc0b45ced714bed79222154c8c62a0
     name: decision-records-cadena
