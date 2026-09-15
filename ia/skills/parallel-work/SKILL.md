@@ -24,7 +24,7 @@ for k in <clave>...; do muckpile to-work $k; done
 
 ## En cada vista, antes de abrir la sesión
 
-3. **Un worktree por repo que el ítem toca,** en la rama del ítem, que sale de `commit_prefix` y del número de la clave.
+3. **Un worktree por repo que el ítem toca,** en la rama del ítem, que sale de `commit_prefix` y del número de la clave. En una vista con slug —`@algo`— la clave sale del ítem con clave que la vista tenga; si todavía es un borrador, `code-work add` se niega y la rama se nombra con `--branch <rama>`.
 
 ```sh
 cd to-work/<clave>
@@ -75,10 +75,10 @@ cd to-work/<clave> && claude
 
 ## Cerrar cada ítem
 
-9. **Publicar cada rama con su ref.** Son dos actos por repo, y `git push` solo no alcanza. Una capa anidada se publica desde su propio directorio.
+9. **Publicar cada rama con su ref.** Son dos actos por repo, y `git push` solo no alcanza. Una capa anidada se publica desde su propio directorio. Antes, `verify-ref` sobre lo nuevo sale ok, y si rechaza no se empuja: la ref es append-only, y un commit mal formado que llega al remoto se queda para siempre.
 
 ```sh
-(cd code-work/<repo> && git push -u origin <rama> && bilinker push)
+(cd code-work/<repo> && bilinker verify-ref refs/bilink/main..refs/bilink/<rama> && git push -u origin <rama> && bilinker push)
 ```
 
 10. **Llevar a `main` con merge, nunca con rebase.** Un accept fija un contenido que tiene que existir en la historia, y un rebase reescribe esa historia. Las decisiones aceptadas en la rama se traen con `adopt`. Para un repo de `code-work/` se hace en `base/<repo>/`, que siempre está en `main`; para una capa anidada, en la capa misma, porque `base/` no la conoce.
@@ -102,6 +102,8 @@ muckpile transition <clave> Finalizada
 
 ## Lo que hay que saber antes de arrancar
 
+- **Un bilink que se borra se borra en las dos capas que ata,** con `bilinker remove` en cada una: un borrado de un solo lado deja al otro `BROKEN`, y `remove` es lo único que lo publica.
+- **Encadenar con `&&`, nunca con `;`,** lo que verifica y lo que publica: un `verify-ref` que rechaza y un `push` que sale igual es el error más caro de esta lista.
 - **Una capa que no hizo el corte** tiene `.bilink/` en el árbol de la rama y ninguna `refs/bilink/*`. La sesión que la toque hace el corte además de su trabajo: ver la skill `bilinker`, § "Dónde viven".
 - **En el worktree del repo raíz, `bilinker check .` reporta `LAYER_UNREACHABLE`** en los bilinks que cruzan a capas que nadie trajo. Es esperado. Los que importan son los de la capa que se está tocando, y esos resuelven porque está traída en su lugar.
 - **Con `auto_update` en `false`, cada escritura en el proveedor pide la frase en la terminal.** Una sesión de Claude no tiene terminal para eso: `transition` y `push` los corre la persona, con `!` desde el prompt. Cambiar el flag no es una opción de la sesión.

@@ -83,5 +83,6 @@ Los paths se escriben con tokens de Stratum —`*` para la raíz, `<` para subir
 - **El orden es código, después spec y decisión, y después se acepta.** `accept` solo fija lo que ya está en la historia, así que nunca se acepta en una rama que se va a rebasar.
 - **Los bilinks no se commitean a mano.** Viven en `refs/bilink/<branch>` de cada repo, y `accept` y `apply` commitean ahí solos: ver la skill `bilinker`, § "Dónde viven". Todo repo tiene sus bilinks en la ref, no en la rama.
 - **Cada repo commitea lo suyo:** accreta y cada impl son repos distintos.
-- **Empujar un repo es `git push` y `bilinker push`:** la rama, y sus decisiones.
+- **Empujar un repo es `git push` y `bilinker push`:** la rama, y sus decisiones. Antes, `bilinker verify-ref` sobre lo nuevo sale ok; si rechaza, no se empuja.
+- **Un bilink que no se va a re-aceptar se borra con `bilinker remove`,** en las dos capas que ata. El rastro queda en la historia de la ref: ver la skill `decision-records`, § "La cadena".
 - **accreta se empuja solo por decisión humana.** El impl de `muckpile` se empuja al cerrar cada ciclo.
