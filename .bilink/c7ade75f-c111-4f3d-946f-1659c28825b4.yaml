@@ -12,7 +12,7 @@ endpoint:
     link: capture b0ca304481d1de36c5522fd3e79b8fb9
     accepted:
     - agree:
-      - Anibal
+      - anibal
       link: capture b0ca304481d1de36c5522fd3e79b8fb9
-      hash: c140055b4f0b3169c0f5e4bc0d5d4d1876525341a130c6c30a71c7da795cc339
+      hash: 9a591c9e3ff1ec985a4d724963cb7fff31e7e315975b6d5e33133d02211cedff
     name: accreta-method
