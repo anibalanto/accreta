@@ -103,6 +103,7 @@ muckpile transition <clave> Finalizada
 ## Lo que hay que saber antes de arrancar
 
 - **Un bilink que se borra se borra en las dos capas que ata,** con `bilinker remove` en cada una: un borrado de un solo lado deja al otro `BROKEN`, y `remove` es lo único que lo publica.
+- **Cada copia de un repo levanta su propio daemon de `lspd`, y ninguno se apaga solo.** `check`, `accept` y `apply` levantan uno por ruta —`base/`, cada `code-work/`, cada capa anidada— con sus language servers, y `lspd` no tiene apagado por inactividad. Medido el 2026-09-16: un `rust-analyzer` sobre bilinker ocupa 1,85 GB, y diecisiete vivos a la vez, de un día de trabajo en varias vistas, llevaron la sesión a 20,9 GB y el sistema la mató. Al terminar con una copia, `lspd stop` en ella, y `ps` antes de levantar otra.
 - **Encadenar con `&&`, nunca con `;`,** lo que verifica y lo que publica: un `verify-ref` que rechaza y un `push` que sale igual es el error más caro de esta lista.
 - **Una capa que no hizo el corte** tiene `.bilink/` en el árbol de la rama y ninguna `refs/bilink/*`. La sesión que la toque hace el corte además de su trabajo: ver la skill `bilinker`, § "Dónde viven".
 - **En el worktree del repo raíz, `bilinker check .` reporta `LAYER_UNREACHABLE`** en los bilinks que cruzan a capas que nadie trajo. Es esperado. Los que importan son los de la capa que se está tocando, y esos resuelven porque está traída en su lugar.
