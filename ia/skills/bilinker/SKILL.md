@@ -238,6 +238,7 @@ El fragmento tiene que estar commiteado: aceptar fija un contenido, y ese conten
 |---|---|---|
 | Código | función, método, clase, declaración con nombre | comentario, `use`/`import` |
 | Markdown | heading h2–h4, fila de tabla, bloque de código | párrafo libre, h1 |
+| Gherkin (`.feature`) | escenario, esquema del escenario, regla, característica, por su título | paso suelto, etiqueta, fila de `Ejemplos` |
 | YAML / TOML | clave de mapping, item con `id:` | valor string libre |
 
 **Qué anclar, y con qué grano, es otra decisión:** la skill [`bilink-anchors`](../bilink-anchors/SKILL.md). Acá está la mecánica.
