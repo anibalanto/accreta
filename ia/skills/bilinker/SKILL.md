@@ -52,7 +52,7 @@ No hay archivo de configuración. La raíz se resuelve caminando hacia arriba de
 | `push` | Publica `refs/bilink/<branch>` en el remoto. `git push` no la empuja. |
 | `pull` | Trae lo que otro aceptó en la misma rama, y lo une con lo propio. |
 | `track` | Crea la ref de una rama que no la tiene, heredando de la rama de la que sale. |
-| `adopt` | Trae lo que decidió otra rama —`accepted`, la declaración `link` y `n`, los bilinks nuevos y sus captures—, por ejemplo después de un `merge --no-ff`. Lo que la otra rama borró se reporta y se queda. Con un conflicto no escribe nada. |
+| `adopt` | Trae lo que decidió otra rama —`accepted`, la declaración `link` y `n`, los bilinks nuevos y sus captures—, por ejemplo después de llevar la rama a `main`. Lo que la otra rama borró se reporta y se queda. Con un conflicto no escribe nada. |
 | `remove` | Borra el bilink y commitea el borrado en la ref, en un commit propio. Publica también un borrado que sólo está en el árbol. |
 | `verify-ref` | Verifica que los commits de un rango tengan la forma de la ref, llegados por cualquier padre. Antes de empujar, sobre el rango nuevo. |
 | `log` | El registro de decisiones: quién aceptó qué y cuándo. |

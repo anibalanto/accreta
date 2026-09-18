@@ -81,12 +81,20 @@ cd to-work/<clave> && claude
 (cd code-work/<repo> && bilinker verify-ref refs/bilink/main..refs/bilink/<rama> && git push -u origin <rama> && bilinker push)
 ```
 
-10. **Llevar a `main` con merge, nunca con rebase.** Un accept fija un contenido que tiene que existir en la historia, y un rebase reescribe esa historia. Las decisiones aceptadas en la rama se traen con `adopt`. Para un repo de `code-work/` se hace en `base/<repo>/`, que siempre está en `main`; para una capa anidada, en la capa misma, porque `base/` no la conoce.
+10. **La rama se pone al día con `rebase`, y entra a `main` con `--ff-only`.** `main` queda lineal, y de qué ítem vino cada commit lo dice su mensaje, que arranca con la clave. Las decisiones aceptadas en la rama se traen con `adopt`. Para un repo de `code-work/` se hace en `base/<repo>/`, que siempre está en `main`; para una capa anidada, en la capa misma, porque `base/` no la conoce.
+
+**Rebasar es lo último que se hace antes de aceptar, nunca después.** Un accept fija un contenido que tiene que existir en la historia, y un rebase abandona el commit que lo tenía. Si igual pasó —y pasa—, la ref queda afirmando un commit que ya no está, y se repara con `bilinker sync` **antes de tocar nada más de la ref**: absorbe el tip nuevo y vuelve a cumplir la fidelidad. Lo aceptado no se pierde, porque todo commit alguna vez absorbido sigue alcanzable desde la ref.
 
 ```sh
+cd <organización>/projects/<proyecto>/to-work/<clave>/code-work/<repo>
+git fetch . main:main && git rebase main && bilinker sync
+bilinker check . && bilinker accept .
+
 cd <organización>/projects/<proyecto>/base/<repo>
-git pull --ff-only && git merge --no-ff <rama> && bilinker adopt <rama> && git push && bilinker push
+git pull --ff-only && git merge --ff-only <rama> && bilinker adopt <rama> && git push && bilinker push
 ```
+
+**Con `--ff-only`, varias ramas no cierran a la vez:** la primera entra derecho y las demás rebasan sobre el `main` nuevo, y cada rebase vuelve a pedir el `sync` y los accepts. El cierre de un lote es en fila, aunque el trabajo haya sido en paralelo.
 
 11. **Cerrar el ítem desde su vista,** con lo que quedó commiteado.
 
