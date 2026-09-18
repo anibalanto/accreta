@@ -38,11 +38,13 @@ muckpile code-work add <raíz>
 (cd code-work/<raíz>/subsystems/<nombre> && stratum pull)
 ```
 
-4. **La ref de bilinks de la rama, en cada repo que se toca.** `track` crea `refs/bilink/<rama>` heredando de la de `main`. Una capa traída con `stratum pull` es un clon fresco: primero `init`, después su rama, y recién ahí `track`. Si `track` falla, se para ahí: todo lo demás depende de esto.
+4. **La ref de bilinks de la rama, en cada repo que se toca.** `track` crea `refs/bilink/<rama>` heredando de la de `main`. Un worktree nuevo no tiene el `.bilink/` materializado, así que va `init` antes; una capa traída con `stratum pull` es un clon fresco: primero `init`, después su rama, y recién ahí `track`.
+
+**`track` lleva `--from main`.** Sin él busca de qué rama sale la nueva, y una rama recién sacada de `main` es ancestro de todas las que tienen ref: medido el 2026-09-18 sobre bilinker, con 27, tardó más de 3 minutos y terminó pidiendo `--from`. Con él tardó 3 segundos. Si `track` falla, se para ahí: todo lo demás depende de esto.
 
 ```sh
-(cd code-work/<repo> && bilinker track <rama> && bilinker status)
-(cd code-work/<raíz>/subsystems/<nombre>/.stratum/impl && bilinker init && git checkout -b <rama> && bilinker track <rama> && bilinker status)
+(cd code-work/<repo> && bilinker init && bilinker track <rama> --from main && bilinker status)
+(cd code-work/<raíz>/subsystems/<nombre>/.stratum/impl && bilinker init && git checkout -b <rama> && bilinker track <rama> --from main && bilinker status)
 ```
 
 `muckpile` no ve una capa anidada: no la sincroniza ni la publica. Es un repo más, que se empuja y se mergea a mano como cualquier otro.
